@@ -11,14 +11,14 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.sayHello"
+    "onCommand:extension.syncIarProjectFile"
   ],
   "main": "./out/extension",
   "contributes": {
     "commands": [
       {
-        "command": "extension.sayHello",
-        "title": "Hello World"
+        "command": "extension.syncIarProjectFile",
+        "title": "IAR: Sync Project File"
       }
     ]
   },
@@ -37,8 +37,6 @@
     "@types/mocha": "^2.2.42"
   },
   "dependencies": {
-    "@types/xml2js": "^0.4.3",
-    "cxml": "^0.3.1",
-    "xml2js": "^0.4.19"
+    "xml-js": "^1.6.8"
   }
 }
