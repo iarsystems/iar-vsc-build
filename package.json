@@ -20,6 +20,18 @@
         "command": "extension.syncIarProjectFile",
         "title": "IAR: Sync Project File"
       }
+    ],
+    "configuration": [
+      {
+        "title": "IAR",
+        "properties": {
+          "iarvsc.iarRootPaths": {
+            "type": "array",
+            "description": "Root path where IAR installs its applications.",
+            "default": ["C:\\Program Files\\IAR", "C:\\Program Files (x86)\\IAR"]
+          }
+        }
+      }
     ]
   },
   "scripts": {

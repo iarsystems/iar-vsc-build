@@ -11,6 +11,9 @@ export function activate(context: vscode.ExtensionContext) {
 
         let ret = project.parse();
 
+        let settings = vscode.workspace.getConfiguration("iarvsc");
+        console.log(settings.get("iarRootPaths"));
+
         if (!ret) {
             project.getConfigs().forEach(element => {
                 console.log(element.getName());
