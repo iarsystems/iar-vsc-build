@@ -2,7 +2,7 @@
 
 
 import * as vscode from 'vscode';
-import * as iar from './iar/project'
+import * as iar from './iar/project';
 
 export function activate(context: vscode.ExtensionContext) {
 
