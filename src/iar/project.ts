@@ -2,7 +2,7 @@
 
 import * as fs from 'fs';
 import * as xmljs from 'xml-js';
-import * as mPath from 'path';
+import * as lPath from 'path';
 import * as iar_errors from './errors';
 import * as iar_config from './config';
 import { XmlNode } from './XmlNode';
@@ -11,31 +11,15 @@ export class Project {
     private projectFile: fs.PathLike;
     private rootElement?: XmlNode;
 
+    private configs: iar_config.Config[];
+
     constructor(projectFile: fs.PathLike) {
         this.projectFile = projectFile;
+        this.configs = [];
     }
 
-    /**
-     * replaceIarProjDirInPaths
-     */
-    public replaceIarProjDirInPaths(paths: string[]): string[] {
-        let newPaths: string[] = [];
-
-        paths.forEach(path => {
-            newPaths.push(this.replaceIarProjDirInPath(path));
-        });
-
-        return newPaths;
-    }
-
-
-    /**
-     * replaceIarProjDirInPath
-     */
-    public replaceIarProjDirInPath(path: string): string {
-        let projectFolder = mPath.dirname(this.projectFile.toString());
-
-        return path.replace("$PROJ_DIR$", projectFolder);
+    public getProjectDirectory(): string {
+        return lPath.dirname(this.projectFile.toString());
     }
 
 
@@ -66,6 +50,8 @@ export class Project {
 
             if(root.name === 'project') {
                 this.rootElement = new XmlNode(root);
+
+                this.configs = iar_config.Config.parseFromProject(this);
             }
             else
             {
@@ -80,17 +66,11 @@ export class Project {
         return undefined;
     }
 
+    public getXml(): XmlNode | undefined {
+        return this.rootElement;
+    }
+
     public getConfigs(): iar_config.Config[] {
-        let configs: iar_config.Config[] = [];
-
-        if(this.rootElement) {
-            let children = this.rootElement.getAllChildsByName('configuration');
-
-            children.forEach(child => {
-                configs.push(new iar_config.Config(this, child));
-            });
-        }
-
-        return configs;
+        return this.configs;
     }
 }

@@ -2,6 +2,7 @@
 
 import { XmlNode } from './XmlNode';
 import { Project } from './project';
+import { ReplaceUtils } from '../utils/utils';
 
 enum SettingsNames {
     CCompiler = 'ICCARM',
@@ -14,69 +15,118 @@ enum SettingsOptions {
 }
 
 export class Config {
-    private mProject: Project;
-    private mData: XmlNode;
+    private mName: string;
+    private mDefines: string[];
+    private mIncludes: string[];
+    private mPreIncludes: string[];
 
-    constructor(parentProject: Project, data: XmlNode) {
-        this.mProject = parentProject;
-        this.mData = data;
+    private constructor(name: string, defines: string[], includes: string[], preIncludes: string[]) {
+        this.mName = name;
+        this.mDefines = defines;
+        this.mIncludes = includes;
+        this.mPreIncludes = preIncludes;
     }
 
-    public getName(): string | undefined {
-        let ret: string | undefined = undefined;
+    public static parseFromProject(project: Project): Config[] {
+        let configs: Config[] = [];
 
-        let nameChild = this.mData.getFirstChildByName('name');
+        let xmlRoot = project.getXml();
+
+        if(xmlRoot) {
+            let xmlConfigs = xmlRoot.getAllChildsByName("configuration");
+
+            xmlConfigs.forEach(child => {
+                let name = Config.parseName(child);
+                let defines = Config.parseDefines(child);
+                let includes = Config.parseIncludePaths(project, child);
+                let preincludes = Config.parsePreIncludes(project, child);
+
+                configs.push(new Config(name, defines, includes, preincludes));
+            });
+        }
+
+
+        return configs;
+    }
+
+    public getName(): string { 
+        return this.mName;
+    }
+
+    public getDefines(): string[] {
+        return this.mDefines;
+    }
+
+    public getIncludePaths(): string[] {
+        return this.mIncludes;
+    }
+
+    public getPreIncludes(): string[] {
+        return this.mPreIncludes;
+    }
+
+    private static parseName(node: XmlNode): string {
+        let ret: string = "";
+
+        let nameChild = node.getFirstChildByName('name');
         
         if(nameChild) {
-            ret = nameChild.getText();
+            let name = nameChild.getText();
+
+            if(name) {
+                ret = name as string;
+            }
         }
 
         return ret;
     }
 
-    public getDefines(): string[] {
-        let settings = this.findSettings(SettingsNames.CCompiler);
+    private static parseDefines(node: XmlNode): string[] {
+        let settings = Config.findSettings(node, SettingsNames.CCompiler);
 
         if(settings) {
-            let option = this.findOptionFromSetting(settings, SettingsOptions.CDefines);
+            let option = Config.findOptionFromSetting(settings, SettingsOptions.CDefines);
 
             if(option) {
-                return this.getStatesAsStringsFromOption(option);
+                return Config.parseStatesAsStringsFromOption(option);
             }
         }
 
         return [];
     }
 
-    public getIncludePaths(): string[] {
-        let settings = this.findSettings(SettingsNames.CCompiler);
+    private static parseIncludePaths(project: Project, node: XmlNode): string[] {
+        let settings = Config.findSettings(node, SettingsNames.CCompiler);
 
         if(settings) {
-            let option = this.findOptionFromSetting(settings, SettingsOptions.CIncludePaths2);
+            let option = Config.findOptionFromSetting(settings, SettingsOptions.CIncludePaths2);
 
             if(option) {
-                return this.mProject.replaceIarProjDirInPaths(this.getStatesAsStringsFromOption(option));
+                let projectDirectory = project.getProjectDirectory();
+                let paths = Config.parseStatesAsStringsFromOption(option);
+
+                return ReplaceUtils.replaceInStrings("$PROJ_DIR$", projectDirectory, paths);
             }
         }
 
         return [];
     }
 
-    public getPreIncludes(): string[] {
-        let settings = this.findSettings(SettingsNames.CCompiler);
+    private static parsePreIncludes(project: Project, node: XmlNode): string[] {
+        let settings = Config.findSettings(node, SettingsNames.CCompiler);
 
         if(settings) {
-            let option = this.findOptionFromSetting(settings, SettingsOptions.CPreInclude);
+            let option = Config.findOptionFromSetting(settings, SettingsOptions.CPreInclude);
 
             if(option) {
-                return this.mProject.replaceIarProjDirInPaths(this.getStatesAsStringsFromOption(option));
+                return ReplaceUtils.replaceInStrings("$PROJ_DIR$", project.getProjectDirectory(), Config.parseStatesAsStringsFromOption(option));
             }
         }
 
         return [];
     }
 
-    private getStatesAsStringsFromOption(option: XmlNode): string[] {
+    private static parseStatesAsStringsFromOption(option: XmlNode): string[] {
         let data: string[] = [];
 
         option.getAllChildsByName('state').forEach(state => {
@@ -90,7 +140,7 @@ export class Config {
         return data;
     }
 
-    private findOptionFromSetting(setting: XmlNode, name: string): XmlNode | undefined {
+    private static findOptionFromSetting(setting: XmlNode, name: string): XmlNode | undefined {
         let data = setting.getFirstChildByName('data');
 
         if(data) {
@@ -114,8 +164,8 @@ export class Config {
         return undefined;
     }
 
-    private findSettings(name: SettingsNames): XmlNode | undefined {
-        let settings = this.mData.getAllChildsByName('settings');
+    private static findSettings(node: XmlNode, name: SettingsNames): XmlNode | undefined {
+        let settings = node.getAllChildsByName('settings');
 
         for(let idx=0; idx<settings.length; idx += 1) {
             let setting = settings[idx];
