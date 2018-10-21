@@ -6,6 +6,7 @@ import { ReplaceUtils } from '../utils/utils';
 import { Define, XmlDefine } from './define';
 import { IarXml } from '../utils/xml';
 import { IncludePath, XmlIncludePath } from './includepaths';
+import { PreIncludePath, XmlPreIncludePath } from './preincludepath';
 
 enum SettingsNames {
     CCompiler = 'ICCARM',
@@ -21,9 +22,9 @@ export class Config {
     private xmlData: XmlNode;
     private defines: Define[];
     private includes: IncludePath[];
-    private preIncludes: string[];
+    private preIncludes: PreIncludePath[];
 
-    private constructor(xmlConfigElement: XmlNode, defines: Define[], includes: IncludePath[], preIncludes: string[]) {
+    private constructor(xmlConfigElement: XmlNode, defines: Define[], includes: IncludePath[], preIncludes: PreIncludePath[]) {
         if(xmlConfigElement.getTagName() !== 'configuration') {
             throw new Error("Expected an xml element 'configuration' instead of '" + xmlConfigElement.getTagName() + "'");
         }
@@ -43,9 +44,9 @@ export class Config {
             let xmlConfigs = xmlRoot.getAllChildsByName("configuration");
 
             xmlConfigs.forEach(config => {
-                let defines = XmlDefine.parseDefinesFromconfiguration(config);
+                let defines = XmlDefine.parseFromconfiguration(config);
                 let includes = XmlIncludePath.parseFromconfiguration(config, project.getProjectDirectory());
-                let preincludes = Config.parsePreIncludes(project, config);
+                let preincludes = XmlPreIncludePath.parseFromconfiguration(config, project.getProjectDirectory());
 
                 configs.push(new Config(config, defines, includes, preincludes));
             });
@@ -67,22 +68,8 @@ export class Config {
         return this.includes;
     }
 
-    public getPreIncludes(): string[] {
+    public getPreIncludes(): PreIncludePath[] {
         return this.preIncludes;
-    }
-
-    private static parsePreIncludes(project: Project, node: XmlNode): string[] {
-        let settings = Config.findSettings(node, SettingsNames.CCompiler);
-
-        if(settings) {
-            let option = Config.findOptionFromSetting(settings, SettingsOptions.CPreInclude);
-
-            if(option) {
-                return ReplaceUtils.replaceInStrings("$PROJ_DIR$", project.getProjectDirectory(), Config.parseStatesAsStringsFromOption(option));
-            }
-        }
-
-        return [];
     }
 
     private static parseStatesAsStringsFromOption(option: XmlNode): string[] {

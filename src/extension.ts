@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import * as iar from './iar/project';
 import { Define } from './iar/define';
 import { IncludePath } from './iar/includepaths';
+import { PreIncludePath } from './iar/preincludepath';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -21,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
                 console.log(element.getName());
                 printDefines(element.getDefines());
                 printIncludePaths(element.getIncludePaths());
-                console.log(element.getPreIncludes());
+                printPreIncludePaths(element.getPreIncludes());
                 console.log('-----');
             });
         }
@@ -43,5 +44,12 @@ function printIncludePaths(includePaths: IncludePath[]) {
     includePaths.forEach(includePath => {
         console.log(includePath.get());
         console.log(includePath.getAbsolute());
+    });
+}
+
+function printPreIncludePaths(paths: PreIncludePath[]) {
+    paths.forEach(path => {
+        console.log(path.get());
+        console.log(path.getAbsolute());
     });
 }
