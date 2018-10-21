@@ -3,7 +3,7 @@
 import { XmlNode } from './XmlNode';
 import { Project } from './project';
 import { ReplaceUtils } from '../utils/utils';
-import { Define } from './define';
+import { Define, XmlDefine } from './define';
 import { IarXml } from '../utils/xml';
 
 enum SettingsNames {
@@ -42,7 +42,7 @@ export class Config {
             let xmlConfigs = xmlRoot.getAllChildsByName("configuration");
 
             xmlConfigs.forEach(config => {
-                let defines = Define.parseDefinesFromconfiguration(config);
+                let defines = XmlDefine.parseDefinesFromconfiguration(config);
                 let includes = Config.parseIncludePaths(project, config);
                 let preincludes = Config.parsePreIncludes(project, config);
 

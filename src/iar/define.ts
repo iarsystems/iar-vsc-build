@@ -3,7 +3,11 @@
 import { XmlNode } from "./XmlNode";
 import { IarXml } from "../utils/xml";
 
-export class Define {
+export interface Define {
+    get(): string;
+}
+
+export class XmlDefine {
     private xmlData: XmlNode;
 
     constructor(xml: XmlNode) {
@@ -35,7 +39,7 @@ export class Define {
                 let defines: Define[] = [];
 
                 states.forEach(state => {
-                    defines.push(new Define(state));
+                    defines.push(new XmlDefine(state));
                 });
 
                 return defines;
