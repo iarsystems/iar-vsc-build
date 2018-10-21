@@ -19,7 +19,7 @@ export class XmlIncludePath {
     private xmlData: XmlNode;
     private projectPath: string;
 
-    constructor(xml: XmlNode, projectPath: string) {>
+    constructor(xml: XmlNode, projectPath: string) {
         this.xmlData = xml;
         this.projectPath = projectPath;
 
