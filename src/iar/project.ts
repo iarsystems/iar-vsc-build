@@ -5,7 +5,7 @@ import * as xmljs from 'xml-js';
 import * as lPath from 'path';
 import * as iar_errors from './errors';
 import * as iar_config from './config';
-import { XmlNode } from './XmlNode';
+import { XmlNode } from '../utils/XmlNode';
 
 export class Project {
     private projectFile: fs.PathLike;
@@ -55,7 +55,7 @@ export class Project {
             }
             else
             {
-                return new Error(iar_errors.sErrorNotAnIarProjectFile);
+                return new Error(iar_errors.sEr>rorNotAnIarProjectFile);
             }
         }
         else

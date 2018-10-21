@@ -1,6 +1,6 @@
 'use strict';
 
-import { XmlNode } from "./XmlNode";
+import { XmlNode } from "../utils/XmlNode";
 import { IarXml } from "../utils/xml";
 
 export interface PreIncludePath {

@@ -1,6 +1,6 @@
 'use strict';
 
-import { XmlNode } from "../iar/XmlNode";
+import { XmlNode } from "./XmlNode";
 
 export namespace IarXml {
     export function findSettingsFromConfig(xml: XmlNode, name: string): XmlNode | undefined {

@@ -1,6 +1,6 @@
 'use strict';
 
-import { XmlNode } from "./XmlNode";
+import { XmlNode } from "../utils/XmlNode";
 import { IarXml } from "../utils/xml";
 
 export interface IncludePath {
@@ -19,7 +19,7 @@ export class XmlIncludePath {
     private xmlData: XmlNode;
     private projectPath: string;
 
-    constructor(xml: XmlNode, projectPath: string) {
+    constructor(xml: XmlNode, projectPath: string) {>
         this.xmlData = xml;
         this.projectPath = projectPath;
 

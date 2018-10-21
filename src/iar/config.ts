@@ -1,6 +1,6 @@
 'use strict';
 
-import { XmlNode } from './XmlNode';
+import { XmlNode } from '../utils/XmlNode';
 import { Project } from './project';
 import { Define, XmlDefine } from './define';
 import { IarXml } from '../utils/xml';
