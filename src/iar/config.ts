@@ -2,21 +2,10 @@
 
 import { XmlNode } from './XmlNode';
 import { Project } from './project';
-import { ReplaceUtils } from '../utils/utils';
 import { Define, XmlDefine } from './define';
 import { IarXml } from '../utils/xml';
 import { IncludePath, XmlIncludePath } from './includepaths';
 import { PreIncludePath, XmlPreIncludePath } from './preincludepath';
-
-enum SettingsNames {
-    CCompiler = 'ICCARM',
-}
-
-enum SettingsOptions {
-    CDefines = 'CCDefines',
-    CPreInclude = 'PreInclude',
-    CIncludePaths2 = 'CCIncludePath2',
-}
 
 export class Config {
     private xmlData: XmlNode;
@@ -70,58 +59,5 @@ export class Config {
 
     public getPreIncludes(): PreIncludePath[] {
         return this.preIncludes;
-    }
-
-    private static parseStatesAsStringsFromOption(option: XmlNode): string[] {
-        let data: string[] = [];
-
-        option.getAllChildsByName('state').forEach(state => {
-            let stateText = state.getText();
-
-            if(stateText) {
-                data.push(stateText);
-            }
-        });
-
-        return data;
-    }
-
-    private static findOptionFromSetting(setting: XmlNode, name: string): XmlNode | undefined {
-        let data = setting.getFirstChildByName('data');
-
-        if(data) {
-            let options = data.getAllChildsByName('option');
-
-            for(let idx=0; idx<options.length; idx += 1) {
-                let option = options[idx];
-
-                let optionName = option.getFirstChildByName('name');
-
-                if(optionName) {
-                    let optionNameText = optionName.getText();
-
-                    if(optionNameText && (optionNameText === name)) {
-                        return option;
-                    }
-                }
-            }
-        }
-
-        return undefined;
-    }
-
-    private static findSettings(node: XmlNode, name: SettingsNames): XmlNode | undefined {
-        let settings = node.getAllChildsByName('settings');
-
-        for(let idx=0; idx<settings.length; idx += 1) {
-            let setting = settings[idx];
-            let namenode = setting.getFirstChildByName('name');
-            
-            if(namenode && (namenode.getText() === name)) {
-                return setting;
-            }
-        }
-
-        return undefined;
     }
 }
