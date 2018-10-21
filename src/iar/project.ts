@@ -55,7 +55,7 @@ export class Project {
             }
             else
             {
-                return new Error(iar_errors.sEr>rorNotAnIarProjectFile);
+                return new Error(iar_errors.sErrorNotAnIarProjectFile);
             }
         }
         else
