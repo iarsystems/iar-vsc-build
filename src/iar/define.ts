@@ -28,7 +28,7 @@ export class XmlDefine {
         }
     }
 
-    public static parseDefinesFromconfiguration(xml: XmlNode): Define[] {
+    public static parseFromconfiguration(xml: XmlNode): Define[] {
         let settings = IarXml.findSettingsFromConfig(xml, 'ICCARM');
 
         if(settings) {
