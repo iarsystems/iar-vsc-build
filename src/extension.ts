@@ -4,6 +4,7 @@
 import * as vscode from 'vscode';
 import * as iar from './iar/project';
 import { Define } from './iar/define';
+import { IncludePath } from './iar/includepaths';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -19,7 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
             project.getConfigs().forEach(element => {
                 console.log(element.getName());
                 printDefines(element.getDefines());
-                console.log(element.getIncludePaths());
+                printIncludePaths(element.getIncludePaths());
                 console.log(element.getPreIncludes());
                 console.log('-----');
             });
@@ -35,5 +36,12 @@ export function deactivate() {
 function printDefines(defines: Define[]) {
     defines.forEach(define => {
         console.log(define.get());
+    });
+}
+
+function printIncludePaths(includePaths: IncludePath[]) {
+    includePaths.forEach(includePath => {
+        console.log(includePath.get());
+        console.log(includePath.getAbsolute());
     });
 }

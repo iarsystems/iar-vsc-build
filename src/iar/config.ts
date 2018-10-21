@@ -5,6 +5,7 @@ import { Project } from './project';
 import { ReplaceUtils } from '../utils/utils';
 import { Define, XmlDefine } from './define';
 import { IarXml } from '../utils/xml';
+import { IncludePath, XmlIncludePath } from './includepaths';
 
 enum SettingsNames {
     CCompiler = 'ICCARM',
@@ -19,10 +20,10 @@ enum SettingsOptions {
 export class Config {
     private xmlData: XmlNode;
     private defines: Define[];
-    private includes: string[];
+    private includes: IncludePath[];
     private preIncludes: string[];
 
-    private constructor(xmlConfigElement: XmlNode, defines: Define[], includes: string[], preIncludes: string[]) {
+    private constructor(xmlConfigElement: XmlNode, defines: Define[], includes: IncludePath[], preIncludes: string[]) {
         if(xmlConfigElement.getTagName() !== 'configuration') {
             throw new Error("Expected an xml element 'configuration' instead of '" + xmlConfigElement.getTagName() + "'");
         }
@@ -43,7 +44,7 @@ export class Config {
 
             xmlConfigs.forEach(config => {
                 let defines = XmlDefine.parseDefinesFromconfiguration(config);
-                let includes = Config.parseIncludePaths(project, config);
+                let includes = XmlIncludePath.parseFromconfiguration(config, project.getProjectDirectory());
                 let preincludes = Config.parsePreIncludes(project, config);
 
                 configs.push(new Config(config, defines, includes, preincludes));
@@ -62,29 +63,12 @@ export class Config {
         return this.defines;
     }
 
-    public getIncludePaths(): string[] {
+    public getIncludePaths(): IncludePath[] {
         return this.includes;
     }
 
     public getPreIncludes(): string[] {
         return this.preIncludes;
-    }
-
-    private static parseIncludePaths(project: Project, node: XmlNode): string[] {
-        let settings = Config.findSettings(node, SettingsNames.CCompiler);
-
-        if(settings) {
-            let option = Config.findOptionFromSetting(settings, SettingsOptions.CIncludePaths2);
-            
-            if(option) {
-                let projectDirectory = project.getProjectDirectory();
-                let paths = Config.parseStatesAsStringsFromOption(option);
-
-                return ReplaceUtils.replaceInStrings("$PROJ_DIR$", projectDirectory, paths);
-            }
-        }
-
-        return [];
     }
 
     private static parsePreIncludes(project: Project, node: XmlNode): string[] {
