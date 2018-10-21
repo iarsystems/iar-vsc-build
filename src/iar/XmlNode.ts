@@ -9,6 +9,10 @@ export class XmlNode {
         this.mElement = element;
     }
 
+    public getTagName(): string | undefined {
+        return this.mElement.name;
+    }
+
     public getXmlJsObject(): xmljs.Element {
         return this.mElement;
     }

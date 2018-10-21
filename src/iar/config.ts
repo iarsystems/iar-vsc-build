@@ -3,6 +3,8 @@
 import { XmlNode } from './XmlNode';
 import { Project } from './project';
 import { ReplaceUtils } from '../utils/utils';
+import { Define } from './define';
+import { IarXml } from '../utils/xml';
 
 enum SettingsNames {
     CCompiler = 'ICCARM',
@@ -15,16 +17,20 @@ enum SettingsOptions {
 }
 
 export class Config {
-    private mName: string;
-    private mDefines: string[];
-    private mIncludes: string[];
-    private mPreIncludes: string[];
+    private xmlData: XmlNode;
+    private defines: Define[];
+    private includes: string[];
+    private preIncludes: string[];
 
-    private constructor(name: string, defines: string[], includes: string[], preIncludes: string[]) {
-        this.mName = name;
-        this.mDefines = defines;
-        this.mIncludes = includes;
-        this.mPreIncludes = preIncludes;
+    private constructor(xmlConfigElement: XmlNode, defines: Define[], includes: string[], preIncludes: string[]) {
+        if(xmlConfigElement.getTagName() !== 'configuration') {
+            throw new Error("Expected an xml element 'configuration' instead of '" + xmlConfigElement.getTagName() + "'");
+        }
+
+        this.xmlData = xmlConfigElement;
+        this.defines = defines;
+        this.includes = includes;
+        this.preIncludes = preIncludes;
     }
 
     public static parseFromProject(project: Project): Config[] {
@@ -35,13 +41,12 @@ export class Config {
         if(xmlRoot) {
             let xmlConfigs = xmlRoot.getAllChildsByName("configuration");
 
-            xmlConfigs.forEach(child => {
-                let name = Config.parseName(child);
-                let defines = Config.parseDefines(child);
-                let includes = Config.parseIncludePaths(project, child);
-                let preincludes = Config.parsePreIncludes(project, child);
+            xmlConfigs.forEach(config => {
+                let defines = Define.parseDefinesFromconfiguration(config);
+                let includes = Config.parseIncludePaths(project, config);
+                let preincludes = Config.parsePreIncludes(project, config);
 
-                configs.push(new Config(name, defines, includes, preincludes));
+                configs.push(new Config(config, defines, includes, preincludes));
             });
         }
 
@@ -50,49 +55,19 @@ export class Config {
     }
 
     public getName(): string { 
-        return this.mName;
+        return IarXml.getNameTextFromElement(this.xmlData) as string;
     }
 
-    public getDefines(): string[] {
-        return this.mDefines;
+    public getDefines(): Define[] {
+        return this.defines;
     }
 
     public getIncludePaths(): string[] {
-        return this.mIncludes;
+        return this.includes;
     }
 
     public getPreIncludes(): string[] {
-        return this.mPreIncludes;
-    }
-
-    private static parseName(node: XmlNode): string {
-        let ret: string = "";
-
-        let nameChild = node.getFirstChildByName('name');
-        
-        if(nameChild) {
-            let name = nameChild.getText();
-
-            if(name) {
-                ret = name as string;
-            }
-        }
-
-        return ret;
-    }
-
-    private static parseDefines(node: XmlNode): string[] {
-        let settings = Config.findSettings(node, SettingsNames.CCompiler);
-
-        if(settings) {
-            let option = Config.findOptionFromSetting(settings, SettingsOptions.CDefines);
-
-            if(option) {
-                return Config.parseStatesAsStringsFromOption(option);
-            }
-        }
-
-        return [];
+        return this.preIncludes;
     }
 
     private static parseIncludePaths(project: Project, node: XmlNode): string[] {
@@ -100,7 +75,7 @@ export class Config {
 
         if(settings) {
             let option = Config.findOptionFromSetting(settings, SettingsOptions.CIncludePaths2);
-
+            
             if(option) {
                 let projectDirectory = project.getProjectDirectory();
                 let paths = Config.parseStatesAsStringsFromOption(option);

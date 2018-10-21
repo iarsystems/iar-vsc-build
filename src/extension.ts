@@ -3,6 +3,7 @@
 
 import * as vscode from 'vscode';
 import * as iar from './iar/project';
+import { Define } from './iar/define';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -17,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (!ret) {
             project.getConfigs().forEach(element => {
                 console.log(element.getName());
-                console.log(element.getDefines());
+                printDefines(element.getDefines());
                 console.log(element.getIncludePaths());
                 console.log(element.getPreIncludes());
                 console.log('-----');
@@ -29,4 +30,10 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
+}
+
+function printDefines(defines: Define[]) {
+    defines.forEach(define => {
+        console.log(define.get());
+    });
 }
