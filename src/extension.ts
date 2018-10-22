@@ -3,9 +3,9 @@
 
 import * as vscode from 'vscode';
 import * as iar from './iar/project';
-import { Define } from './iar/define';
-import { IncludePath } from './iar/includepaths';
-import { PreIncludePath } from './iar/preincludepath';
+import { join } from 'path';
+import { CCppPropertiesFile } from './vsc/c_cpp_properties';
+import * as fs from 'fs';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -18,13 +18,38 @@ export function activate(context: vscode.ExtensionContext) {
         console.log(settings.get("iarRootPaths"));
 
         if (!ret) {
-            project.getConfigs().forEach(element => {
-                console.log(element.getName());
-                printDefines(element.getDefines());
-                printIncludePaths(element.getIncludePaths());
-                printPreIncludePaths(element.getPreIncludes());
-                console.log('-----');
+            let wsFolder = vscode.workspace.rootPath;
+
+            if(!wsFolder) {
+                return;
+            }
+
+            let propertyFileDir = join(wsFolder, ".vscode");
+
+            if(fs.existsSync(propertyFileDir)) {
+                let stat = fs.statSync(propertyFileDir);
+
+                if(!stat.isDirectory()) {
+                    return;
+                }
+            } else {
+                fs.mkdirSync(propertyFileDir);
+            }
+
+            let propertyFilePath = join(propertyFileDir, "c_cpp_properties.json");
+            let prop: CCppPropertiesFile = new CCppPropertiesFile();
+
+            if(fs.existsSync(propertyFilePath)) {
+                fs.copyFileSync(propertyFilePath, propertyFilePath + ".back");
+
+                prop.load(propertyFilePath);
+            }
+
+            project.getConfigs().forEach(config => {
+                prop.setConfiguration(config);
             });
+
+            prop.write(propertyFilePath);
         }
     });
 
@@ -32,24 +57,4 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-}
-
-function printDefines(defines: Define[]) {
-    defines.forEach(define => {
-        console.log(define.get());
-    });
-}
-
-function printIncludePaths(includePaths: IncludePath[]) {
-    includePaths.forEach(includePath => {
-        console.log(includePath.get());
-        console.log(includePath.getAbsolute());
-    });
-}
-
-function printPreIncludePaths(paths: PreIncludePath[]) {
-    paths.forEach(path => {
-        console.log(path.get());
-        console.log(path.getAbsolute());
-    });
 }

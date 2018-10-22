@@ -49,6 +49,7 @@
     "@types/mocha": "^2.2.42"
   },
   "dependencies": {
-    "xml-js": "^1.6.8"
+    "xml-js": "^1.6.8",
+    "jsonc-parser": "^1.0.0"
   }
 }
