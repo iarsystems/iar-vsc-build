@@ -26,6 +26,10 @@ export class Project {
         return this.projectFile;
     }
 
+    public getName(): string {
+        return lPath.parse(this.projectFile.toString()).name;
+    }
+
 
     /**
      * Parse

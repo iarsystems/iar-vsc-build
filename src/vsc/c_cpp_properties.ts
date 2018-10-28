@@ -19,7 +19,7 @@ export class CCppPropertiesFile {
             this.properties['configurations'] = [];
         }
 
-        let configIdx = this.findConfiguration('IAR-' + configuration.getName());
+        let configIdx = this.findConfiguration(this.generateConfigName(configuration));
         let config = this.toJsonObject(configuration);
 
         if(configIdx === undefined) {
@@ -65,10 +65,14 @@ export class CCppPropertiesFile {
         }
     }
 
+    private generateConfigName(config: Config): string {
+        return 'IAR-' + config.getProject().getName() + "-" + config.getName();
+    }
+
     private toJsonObject(config: Config): object {
         let o: any = {};
 
-        o['name'] = "IAR-" + config.getName();
+        o['name'] = this.generateConfigName(config);
         o['defines'] = this.toDefineArray(config.getDefines());
         o['includePath'] = this.toIncludePathArray(config.getIncludePaths());
         o['forcedInclude'] = this.toPreIncludePathArray(config.getPreIncludes());
