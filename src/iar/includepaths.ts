@@ -45,7 +45,7 @@ export class XmlIncludePath {
     }
 
     public static parseFromconfiguration(xml: XmlNode, projectPath: string): IncludePath[] {
-        let settings = IarXml.findSettingsFromConfig(xml, 'ICCARM');
+        let settings = IarXml.findSettingsFromConfig(xml, '/ICC.*/');
 
         if(settings) {
             let option = IarXml.findOptionFromSettings(settings, 'CCIncludePath2');

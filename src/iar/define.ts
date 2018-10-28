@@ -29,7 +29,7 @@ export class XmlDefine {
     }
 
     public static parseFromconfiguration(xml: XmlNode): Define[] {
-        let settings = IarXml.findSettingsFromConfig(xml, 'ICCARM');
+        let settings = IarXml.findSettingsFromConfig(xml, '/ICC.*/');
 
         if(settings) {
             let option = IarXml.findOptionFromSettings(settings, 'CCDefines');

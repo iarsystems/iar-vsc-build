@@ -9,7 +9,7 @@ export namespace IarXml {
         for(let idx=0; idx<settings.length; idx += 1) {
             let setting = settings[idx];
 
-            if(getNameTextFromElement(setting) === name) {
+            if(validateText(getNameTextFromElement(setting), name)) {
                 return setting;
             }
         }
@@ -29,7 +29,7 @@ export namespace IarXml {
         for(let idx=0; idx<options.length; idx += 1) {
             let option = options[idx];
 
-            if(getNameTextFromElement(option) === name) {
+            if(validateText(getNameTextFromElement(option), name)) {
                 return option;
             }
         }
@@ -45,5 +45,19 @@ export namespace IarXml {
         }
 
         return undefined;
+    }
+
+    function validateText(content: string | undefined, validate: string): boolean {
+        if(content === undefined) {
+            return false;
+        }
+
+        if((validate[0] === '/') && (validate[validate.length-1] === '/')) {
+            let regex = new RegExp(validate.substr(1, validate.length-2));
+
+            return regex.test(content);
+        } else {
+            return content === validate;
+        }
     }
 }

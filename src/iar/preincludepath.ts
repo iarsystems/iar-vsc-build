@@ -45,7 +45,7 @@ export class XmlPreIncludePath {
     }
 
     public static parseFromconfiguration(xml: XmlNode, projectPath: string): PreIncludePath[] {
-        let settings = IarXml.findSettingsFromConfig(xml, 'ICCARM');
+        let settings = IarXml.findSettingsFromConfig(xml, '/ICC.*/');
 
         if(settings) {
             let option = IarXml.findOptionFromSettings(settings, 'PreInclude');
