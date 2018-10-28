@@ -22,6 +22,10 @@ export class Project {
         return lPath.dirname(this.projectFile.toString());
     }
 
+    public getLocation(): fs.PathLike {
+        return this.projectFile;
+    }
+
 
     /**
      * Parse
@@ -72,5 +76,59 @@ export class Project {
 
     public getConfigs(): iar_config.Config[] {
         return this.configs;
+    }
+
+    public static findProjectFiles(root: fs.PathLike, recursive = true): fs.PathLike[] {
+        if(fs.existsSync(root)) {
+            let stat = fs.statSync(root);
+
+            if(stat.isDirectory()) {
+                return Project.findProjectFilesHelper(root, recursive);
+            } else if(stat.isFile()) {
+                let ext = lPath.extname(root.toString());
+
+                if(ext === ".ewp") {
+                    return [ext];
+                }
+            }
+        }
+
+        return [];
+    }
+
+    private static findProjectFilesHelper(root: fs.PathLike, recursive: boolean): fs.PathLike[] {
+        let children = fs.readdirSync(root);
+        let projectFiles: fs.PathLike[] = [];
+
+        while(children.length > 0) {
+            let child = children.pop();
+
+            if(child !== undefined) {
+                let p = lPath.join(root.toString(), child);
+                try {
+                    let stat = fs.statSync(p);
+
+                    if(stat.isDirectory() && recursive) {
+                        let grandChildren = fs.readdirSync(p);
+
+                        grandChildren.forEach(grandChild => {
+                            if(child !== undefined) {
+                                children.push(lPath.join(child, grandChild));
+                            }
+                        });
+                    } else if(stat.isFile()) {
+                        let ext = lPath.extname(p);
+
+                        if(ext === ".ewp") {
+                            projectFiles.push(p);
+                        }
+                    }
+                } catch(err) {
+                    /* TODO: sometimes it is possible we get an access violation. for now, just ignore exceptions, later we should check them? */
+                }
+            }
+        }
+
+        return projectFiles;
     }
 }

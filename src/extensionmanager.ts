@@ -64,10 +64,25 @@ export class ExtensionManager {
         let ret = project.parse();
 
         if(ret === undefined) {
+            let oldProject = this.project;
             this.project = project;
+
+            if((oldProject === undefined) || (oldProject.getLocation().toString() !== filename)) {
+                this.settings.ewpLocation = this.project.getLocation().toString();
+
+                this.settings.storeSettings();
+            }
         }
 
         return ret;
+    }
+
+    public findIarProjectFiles(): fs.PathLike[] {
+        if(vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+            return Project.findProjectFiles(vscode.workspace.workspaceFolders[0].uri.fsPath, true);
+        } else {
+            return [];
+        }
     }
 
     public findIarInstallations(): IarInstallation[] {

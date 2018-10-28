@@ -12,7 +12,8 @@
   ],
   "activationEvents": [
     "onCommand:extension.syncIarProjectFile",
-    "onCommand:extension.selectIarInstallation"
+    "onCommand:extension.selectIarInstallation",
+    "onCommand:extension.selectIarProject"
   ],
   "main": "./out/extension",
   "contributes": {
@@ -24,6 +25,10 @@
       {
         "command": "extension.selectIarInstallation",
         "title": "IAR: Select Installation"
+      },
+      {
+        "command": "extension.selectIarProject",
+        "title": "IAR: Select Project"
       }
     ],
     "configuration": [

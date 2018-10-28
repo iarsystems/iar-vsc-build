@@ -2,6 +2,7 @@
 
 
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { ExtensionManager } from './extensionmanager';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -35,6 +36,31 @@ export function activate(context: vscode.ExtensionContext) {
             });
         } else {
             vscode.window.showErrorMessage("No valid IAR installations found.");
+        }
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand("extension.selectIarProject", () => {
+        let projectFiles = extensionManager.findIarProjectFiles();
+
+        if(projectFiles.length > 0) {
+            let items: string[] = [];
+
+            projectFiles.forEach(projectFile => {
+                let filename = path.basename(projectFile.toString());
+
+                items.push(filename);
+            });
+
+            vscode.window.showQuickPick(items).then(value => {
+                if(value) {
+                    let idx = items.indexOf(value);
+                    let projectFile = projectFiles[idx];
+
+                    extensionManager.setIarProjectPath(projectFile.toString());
+                }
+            });
+        } else {
+            vscode.window.showErrorMessage("No IAR projects found in workspace.");
         }
     }));
 }
