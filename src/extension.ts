@@ -2,58 +2,40 @@
 
 
 import * as vscode from 'vscode';
-import * as iar from './iar/project';
-import { join } from 'path';
-import { CCppPropertiesFile } from './vsc/c_cpp_properties';
-import * as fs from 'fs';
+import { ExtensionManager } from './extensionmanager';
 
 export function activate(context: vscode.ExtensionContext) {
+    let extensionManager = new ExtensionManager();
 
-    let disposable = vscode.commands.registerCommand('extension.syncIarProjectFile', () => {
-        let project = new iar.Project('/home/pluyckx/Downloads/iar_project_files/arm/7.40/PD-68VENCON.ewp');
+    context.subscriptions.push(vscode.commands.registerCommand('extension.syncIarProjectFile', () => {
+        let ret = extensionManager.generateCCppPropertiesFile();
 
-        let ret = project.parse();
+        if (ret !== undefined) {
+            vscode.window.showErrorMessage(ret.message);
+        }
+    }));
 
-        let settings = vscode.workspace.getConfiguration("iarvsc");
-        console.log(settings.get("iarRootPaths"));
+    context.subscriptions.push(vscode.commands.registerCommand('extension.selectIarInstallation', () => {
+        let installations = extensionManager.findIarInstallations();
 
-        if (!ret) {
-            let wsFolder = vscode.workspace.rootPath;
+        if(installations.length > 0) {
+            let items: string[] = [];
 
-            if(!wsFolder) {
-                return;
-            }
-
-            let propertyFileDir = join(wsFolder, ".vscode");
-
-            if(fs.existsSync(propertyFileDir)) {
-                let stat = fs.statSync(propertyFileDir);
-
-                if(!stat.isDirectory()) {
-                    return;
-                }
-            } else {
-                fs.mkdirSync(propertyFileDir);
-            }
-
-            let propertyFilePath = join(propertyFileDir, "c_cpp_properties.json");
-            let prop: CCppPropertiesFile = new CCppPropertiesFile();
-
-            if(fs.existsSync(propertyFilePath)) {
-                fs.copyFileSync(propertyFilePath, propertyFilePath + ".back");
-
-                prop.load(propertyFilePath);
-            }
-
-            project.getConfigs().forEach(config => {
-                prop.setConfiguration(config);
+            installations.forEach(installation => {
+                items.push("Platform: " + installation.getIarPlatform() + " Version: " + installation.getIarVersion() + " " + installation.getLocation());
             });
 
-            prop.write(propertyFilePath);
-        }
-    });
+            vscode.window.showQuickPick(items).then(value => {
+                if(value) {
+                    let idx = items.indexOf(value);
 
-    context.subscriptions.push(disposable);
+                    console.log(installations[idx]);
+                }
+            });
+        } else {
+            vscode.window.showErrorMessage("No valid IAR installations found.");
+        }
+    }));
 }
 
 export function deactivate() {

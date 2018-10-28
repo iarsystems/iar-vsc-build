@@ -11,7 +11,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.syncIarProjectFile"
+    "onCommand:extension.syncIarProjectFile",
+    "onCommand:extension.selectIarInstallation"
   ],
   "main": "./out/extension",
   "contributes": {
@@ -19,6 +20,10 @@
       {
         "command": "extension.syncIarProjectFile",
         "title": "IAR: Sync Project File"
+      },
+      {
+        "command": "extension.selectIarInstallation",
+        "title": "IAR: Select Installation"
       }
     ],
     "configuration": [
@@ -28,7 +33,7 @@
           "iarvsc.iarRootPaths": {
             "type": "array",
             "description": "Root path where IAR installs its applications.",
-            "default": ["C:\\Program Files\\IAR", "C:\\Program Files (x86)\\IAR"]
+            "default": ["C:\\Program Files\\IAR Systems", "C:\\Program Files (x86)\\IAR Systems"]
           }
         }
       }
@@ -50,6 +55,7 @@
   },
   "dependencies": {
     "xml-js": "^1.6.8",
-    "jsonc-parser": "^1.0.0"
+    "jsonc-parser": "^1.0.0",
+    "child-exec": "^1.0.0"
   }
 }
