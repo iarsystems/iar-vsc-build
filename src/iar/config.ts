@@ -8,16 +8,18 @@ import { IncludePath, XmlIncludePath } from './includepaths';
 import { PreIncludePath, XmlPreIncludePath } from './preincludepath';
 
 export class Config {
+    private project: Project;
     private xmlData: XmlNode;
     private defines: Define[];
     private includes: IncludePath[];
     private preIncludes: PreIncludePath[];
 
-    private constructor(xmlConfigElement: XmlNode, defines: Define[], includes: IncludePath[], preIncludes: PreIncludePath[]) {
+    private constructor(project: Project, xmlConfigElement: XmlNode, defines: Define[], includes: IncludePath[], preIncludes: PreIncludePath[]) {
         if(xmlConfigElement.getTagName() !== 'configuration') {
             throw new Error("Expected an xml element 'configuration' instead of '" + xmlConfigElement.getTagName() + "'");
         }
 
+        this.project = project;
         this.xmlData = xmlConfigElement;
         this.defines = defines;
         this.includes = includes;
@@ -37,12 +39,16 @@ export class Config {
                 let includes = XmlIncludePath.parseFromconfiguration(config, project.getProjectDirectory());
                 let preincludes = XmlPreIncludePath.parseFromconfiguration(config, project.getProjectDirectory());
 
-                configs.push(new Config(config, defines, includes, preincludes));
+                configs.push(new Config(project, config, defines, includes, preincludes));
             });
         }
 
 
         return configs;
+    }
+
+    public getProject(): Project {
+        return this.project;
     }
 
     public getName(): string { 
