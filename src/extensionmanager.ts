@@ -81,16 +81,19 @@ export class ExtensionManager {
 
     private static findIarInstallationFromRoot(root: string): IarInstallation[] {
         let installations: IarInstallation[] = [];
-        let children = fs.readdirSync(root);
 
-        children.forEach(child => {
-            let installationPath = path.join(root, child);
-            let installation = new IarInstallation(installationPath);
+        if(fs.existsSync(root)) {
+            let children = fs.readdirSync(root);
 
-            if(installation.isValidInstallation()) {
-                installations.push(installation);
-            }
-        });
+            children.forEach(child => {
+                let installationPath = path.join(root, child);
+                let installation = new IarInstallation(installationPath);
+
+                if(installation.isValidInstallation()) {
+                    installations.push(installation);
+                }
+            });
+        }
 
         return installations;
     }

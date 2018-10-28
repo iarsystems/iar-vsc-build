@@ -41,6 +41,10 @@ export class IarInstallation {
     }
 
     public getIarPlatform(): string {
+        if(!this.isValidInstallation()) {
+            return "Invalid";
+        }
+
         let children = fs.readdirSync(this.location);
         let platforms: string[] = [];
 
@@ -63,6 +67,10 @@ export class IarInstallation {
     }
 
     private static getFileVersionOnLinux(filepath: fs.PathLike): string {
+        if(!fs.existsSync(filepath)) {
+            return "Invalid";
+        }
+
         try {
             let buf = execSync("exiftool -FileVersion '" + filepath + "' | cut -d ':' -f 2 | tr -d '[:space:]' | cut -d . -f 1,2,3", { 'timeout': 1000 });
 
@@ -73,6 +81,10 @@ export class IarInstallation {
     }
 
     private static getFileVersionOnWindows(filepath: fs.PathLike): string {
+        if(!fs.existsSync(filepath)) {
+            return "Invalid";
+        }
+        
         try {
             let buf = execSync("powershell \"(Get-Item -path \"" + filepath.toString() + "\").VersionInfo.FileVersion");
             let fullVersion = buf.toString();
