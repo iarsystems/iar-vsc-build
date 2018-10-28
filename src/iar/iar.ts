@@ -84,9 +84,10 @@ export class IarInstallation {
         if(!fs.existsSync(filepath)) {
             return "Invalid";
         }
-        
+
         try {
-            let buf = execSync("powershell \"(Get-Item -path \"" + filepath.toString() + "\").VersionInfo.FileVersion");
+            let cmd = "powershell \"(Get-Item -path \\\"" + filepath.toString() + "\\\").VersionInfo.FileVersion";
+            let buf = execSync(cmd, { 'timeout': 5000 });
             let fullVersion = buf.toString();
             let versionParts = fullVersion.split(".");
 
