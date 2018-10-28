@@ -15,7 +15,7 @@ export class CCppPropertiesFile {
     }
 
     public setConfiguration(configuration: Config) {
-        if(this.properties['configurations'] == undefined) {
+        if(this.properties['configurations'] === undefined) {
             this.properties['configurations'] = [];
         }
 
