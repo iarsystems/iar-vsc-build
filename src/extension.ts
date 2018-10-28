@@ -28,8 +28,9 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showQuickPick(items).then(value => {
                 if(value) {
                     let idx = items.indexOf(value);
+                    let installation = installations[idx];
 
-                    console.log(installations[idx]);
+                    extensionManager.setIarLocation(installation.getLocation());
                 }
             });
         } else {

@@ -46,6 +46,12 @@ export class ExtensionManager {
 
         if(iar.isValidInstallation()) {
             this.iar = iar;
+
+            if(this.settings.iarLocation !== this.iar.getLocation()) {
+                this.settings.iarLocation = this.iar.getLocation();
+                this.settings.storeSettings();
+            }
+
             return undefined;
         } else {
             return Error(sErrorNotAnIarInstallationFolder);
