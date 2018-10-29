@@ -9,6 +9,7 @@ import { CCppPropertiesFile } from './vsc/c_cpp_properties';
 import { sErrorNoProjectFileSpecified, sErrorNoVsWorkspaceOpened, sErrorNotADirectory, sErrorNotAnIarInstallationFolder } from './iar/errors';
 import { Settings } from './extension/settings';
 import { IarInstallation } from './iar/iar';
+import { CompilerDefine, Define } from './iar/define';
 
 export class ExtensionManager {
     private project: Project | undefined;
@@ -156,7 +157,13 @@ export class ExtensionManager {
                 prop.load(propertyFilePath);
             }
 
+            let compilerDefines: Define[] = [];
+            if(this.iar) {
+                compilerDefines =  CompilerDefine.generateCompilerDefines(this.iar.getCompilerLocation());
+            }
+
             project.getConfigs().forEach(config => {
+                config.setCompilerDefines(compilerDefines);
                 prop.setConfiguration(config);
             });
 

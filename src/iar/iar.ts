@@ -25,6 +25,10 @@ export class IarInstallation {
         return this.location.toString();
     }
 
+    public getCompilerLocation(): string {
+        return this.compilerPath.toString();
+    }
+
     public getIarVersion(): string {
         let platform = os.platform();
 
