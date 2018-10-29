@@ -3,17 +3,18 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { execSync } from 'child_process';
+import { FsUtils } from '../utils/fs';
 
 export class IarInstallation {
     private location: fs.PathLike;
     private readonly iarBuildPath: fs.PathLike;
-    private readonly infocenterDllPath: fs.PathLike;
+    private readonly compilerPath: fs.PathLike;
 
     constructor(location: fs.PathLike) {
         this.location = location;
 
         this.iarBuildPath = path.join(this.location.toString(), "common", "bin", "IarBuild.exe");
-        this.infocenterDllPath = path.join(this.location.toString(), "install-info", "arm_infocenter_all.dll");
+        this.compilerPath = IarInstallation.findCompilerPath(this.location);
     }
 
     public isValidInstallation(): boolean {
@@ -30,10 +31,10 @@ export class IarInstallation {
         switch(platform)
         {
             case 'linux':
-                return IarInstallation.getFileVersionOnLinux(this.infocenterDllPath);
+                return IarInstallation.getFileVersionOnLinux(this.compilerPath);
 
             case 'win32':
-                return IarInstallation.getFileVersionOnWindows(this.infocenterDllPath);
+                return IarInstallation.getFileVersionOnWindows(this.compilerPath);
 
             default:
                 return "Unknown";
@@ -66,6 +67,26 @@ export class IarInstallation {
         }
     }
 
+    private static findCompilerPath(root: fs.PathLike): string {
+        let paths = FsUtils.filteredListDirectory(root, FsUtils.createFilteredListDirectoryBlacklist(['common', 'install-info']));
+
+        if(paths.length != 1) {
+            return "";
+        }
+
+        let compilerDir = path.join(paths[0].toString(), 'bin');
+
+        /* all compilers start with icc. Platforms like arm only have one compiler, while AVR has also iccavr_tiny.exe. So filter out
+           compiler which contain an _ in their name */
+        let compilerPaths = FsUtils.filteredListDirectory(compilerDir, FsUtils.createFilteredListDirectoryFilenameRegex(new RegExp('^icc[^_]*\.exe')));
+
+        if(compilerPaths.length == 1) {
+            return compilerPaths[0].toString();
+        } else {
+            return "";
+        }
+    }
+
     private static getFileVersionOnLinux(filepath: fs.PathLike): string {
         if(!fs.existsSync(filepath)) {
             return "Invalid";
@@ -86,12 +107,17 @@ export class IarInstallation {
         }
 
         try {
-            let cmd = "powershell \"(Get-Item -path \\\"" + filepath.toString() + "\\\").VersionInfo.FileVersion";
+            let cmd = "\"" + filepath + "\" --version";
             let buf = execSync(cmd, { 'timeout': 5000 });
-            let fullVersion = buf.toString();
-            let versionParts = fullVersion.split(".");
+            let stdout = buf.toString();
+            let regex = new RegExp('V([0-9]+\.[0-9]+\.[0-9])');
+            let result = regex.exec(stdout);
 
-            return versionParts[0] + "." + versionParts[1] + "." + versionParts[2];
+            if(result !== null) {
+                return result[1];
+            } else {
+                return "Unknown";
+            }
         } catch(err) {
             return "Unknown";
         }

@@ -12,4 +12,65 @@ export namespace FsUtils {
         
         fs.mkdirSync(dirPath);
     }
+
+    export function filteredListDirectory(dirPath: fs.PathLike, filterCallback: (path: fs.PathLike) => boolean) : fs.PathLike[] {
+        let children: fs.PathLike[] = [];
+
+        if(fs.existsSync(dirPath)) {
+            let stat = fs.statSync(dirPath);
+
+            if(stat.isDirectory()) {
+                let dir = fs.readdirSync(dirPath);
+
+                dir.forEach(child => {
+                    let fullpath = path.join(dirPath.toString(), child);
+
+                    if(filterCallback(fullpath)) {
+                        children.push(fullpath);
+                    }
+                });
+            }
+        }
+
+        return children;
+    }
+
+    export function createFilteredListDirectoryFilenameRegex(regex: RegExp): (fullpath: fs.PathLike) => boolean {
+        return (fullpath: fs.PathLike): boolean => {
+            let stat = fs.statSync(fullpath);
+
+            if(stat.isFile()) {
+                let parsedPath = path.parse(fullpath.toString());
+                let filename = parsedPath.base;
+
+                return regex.test(filename);
+            } else {
+                return false;
+            }
+        }
+    }
+
+    export function createFilteredListDirectoryDirectoryRegex(regex: RegExp): (fullpath: fs.PathLike) => boolean {
+        return (fullpath: fs.PathLike): boolean => {
+            let stat = fs.statSync(fullpath);
+
+            if(stat.isDirectory()) {
+                let parsedPath = path.parse(fullpath.toString());
+                let filename = parsedPath.base;
+
+                return regex.test(filename);
+            } else {
+                return false;
+            }
+        }
+    }
+    
+    export function createFilteredListDirectoryBlacklist(blacklist: string[]): (fullpath: fs.PathLike) => boolean {
+        return (fullpath: fs.PathLike): boolean => {
+            let parsedPath = path.parse(fullpath.toString());
+            let base = parsedPath.base;
+
+            return blacklist.indexOf(base) == -1;
+        }
+    }
 }
