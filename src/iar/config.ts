@@ -30,7 +30,7 @@ export class Config {
     }
 
     public setCompilerDefines(defines: Define[]) {
-        this.defines = defines;
+        this.compilerDefines = defines;
     }
 
     public static parseFromProject(project: Project): Config[] {
