@@ -48,7 +48,7 @@ export class XmlIncludePath {
         let settings = IarXml.findSettingsFromConfig(xml, '/ICC.*/');
 
         if(settings) {
-            let option = IarXml.findOptionFromSettings(settings, 'CCIncludePath2');
+            let option = IarXml.findOptionFromSettings(settings, '/CCIncludePath/');
 
             if(option) {
                 let states = option.getAllChildsByName('state');
