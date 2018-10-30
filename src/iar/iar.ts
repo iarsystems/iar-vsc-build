@@ -2,7 +2,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
 import { FsUtils } from '../utils/fs';
 
 export class IarInstallation {
@@ -111,9 +111,9 @@ export class IarInstallation {
         }
 
         try {
-            let cmd = "\"" + filepath + "\" --version";
-            let buf = execSync(cmd, { 'timeout': 5000 });
-            let stdout = buf.toString();
+            let cmd = filepath.toString();
+            let ret = spawnSync(cmd, ['--v'], { 'timeout': 5000, 'stdio': 'pipe' });
+            let stdout = ret.stdout.toString();
             let regex = new RegExp('V([0-9]+\.[0-9]+\.[0-9])');
             let result = regex.exec(stdout);
 
