@@ -8,7 +8,7 @@ import { ExtensionManager } from './extensionmanager';
 export function activate(context: vscode.ExtensionContext) {
     let extensionManager = new ExtensionManager();
 
-    context.subscriptions.push(vscode.commands.registerCommand('extension.syncIarProjectFile', () => {
+    context.subscriptions.push(vscode.commands.registerCommand('iar.syncIarProjectFile', () => {
         let ret = extensionManager.generateCCppPropertiesFile();
 
         if (ret !== undefined) {
@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }));
 
-    context.subscriptions.push(vscode.commands.registerCommand('extension.selectIarInstallation', () => {
+    context.subscriptions.push(vscode.commands.registerCommand('iar.selectIarInstallation', () => {
         let installations = extensionManager.findIarInstallations();
 
         if(installations.length > 0) {
@@ -39,7 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }));
 
-    context.subscriptions.push(vscode.commands.registerCommand("extension.selectIarProject", () => {
+    context.subscriptions.push(vscode.commands.registerCommand("iar.selectIarProject", () => {
         let projectFiles = extensionManager.findIarProjectFiles();
 
         if(projectFiles.length > 0) {
@@ -61,6 +61,20 @@ export function activate(context: vscode.ExtensionContext) {
             });
         } else {
             vscode.window.showErrorMessage("No IAR projects found in workspace.");
+        }
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand('iar.buildIarProject', () => {
+        if(extensionManager.isConfigured()) {
+            let ext = vscode.extensions.getExtension('ms-vscode.cpptools');
+
+            if(ext) {
+                let exp = ext.exports;
+
+                console.log(exp);
+            }
+        } else {
+            vscode.window.showErrorMessage("Extension not configured. Select a project and a compiler.");
         }
     }));
 }

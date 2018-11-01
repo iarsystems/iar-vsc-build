@@ -11,24 +11,33 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.syncIarProjectFile",
-    "onCommand:extension.selectIarInstallation",
-    "onCommand:extension.selectIarProject"
+    "onCommand:iar.syncIarProjectFile",
+    "onCommand:iar.selectIarInstallation",
+    "onCommand:iar.selectIarProject",
+    "onCommand:iar.buildIarProject"
   ],
-  "main": "./out/extension",
+  "main": "./out/main",
   "contributes": {
     "commands": [
       {
-        "command": "extension.syncIarProjectFile",
-        "title": "IAR: Sync Project File"
+        "command": "iar.syncIarProjectFile",
+        "title": "Sync Project File",
+        "category": "IAR"
       },
       {
-        "command": "extension.selectIarInstallation",
-        "title": "IAR: Select Installation"
+        "command": "iar.selectIarInstallation",
+        "title": "Select Installation",
+        "category": "IAR"
       },
       {
-        "command": "extension.selectIarProject",
-        "title": "IAR: Select Project"
+        "command": "iar.selectIarProject",
+        "title": "Select Project",
+        "category": "IAR"
+      },
+      {
+        "command": "iar.buildIarProject",
+        "title": "Build",
+        "category": "IAR"
       }
     ],
     "configuration": [
