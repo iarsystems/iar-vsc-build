@@ -10,11 +10,15 @@ import { sErrorNoProjectFileSpecified, sErrorNoVsWorkspaceOpened, sErrorNotADire
 import { Settings } from './extension/settings';
 import { IarInstallation } from './iar/iar';
 import { CompilerDefine, Define } from './iar/define';
+import { Config } from './iar/config';
+import { spawn, ChildProcess } from 'child_process';
 
 export class ExtensionManager {
     private project: Project | undefined;
     private settings: Settings;
     private iar: IarInstallation | undefined;
+
+    private buildProcess?: ChildProcess;
 
     constructor() {
         this.settings = new Settings();
@@ -40,6 +44,10 @@ export class ExtensionManager {
                 vscode.window.showErrorMessage(ret.message);
             }
         }
+    }
+
+    public isConfigured(): boolean {
+        return (this.project !== undefined) && (this.iar !== undefined);
     }
 
     public setIarLocation(path: fs.PathLike): Error | undefined {
@@ -99,6 +107,73 @@ export class ExtensionManager {
         }
 
         return installations;
+    }
+
+    public build(rebuild: boolean): void {
+        let selectedConfig: Config | undefined = undefined;
+
+        if(!this.project) {
+            vscode.window.showErrorMessage("No IAR project is selected.");
+            return;
+        }
+
+        if(!this.iar) {
+            vscode.window.showErrorMessage("No IAR installation selected.");
+            return;
+        }
+
+        let process = this.buildProcess;
+        if(process !== undefined) {
+            vscode.window.showErrorMessage("Previous build command is still running. Try again.");
+
+            process.kill('SIGTERM');
+            return;
+        }
+
+        let iar = this.iar;
+        let project = this.project;
+        let configurationNames: string[] = [];
+
+        project.getConfigs().forEach(config => {
+            configurationNames.push(config.getName());
+        });
+
+        vscode.window.showQuickPick(configurationNames, {placeHolder: 'Select build configuration', canPickMany: false}).then((selected) => {
+            if(selected) {
+                let idx = configurationNames.indexOf(selected);
+
+                if(idx === -1) {
+                    return;
+                }
+
+                selectedConfig = project.getConfigs()[idx];
+
+                let iarBuildLocation = iar.getIarBuildLocation().toString();
+                let ewpLocation = project.getLocation().toString();
+                let iarCommand = "-make";
+
+                if(rebuild) {
+                    iarCommand = "-build"
+                }
+
+                let out = vscode.window.createOutputChannel("IAR");
+                out.show(false);
+
+                console.log("executing \"", iarBuildLocation, "\" with parameters ", ewpLocation, " -make ", selectedConfig.getName());
+
+                this.buildProcess = spawn(iarBuildLocation, [ewpLocation, iarCommand, selectedConfig.getName()], {stdio: 'pipe'});
+
+                this.buildProcess.on("close", (code, signal) => {
+                    if(this.buildProcess) {
+                        this.buildProcess = undefined;
+                    }
+                });
+                
+                this.buildProcess.stdout.on('data', (chunk) => {
+                    out.append(chunk.toString());
+                });
+            }
+        });
     }
 
     private static findIarInstallationFromRoot(root: string): IarInstallation[] {

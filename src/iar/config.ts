@@ -2,11 +2,10 @@
 
 import { XmlNode } from '../utils/XmlNode';
 import { Project } from './project';
-import { Define, XmlDefine, CompilerDefine } from './define';
+import { Define, XmlDefine } from './define';
 import { IarXml } from '../utils/xml';
 import { IncludePath, XmlIncludePath } from './includepaths';
 import { PreIncludePath, XmlPreIncludePath } from './preincludepath';
-import { IarInstallation } from './iar';
 
 export class Config {
     private project: Project;

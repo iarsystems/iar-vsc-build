@@ -14,7 +14,8 @@
     "onCommand:iar.syncIarProjectFile",
     "onCommand:iar.selectIarInstallation",
     "onCommand:iar.selectIarProject",
-    "onCommand:iar.buildIarProject"
+    "onCommand:iar.buildIarProject",
+    "onCommand:iar.rebuildIarProject"
   ],
   "main": "./out/main",
   "contributes": {
@@ -37,6 +38,11 @@
       {
         "command": "iar.buildIarProject",
         "title": "Build",
+        "category": "IAR"
+      },
+      {
+        "command": "iar.rebuildIarProject",
+        "title": "Rebuild",
         "category": "IAR"
       }
     ],

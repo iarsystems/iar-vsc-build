@@ -65,17 +65,11 @@ export function activate(context: vscode.ExtensionContext) {
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand('iar.buildIarProject', () => {
-        if(extensionManager.isConfigured()) {
-            let ext = vscode.extensions.getExtension('ms-vscode.cpptools');
+        extensionManager.build(false);
+    }));
 
-            if(ext) {
-                let exp = ext.exports;
-
-                console.log(exp);
-            }
-        } else {
-            vscode.window.showErrorMessage("Extension not configured. Select a project and a compiler.");
-        }
+    context.subscriptions.push(vscode.commands.registerCommand('iar.rebuildIarProject', () => {
+        extensionManager.build(true);
     }));
 }
 
