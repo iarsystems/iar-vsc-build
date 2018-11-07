@@ -12,6 +12,7 @@ import { IarInstallation } from './iar/iar';
 import { CompilerDefine, Define } from './iar/define';
 import { Config } from './iar/config';
 import { spawn, ChildProcess } from 'child_process';
+import { IncludePath, StringIncludePath } from './iar/includepaths';
 
 export class ExtensionManager {
     private project: Project | undefined;
@@ -233,12 +234,15 @@ export class ExtensionManager {
             }
 
             let compilerDefines: Define[] = [];
+            let systemIncludes: IncludePath[] = [];
             if(this.iar) {
                 compilerDefines =  CompilerDefine.generateCompilerDefines(this.iar.getCompilerLocation());
+                systemIncludes = StringIncludePath.generateSystemIncludePaths(this.iar);
             }
 
             project.getConfigs().forEach(config => {
                 config.setCompilerDefines(compilerDefines);
+                config.setSystemIncludes(systemIncludes);
                 prop.setConfiguration(config);
             });
 

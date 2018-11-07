@@ -13,6 +13,7 @@ export class Config {
     private defines: Define[];
     private compilerDefines: Define[];
     private includes: IncludePath[];
+    private systemIncludes: IncludePath[];
     private preIncludes: PreIncludePath[];
 
     private constructor(project: Project, xmlConfigElement: XmlNode, defines: Define[], includes: IncludePath[], preIncludes: PreIncludePath[]) {
@@ -25,11 +26,16 @@ export class Config {
         this.defines = defines;
         this.includes = includes;
         this.preIncludes = preIncludes;
-        this.compilerDefines = []
+        this.compilerDefines = [];
+        this.systemIncludes = [];
     }
 
     public setCompilerDefines(defines: Define[]) {
         this.compilerDefines = defines;
+    }
+
+    public setSystemIncludes(includes: IncludePath[]) {
+        this.systemIncludes = includes;
     }
 
     public static parseFromProject(project: Project): Config[] {
@@ -66,7 +72,7 @@ export class Config {
     }
 
     public getIncludePaths(): IncludePath[] {
-        return this.includes;
+        return this.includes.concat(this.systemIncludes);
     }
 
     public getPreIncludes(): PreIncludePath[] {
