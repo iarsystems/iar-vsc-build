@@ -64,13 +64,15 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-in v0.0.1 the system include paths are not yet detected.
-
 ## Release Notes
 
 ### 0.0.1
 
 Initial release of iar-vsc
+
+### 0.0.2
+
+Add system include paths
 
 ## Road Map
 
