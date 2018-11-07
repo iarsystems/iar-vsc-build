@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import { XmlNode } from "../utils/XmlNode";
 import { IarXml } from "../utils/xml";
 import { IarInstallation } from "./iar";
-import { execSync, spawnSync } from 'child_process';
+import { spawnSync } from 'child_process';
 
 export interface IncludePath {
     /**
