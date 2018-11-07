@@ -164,7 +164,7 @@ export class ExtensionManager {
 
                 this.buildProcess = spawn(iarBuildLocation, [ewpLocation, iarCommand, selectedConfig.getName()], {stdio: 'pipe'});
 
-                this.buildProcess.on("close", (code, signal) => {
+                this.buildProcess.on("close", ({}, {}) => {
                     if(this.buildProcess) {
                         this.buildProcess = undefined;
                     }
