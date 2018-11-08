@@ -7,7 +7,8 @@ import { sErrorNotAnIarProjectFile } from '../iar/errors';
 import { FsUtils } from '../utils/fs';
 
 export class Settings {
-    private static readonly settingsLocation = path.join(vscode.workspace.rootPath as string, ".vscode/iar-vsc.js");
+    private static readonly oldSettingsLocation = path.join(vscode.workspace.rootPath as string, ".vscode/iar-vsc.js");
+    private static readonly settingsLocation = path.join(vscode.workspace.rootPath as string, ".vscode/iar-vsc.json");
     private static readonly ewpLocation = "ewp_location";
     private static readonly iarLocation = "iar_location";
     private settings: any;
@@ -23,6 +24,13 @@ export class Settings {
             let data = fs.readFileSync(Settings.settingsLocation);
 
             this.settings = jsonc.parse(data.toString());
+        } else if(fs.existsSync(Settings.oldSettingsLocation)) {
+            let data = fs.readFileSync(Settings.oldSettingsLocation);
+
+            this.settings = jsonc.parse(data.toString());
+
+            this.storeSettings();
+            fs.unlinkSync(Settings.oldSettingsLocation);
         } else {
             this.storeSettings();
         }
