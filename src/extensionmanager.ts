@@ -124,7 +124,7 @@ export class ExtensionManager {
         }
 
         let process = this.buildProcess;
-        if(process !== undefined) {
+        if(process !== undefined) {  
             vscode.window.showErrorMessage("Previous build command is still running. Try again.");
 
             process.kill('SIGTERM');
@@ -162,10 +162,11 @@ export class ExtensionManager {
 
                 console.log("executing \"", iarBuildLocation, "\" with parameters ", ewpLocation, " -make ", selectedConfig.getName());
 
-                this.buildProcess = spawn(iarBuildLocation, [ewpLocation, iarCommand, selectedConfig.getName()], {stdio: 'pipe'});
-
-                this.buildProcess.on("close", ({}, {}) => {
+                this.buildProcess = spawn(iarBuildLocation, [ewpLocation, iarCommand, selectedConfig.getName()], {stdio: ['ignore', 'pipe', 'ignore']});
+                
+                this.buildProcess.on('exit', (_code, _signal) => {
                     if(this.buildProcess) {
+                        this.buildProcess.removeAllListeners();
                         this.buildProcess = undefined;
                     }
                 });
