@@ -74,6 +74,11 @@ Initial release of iar-vsc
 
 Add system include paths
 
+### 0.0.3
+
+* Fixes #1: Extension did not detect end of build command
+* Fixes #3: Renamed iar-vsc.js to iar-vsc.json
+
 ## Road Map
 
 The following items are currently on the whish list to implement:
