@@ -57,7 +57,10 @@
           "iarvsc.iarRootPaths": {
             "type": "array",
             "description": "Root path where IAR installs its applications.",
-            "default": ["C:\\Program Files\\IAR Systems", "C:\\Program Files (x86)\\IAR Systems"]
+            "default": [
+              "C:\\Program Files\\IAR Systems",
+              "C:\\Program Files (x86)\\IAR Systems"
+            ]
           }
         }
       }
