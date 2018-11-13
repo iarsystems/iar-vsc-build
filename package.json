@@ -23,7 +23,8 @@
     "onCommand:iar.selectIarInstallation",
     "onCommand:iar.selectIarProject",
     "onCommand:iar.buildIarProject",
-    "onCommand:iar.rebuildIarProject"
+    "onCommand:iar.rebuildIarProject",
+    "workspaceContains:.vscode/iar-vsc.json"
   ],
   "main": "./out/main",
   "contributes": {
