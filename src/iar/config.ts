@@ -12,6 +12,7 @@ export class Config {
     private xmlData: XmlNode;
     private defines: Define[];
     private compilerDefines: Define[];
+    private iarExtensionDefines: Define[];
     private includes: IncludePath[];
     private systemIncludes: IncludePath[];
     private preIncludes: PreIncludePath[];
@@ -27,11 +28,16 @@ export class Config {
         this.includes = includes;
         this.preIncludes = preIncludes;
         this.compilerDefines = [];
+        this.iarExtensionDefines = [];
         this.systemIncludes = [];
     }
 
     public setCompilerDefines(defines: Define[]) {
         this.compilerDefines = defines;
+    }
+
+    public setIarExtensionDefines(defines: Define[]) {
+        this.iarExtensionDefines = defines;
     }
 
     public setSystemIncludes(includes: IncludePath[]) {
@@ -68,7 +74,7 @@ export class Config {
     }
 
     public getDefines(): Define[] {
-        return this.defines.concat(this.compilerDefines);
+        return this.defines.concat(this.iarExtensionDefines.concat(this.compilerDefines));
     }
 
     public getIncludePaths(): IncludePath[] {

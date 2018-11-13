@@ -138,3 +138,30 @@ export class CompilerDefine {
         }
     }
 }
+
+/**
+ * This class can be used to generate defines for IAR specific keywords, like
+ * __eeprom, __root, ...
+ */
+export class IarExtensionDefine {
+    private define: string;
+
+    constructor(define: string) {
+        this.define = define;
+    }
+
+    public get(): string {
+        return this.define;
+    }
+
+    public static generate(): Define[] {
+        let defines: IarExtensionDefine[] = [];
+
+        defines.push(new IarExtensionDefine('__root='));
+        defines.push(new IarExtensionDefine('__no_init='));
+        defines.push(new IarExtensionDefine('__flash='));
+        defines.push(new IarExtensionDefine('__eeprom='));
+
+        return defines;
+    }
+}

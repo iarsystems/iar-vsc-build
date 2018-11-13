@@ -9,7 +9,7 @@ import { CCppPropertiesFile } from './vsc/c_cpp_properties';
 import { sErrorNoProjectFileSpecified, sErrorNoVsWorkspaceOpened, sErrorNotADirectory, sErrorNotAnIarInstallationFolder } from './iar/errors';
 import { Settings } from './extension/settings';
 import { IarInstallation } from './iar/iar';
-import { CompilerDefine, Define } from './iar/define';
+import { CompilerDefine, Define, IarExtensionDefine } from './iar/define';
 import { Config } from './iar/config';
 import { spawn, ChildProcess } from 'child_process';
 import { IncludePath, StringIncludePath } from './iar/includepaths';
@@ -235,6 +235,7 @@ export class ExtensionManager {
             }
 
             let compilerDefines: Define[] = [];
+            let iarExtensionDefines: Define[] = IarExtensionDefine.generate();
             let systemIncludes: IncludePath[] = [];
             if(this.iar) {
                 compilerDefines =  CompilerDefine.generateCompilerDefines(this.iar.getCompilerLocation());
@@ -243,6 +244,7 @@ export class ExtensionManager {
 
             project.getConfigs().forEach(config => {
                 config.setCompilerDefines(compilerDefines);
+                config.setIarExtensionDefines(iarExtensionDefines);
                 config.setSystemIncludes(systemIncludes);
                 prop.setConfiguration(config);
             });
