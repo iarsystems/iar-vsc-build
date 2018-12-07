@@ -19,7 +19,7 @@ export namespace IarXml {
 
     export function findOptionFromSettings(xml: XmlNode, name: string): XmlNode | undefined {
         let data = xml.getFirstChildByName('data');
-        
+
         if(!data) {
             return undefined;
         }
@@ -59,5 +59,16 @@ export namespace IarXml {
         } else {
             return content === validate;
         }
+    }
+
+    export function findToolchainFromConfig(xml: XmlNode): XmlNode | undefined {
+        let settings = xml.getAllChildsByName('toolchain');
+
+        for(let idx=0; idx<settings.length; idx += 1) {
+            let setting = settings[idx];
+            return setting;
+        }
+
+        return undefined;
     }
 }

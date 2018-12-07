@@ -11,6 +11,7 @@ export class Settings {
     private static readonly settingsLocation = path.join(vscode.workspace.rootPath as string, ".vscode/iar-vsc.json");
     private static readonly ewpLocation = "ewp_location";
     private static readonly iarLocation = "iar_location";
+    private static readonly processor = "processor";
     private settings: any;
 
     constructor() {
@@ -70,5 +71,13 @@ export class Settings {
 
     set iarLocation(location: string | undefined) {
         this.settings[Settings.iarLocation] = location;
+    }
+
+    get processor(): string | undefined {
+        return this.settings[Settings.processor];
+    }
+
+    set processor(location: string | undefined) {
+        this.settings[Settings.processor] = location;
     }
 }

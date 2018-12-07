@@ -9,12 +9,14 @@ export class IarInstallation {
     private location: fs.PathLike;
     private readonly iarBuildPath: fs.PathLike;
     private readonly compilerPath: fs.PathLike;
+    private processor: string = "";
 
-    constructor(location: fs.PathLike) {
+    constructor(location: fs.PathLike, processor: string) {
         this.location = location;
+        this.setProcessor(processor);
 
         this.iarBuildPath = path.join(this.location.toString(), "common", "bin", "IarBuild.exe");
-        this.compilerPath = IarInstallation.findCompilerPath(this.location);
+        this.compilerPath = IarInstallation.findCompilerPath(this.location, this.processor);
     }
 
     public isValidInstallation(): boolean {
@@ -75,14 +77,54 @@ export class IarInstallation {
         }
     }
 
-    private static findCompilerPath(root: fs.PathLike): string {
-        let paths = FsUtils.filteredListDirectory(root, FsUtils.createFilteredListDirectoryBlacklist(['common', 'install-info']));
+    public setProcessor( processor: string ) {
+        /*
+        **  IAR has chosen to name the MSP430 compiler directory: 430. Therefore,
+        **  we attempt to strip MSP from MSP430 if detected.
+        */
+       if(processor.startsWith("MSP")) {
+           this.processor = processor.substring( 3, 6 );
+       }
+       else {
+           this.processor = processor;
+       }
 
-        if(paths.length != 1) {
-            return "";
+        /*  Attempt to find the compiler for this processor */
+        IarInstallation.findCompilerPath( this.location, this.processor );
+    }
+
+    public getProcessor(): string {
+        return this.processor;
+    }
+
+    private static findCompilerPath(root: fs.PathLike, processor: string): string {
+        let paths = FsUtils.filteredListDirectory(root, FsUtils.createFilteredListDirectoryBlacklist(['common', 'install-info']));
+        let pathIndex = 0;
+
+        if(paths.length !== 1) {
+            /*
+            **  Dan Bomsta: Trying to fix https://github.com/pluyckx/iar-vsc/issues/4, when there are
+            **  multiple microprocessor IAR installations.
+            */
+            if(processor !== "") {
+                /*  Can we locate the path we need? */
+                let counter = 0;
+
+                paths.forEach( path => {
+                    if( path.toString().includes( processor ) ||
+                        path.toString().includes( processor.toLowerCase() ) ) {
+                            pathIndex = counter;
+                    }
+
+                    counter++;
+                } );
+            }
+            else {
+                return "";
+            }
         }
 
-        let compilerDir = path.join(paths[0].toString(), 'bin');
+        let compilerDir = path.join(paths[pathIndex].toString(), 'bin');
 
         /* all compilers start with icc. Platforms like arm only have one compiler, while AVR has also iccavr_tiny.exe. So filter out
            compiler which contain an _ in their name */
