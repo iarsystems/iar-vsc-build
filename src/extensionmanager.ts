@@ -39,7 +39,16 @@ export class ExtensionManager {
         }
 
         if(this.settings.iarLocation !== undefined) {
-            let ret = this.setIarLocation(this.settings.iarLocation);
+            let ret = undefined;
+
+            if( this.settings.processor !== undefined ) {
+                ret = this.setIarLocation(this.settings.iarLocation,
+                                              this.settings.processor);
+            }
+            else {
+                ret = this.setIarLocation(this.settings.iarLocation,
+                                              "");
+            }
 
             if(ret !== undefined) {
                 vscode.window.showErrorMessage(ret.message);
@@ -51,13 +60,27 @@ export class ExtensionManager {
         return (this.project !== undefined) && (this.iar !== undefined);
     }
 
-    public setIarLocation(path: fs.PathLike): Error | undefined {
-        let iar = new IarInstallation(path);
+    public setIarLocation(path: fs.PathLike, processor: string): Error | undefined {
+        let iar = new IarInstallation(path, processor );
 
         if(iar.isValidInstallation()) {
             this.iar = iar;
 
-            if(this.settings.iarLocation !== this.iar.getLocation()) {
+            /*
+            **  Dan Bomsta: Trying to fix https://github.com/pluyckx/iar-vsc/issues/4, when there are
+            **  multiple microprocessor IAR installations.
+            */
+            if( this.settings.ewpLocation === "" || this.iar.getCompilerLocation() === "" ) {
+                /*
+                **  Possible multiple processor installation. So we force the user to select
+                **  the project file now in order to find the correct compiler.
+                **  Should we check the return from executeCommand?
+                **  This appears to be asynchronous == it returns immediately.  So we will
+                **  have the handle in setIarProjectPath.
+                */
+                vscode.commands.executeCommand( "iar.selectIarProject" );
+            }
+            else if(this.settings.iarLocation !== this.iar.getLocation()) {
                 this.settings.iarLocation = this.iar.getLocation();
                 this.settings.storeSettings();
             }
@@ -81,6 +104,15 @@ export class ExtensionManager {
                 this.settings.ewpLocation = this.project.getLocation().toString();
 
                 this.settings.storeSettings();
+            }
+            else if( !this.iar || this.iar.getCompilerLocation() === "" ) {
+                this.settings.processor = this.project.getToolchain();
+                this.settings.storeSettings();
+
+                /* For Sync to work we update our IarInstallation object */
+                if( this.iar ) {
+                    this.iar.setProcessor( this.settings.processor );
+                }
             }
         }
 
@@ -124,7 +156,7 @@ export class ExtensionManager {
         }
 
         let process = this.buildProcess;
-        if(process !== undefined) {  
+        if(process !== undefined) {
             vscode.window.showErrorMessage("Previous build command is still running. Try again.");
 
             process.kill('SIGTERM');
@@ -154,7 +186,7 @@ export class ExtensionManager {
                 let iarCommand = "-make";
 
                 if(rebuild) {
-                    iarCommand = "-build"
+                    iarCommand = "-build";
                 }
 
                 let out = vscode.window.createOutputChannel("IAR");
@@ -163,14 +195,14 @@ export class ExtensionManager {
                 console.log("executing \"", iarBuildLocation, "\" with parameters ", ewpLocation, " -make ", selectedConfig.getName());
 
                 this.buildProcess = spawn(iarBuildLocation, [ewpLocation, iarCommand, selectedConfig.getName()], {stdio: ['ignore', 'pipe', 'ignore']});
-                
+
                 this.buildProcess.on('exit', (_code, _signal) => {
                     if(this.buildProcess) {
                         this.buildProcess.removeAllListeners();
                         this.buildProcess = undefined;
                     }
                 });
-                
+
                 this.buildProcess.stdout.on('data', (chunk) => {
                     out.append(chunk.toString());
                 });
@@ -186,7 +218,7 @@ export class ExtensionManager {
 
             children.forEach(child => {
                 let installationPath = path.join(root, child);
-                let installation = new IarInstallation(installationPath);
+                let installation = new IarInstallation(installationPath, "");
 
                 if(installation.isValidInstallation()) {
                     installations.push(installation);

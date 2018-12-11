@@ -31,7 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
                     let idx = items.indexOf(value);
                     let installation = installations[idx];
 
-                    extensionManager.setIarLocation(installation.getLocation());
+                    extensionManager.setIarLocation(installation.getLocation(), "");
                 }
             });
         } else {

@@ -30,6 +30,10 @@ export class Project {
         return lPath.parse(this.projectFile.toString()).name;
     }
 
+    public getToolchain(): string {
+        return this.configs[0].getToolchain()[0].get();
+    }
+
 
     /**
      * Parse
