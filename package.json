@@ -2,9 +2,10 @@
   "name": "iar-vsc",
   "displayName": "IAR For Visual Studio Code",
   "description": "An extension to uses IAR project files to config and debug projects",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "pluyckx",
   "icon": "images/logo.png",
+  "preview": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/pluyckx/iar-vsc.git"
@@ -15,12 +16,16 @@
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "IAR"
+  ],
   "activationEvents": [
     "onCommand:iar.syncIarProjectFile",
     "onCommand:iar.selectIarInstallation",
     "onCommand:iar.selectIarProject",
     "onCommand:iar.buildIarProject",
-    "onCommand:iar.rebuildIarProject"
+    "onCommand:iar.rebuildIarProject",
+    "workspaceContains:.vscode/iar-vsc.json"
   ],
   "main": "./out/main",
   "contributes": {

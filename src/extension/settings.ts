@@ -12,6 +12,7 @@ export class Settings {
     private static readonly ewpLocation = "ewp_location";
     private static readonly iarLocation = "iar_location";
     private static readonly processor = "processor";
+    private static readonly buildConfig = "build_config";
     private settings: any;
 
     constructor() {
@@ -79,5 +80,13 @@ export class Settings {
 
     set processor(location: string | undefined) {
         this.settings[Settings.processor] = location;
+    }
+    
+    get buildConfig(): string | undefined {
+        return this.settings[Settings.buildConfig];
+    }
+
+    set buildConfig(config: string | undefined) {
+        this.settings[Settings.buildConfig] = config;
     }
 }

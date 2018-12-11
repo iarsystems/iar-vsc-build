@@ -9,7 +9,7 @@ import { CCppPropertiesFile } from './vsc/c_cpp_properties';
 import { sErrorNoProjectFileSpecified, sErrorNoVsWorkspaceOpened, sErrorNotADirectory, sErrorNotAnIarInstallationFolder } from './iar/errors';
 import { Settings } from './extension/settings';
 import { IarInstallation } from './iar/iar';
-import { CompilerDefine, Define } from './iar/define';
+import { CompilerDefine, Define, IarExtensionDefine } from './iar/define';
 import { Config } from './iar/config';
 import { spawn, ChildProcess } from 'child_process';
 import { IncludePath, StringIncludePath } from './iar/includepaths';
@@ -166,20 +166,27 @@ export class ExtensionManager {
         let iar = this.iar;
         let project = this.project;
         let configurationNames: string[] = [];
+        let prevConfigBuildName = this.settings.buildConfig;
 
         project.getConfigs().forEach(config => {
-            configurationNames.push(config.getName());
+            if((prevConfigBuildName !== undefined) && (prevConfigBuildName === config.getName())) {
+                /* add previous build as first item in the list so the user can just press enter */
+                configurationNames = [config.getName()].concat(configurationNames);
+            } else {
+                configurationNames.push(config.getName());
+            }
         });
 
         vscode.window.showQuickPick(configurationNames, {placeHolder: 'Select build configuration', canPickMany: false}).then((selected) => {
             if(selected) {
-                let idx = configurationNames.indexOf(selected);
+                selectedConfig = project.findConfigWithName(selected);
 
-                if(idx === -1) {
+                if(selectedConfig === undefined) {
                     return;
                 }
 
-                selectedConfig = project.getConfigs()[idx];
+                this.settings.buildConfig = selected;
+                this.settings.storeSettings();
 
                 let iarBuildLocation = iar.getIarBuildLocation().toString();
                 let ewpLocation = project.getLocation().toString();
@@ -267,6 +274,7 @@ export class ExtensionManager {
             }
 
             let compilerDefines: Define[] = [];
+            let iarExtensionDefines: Define[] = IarExtensionDefine.generate();
             let systemIncludes: IncludePath[] = [];
             if(this.iar) {
                 compilerDefines =  CompilerDefine.generateCompilerDefines(this.iar.getCompilerLocation());
@@ -275,6 +283,7 @@ export class ExtensionManager {
 
             project.getConfigs().forEach(config => {
                 config.setCompilerDefines(compilerDefines);
+                config.setIarExtensionDefines(iarExtensionDefines);
                 config.setSystemIncludes(systemIncludes);
                 prop.setConfiguration(config);
             });

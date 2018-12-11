@@ -86,6 +86,16 @@ export class Project {
         return this.configs;
     }
 
+    public findConfigWithName(name: string): iar_config.Config | undefined {
+        for(let idx=0; idx<this.configs.length; idx += 1) {
+            if(this.configs[idx].getName() === name) {
+                return this.configs[idx];
+            }
+        }
+
+        return undefined;
+    }
+
     public static findProjectFiles(root: fs.PathLike, recursive = true): fs.PathLike[] {
         if(fs.existsSync(root)) {
             let stat = fs.statSync(root);
