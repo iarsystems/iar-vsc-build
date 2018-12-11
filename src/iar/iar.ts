@@ -130,7 +130,7 @@ export class IarInstallation {
            compiler which contain an _ in their name */
         let compilerPaths = FsUtils.filteredListDirectory(compilerDir, FsUtils.createFilteredListDirectoryFilenameRegex(new RegExp('^icc[^_]*\.exe')));
 
-        if(compilerPaths.length == 1) {
+        if(compilerPaths.length === 1) {
             return compilerPaths[0].toString();
         } else {
             return "";
