@@ -1,0 +1,102 @@
+@startuml
+
+package IAR {
+    class IarWorkbench {
+        +readonly version: string
+        +readonly path: fs.PathLike
+        +readonly platforms: ReadonlyArray<IarPlatform>
+
+        +{static} findInstallations(root: fs.PathLike): IarWorkbench[]
+    }
+
+    class IarPlatform {
+        +readonly compiler: IarCompiler
+
+        +{static} findPlatforms(workbenchDirectory: fs.PathLike): IarPlatform[]
+    }
+
+    class IarCompiler {
+        +readonly version: string
+        +readonly path: fs.PathLike
+
+        +{static} findCompilers(platformDirectory: fs.PathLike): IarCompiler[]
+    }
+
+    class IarProject {
+        +readonly path: fs.PathLike
+        +readonly configurations: ReadonlyArray<Configuration>
+
+        +{static} findProjects(root: fs.PathLike, recursive: boolean)
+    }
+
+    class Configuration {
+        -readonly xmlNode: XmlNode
+        +readonly toolchain: Toolchain
+        +readonly defines: Define[]
+        +includePaths: IncludePath[]
+        +preIncludes: PreInclude[]
+
+        +{static} fromProject(project: IarProject): Configuration[]
+    }
+
+    class Define {
+        -readonly xmlNode: XmlNode
+        +readonly id: string
+        +readonly value: string
+
+        +{static} fromXmlNode(xml: XmlNode): Define[]
+    }
+
+    class IncludePath {
+        -readonly xmlNode: XmlNode
+        +readonly path: fs.PathLike
+
+        +{static} fromXmlNode(xml: XmlNode): IncludePath[]
+    }
+
+    class PreInclude {
+        -readonly xmlNode: XmlNode
+        +readonly preInclude: fs.PathLike
+
+        +{static} fromXmlNode(xml: XmlNode): PreInclude[]
+    }
+
+    class Toolchain {
+        -readonly xmlNode: XmlNode
+        +readonly toolchain: string
+
+        +{static} fromXmlNode(xml: XmlNode): Toolchain[]
+    }
+}
+
+package Extension {
+    interface Command {
+        +execute()
+    }
+
+    class CommandManager {
+    }
+
+    class XmlNode {
+        -element: xmljs.Element
+        +readonly tagName: string
+        +readonly text: string | undefined
+
+        +getChildrenByType(type: string): XmlNode[]
+        +getChildrenByName(name: string): XmlNode[]
+    }
+}
+
+IarWorkbench "1" *-- "1+" IarPlatform
+IarPlatform "1" *-- "1+" IarCompiler
+
+IarProject "1" *-- "1+" Configuration
+
+Configuration "1" *-- "*" Define
+Configuration "1" *-- "*" IncludePath
+Configuration "1" *-- "*" PreInclude
+
+IarCompiler "1" *-- "*" Define
+IarCompiler "1" *-- "*" IncludePath
+
+@enduml
