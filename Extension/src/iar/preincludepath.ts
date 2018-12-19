@@ -23,13 +23,13 @@ export class XmlPreIncludePath {
         this.xmlData = xml;
         this.projectPath = projectPath;
 
-        if(xml.getTagName() !== "state") {
-            throw new Error("Expected an xml element 'state' instead of '" + xml.getTagName() + "'.");
+        if (xml.tagName !== "state") {
+            throw new Error("Expected an xml element 'state' instead of '" + xml.tagName + "'.");
         }
     }
 
     public get(): string {
-        let path = this.xmlData.getText();
+        let path = this.xmlData.text;
 
         if (path) {
             return path;

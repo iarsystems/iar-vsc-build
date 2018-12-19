@@ -13,8 +13,8 @@ export class XmlToolChain {
     constructor(xml: XmlNode) {
         this.xmlData = xml;
 
-        if (xml.getTagName() !== "toolchain") {
-            throw new Error("Expected an xml element 'toolchain' instead of '" + xml.getTagName() + "'.");
+        if (xml.tagName !== "toolchain") {
+            throw new Error("Expected an xml element 'toolchain' instead of '" + xml.tagName + "'.");
         }
     }
 
@@ -22,7 +22,7 @@ export class XmlToolChain {
         let toolchain = this.xmlData.getAllChildsByType("element");
 
         if (toolchain) {
-            let name = toolchain[0].getText();
+            let name = toolchain[0].text;
 
             if (name) {
                 return name;
@@ -31,6 +31,7 @@ export class XmlToolChain {
 
         return "";
     }
+
 
     public static parseFromconfiguration(xml: XmlNode): ToolChain[] {
         let toolchains: ToolChain[] = [];

@@ -28,13 +28,13 @@ export class XmlIncludePath {
         this.xmlData = xml;
         this.projectPath = projectPath;
 
-        if(xml.getTagName() !== "state") {
-            throw new Error("Expected an xml element 'state' instead of '" + xml.getTagName() + "'.");
+        if (xml.tagName !== "state") {
+            throw new Error("Expected an xml element 'state' instead of '" + xml.tagName + "'.");
         }
     }
 
     public get(): string {
-        let path = this.xmlData.getText();
+        let path = this.xmlData.text;
 
         if (path) {
             return path;
@@ -60,7 +60,7 @@ export class XmlIncludePath {
                 let includePaths: IncludePath[] = [];
 
                 states.forEach(state => {
-                    let stateText = state.getText();
+                    let stateText = state.text;
 
                     if (stateText && (stateText.trim() !== "")) {
                         includePaths.push(new XmlIncludePath(state, projectPath));

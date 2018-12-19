@@ -5,16 +5,45 @@ import * as xmljs from 'xml-js';
 export class XmlNode {
     private mElement: xmljs.Element;
 
-    constructor(element: xmljs.Element) {
+    constructor(xml: xmljs.Element | string) {
+        let element: xmljs.Element;
+
+        if (typeof xml === "string") {
+            let document = xmljs.xml2js(xml, { compact: false }) as xmljs.Element;
+            if (document.elements === undefined) {
+                throw new Error("Invalid xml data");
+            }
+
+            element = document.elements[0];
+        } else {
+            element = xml;
+        }
+
         this.mElement = element;
     }
 
-    public getTagName(): string | undefined {
+    get tagName(): string | undefined {
         return this.mElement.name;
     }
 
-    public getXmlJsObject(): xmljs.Element {
-        return this.mElement;
+    get text(): string | undefined {
+        if (this.mElement.type === "text") {
+            return "" + this.mElement.text;
+        } else {
+            let texts = this.getAllChildsByType('text');
+
+            if (texts.length > 0) {
+                let concatenated = "";
+
+                texts.forEach(text => {
+                    concatenated += text.mElement.text;
+                });
+
+                return concatenated;
+            } else {
+                return undefined;
+            }
+        }
     }
 
     public getFirstChildByName(element: string): XmlNode | undefined {
@@ -69,21 +98,5 @@ export class XmlNode {
         }
 
         return ret;
-    }
-
-    public getText(): string | undefined {
-        let texts = this.getAllChildsByType('text');
-
-        if (texts.length > 0) {
-            let concatenated = "";
-
-            texts.forEach(text => {
-                concatenated += text.mElement.text;
-            });
-
-            return concatenated;
-        } else {
-            return undefined;
-        }
     }
 }

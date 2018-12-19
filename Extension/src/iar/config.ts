@@ -20,8 +20,8 @@ export class Config {
     private toolchain: ToolChain[];
 
     private constructor(project: Project, xmlConfigElement: XmlNode, defines: Define[], includes: IncludePath[], preIncludes: PreIncludePath[], toolchain: ToolChain[]) {
-        if(xmlConfigElement.getTagName() !== 'configuration') {
-            throw new Error("Expected an xml element 'configuration' instead of '" + xmlConfigElement.getTagName() + "'");
+        if (xmlConfigElement.tagName !== 'configuration') {
+            throw new Error("Expected an xml element 'configuration' instead of '" + xmlConfigElement.tagName + "'");
         }
 
         this.project = project;

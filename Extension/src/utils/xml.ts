@@ -40,8 +40,8 @@ export namespace IarXml {
     export function getNameTextFromElement(xml: XmlNode): string | undefined {
         let nameElement = xml.getFirstChildByName('name');
 
-        if(nameElement) {
-            return nameElement.getText();
+        if (nameElement) {
+            return nameElement.text;
         }
 
         return undefined;
