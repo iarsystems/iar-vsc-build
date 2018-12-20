@@ -5,12 +5,15 @@ import * as Fs from "fs";
 import * as Path from "path";
 import { FsUtils } from "../../utils/fs";
 import { ListUtils } from "../../utils/utils";
+import { Compiler } from "./compiler";
 
 export interface Platform {
     readonly path: Fs.PathLike;
 }
 
 class IarPlatform {
+    private compilers: Compiler[];
+
     readonly path: Fs.PathLike;
 
     /**
@@ -24,6 +27,9 @@ class IarPlatform {
         if (!this.isValidPlatform()) {
             throw new Error("Path does not point to a valid platform directory!");
         }
+
+        let compilerRoot = Path.join(path.toString(), "bin");
+        this.compilers = Compiler.collectCompilersFrom(compilerRoot);
     }
 
     /**
