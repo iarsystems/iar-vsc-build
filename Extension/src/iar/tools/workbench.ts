@@ -5,8 +5,12 @@ import * as Fs from "fs";
 import * as Path from "path";
 import { FsUtils } from "../../utils/fs";
 
+export interface Workbench {
+    readonly path: Fs.PathLike;
+    readonly idePath: Fs.PathLike;
+}
 
-class Workbench {
+class IarWorkbench {
     readonly path: Fs.PathLike
     readonly idePath: Fs.PathLike
 
@@ -28,7 +32,7 @@ class Workbench {
     /**
      * Check if the workbench is valid. This means the IAR IDE is available.
      */
-    public isValidWorkbench(): boolean {
+    protected isValidWorkbench(): boolean {
         try {
             let stat = Fs.statSync(this.idePath);
 
@@ -39,7 +43,7 @@ class Workbench {
     }
 }
 
-export namespace IarWorkbench {
+export namespace Workbench {
     let workbenches: Map<string, Workbench> = new Map<string, Workbench>();
 
     /**
@@ -85,7 +89,7 @@ export namespace IarWorkbench {
      */
     function create(root: Fs.PathLike): Workbench | undefined {
         try {
-            return new Workbench(root);
+            return new IarWorkbench(root);
         } catch (e) {
             return undefined;
         }
