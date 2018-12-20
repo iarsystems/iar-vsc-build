@@ -16,8 +16,8 @@ export interface Workbench {
 class IarWorkbench {
     readonly platforms: Platform[];
 
-    readonly path: Fs.PathLike
-    readonly idePath: Fs.PathLike
+    readonly path: Fs.PathLike;
+    readonly idePath: Fs.PathLike;
 
     /**
      * Create a new Workbench object based using a path.
@@ -87,7 +87,7 @@ export namespace Workbench {
     export function mergeUnique(...lists: Array<Workbench>[]): Workbench[] {
         let fnKey = (item: Workbench): string => {
             return item.path.toString();
-        }
+        };
 
         return ListUtils.mergeUnique(fnKey, ...lists);
     }
