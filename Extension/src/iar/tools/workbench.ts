@@ -72,12 +72,21 @@ export namespace Workbench {
     }
 
     /**
-     * Get all available workbenches
+     * Merge two or more lists containing workbenches. This function will return
+     * a list of unique workbenches. Duplicates are removed.
      * 
-     * @returns ReadonlyArray<Workbench>
+     * @param list Array list containing lists of workbenches
      */
-    export function getWorkbenches(): ReadonlyArray<Workbench> {
-        return Array.from(workbenches.values());
+    export function mergeUnique(...list: Array<Workbench>[]): Workbench[] {
+        let result: Map<string, Workbench> = new Map<string, Workbench>();
+
+        list.forEach(workbenches => {
+            workbenches.forEach(workbench => {
+                result.set(workbench.path.toString(), workbench);
+            });
+        });
+
+        return Array.from(result.values());
     }
 
 
