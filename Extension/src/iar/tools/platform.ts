@@ -52,23 +52,6 @@ class IarPlatform {
 
 export namespace Platform {
     /**
-     * Create a new Platform object. If the given path does not point to a valid
-     * platform directory inside an IAR workbench, undefined is returned.
-     * 
-     * @param path The path of a platfrom in an IAR workbench directory.
-     * 
-     * @returns {undefined} When the path does not point to a valid path.
-     * @returns {Platform} When the object is successfully created.
-     */
-    export function create(path: Fs.PathLike): Platform | undefined {
-        try {
-            return new IarPlatform(path);
-        } catch (e) {
-            return undefined;
-        }
-    }
-
-    /**
      * Detect all platforms for a workbench.
      * 
      * @param workbench A workbench for which we have to search platforms
@@ -101,5 +84,22 @@ export namespace Platform {
         };
 
         return ListUtils.mergeUnique(fnKey, ...platforms);
+    }
+
+    /**
+     * Create a new Platform object. If the given path does not point to a valid
+     * platform directory inside an IAR workbench, undefined is returned.
+     * 
+     * @param path The path of a platfrom in an IAR workbench directory.
+     * 
+     * @returns {undefined} When the path does not point to a valid path.
+     * @returns {Platform} When the object is successfully created.
+     */
+    function create(path: Fs.PathLike): Platform | undefined {
+        try {
+            return new IarPlatform(path);
+        } catch (e) {
+            return undefined;
+        }
     }
 }
