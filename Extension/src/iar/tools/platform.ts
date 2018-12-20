@@ -9,7 +9,7 @@ import { Compiler } from "./compiler";
 
 export interface Platform {
     readonly path: Fs.PathLike;
-    readonly compilers: Compiler[]
+    readonly compilers: Compiler[];
 }
 
 class IarPlatform {
