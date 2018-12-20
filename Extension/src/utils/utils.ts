@@ -19,3 +19,23 @@ export namespace ReplaceUtils {
         return ret;
     }
 }
+
+export namespace ListUtils {
+    /**
+     * Merge two or more lists. This function will return a list of unique
+     * items. Duplicates are removed.
+     * 
+     * @param list Array list containing lists of workbenches
+     */
+    export function mergeUnique<T>(getKey: (o: T) => string, ...lists: Array<T>[]): T[] {
+        let result: Map<string, T> = new Map<string, T>();
+
+        lists.forEach(list => {
+            list.forEach(item => {
+                result.set(getKey(item), item);
+            });
+        });
+
+        return Array.from(result.values());
+    }
+}

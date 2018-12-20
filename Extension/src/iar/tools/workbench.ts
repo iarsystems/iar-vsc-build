@@ -4,6 +4,7 @@
 import * as Fs from "fs";
 import * as Path from "path";
 import { FsUtils } from "../../utils/fs";
+import { ListUtils } from "../../utils/utils";
 
 export interface Workbench {
     readonly path: Fs.PathLike;
@@ -77,16 +78,12 @@ export namespace Workbench {
      * 
      * @param list Array list containing lists of workbenches
      */
-    export function mergeUnique(...list: Array<Workbench>[]): Workbench[] {
-        let result: Map<string, Workbench> = new Map<string, Workbench>();
+    export function mergeUnique(...lists: Array<Workbench>[]): Workbench[] {
+        let fnKey = (item: Workbench): string => {
+            return item.path.toString();
+        }
 
-        list.forEach(workbenches => {
-            workbenches.forEach(workbench => {
-                result.set(workbench.path.toString(), workbench);
-            });
-        });
-
-        return Array.from(result.values());
+        return ListUtils.mergeUnique(fnKey, ...lists);
     }
 
 
