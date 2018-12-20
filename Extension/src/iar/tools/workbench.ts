@@ -10,10 +10,11 @@ import { Platform } from "./platform";
 export interface Workbench {
     readonly path: Fs.PathLike;
     readonly idePath: Fs.PathLike;
+    readonly platforms: Platform[];
 }
 
 class IarWorkbench {
-    private platforms: Platform[];
+    readonly platforms: Platform[];
 
     readonly path: Fs.PathLike
     readonly idePath: Fs.PathLike
