@@ -98,7 +98,7 @@ export namespace Platform {
     export function mergeUnique(...platforms: Platform[][]): Platform[] {
         let fnKey = (item: Platform): string => {
             return item.path.toString();
-        }
+        };
 
         return ListUtils.mergeUnique(fnKey, ...platforms);
     }

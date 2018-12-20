@@ -47,7 +47,7 @@ export namespace FsUtils {
             } else {
                 return false;
             }
-        }
+        };
     }
 
     export function createFilteredListDirectoryDirectoryRegex(regex: RegExp): (fullpath: fs.PathLike) => boolean {
@@ -62,7 +62,7 @@ export namespace FsUtils {
             } else {
                 return false;
             }
-        }
+        };
     }
 
     export function createFilteredListDirectoryBlacklist(blacklist: string[]): (fullpath: fs.PathLike) => boolean {
@@ -70,13 +70,13 @@ export namespace FsUtils {
             let parsedPath = path.parse(fullpath.toString());
             let base = parsedPath.base;
 
-            return blacklist.indexOf(base) == -1;
-        }
+            return blacklist.indexOf(base) === -1;
+        };
     }
 
     export function createNonFilteredListDirectory(): (fullpath: fs.PathLike) => boolean {
         return (): boolean => {
             return true;
-        }
+        };
     }
 }
