@@ -64,7 +64,7 @@ export namespace Compiler {
     export function mergeUnique(...lists: Compiler[][]): Compiler[] {
         let fnKey = (item: Compiler): string => {
             return item.path.toString();
-        }
+        };
 
         return ListUtils.mergeUnique(fnKey, ...lists);
     }
