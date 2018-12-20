@@ -2,8 +2,6 @@
 'use strict';
 
 import * as Fs from "fs";
-import * as Path from "path";
-import { Platform } from "./platform";
 import { FsUtils } from "../../utils/fs";
 import { ListUtils } from "../../utils/utils";
 
@@ -62,12 +60,10 @@ export namespace Compiler {
      * 
      * @param platform The platform for which we must find compilers.
      */
-    export function collectCompilersFrom(platform: Platform): Compiler[] {
+    export function collectCompilersFrom(root: Fs.PathLike): Compiler[] {
         let compilers: Compiler[] = [];
         let filter = FsUtils.createFilteredListDirectoryFilenameRegex(/icc.*\.exe/);
-        let binDir = Path.join(platform.path.toString(), "bin");
-
-        let compilerPaths = FsUtils.filteredListDirectory(binDir, filter);
+        let compilerPaths = FsUtils.filteredListDirectory(root, filter);
 
         compilerPaths.forEach(compilerPath => {
             let compiler = create(compilerPath);
