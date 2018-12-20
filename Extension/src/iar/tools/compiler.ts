@@ -41,21 +41,6 @@ class IarCompiler {
 
 export namespace Compiler {
     /**
-     * Create a new Compiler object.
-     * 
-     * @param path The path to the compiler
-     * @returns {undefined} When the path does not point to a valid compiler
-     * @returns {Compiler} When the path points to a valid compiler
-     */
-    export function create(path: Fs.PathLike): Compiler | undefined {
-        try {
-            return new IarCompiler(path);
-        } catch (e) {
-            return undefined;
-        }
-    }
-
-    /**
      * Collect all available compilers for a platform.
      * 
      * @param platform The platform for which we must find compilers.
@@ -82,5 +67,20 @@ export namespace Compiler {
         }
 
         return ListUtils.mergeUnique(fnKey, ...lists);
+    }
+
+    /**
+     * Create a new Compiler object.
+     * 
+     * @param path The path to the compiler
+     * @returns {undefined} When the path does not point to a valid compiler
+     * @returns {Compiler} When the path points to a valid compiler
+     */
+    function create(path: Fs.PathLike): Compiler | undefined {
+        try {
+            return new IarCompiler(path);
+        } catch (e) {
+            return undefined;
+        }
     }
 }
