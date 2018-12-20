@@ -3,7 +3,6 @@
 
 import * as Fs from "fs";
 import * as Path from "path";
-import { Workbench } from "./workbench";
 import { FsUtils } from "../../utils/fs";
 import { ListUtils } from "../../utils/utils";
 
@@ -68,10 +67,9 @@ export namespace Platform {
      * 
      * @param workbench A workbench for which we have to search platforms
      */
-    export function collectPlatformsFrom(workbench: Workbench): Platform[] {
+    export function collectPlatformsFrom(root: Fs.PathLike, ignoreFolders: string[]): Platform[] {
         let platforms: Platform[] = [];
-        let root = workbench.path;
-        let filter = FsUtils.createFilteredListDirectoryBlacklist(["common", "install-info"]);
+        let filter = FsUtils.createFilteredListDirectoryBlacklist(ignoreFolders);
 
         let platformPaths = FsUtils.filteredListDirectory(root, filter);
 
