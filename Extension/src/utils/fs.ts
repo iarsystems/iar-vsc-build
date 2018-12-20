@@ -73,4 +73,10 @@ export namespace FsUtils {
             return blacklist.indexOf(base) == -1;
         }
     }
+
+    export function createNonFilteredListDirectory(): (fullpath: fs.PathLike) => boolean {
+        return (): boolean => {
+            return true;
+        }
+    }
 }
