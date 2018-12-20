@@ -39,24 +39,42 @@ package IAR {
         +{static} fromProject(project: IarProject): Configuration[]
     }
 
-    class Define {
-        -readonly xmlNode: XmlNode
-        +readonly id: string
+    Interface Define {
+        +readonly identifier: string
         +readonly value: string
+    }
 
+    class XmlDefine {
+        -readonly xmlNode: XmlNode
+        
         +{static} fromXmlNode(xml: XmlNode): Define[]
     }
 
-    class IncludePath {
-        -readonly xmlNode: XmlNode
+    class StringDefine {
+        -readonly identifier_: string
+        -readonly value_: string
+    }
+
+    Interface IncludePath {
         +readonly path: fs.PathLike
+    }
+
+    class XmlIncludePath {
+        -readonly xmlNode: XmlNode
 
         +{static} fromXmlNode(xml: XmlNode): IncludePath[]
     }
 
-    class PreInclude {
-        -readonly xmlNode: XmlNode
+    class StringIncludePath {
+        -readonly path_: fs.PathLike
+    }
+
+    Interface PreInclude {
         +readonly preInclude: fs.PathLike
+    }
+
+    class XmlPreInclude {
+        -readonly xmlNode: XmlNode
 
         +{static} fromXmlNode(xml: XmlNode): PreInclude[]
     }
@@ -98,5 +116,13 @@ Configuration "1" *-- "*" PreInclude
 
 IarCompiler "1" *-- "*" Define
 IarCompiler "1" *-- "*" IncludePath
+
+Define <|.. XmlDefine
+Define <|.. StringDefine
+
+IncludePath <|.. XmlIncludePath
+IncludePath <|.. StringIncludePath
+
+PreInclude <|.. XmlPreInclude
 
 @enduml
