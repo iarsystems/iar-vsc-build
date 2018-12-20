@@ -44,16 +44,18 @@ class IarWorkbench {
 }
 
 export namespace Workbench {
-    let workbenches: Map<string, Workbench> = new Map<string, Workbench>();
-
     /**
      * Search for valid workbenches. The found workbenches are stored in the
      * Workbench class and are accessible using the static accessor functions.
      * 
      * @param root The root folder where we must search for valid workbench
      *             paths. By default this is `C:\Program Files (x86)\IAR Systems`.
+     * 
+     * @returns {Workbench[]} A list of found workbenches. Size can be 0.
      */
-    export function collectWorkbenchesFrom(root: Fs.PathLike) {
+    export function collectWorkbenchesFrom(root: Fs.PathLike): Workbench[] {
+        let workbenches = new Array<Workbench>();
+
         let filter = FsUtils.createNonFilteredListDirectory();
 
         let directories = FsUtils.filteredListDirectory(root, filter);
@@ -62,9 +64,11 @@ export namespace Workbench {
             let workbench = create(directory);
 
             if (workbench !== undefined) {
-                workbenches.set(workbench.path.toString(), workbench);
+                workbenches.push(workbench);
             }
         });
+
+        return workbenches;
     }
 
     /**
