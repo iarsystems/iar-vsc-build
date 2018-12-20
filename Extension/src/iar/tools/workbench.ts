@@ -5,6 +5,7 @@ import * as Fs from "fs";
 import * as Path from "path";
 import { FsUtils } from "../../utils/fs";
 import { ListUtils } from "../../utils/utils";
+import { Platform } from "./platform";
 
 export interface Workbench {
     readonly path: Fs.PathLike;
@@ -12,6 +13,8 @@ export interface Workbench {
 }
 
 class IarWorkbench {
+    private platforms: Platform[];
+
     readonly path: Fs.PathLike
     readonly idePath: Fs.PathLike
 
@@ -28,6 +31,8 @@ class IarWorkbench {
         if (!this.isValidWorkbench()) {
             throw new Error("Path does not point to a workspace!");
         }
+
+        this.platforms = Platform.collectPlatformsFrom(path, ["common", "install-info"]);
     }
 
     /**
