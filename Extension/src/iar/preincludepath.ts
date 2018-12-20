@@ -31,7 +31,7 @@ export class XmlPreIncludePath {
     public get(): string {
         let path = this.xmlData.getText();
 
-        if(path) {
+        if (path) {
             return path;
         } else {
             return "";
@@ -47,10 +47,10 @@ export class XmlPreIncludePath {
     public static parseFromconfiguration(xml: XmlNode, projectPath: string): PreIncludePath[] {
         let settings = IarXml.findSettingsFromConfig(xml, '/ICC.*/');
 
-        if(settings) {
+        if (settings) {
             let option = IarXml.findOptionFromSettings(settings, 'PreInclude');
 
-            if(option) {
+            if (option) {
                 let states = option.getAllChildsByName('state');
                 let preIncludePaths: PreIncludePath[] = [];
 

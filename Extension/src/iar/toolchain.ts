@@ -8,41 +8,41 @@ export interface ToolChain {
 }
 
 export class XmlToolChain {
-  private xmlData: XmlNode;
+    private xmlData: XmlNode;
 
-  constructor(xml: XmlNode) {
-      this.xmlData = xml;
+    constructor(xml: XmlNode) {
+        this.xmlData = xml;
 
-      if(xml.getTagName() !== "toolchain") {
-          throw new Error("Expected an xml element 'toolchain' instead of '" + xml.getTagName() + "'.");
-      }
-  }
-
-  public get(): string {
-    let toolchain = this.xmlData.getAllChildsByType("element");
-
-    if(toolchain) {
-        let name = toolchain[ 0 ].getText();
-
-        if(name) {
-            return name;
+        if (xml.getTagName() !== "toolchain") {
+            throw new Error("Expected an xml element 'toolchain' instead of '" + xml.getTagName() + "'.");
         }
     }
 
-    return "";
-  }
+    public get(): string {
+        let toolchain = this.xmlData.getAllChildsByType("element");
 
-  public static parseFromconfiguration(xml: XmlNode): ToolChain[] {
-    let toolchains: ToolChain[] = [];
+        if (toolchain) {
+            let name = toolchain[0].getText();
 
-    let settings = IarXml.findToolchainFromConfig(xml);
+            if (name) {
+                return name;
+            }
+        }
 
-    if(settings) {
-        toolchains.push( new XmlToolChain( settings ) );
-        return toolchains;
+        return "";
     }
 
-    return [];
-}
+    public static parseFromconfiguration(xml: XmlNode): ToolChain[] {
+        let toolchains: ToolChain[] = [];
+
+        let settings = IarXml.findToolchainFromConfig(xml);
+
+        if (settings) {
+            toolchains.push(new XmlToolChain(settings));
+            return toolchains;
+        }
+
+        return [];
+    }
 
 }

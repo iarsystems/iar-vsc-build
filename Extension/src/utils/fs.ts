@@ -6,26 +6,26 @@ export namespace FsUtils {
     export function mkdirsSync(dirPath: fs.PathLike) {
         let parentDir = path.dirname(dirPath.toString());
 
-        if(!fs.existsSync(parentDir)) {
+        if (!fs.existsSync(parentDir)) {
             mkdirsSync(parentDir);
         }
-        
+
         fs.mkdirSync(dirPath);
     }
 
-    export function filteredListDirectory(dirPath: fs.PathLike, filterCallback: (path: fs.PathLike) => boolean) : fs.PathLike[] {
+    export function filteredListDirectory(dirPath: fs.PathLike, filterCallback: (path: fs.PathLike) => boolean): fs.PathLike[] {
         let children: fs.PathLike[] = [];
 
-        if(fs.existsSync(dirPath)) {
+        if (fs.existsSync(dirPath)) {
             let stat = fs.statSync(dirPath);
 
-            if(stat.isDirectory()) {
+            if (stat.isDirectory()) {
                 let dir = fs.readdirSync(dirPath);
 
                 dir.forEach(child => {
                     let fullpath = path.join(dirPath.toString(), child);
 
-                    if(filterCallback(fullpath)) {
+                    if (filterCallback(fullpath)) {
                         children.push(fullpath);
                     }
                 });
@@ -39,7 +39,7 @@ export namespace FsUtils {
         return (fullpath: fs.PathLike): boolean => {
             let stat = fs.statSync(fullpath);
 
-            if(stat.isFile()) {
+            if (stat.isFile()) {
                 let parsedPath = path.parse(fullpath.toString());
                 let filename = parsedPath.base;
 
@@ -54,7 +54,7 @@ export namespace FsUtils {
         return (fullpath: fs.PathLike): boolean => {
             let stat = fs.statSync(fullpath);
 
-            if(stat.isDirectory()) {
+            if (stat.isDirectory()) {
                 let parsedPath = path.parse(fullpath.toString());
                 let filename = parsedPath.base;
 
@@ -64,7 +64,7 @@ export namespace FsUtils {
             }
         }
     }
-    
+
     export function createFilteredListDirectoryBlacklist(blacklist: string[]): (fullpath: fs.PathLike) => boolean {
         return (fullpath: fs.PathLike): boolean => {
             let parsedPath = path.parse(fullpath.toString());

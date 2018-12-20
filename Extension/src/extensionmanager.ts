@@ -23,34 +23,33 @@ export class ExtensionManager {
 
     constructor() {
         this.settings = new Settings();
-
         this.init();
     }
 
     public init(): void {
         this.settings.load();
 
-        if(this.settings.ewpLocation !== undefined) {
+        if (this.settings.ewpLocation !== undefined) {
             let ret = this.setIarProjectPath(this.settings.ewpLocation);
 
-            if(ret !== undefined) {
+            if (ret !== undefined) {
                 vscode.window.showErrorMessage(ret.message);
             }
         }
 
-        if(this.settings.iarLocation !== undefined) {
+        if (this.settings.iarLocation !== undefined) {
             let ret = undefined;
 
-            if( this.settings.processor !== undefined ) {
+            if (this.settings.processor !== undefined) {
                 ret = this.setIarLocation(this.settings.iarLocation,
-                                              this.settings.processor);
+                    this.settings.processor);
             }
             else {
                 ret = this.setIarLocation(this.settings.iarLocation,
-                                              "");
+                    "");
             }
 
-            if(ret !== undefined) {
+            if (ret !== undefined) {
                 vscode.window.showErrorMessage(ret.message);
             }
         }
@@ -61,16 +60,16 @@ export class ExtensionManager {
     }
 
     public setIarLocation(path: fs.PathLike, processor: string): Error | undefined {
-        let iar = new IarInstallation(path, processor );
+        let iar = new IarInstallation(path, processor);
 
-        if(iar.isValidInstallation()) {
+        if (iar.isValidInstallation()) {
             this.iar = iar;
 
             /*
             **  Dan Bomsta: Trying to fix https://github.com/pluyckx/iar-vsc/issues/4, when there are
             **  multiple microprocessor IAR installations.
             */
-            if( this.settings.ewpLocation === "" || this.iar.getCompilerLocation() === "" ) {
+            if (this.settings.ewpLocation === "" || this.iar.getCompilerLocation() === "") {
                 /*
                 **  Possible multiple processor installation. So we force the user to select
                 **  the project file now in order to find the correct compiler.
@@ -78,9 +77,9 @@ export class ExtensionManager {
                 **  This appears to be asynchronous == it returns immediately.  So we will
                 **  have the handle in setIarProjectPath.
                 */
-                vscode.commands.executeCommand( "iar.selectIarProject" );
+                vscode.commands.executeCommand("iar.selectIarProject");
             }
-            else if(this.settings.iarLocation !== this.iar.getLocation()) {
+            else if (this.settings.iarLocation !== this.iar.getLocation()) {
                 this.settings.iarLocation = this.iar.getLocation();
                 this.settings.storeSettings();
             }
@@ -96,22 +95,22 @@ export class ExtensionManager {
 
         let ret = project.parse();
 
-        if(ret === undefined) {
+        if (ret === undefined) {
             let oldProject = this.project;
             this.project = project;
 
-            if((oldProject === undefined) || (oldProject.getLocation().toString() !== filename)) {
+            if ((oldProject === undefined) || (oldProject.getLocation().toString() !== filename)) {
                 this.settings.ewpLocation = this.project.getLocation().toString();
 
                 this.settings.storeSettings();
             }
-            else if( !this.iar || this.iar.getCompilerLocation() === "" ) {
+            else if (!this.iar || this.iar.getCompilerLocation() === "") {
                 this.settings.processor = this.project.getToolchain();
                 this.settings.storeSettings();
 
                 /* For Sync to work we update our IarInstallation object */
-                if( this.iar ) {
-                    this.iar.setProcessor( this.settings.processor );
+                if (this.iar) {
+                    this.iar.setProcessor(this.settings.processor);
                 }
             }
         }
@@ -120,7 +119,7 @@ export class ExtensionManager {
     }
 
     public findIarProjectFiles(): fs.PathLike[] {
-        if(vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+        if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
             return Project.findProjectFiles(vscode.workspace.workspaceFolders[0].uri.fsPath, true);
         } else {
             return [];
@@ -133,7 +132,7 @@ export class ExtensionManager {
         let settings = vscode.workspace.getConfiguration("iarvsc");
         let iarRootPaths: string[] | undefined = settings.get('iarRootPaths');
 
-        if(iarRootPaths) {
+        if (iarRootPaths) {
             iarRootPaths.forEach(root => {
                 installations = installations.concat(ExtensionManager.findIarInstallationFromRoot(root));
             });
@@ -145,18 +144,18 @@ export class ExtensionManager {
     public build(rebuild: boolean): void {
         let selectedConfig: Config | undefined = undefined;
 
-        if(!this.project) {
+        if (!this.project) {
             vscode.window.showErrorMessage("No IAR project is selected.");
             return;
         }
 
-        if(!this.iar) {
+        if (!this.iar) {
             vscode.window.showErrorMessage("No IAR installation selected.");
             return;
         }
 
         let process = this.buildProcess;
-        if(process !== undefined) {
+        if (process !== undefined) {
             vscode.window.showErrorMessage("Previous build command is still running. Try again.");
 
             process.kill('SIGTERM');
@@ -169,7 +168,7 @@ export class ExtensionManager {
         let prevConfigBuildName = this.settings.buildConfig;
 
         project.getConfigs().forEach(config => {
-            if((prevConfigBuildName !== undefined) && (prevConfigBuildName === config.getName())) {
+            if ((prevConfigBuildName !== undefined) && (prevConfigBuildName === config.getName())) {
                 /* add previous build as first item in the list so the user can just press enter */
                 configurationNames = [config.getName()].concat(configurationNames);
             } else {
@@ -177,11 +176,11 @@ export class ExtensionManager {
             }
         });
 
-        vscode.window.showQuickPick(configurationNames, {placeHolder: 'Select build configuration', canPickMany: false}).then((selected) => {
-            if(selected) {
+        vscode.window.showQuickPick(configurationNames, { placeHolder: 'Select build configuration', canPickMany: false }).then((selected) => {
+            if (selected) {
                 selectedConfig = project.findConfigWithName(selected);
 
-                if(selectedConfig === undefined) {
+                if (selectedConfig === undefined) {
                     return;
                 }
 
@@ -192,7 +191,7 @@ export class ExtensionManager {
                 let ewpLocation = project.getLocation().toString();
                 let iarCommand = "-make";
 
-                if(rebuild) {
+                if (rebuild) {
                     iarCommand = "-build";
                 }
 
@@ -201,10 +200,10 @@ export class ExtensionManager {
 
                 console.log("executing \"", iarBuildLocation, "\" with parameters ", ewpLocation, " -make ", selectedConfig.getName());
 
-                this.buildProcess = spawn(iarBuildLocation, [ewpLocation, iarCommand, selectedConfig.getName()], {stdio: ['ignore', 'pipe', 'ignore']});
+                this.buildProcess = spawn(iarBuildLocation, [ewpLocation, iarCommand, selectedConfig.getName()], { stdio: ['ignore', 'pipe', 'ignore'] });
 
                 this.buildProcess.on('exit', (_code, _signal) => {
-                    if(this.buildProcess) {
+                    if (this.buildProcess) {
                         this.buildProcess.removeAllListeners();
                         this.buildProcess = undefined;
                     }
@@ -220,14 +219,14 @@ export class ExtensionManager {
     private static findIarInstallationFromRoot(root: string): IarInstallation[] {
         let installations: IarInstallation[] = [];
 
-        if(fs.existsSync(root)) {
+        if (fs.existsSync(root)) {
             let children = fs.readdirSync(root);
 
             children.forEach(child => {
                 let installationPath = path.join(root, child);
                 let installation = new IarInstallation(installationPath, "");
 
-                if(installation.isValidInstallation()) {
+                if (installation.isValidInstallation()) {
                     installations.push(installation);
                 }
             });
@@ -237,7 +236,7 @@ export class ExtensionManager {
     }
 
     public generateCCppPropertiesFile(): Error | undefined {
-        if(this.project === undefined) {
+        if (this.project === undefined) {
             return new Error(sErrorNoProjectFileSpecified);
         }
 
@@ -248,16 +247,16 @@ export class ExtensionManager {
         if (!ret) {
             let wsFolder = vscode.workspace.rootPath;
 
-            if(!wsFolder) {
+            if (!wsFolder) {
                 return new Error(sErrorNoVsWorkspaceOpened);
             }
 
             let propertyFileDir = path.join(wsFolder, ".vscode");
 
-            if(fs.existsSync(propertyFileDir)) {
+            if (fs.existsSync(propertyFileDir)) {
                 let stat = fs.statSync(propertyFileDir);
 
-                if(!stat.isDirectory()) {
+                if (!stat.isDirectory()) {
                     return new Error(sErrorNotADirectory);
                 }
             } else {
@@ -267,7 +266,7 @@ export class ExtensionManager {
             let propertyFilePath = path.join(propertyFileDir, "c_cpp_properties.json");
             let prop: CCppPropertiesFile = new CCppPropertiesFile();
 
-            if(fs.existsSync(propertyFilePath)) {
+            if (fs.existsSync(propertyFilePath)) {
                 fs.copyFileSync(propertyFilePath, propertyFilePath + ".back");
 
                 prop.load(propertyFilePath);
@@ -276,8 +275,8 @@ export class ExtensionManager {
             let compilerDefines: Define[] = [];
             let iarExtensionDefines: Define[] = IarExtensionDefine.generate();
             let systemIncludes: IncludePath[] = [];
-            if(this.iar) {
-                compilerDefines =  CompilerDefine.generateCompilerDefines(this.iar.getCompilerLocation());
+            if (this.iar) {
+                compilerDefines = CompilerDefine.generateCompilerDefines(this.iar.getCompilerLocation());
                 systemIncludes = StringIncludePath.generateSystemIncludePaths(this.iar);
             }
 

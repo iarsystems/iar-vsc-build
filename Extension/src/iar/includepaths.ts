@@ -36,7 +36,7 @@ export class XmlIncludePath {
     public get(): string {
         let path = this.xmlData.getText();
 
-        if(path) {
+        if (path) {
             return path;
         } else {
             return "";
@@ -52,17 +52,17 @@ export class XmlIncludePath {
     public static parseFromconfiguration(xml: XmlNode, projectPath: string): IncludePath[] {
         let settings = IarXml.findSettingsFromConfig(xml, '/ICC.*/');
 
-        if(settings) {
+        if (settings) {
             let option = IarXml.findOptionFromSettings(settings, '/CCIncludePath/');
 
-            if(option) {
+            if (option) {
                 let states = option.getAllChildsByName('state');
                 let includePaths: IncludePath[] = [];
 
                 states.forEach(state => {
                     let stateText = state.getText();
 
-                    if(stateText && (stateText.trim() != "")) {
+                    if (stateText && (stateText.trim() !== "")) {
                         includePaths.push(new XmlIncludePath(state, projectPath));
                     }
                 });
@@ -92,7 +92,7 @@ export class StringIncludePath {
     public getAbsolute(): string {
         let path = this.get();
 
-        if(this.projectPath) {
+        if (this.projectPath) {
             return path.replace('$PROJ_DIR$', this.projectPath);
         } else {
             return path;
@@ -108,7 +108,7 @@ export class StringIncludePath {
         let compiler = iar.getCompilerLocation();
         let args = ['--IDE3', cFilePath];
 
-        let output = spawnSync(compiler.toString(), args, {'stdio': 'pipe'});
+        let output = spawnSync(compiler.toString(), args, { 'stdio': 'pipe' });
 
         let regex = /\$\$FILEPATH\s\"([^"]*)/g;
         let buf = output.stdout.toString();
@@ -116,19 +116,19 @@ export class StringIncludePath {
         do {
             result = regex.exec(buf);
 
-            if(result) {
+            if (result) {
                 let p = result[1].replace(/\\\\/g, "\\");
 
-                if(fs.existsSync(p)) {
+                if (fs.existsSync(p)) {
                     let stat = fs.statSync(p);
 
-                    if(stat.isDirectory()) {
+                    if (stat.isDirectory()) {
                         includes.push(new StringIncludePath(p));
                     }
                 }
             }
-        } while(result);
-        
+        } while (result);
+
         return includes;
     }
 }

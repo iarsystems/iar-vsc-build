@@ -6,10 +6,10 @@ export namespace IarXml {
     export function findSettingsFromConfig(xml: XmlNode, name: string): XmlNode | undefined {
         let settings = xml.getAllChildsByName('settings');
 
-        for(let idx=0; idx<settings.length; idx += 1) {
+        for (let idx = 0; idx < settings.length; idx += 1) {
             let setting = settings[idx];
 
-            if(validateText(getNameTextFromElement(setting), name)) {
+            if (validateText(getNameTextFromElement(setting), name)) {
                 return setting;
             }
         }
@@ -20,16 +20,16 @@ export namespace IarXml {
     export function findOptionFromSettings(xml: XmlNode, name: string): XmlNode | undefined {
         let data = xml.getFirstChildByName('data');
 
-        if(!data) {
+        if (!data) {
             return undefined;
         }
 
         let options = data.getAllChildsByName('option');
 
-        for(let idx=0; idx<options.length; idx += 1) {
+        for (let idx = 0; idx < options.length; idx += 1) {
             let option = options[idx];
 
-            if(validateText(getNameTextFromElement(option), name)) {
+            if (validateText(getNameTextFromElement(option), name)) {
                 return option;
             }
         }
@@ -48,12 +48,12 @@ export namespace IarXml {
     }
 
     function validateText(content: string | undefined, validate: string): boolean {
-        if(content === undefined) {
+        if (content === undefined) {
             return false;
         }
 
-        if((validate[0] === '/') && (validate[validate.length-1] === '/')) {
-            let regex = new RegExp(validate.substr(1, validate.length-2));
+        if ((validate[0] === '/') && (validate[validate.length - 1] === '/')) {
+            let regex = new RegExp(validate.substr(1, validate.length - 2));
 
             return regex.test(content);
         } else {
@@ -64,7 +64,7 @@ export namespace IarXml {
     export function findToolchainFromConfig(xml: XmlNode): XmlNode | undefined {
         let settings = xml.getAllChildsByName('toolchain');
 
-        for(let idx=0; idx<settings.length; idx += 1) {
+        for (let idx = 0; idx < settings.length; idx += 1) {
             let setting = settings[idx];
             return setting;
         }

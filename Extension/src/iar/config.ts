@@ -52,14 +52,14 @@ export class Config {
 
         let xmlRoot = project.getXml();
 
-        if(xmlRoot) {
+        if (xmlRoot) {
             let xmlConfigs = xmlRoot.getAllChildsByName("configuration");
 
             xmlConfigs.forEach(config => {
                 let defines = XmlDefine.parseFromconfiguration(config);
                 let includes = XmlIncludePath.parseFromconfiguration(config, project.getProjectDirectory());
                 let preincludes = XmlPreIncludePath.parseFromconfiguration(config, project.getProjectDirectory());
-                let toolchain = XmlToolChain.parseFromconfiguration( config );
+                let toolchain = XmlToolChain.parseFromconfiguration(config);
 
                 configs.push(new Config(project, config, defines, includes, preincludes, toolchain));
             });

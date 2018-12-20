@@ -25,7 +25,7 @@ export class XmlDefine {
     public get(): string {
         let define = this.xmlData.getText();
 
-        if(define) {
+        if (define) {
             return define;
         } else {
             return "";
@@ -35,10 +35,10 @@ export class XmlDefine {
     public static parseFromconfiguration(xml: XmlNode): Define[] {
         let settings = IarXml.findSettingsFromConfig(xml, '/ICC.*/');
 
-        if(settings) {
+        if (settings) {
             let option = IarXml.findOptionFromSettings(settings, 'CCDefines');
 
-            if(option) {
+            if (option) {
                 let states = option.getAllChildsByName('state');
                 let defines: Define[] = [];
 
@@ -71,27 +71,27 @@ export class CompilerDefine {
         let cFilePath = path.join(os.tmpdir(), "pluyckx_iar-vsc.c");
         let definePath = path.join(os.tmpdir(), "pluyckx_iar-vsc.defines");
 
-        if(fs.existsSync(definePath)) {
+        if (fs.existsSync(definePath)) {
             fs.unlinkSync(definePath);
         }
         fs.writeFileSync(cFilePath, "");
 
-        let cmd = "\"" + compilerPath + "\" \""  + cFilePath + "\" --predef_macros \""  + definePath + "\"";
+        let cmd = "\"" + compilerPath + "\" \"" + cFilePath + "\" --predef_macros \"" + definePath + "\"";
 
-        execSync(cmd, {'timeout': 5000});
+        execSync(cmd, { 'timeout': 5000 });
 
-        if(fs.existsSync(definePath)) {
+        if (fs.existsSync(definePath)) {
             let buf = fs.readFileSync(definePath);
             let sBuf = buf.toString();
             let lines = sBuf.split(/'(\n)|(\r\n)/);
 
             lines.forEach(line => {
-                if(line) {
+                if (line) {
                     let defineParts = CompilerDefine.parseDefine(line);
 
-                    if(defineParts.length === 1) {
+                    if (defineParts.length === 1) {
                         defines.push(new CompilerDefine(defineParts[0]));
-                    } else if(defineParts.length === 2) {
+                    } else if (defineParts.length === 2) {
                         defines.push(new CompilerDefine(defineParts[0] + "=" + defineParts[1]));
                     }
                 }
@@ -104,21 +104,21 @@ export class CompilerDefine {
     private static parseDefine(define: string): string[] {
         const defineHash = "#define ";
 
-        if(define.startsWith(defineHash)) {
+        if (define.startsWith(defineHash)) {
             let defineData = define.substr(defineHash.length).trim();
             let parts: string[] = [];
             let part: string = "";
 
             let brackets = 0;
 
-            for(let idx=0; idx<defineData.length; idx+=1) {
-                if(defineData[idx] === "(") {
+            for (let idx = 0; idx < defineData.length; idx += 1) {
+                if (defineData[idx] === "(") {
                     brackets += 1;
-                } else if(defineData[idx] === ")") {
+                } else if (defineData[idx] === ")") {
                     brackets -= 1;
                 }
 
-                if((defineData[idx] === " ") && (brackets === 0)) {
+                if ((defineData[idx] === " ") && (brackets === 0)) {
                     parts.push(part);
                     parts.push(defineData.substr(idx + 1));
 
@@ -128,7 +128,7 @@ export class CompilerDefine {
                 }
             }
 
-            if(parts.length === 0) {
+            if (parts.length === 0) {
                 parts.push(part);
             }
 
