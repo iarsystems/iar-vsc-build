@@ -106,13 +106,15 @@ export namespace Define {
     export function fromSourceContent(content: string): Define[] {
         let defines = new Array<Define>();
 
-        let lines = content.split(/(\n)|(\r\n)/);
+        let lines = content.split(/\r\n|\n/);
 
         lines.forEach(line => {
-            let define = parseSourceLine(line);
+            if (line !== undefined) {
+                let define = parseSourceLine(line);
 
-            if (define) {
-                defines.push(define);
+                if (define) {
+                    defines.push(define);
+                }
             }
         });
 
