@@ -84,7 +84,7 @@ export class CCppPropertiesFile {
         let array: string[] = [];
 
         defines.forEach(item => {
-            array.push(item.get());
+            // array.push(item.get());
         });
 
         return array;

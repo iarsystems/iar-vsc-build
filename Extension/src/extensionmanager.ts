@@ -273,10 +273,10 @@ export class ExtensionManager {
             }
 
             let compilerDefines: Define[] = [];
-            let iarExtensionDefines: Define[] = IarExtensionDefine.generate();
+            let iarExtensionDefines: Define[] = [] // IarExtensionDefine.generate();
             let systemIncludes: IncludePath[] = [];
             if (this.iar) {
-                compilerDefines = CompilerDefine.generateCompilerDefines(this.iar.getCompilerLocation());
+                // compilerDefines = CompilerDefine.generateCompilerDefines(this.iar.getCompilerLocation());
                 systemIncludes = StringIncludePath.generateSystemIncludePaths(this.iar);
             }
 
