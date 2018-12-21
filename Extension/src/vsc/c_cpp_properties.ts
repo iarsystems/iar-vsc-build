@@ -15,14 +15,14 @@ export class CCppPropertiesFile {
     }
 
     public setConfiguration(configuration: Config) {
-        if(this.properties['configurations'] === undefined) {
+        if (this.properties['configurations'] === undefined) {
             this.properties['configurations'] = [];
         }
 
         let configIdx = this.findConfiguration(this.generateConfigName(configuration));
         let config = this.toJsonObject(configuration);
 
-        if(configIdx === undefined) {
+        if (configIdx === undefined) {
             let configs = this.properties['configurations'] as any[];
             configs.push(config);
         } else {
@@ -31,16 +31,16 @@ export class CCppPropertiesFile {
     }
 
     public findConfiguration(configName: string): number | undefined {
-        if(this.properties['configurations'] === undefined) {
+        if (this.properties['configurations'] === undefined) {
             return undefined;
         }
 
         let configurations: any[] = this.properties['configurations'];
 
-        for(let idx=0; idx<configurations.length; idx += 1) {
+        for (let idx = 0; idx < configurations.length; idx += 1) {
             let configuration = configurations[idx];
 
-            if(configuration['name'] === configName) {
+            if (configuration['name'] === configName) {
                 return idx;
             }
         }
@@ -56,11 +56,11 @@ export class CCppPropertiesFile {
         let data = readFileSync(path);
         let json = undefined;
 
-        if(data) {
+        if (data) {
             json = jsonc.parse(data.toString());
         }
 
-        if(json) {
+        if (json) {
             this.properties = json;
         }
     }
