@@ -3,7 +3,7 @@ import * as jsonc from 'jsonc-parser';
 import { Config } from "../iar/config";
 import { IncludePath } from "../iar/includepaths";
 import { PreIncludePath } from "../iar/preincludepath";
-import { Define } from "../iar/define";
+import { Define } from "../iar/project/define";
 
 export class CCppPropertiesFile {
     private properties: any;

@@ -9,7 +9,7 @@ import { CCppPropertiesFile } from './vsc/c_cpp_properties';
 import { sErrorNoProjectFileSpecified, sErrorNoVsWorkspaceOpened, sErrorNotADirectory, sErrorNotAnIarInstallationFolder } from './iar/errors';
 import { Settings } from './extension/settings';
 import { IarInstallation } from './iar/iar';
-import { CompilerDefine, Define, IarExtensionDefine } from './iar/define';
+import { Define } from './iar/project/define';
 import { Config } from './iar/config';
 import { spawn, ChildProcess } from 'child_process';
 import { IncludePath, StringIncludePath } from './iar/includepaths';

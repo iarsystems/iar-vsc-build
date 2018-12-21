@@ -2,7 +2,7 @@
 
 import { XmlNode } from '../utils/XmlNode';
 import { Project } from './project';
-import { Define, XmlDefine } from './define';
+import { Define } from './project/define';
 import { IarXml } from '../utils/xml';
 import { IncludePath, XmlIncludePath } from './includepaths';
 import { PreIncludePath, XmlPreIncludePath } from './preincludepath';
