@@ -1,13 +1,8 @@
 'use strict';
 
-import * as Os from "os";
-import * as Path from "path";
 import * as Fs from "fs";
-import * as Process from "child_process";
 import { XmlNode } from "../../utils/XmlNode";
 import { IarXml } from "../../utils/xml";
-import { Compiler } from '../tools/compiler';
-import { connect } from "http2";
 
 export interface Define {
     readonly identifier: string | undefined;

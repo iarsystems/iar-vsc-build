@@ -4,10 +4,8 @@ import * as Vscode from "vscode";
 import * as Path from "path";
 import * as Os from "os";
 import * as Fs from "fs";
-import * as Process from "child_process";
 import { XmlNode } from "../../utils/XmlNode";
 import { IarXml } from "../../utils/xml";
-import { Define } from "./define";
 
 export interface IncludePath {
     readonly path: Fs.PathLike;

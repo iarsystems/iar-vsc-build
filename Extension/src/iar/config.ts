@@ -4,8 +4,8 @@ import { XmlNode } from '../utils/XmlNode';
 import { Project } from './project';
 import { Define } from './project/define';
 import { IarXml } from '../utils/xml';
-import { IncludePath, XmlIncludePath } from './project/includepaths';
-import { PreIncludePath, XmlPreIncludePath } from './project/preincludepath';
+import { IncludePath } from './project/includepaths';
+import { PreIncludePath } from './project/preincludepath';
 import { XmlToolChain, ToolChain } from './toolchain';
 
 export class Config {
