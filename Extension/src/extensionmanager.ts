@@ -12,7 +12,7 @@ import { IarInstallation } from './iar/iar';
 import { Define } from './iar/project/define';
 import { Config } from './iar/config';
 import { spawn, ChildProcess } from 'child_process';
-import { IncludePath, StringIncludePath } from './iar/includepaths';
+import { IncludePath, StringIncludePath } from './iar/project/includepaths';
 
 export class ExtensionManager {
     private project: Project | undefined;

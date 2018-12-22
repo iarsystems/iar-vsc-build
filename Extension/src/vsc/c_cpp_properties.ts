@@ -1,7 +1,7 @@
 import { writeFileSync, readFileSync } from "fs";
 import * as jsonc from 'jsonc-parser';
 import { Config } from "../iar/config";
-import { IncludePath } from "../iar/includepaths";
+import { IncludePath } from "../iar/project/includepaths";
 import { PreIncludePath } from "../iar/preincludepath";
 import { Define } from "../iar/project/define";
 
@@ -94,7 +94,7 @@ export class CCppPropertiesFile {
         let array: string[] = [];
 
         includes.forEach(item => {
-            array.push(item.getAbsolute());
+            array.push(item.absolutePath.toString());
         });
 
         return array;
