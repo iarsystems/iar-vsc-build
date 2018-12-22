@@ -56,8 +56,8 @@ export class Config {
             let xmlConfigs = xmlRoot.getAllChildsByName("configuration");
 
             xmlConfigs.forEach(config => {
-                let defines: Define[] = [] // XmlDefine.parseFromconfiguration(config);
-                let includes = XmlIncludePath.parseFromconfiguration(config, project.getProjectDirectory());
+                let defines: Define[] = []; // XmlDefine.parseFromconfiguration(config);
+                let includes: IncludePath[] = []; // XmlIncludePath.parseFromconfiguration(config, project.getProjectDirectory());
                 let preincludes = XmlPreIncludePath.parseFromconfiguration(config, project.getProjectDirectory());
                 let toolchain = XmlToolChain.parseFromconfiguration(config);
 

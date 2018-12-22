@@ -277,7 +277,7 @@ export class ExtensionManager {
             let systemIncludes: IncludePath[] = [];
             if (this.iar) {
                 // compilerDefines = CompilerDefine.generateCompilerDefines(this.iar.getCompilerLocation());
-                systemIncludes = StringIncludePath.generateSystemIncludePaths(this.iar);
+                // systemIncludes = StringIncludePath.generateSystemIncludePaths(this.iar);
             }
 
             project.getConfigs().forEach(config => {
