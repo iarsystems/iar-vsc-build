@@ -14,6 +14,10 @@ export namespace FsUtils {
     }
 
     export function filteredListDirectory(dirPath: fs.PathLike, filterCallback: (path: fs.PathLike) => boolean): fs.PathLike[] {
+        return walkAndFind(dirPath, false, filterCallback);
+    }
+
+    export function walkAndFind(dirPath: fs.PathLike, recursive: boolean, filterCallback: (path: fs.PathLike) => boolean): fs.PathLike[] {
         let children: fs.PathLike[] = [];
 
         if (fs.existsSync(dirPath)) {
@@ -27,6 +31,14 @@ export namespace FsUtils {
 
                     if (filterCallback(fullpath)) {
                         children.push(fullpath);
+                    }
+
+                    if (recursive) {
+                        let stat = fs.statSync(fullpath);
+
+                        if (stat.isDirectory()) {
+                            children = children.concat(walkAndFind(fullpath, true, filterCallback));
+                        }
                     }
                 });
             }
