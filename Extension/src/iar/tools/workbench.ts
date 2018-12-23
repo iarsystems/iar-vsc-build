@@ -8,12 +8,13 @@ import { ListUtils } from "../../utils/utils";
 import { Platform } from "./platform";
 
 export interface Workbench {
+    readonly name: string;
     readonly path: Fs.PathLike;
     readonly idePath: Fs.PathLike;
     readonly platforms: Platform[];
 }
 
-class IarWorkbench {
+class IarWorkbench implements Workbench {
     readonly platforms: Platform[];
 
     readonly path: Fs.PathLike;
@@ -34,6 +35,10 @@ class IarWorkbench {
         }
 
         this.platforms = Platform.collectPlatformsFrom(path, ["common", "install-info"]);
+    }
+
+    get name(): string {
+        return Path.parse(this.path.toString()).name;
     }
 
     /**
