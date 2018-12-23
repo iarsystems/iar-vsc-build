@@ -1,6 +1,6 @@
 import { writeFileSync, readFileSync } from "fs";
 import * as jsonc from 'jsonc-parser';
-import { Config } from "../iar/config";
+import { Config } from "../iar/project/config";
 import { IncludePath } from "../iar/project/includepaths";
 import { PreIncludePath } from "../iar/project/preincludepath";
 import { Define } from "../iar/project/define";
@@ -66,16 +66,17 @@ export class CCppPropertiesFile {
     }
 
     private generateConfigName(config: Config): string {
-        return 'IAR-' + config.getProject().getName() + "-" + config.getName();
+        // return 'IAR-' + config.getProject().getName() + "-" + config.getName();
+        return ""
     }
 
     private toJsonObject(config: Config): object {
         let o: any = {};
 
         o['name'] = this.generateConfigName(config);
-        o['defines'] = this.toDefineArray(config.getDefines());
-        o['includePath'] = this.toIncludePathArray(config.getIncludePaths());
-        o['forcedInclude'] = this.toPreIncludePathArray(config.getPreIncludes());
+        // o['defines'] = this.toDefineArray(config.getDefines());
+        // o['includePath'] = this.toIncludePathArray(config.getIncludePaths());
+        // o['forcedInclude'] = this.toPreIncludePathArray(config.getPreIncludes());
 
         return o;
     }
