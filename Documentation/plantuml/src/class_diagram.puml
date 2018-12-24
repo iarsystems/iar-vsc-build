@@ -148,9 +148,8 @@ Compiler <|. IarCompiler
 Workbench "1" *-- "1+" Platform
 Platform "1" *-- "1+" Compiler
 
-Project <|. EwpFile
-
-Config <|. XmlConfig
+EwpFile .|> Project
+XmlConfig .|> Config
 
 Define <|.. XmlDefine
 Define <|.. StringDefine
