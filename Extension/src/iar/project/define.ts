@@ -5,7 +5,7 @@ import { XmlNode } from "../../utils/XmlNode";
 import { IarXml } from "../../utils/xml";
 
 export interface Define {
-    readonly identifier: string | undefined;
+    readonly identifier: string;
     readonly value: string | undefined;
 }
 
@@ -22,11 +22,18 @@ class XmlDefine implements Define {
 
         if (xml.tagName !== "state") {
             throw new Error("Expected an xml element 'state' instead of '" + xml.tagName + "'.");
+        } else {
+            let identifier = this.parse(DefinePart.Identifier);
+
+            if (!identifier || (identifier === "")) {
+                throw new Error("Empty define.");
+            }
         }
     }
 
-    get identifier(): string | undefined {
-        return this.parse(DefinePart.Identifier);
+    get identifier(): string {
+        // The constructor does not allow an empty identifier
+        return this.parse(DefinePart.Identifier) as string;
     }
 
     get value(): string | undefined {
@@ -41,11 +48,11 @@ class XmlDefine implements Define {
 
             if (part === DefinePart.Identifier) {
                 if (parts.length >= 1) {
-                    return parts[0];
+                    return parts[0].trim();
                 }
             } else if (part === DefinePart.Value) {
                 if (parts.length >= 2) {
-                    return parts[1];
+                    return parts[1].trim();
                 }
             }
         }
@@ -55,10 +62,10 @@ class XmlDefine implements Define {
 }
 
 class StringDefine implements Define {
-    readonly identifier: string | undefined;
+    readonly identifier: string;
     readonly value: string | undefined;
 
-    constructor(identifier: string | undefined, value: string | undefined) {
+    constructor(identifier: string, value: string | undefined) {
         this.identifier = identifier;
         this.value = value;
     }
@@ -158,7 +165,11 @@ export namespace Define {
                 }
             }
 
-            return new StringDefine(identifier, value);
+            if (identifier) {
+                return new StringDefine(identifier, value);
+            } else {
+                return undefined;
+            }
         } else {
             return undefined;
         }
