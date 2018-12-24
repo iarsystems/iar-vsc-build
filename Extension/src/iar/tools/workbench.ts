@@ -7,6 +7,8 @@ import { FsUtils } from "../../utils/fs";
 import { ListUtils } from "../../utils/utils";
 import { Platform } from "./platform";
 
+const ideSubPath = "common/bin/IarIdePm.exe";
+
 export interface Workbench {
     readonly name: string;
     readonly path: Fs.PathLike;
@@ -28,7 +30,7 @@ class IarWorkbench implements Workbench {
      */
     constructor(path: Fs.PathLike) {
         this.path = path;
-        this.idePath = Path.join(this.path.toString(), "common/bin/IarIdePm.exe");
+        this.idePath = Path.join(this.path.toString(), ideSubPath);
 
         if (!this.isValid()) {
             throw new Error("Path does not point to a workspace!");
@@ -45,13 +47,7 @@ class IarWorkbench implements Workbench {
      * Check if the workbench is valid. This means the IAR IDE is available.
      */
     protected isValid(): boolean {
-        try {
-            let stat = Fs.statSync(this.idePath);
-
-            return stat.isFile();
-        } catch (e) {
-            return false;
-        }
+        return Workbench.isValid(this.path);
     }
 }
 
@@ -113,6 +109,18 @@ export namespace Workbench {
             return new IarWorkbench(root);
         } catch (e) {
             return undefined;
+        }
+    }
+
+    export function isValid(workbenchPath: Fs.PathLike): boolean {
+        const idePath = Path.join(workbenchPath.toString(), ideSubPath);
+
+        try {
+            const stat = Fs.statSync(idePath);
+
+            return stat.isFile();
+        } catch (e) {
+            return false;
         }
     }
 }
