@@ -60,13 +60,33 @@
       {
         "title": "IAR",
         "properties": {
-          "iarvsc.iarRootPaths": {
+          "iarvsc.iarInstallDirectories": {
             "type": "array",
             "description": "Root path where IAR installs its applications.",
             "default": [
               "C:\\Program Files\\IAR Systems",
               "C:\\Program Files (x86)\\IAR Systems"
             ]
+          },
+          "iarvsc.workbench": {
+            "type": "string",
+            "description": "Path the the workbench to use.",
+            "default": ""
+          },
+          "iarvsc.compiler": {
+            "type": "string",
+            "description": "Path to the compiler to use.",
+            "default": ""
+          },
+          "iarvsc.ewp": {
+            "type": "string",
+            "description": "Path to the currently selected ewp file.",
+            "default": ""
+          },
+          "iarvsc.configuration": {
+            "type": "string",
+            "description": "The selected configuration from the selected ewp file",
+            "default": ""
           }
         }
       }

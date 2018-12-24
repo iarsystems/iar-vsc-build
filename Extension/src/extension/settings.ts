@@ -1,92 +1,56 @@
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as vscode from 'vscode';
-import * as jsonc from 'jsonc-parser';
-import { sErrorNotAnIarProjectFile } from '../iar/errors';
-import { FsUtils } from '../utils/fs';
+'use strict';
 
-export class Settings {
-    private static readonly oldSettingsLocation = path.join(vscode.workspace.rootPath as string, ".vscode/iar-vsc.js");
-    private static readonly settingsLocation = path.join(vscode.workspace.rootPath as string, ".vscode/iar-vsc.json");
-    private static readonly ewpLocation = "ewp_location";
-    private static readonly iarLocation = "iar_location";
-    private static readonly processor = "processor";
-    private static readonly buildConfig = "build_config";
-    private settings: any;
+import * as Vscode from "vscode";
+import * as Fs from "fs";
 
-    constructor() {
-        this.settings = {};
+export namespace Settings {
+    const section = "iarvsc";
+    const iarInstallDirectories = "iarInstallDirectories";
+    const workbench = "workbench";
+    const compiler = "compiler";
+    const ewp = "ewp";
+    const configuration = "configuration";
 
-        this.load();
-    }
+    export function getIarInstallDirectories(): Fs.PathLike[] {
+        let directories = Vscode.workspace.getConfiguration(section).get(iarInstallDirectories);
 
-    public load() {
-        if(fs.existsSync(Settings.settingsLocation)) {
-            let data = fs.readFileSync(Settings.settingsLocation);
-
-            this.settings = jsonc.parse(data.toString());
-        } else if(fs.existsSync(Settings.oldSettingsLocation)) {
-            let data = fs.readFileSync(Settings.oldSettingsLocation);
-
-            this.settings = jsonc.parse(data.toString());
-
-            this.storeSettings();
-            fs.unlinkSync(Settings.oldSettingsLocation);
+        if (directories) {
+            return directories as string[];
         } else {
-            this.storeSettings();
+            return [];
         }
     }
 
-    public storeSettings() {
-        let basedir = path.dirname(Settings.settingsLocation);
-
-        if(!fs.existsSync(basedir)) {
-            FsUtils.mkdirsSync(basedir);
-        }
-
-        fs.writeFileSync(Settings.settingsLocation, JSON.stringify(this.settings, undefined, 4));
+    export function getWorkbench(): Fs.PathLike | undefined {
+        return Vscode.workspace.getConfiguration(section).get(workbench);
     }
 
-    get ewpLocation(): string | undefined {
-        return this.settings[Settings.ewpLocation];
+    export function setWorkbench(path: Fs.PathLike): void {
+        Vscode.workspace.getConfiguration(section).update(workbench, path.toString());
     }
 
-    set ewpLocation(location: string | undefined) {
-        if(location !== undefined) {
-            if(fs.existsSync(location)) {
-                let stat = fs.statSync(location);
-
-                if(!stat.isFile()) {
-                    throw new Error(sErrorNotAnIarProjectFile);
-                }
-            }
-        }
-
-        this.settings[Settings.ewpLocation] = location;
+    export function getCompiler(): Fs.PathLike | undefined {
+        return Vscode.workspace.getConfiguration(section).get(compiler);
     }
 
-    get iarLocation(): string | undefined {
-        return this.settings[Settings.iarLocation];
+    export function setCompiler(path: Fs.PathLike): void {
+        Vscode.workspace.getConfiguration(section).update(compiler, path.toString());
     }
 
-    set iarLocation(location: string | undefined) {
-        this.settings[Settings.iarLocation] = location;
+    export function getEwpFile(): Fs.PathLike | undefined {
+        return Vscode.workspace.getConfiguration(section).get(ewp);
     }
 
-    get processor(): string | undefined {
-        return this.settings[Settings.processor];
+    export function setEwpFile(path: Fs.PathLike): void {
+        Vscode.workspace.getConfiguration(section).update(ewp, path.toString());
     }
 
-    set processor(location: string | undefined) {
-        this.settings[Settings.processor] = location;
-    }
-    
-    get buildConfig(): string | undefined {
-        return this.settings[Settings.buildConfig];
+    export function getConfiguration(): string | undefined {
+        return Vscode.workspace.getConfiguration(section).get(configuration);
     }
 
-    set buildConfig(config: string | undefined) {
-        this.settings[Settings.buildConfig] = config;
+    export function setConfiguration(name: string): void {
+        Vscode.workspace.getConfiguration(section).update(configuration, name);
     }
 }
