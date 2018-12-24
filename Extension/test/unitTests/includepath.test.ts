@@ -1,6 +1,6 @@
 
 import * as Assert from "assert";
-import { IncludePath } from "../../src/iar/project/includepaths";
+import { IncludePath } from "../../src/iar/project/includepath";
 
 suite("Test includepath parsers", () => {
     suite("Test compile output", () => {

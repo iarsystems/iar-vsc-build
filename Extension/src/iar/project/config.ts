@@ -4,7 +4,7 @@ import * as Fs from "fs";
 
 import { XmlNode } from '../../utils/XmlNode';
 import { Define } from './define';
-import { IncludePath } from './includepaths';
+import { IncludePath } from './includepath';
 import { PreIncludePath } from './preincludepath';
 import { IarXml } from "../../utils/xml";
 

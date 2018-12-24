@@ -1,7 +1,7 @@
 import { writeFileSync, readFileSync } from "fs";
 import * as jsonc from 'jsonc-parser';
 import { Config } from "../iar/project/config";
-import { IncludePath } from "../iar/project/includepaths";
+import { IncludePath } from "../iar/project/includepath";
 import { PreIncludePath } from "../iar/project/preincludepath";
 import { Define } from "../iar/project/define";
 
