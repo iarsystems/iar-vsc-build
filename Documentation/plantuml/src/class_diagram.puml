@@ -1,53 +1,92 @@
 @startuml class-diagram
 
 package IAR {
-    class IarWorkbench {
+
+    interface Workbench {
+        +readonly name: string
         +readonly version: string
         +readonly path: fs.PathLike
         +readonly platforms: ReadonlyArray<IarPlatform>
+        
+        +collectWorkbenchesFrom(root: Fs.PathLike): Workbenches[]
+        +create(root: Fs.PathLike): Workbench | undefined
+        +isValid(workbenchPath: Fs.PathLike): boolean
+
+        +mergeUnique(...workbenches: Workbench[][]): Workbench[]
+    }
+
+    class IarWorkbench {
 
         +{static} findInstallations(root: fs.PathLike): IarWorkbench[]
     }
 
-    class IarPlatform {
-        +readonly compiler: IarCompiler
+    interface Platform {
+        +readonly path: string
+        +readonly compilers: Compiler[]
 
-        +{static} findPlatforms(workbenchDirectory: fs.PathLike): IarPlatform[]
+        +collectPlatformsFrom(root: Fs.PathLike, ignoreFolders: string[]): Platform[]
+        +create(path: Fs.PathLike): Platform | undefined
+
+        +mergeUnique(...platforms: Platform[][]): Platform[]
+    }
+
+    class IarPlatform {
+    }
+
+    interface Compiler {
+        +readonly version: string
+        +readonly path: Fs.PathLike
+        +readonly defines: ReadonlyArray<Define>
+        +readonly includePaths: ReadonlyArray<string>
+
+        +collectCompilersFrom(root: Fs.PathLike): Compiler[]
+        +create(path: Fs.PathLike): Compiler | undefined
+        +mergeUnique(...lists: Compiler[][]): Compiler[]
     }
 
     class IarCompiler {
-        +readonly version: string
-        +readonly path: fs.PathLike
-
-        +{static} findCompilers(platformDirectory: fs.PathLike): IarCompiler[]
     }
 
-    class IarProject {
-        +readonly path: fs.PathLike
-        +readonly configurations: ReadonlyArray<Configuration>
+    interface Project {
+        +readonly path: Fs.PathLike
+        +readonly configurations: ReadonlyArray<Config>
+        +readonly name: string
 
-        +{static} findProjects(root: fs.PathLike, recursive: boolean)
+        +reload(): any
+        +findConfiguration(name: string): Config | undefined
+
+        +createProjectFrom(ewpPath: Fs.PathLike): Project | undefined
+        +createProjectsFrom(directory: Fs.PathLike, recursive: boolean = true): Project[]
     }
 
-    class Configuration {
+    class EwpFile {
+    }
+
+    interface Config {
+        readonly name: string
+        readonly defines: Define[]
+        readonly includes: IncludePath[]
+        readonly preIncludes: PreIncludePath[]
+
+        fromXml(projectXml: XmlNode, ewpPath: Fs.PathLike): Config[]
+    }
+
+    class XmlConfig {
         -readonly xmlNode: XmlNode
-        +readonly toolchain: Toolchain
-        +readonly defines: Define[]
-        +includePaths: IncludePath[]
-        +preIncludes: PreInclude[]
-
-        +{static} fromProject(project: IarProject): Configuration[]
     }
 
     Interface Define {
-        +readonly identifier: string
-        +readonly value: string
+        readonly identifier: string
+        readonly value: string | undefined
+
+        +fromXmlNode(xml: XmlNode): Define[]
+        +fromSourceFile(path: Fs.PathLike): Define[]
+        +fromSourceData(buf: Buffer): Define[]
+        +fromSourceContent(content: string): Define[]
     }
 
     class XmlDefine {
         -readonly xmlNode: XmlNode
-        
-        +{static} fromXmlNode(xml: XmlNode): Define[]
     }
 
     class StringDefine {
@@ -56,34 +95,31 @@ package IAR {
     }
 
     Interface IncludePath {
-        +readonly path: fs.PathLike
+        +readonly path: Fs.PathLike
+        +readonly absolutePath: Fs.PathLike
+        +readonly workspacePath: Fs.PathLike
+
+        +fromXmlData(xml: XmlNode, projectPath: Fs.PathLike): IncludePath[]
+        +fromCompilerOutput(output: string): IncludePath[]
     }
 
     class XmlIncludePath {
-        -readonly xmlNode: XmlNode
-
-        +{static} fromXmlNode(xml: XmlNode): IncludePath[]
+        -xmlNode: XmlNode
     }
 
     class StringIncludePath {
-        -readonly path_: fs.PathLike
     }
 
     Interface PreInclude {
-        +readonly preInclude: fs.PathLike
+        +readonly path: Fs.PathLike
+        +readonly absolutePath: Fs.PathLike
+        +readonly workspaceRelativePath: Fs.PathLike
+
+        +fromXml(xml: XmlNode, projectPath: Fs.PathLike): PreIncludePath[]
     }
 
     class XmlPreInclude {
         -readonly xmlNode: XmlNode
-
-        +{static} fromXmlNode(xml: XmlNode): PreInclude[]
-    }
-
-    class Toolchain {
-        -readonly xmlNode: XmlNode
-        +readonly toolchain: string
-
-        +{static} fromXmlNode(xml: XmlNode): Toolchain[]
     }
 }
 
@@ -105,17 +141,16 @@ package Extension {
     }
 }
 
-IarWorkbench "1" *-- "1+" IarPlatform
-IarPlatform "1" *-- "1+" IarCompiler
+Workbench <|. IarWorkbench
+Platform <|. IarPlatform
+Compiler <|. IarCompiler
 
-IarProject "1" *-- "1+" Configuration
+Workbench "1" *-- "1+" Platform
+Platform "1" *-- "1+" Compiler
 
-Configuration "1" *-- "*" Define
-Configuration "1" *-- "*" IncludePath
-Configuration "1" *-- "*" PreInclude
+Project <|. EwpFile
 
-IarCompiler "1" *-- "*" Define
-IarCompiler "1" *-- "*" IncludePath
+Config <|. XmlConfig
 
 Define <|.. XmlDefine
 Define <|.. StringDefine
@@ -124,5 +159,14 @@ IncludePath <|.. XmlIncludePath
 IncludePath <|.. StringIncludePath
 
 PreInclude <|.. XmlPreInclude
+
+Project "1" *-- "1+" Config
+
+Config "1" *-- "*" Define
+Config "1" *-- "*" IncludePath
+Config "1" *-- "*" PreInclude
+
+Compiler "1" *-- "*" Define
+Compiler "1" *-- "*" IncludePath
 
 @enduml
