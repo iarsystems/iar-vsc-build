@@ -104,7 +104,7 @@ export namespace Workbench {
      *                    workbench path.
      * @returns Workbench when the specified path is a valid workbench path.
      */
-    function create(root: Fs.PathLike): Workbench | undefined {
+    export function create(root: Fs.PathLike): Workbench | undefined {
         try {
             return new IarWorkbench(root);
         } catch (e) {
