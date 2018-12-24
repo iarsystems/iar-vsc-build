@@ -30,7 +30,7 @@ class IarWorkbench implements Workbench {
         this.path = path;
         this.idePath = Path.join(this.path.toString(), "common/bin/IarIdePm.exe");
 
-        if (!this.isValidWorkbench()) {
+        if (!this.isValid()) {
             throw new Error("Path does not point to a workspace!");
         }
 
@@ -44,7 +44,7 @@ class IarWorkbench implements Workbench {
     /**
      * Check if the workbench is valid. This means the IAR IDE is available.
      */
-    protected isValidWorkbench(): boolean {
+    protected isValid(): boolean {
         try {
             let stat = Fs.statSync(this.idePath);
 
