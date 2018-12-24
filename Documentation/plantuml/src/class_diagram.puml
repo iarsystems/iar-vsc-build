@@ -1,4 +1,4 @@
-@startuml class-diagram
+@startuml class_diagram
 
 package IAR {
 
