@@ -4,13 +4,15 @@ import * as fs from 'fs';
 
 export namespace FsUtils {
     export function mkdirsSync(dirPath: fs.PathLike) {
-        let parentDir = path.dirname(dirPath.toString());
+        if (!fs.existsSync(dirPath)) {
+            let parentDir = path.dirname(dirPath.toString());
 
-        if (!fs.existsSync(parentDir)) {
-            mkdirsSync(parentDir);
+            if (parentDir !== dirPath) {
+                mkdirsSync(parentDir);
+            }
+
+            fs.mkdirSync(dirPath);
         }
-
-        fs.mkdirSync(dirPath);
     }
 
     export function filteredListDirectory(dirPath: fs.PathLike, filterCallback: (path: fs.PathLike) => boolean): fs.PathLike[] {
