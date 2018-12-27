@@ -139,6 +139,10 @@ package Extension {
         +getChildrenByType(type: string): XmlNode[]
         +getChildrenByName(name: string): XmlNode[]
     }
+
+    interface CppToolsConfigGenerator {
+        +generate(config: Config, compiler: Compiler): void;
+    }
 }
 
 Workbench <|. IarWorkbench
