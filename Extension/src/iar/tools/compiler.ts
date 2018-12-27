@@ -4,13 +4,19 @@
 import * as Fs from "fs";
 import { FsUtils } from "../../utils/fs";
 import { ListUtils } from "../../utils/utils";
+import { Define } from "../project/define";
+import { IncludePath } from "../project/includepath";
 
 export interface Compiler {
     readonly path: Fs.PathLike;
+    readonly defines: Define[];
+    readonly includePaths: IncludePath[];
 }
 
-class IarCompiler {
+class IarCompiler implements Compiler {
     readonly path: Fs.PathLike;
+    readonly defines: Define[];
+    readonly includePaths: IncludePath[];
 
     /**
      * Create a new Compiler object.
@@ -23,6 +29,9 @@ class IarCompiler {
         if (!this.isValidCompiler()) {
             throw new Error("path does not point to a valid compiler.");
         }
+
+        this.defines = this.computeDefines();
+        this.includePaths = this.computeIncludePaths();
     }
 
     /**
@@ -36,6 +45,14 @@ class IarCompiler {
         } catch (e) {
             return false;
         }
+    }
+
+    protected computeDefines(): Define[] {
+        return [];
+    }
+
+    protected computeIncludePaths(): IncludePath[] {
+        return [];
     }
 }
 
