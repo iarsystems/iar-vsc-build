@@ -124,11 +124,50 @@ package IAR {
 }
 
 package Extension {
-    interface Command {
-        +execute()
+    package UI {
+        interface ListInput<T> {
+            +show(): boolean
+            +selected(): T | undefined
+
+            +createListInput(model: ListInputModel<T>): ListInput<T>
+        }
+
+        interface ListInputModel<T> {
+            +readonly amount: number
+            +readonly selected: T | undefined
+
+            +addOnSelectedHandler(fn: (model: ListInputModel<T>, selected: T), this: any)
+            +addOnDataChangedHandler(fn: (model: ListInputModel<T>, changedItem: T, this: any))
+            
+            +label(index: number): string
+            +description(index: number): string | undefined
+            +detail(index: number): string | undefined
+
+            +select(index: number): boolean
+        }
     }
 
-    class CommandManager {
+    package Command {
+        interface Command {
+            +execute(): void;
+            +register(context: ExtensionContext): void;
+        }
+
+        enum Commands {
+            SelectWorkbench
+            SelectPlatform
+            SelectCompiler
+            SelectProject
+            SelectConfiguration
+        }
+
+        interface CommandManager {
+            +getCommand(cmd: Commands): Command | undefined;
+            +setCommand(cmd: Commands, command: Command): void;
+
+            +{static} getInstance(): CommandManager;
+            +{static} generateCommands(): void;
+        }
     }
 
     class XmlNode {
