@@ -8,18 +8,19 @@ import { SelectionView } from "./selectionview";
 import { Settings } from "../settings";
 import { Command } from "../command/command";
 import { Workbench } from "../../iar/tools/workbench";
+import { ListInputModel } from "../model/model";
 
-type WorkbenchUi = {
-    model: WorkbenchListModel,
+type UI<T> = {
+    model: ListInputModel<T>,
     cmd: Command,
-    ui: SelectionView<Workbench>
+    ui: SelectionView<T>
 };
 
 class Application {
     private toolManager: ToolManager;
     private context: Vscode.ExtensionContext;
 
-    readonly workbench: WorkbenchUi;
+    readonly workbench: UI<Workbench>;
 
     constructor(context: Vscode.ExtensionContext, toolManager: ToolManager) {
         this.context = context;
@@ -39,7 +40,7 @@ class Application {
         this.workbench.ui.show();
     }
 
-    private createWorkbenchUi(): WorkbenchUi {
+    private createWorkbenchUi(): UI<Workbench> {
         let model = new WorkbenchListModel(...this.toolManager.workbenches);
         let cmd = Command.createSelectWorkbenchCommand(model);
         let ui = SelectionView.createSelectionView(cmd, model, 1);
@@ -63,7 +64,7 @@ class Application {
         let currentWorkbench = Settings.getWorkbench();
 
         if (currentWorkbench) {
-            let model = this.workbench.model;
+            let model = this.workbench.model as WorkbenchListModel;
 
             model.workbenches.some((workbench, index): boolean => {
                 if (!currentWorkbench) {
@@ -81,7 +82,9 @@ class Application {
     }
 
     private onWorbenchesChanged(manager: ToolManager): void {
-        this.workbench.model.set(...manager.workbenches);
+        let model = this.workbench.model as WorkbenchListModel;
+
+        model.set(...manager.workbenches);
 
         this.selectCurrentWorkbench();
     }
