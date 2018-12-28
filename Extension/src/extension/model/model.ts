@@ -7,6 +7,7 @@ type invalidateHandler<T> = (model: ListInputModel<T>) => void;
 export interface InputModel<T> {
     readonly selected: T | undefined;
     readonly selectedText: string | undefined;
+    readonly selectedIndex: number | undefined;
 
     addOnSelectedHandler(fn: selectHandler<T>, thisArg?: any): void;
 }
@@ -30,6 +31,7 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
     abstract amount: number;
     abstract selected: T | undefined;
     abstract selectedText: string | undefined;
+    abstract selectedIndex: number | undefined;
 
     constructor() {
         this.selectHandlers = [];

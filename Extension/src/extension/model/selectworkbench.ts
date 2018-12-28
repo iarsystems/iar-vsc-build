@@ -7,7 +7,7 @@ import { Workbench } from "../../iar/tools/workbench";
 export class WorkbenchListModel extends ListInputModelBase<Workbench> {
     private workbenches_: Workbench[];
 
-    selected: Workbench | undefined;
+    selectedIndex: number | undefined;
 
     constructor(...workbenches: Workbench[]) {
         super();
@@ -23,6 +23,14 @@ export class WorkbenchListModel extends ListInputModelBase<Workbench> {
 
     get amount(): number {
         return this.workbenches_.length;
+    }
+
+    get selected(): Workbench | undefined {
+        if (this.selectedIndex !== undefined) {
+            return this.workbenches_[this.selectedIndex];
+        } else {
+            return undefined;
+        }
     }
 
     get selectedText(): string | undefined {
@@ -48,16 +56,9 @@ export class WorkbenchListModel extends ListInputModelBase<Workbench> {
     }
 
     select(index: number): boolean {
-        let tmp = this.workbenches[index];
-
-        if (!this.selected) {
-            this.selected = tmp;
-            this.fireSelectionChanged(this.selected);
-
-            return true;
-        } else if (this.selected.idePath !== tmp.idePath) {
-            this.selected = tmp;
-            this.fireSelectionChanged(this.selected);
+        if (this.selectedIndex !== index) {
+            this.selectedIndex = index;
+            this.fireSelectionChanged(this.workbenches_[this.selectedIndex]);
 
             return true;
         } else {
