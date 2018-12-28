@@ -231,6 +231,7 @@ class Application {
         model.set(...manager.workbenches);
 
         this.selectCurrentWorkbench();
+        this.selectCurrentCompiler();
     }
 
     private onSelectedWorkbenchChanged(): void {
