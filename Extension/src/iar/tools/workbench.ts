@@ -40,7 +40,7 @@ class IarWorkbench implements Workbench {
     }
 
     get name(): string {
-        return Path.parse(this.path.toString()).name;
+        return Path.parse(this.path.toString()).base;
     }
 
     /**
