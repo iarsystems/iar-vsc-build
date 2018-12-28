@@ -30,7 +30,7 @@ class SelectionViewImpl<T> implements SelectionView<T> {
 
         this.model.addOnSelectedHandler(this.onSelectionChanged, this);
 
-        this.ui = Vscode.window.createStatusBarItem(Vscode.StatusBarAlignment.Left);
+        this.ui = Vscode.window.createStatusBarItem(Vscode.StatusBarAlignment.Left, priority);
         this.ui.command = this.controller.command;
 
         this.label_ = "Select: ";
@@ -83,6 +83,6 @@ class SelectionViewImpl<T> implements SelectionView<T> {
 export namespace SelectionView {
 
     export function createSelectionView<T>(controller: Command, model: InputModel<T>, priority?: number) {
-        return new SelectionViewImpl(controller, model);
+        return new SelectionViewImpl(controller, model, priority);
     }
 }
