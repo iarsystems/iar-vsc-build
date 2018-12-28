@@ -36,4 +36,8 @@ export namespace Command {
     export function createSelectWorkbenchCommand(model: ListInputModel<Workbench>): Command {
         return new CommandImpl("iar.selectWorkbench", model);
     }
+
+    export function createSelectCompilerCommand(model: ListInputModel<Compiler>): Command {
+        return new CommandImpl("iar.selectCompiler", model);
+    }
 }

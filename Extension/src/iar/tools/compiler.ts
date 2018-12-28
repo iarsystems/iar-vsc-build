@@ -2,12 +2,14 @@
 'use strict';
 
 import * as Fs from "fs";
+import * as Path from "path";
 import { FsUtils } from "../../utils/fs";
 import { ListUtils } from "../../utils/utils";
 import { Define } from "../project/define";
 import { IncludePath } from "../project/includepath";
 
 export interface Compiler {
+    readonly name: string;
     readonly path: Fs.PathLike;
     readonly defines: Define[];
     readonly includePaths: IncludePath[];
@@ -32,6 +34,10 @@ class IarCompiler implements Compiler {
 
         this.defines = this.computeDefines();
         this.includePaths = this.computeIncludePaths();
+    }
+
+    get name(): string {
+        return Path.parse(this.path.toString()).name;
     }
 
     /**

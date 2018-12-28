@@ -53,13 +53,13 @@ suite("CppToolsConfigGenerator", () => {
 
         const defineEqual = (d1: Define, d2: Define): boolean => {
             return ((d1.value === d2.value) && (d1.identifier === d2.identifier));
-        }
+        };
         const includePathEqual = (p1: IncludePath, p2: IncludePath): boolean => {
             return ((p1.absolutePath === p2.absolutePath) && (p1.path === p2.path) && (p1.workspacePath === p2.workspacePath));
-        }
+        };
         const preincludePathEqual = (p1: PreIncludePath, p2: PreIncludePath): boolean => {
             return ((p1.path === p2.path) && (p1.absolutePath === p2.absolutePath) && (p1.workspaceRelativePath === p2.workspaceRelativePath));
-        }
+        };
 
         Assert.equal(arraysContainSameElements(defineEqual, defines, iarConfiguration["defines"]), true);
         Assert.equal(arraysContainSameElements(includePathEqual, includePaths, iarConfiguration["includePath"]), true);
@@ -100,6 +100,7 @@ suite("CppToolsConfigGenerator", () => {
         ];
 
         return {
+            name: "cc",
             path: path,
             defines: defines,
             includePaths: includePaths

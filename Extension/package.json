@@ -41,6 +41,11 @@
         "category": "IAR"
       },
       {
+        "command": "iar.selectCompiler",
+        "title": "Select Compiler",
+        "category": "IAR"
+      },
+      {
         "command": "iar.selectIarProject",
         "title": "Select Project",
         "category": "IAR"
