@@ -17,7 +17,7 @@ export class ProjectListModel extends ListInputModelBase<Project> {
         }
     }
 
-    get projects(): Project[] {
+    get projects(): ReadonlyArray<Project> {
         return this.data;
     }
 

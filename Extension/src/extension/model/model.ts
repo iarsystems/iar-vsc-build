@@ -31,7 +31,7 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
     private changeHandlers: Handler<invalidateHandler<T>>[];
 
     protected selectedIndex_: number | undefined;
-    protected data: T[];
+    protected data: ReadonlyArray<T>;
 
     abstract readonly selectedText: string | undefined;
 

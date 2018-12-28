@@ -18,7 +18,7 @@ export class CompilerListModel extends ListInputModelBase<Compiler> {
         }
     }
 
-    get compilers(): Compiler[] {
+    get compilers(): ReadonlyArray<Compiler> {
         return this.data;
     }
 

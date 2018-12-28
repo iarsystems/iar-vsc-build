@@ -17,7 +17,7 @@ export class WorkbenchListModel extends ListInputModelBase<Workbench> {
         }
     }
 
-    get workbenches(): Workbench[] {
+    get workbenches(): ReadonlyArray<Workbench> {
         return this.data;
     }
 
