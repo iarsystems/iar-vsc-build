@@ -27,15 +27,51 @@ export interface ListInputModel<T> extends InputModel<T> {
 export abstract class ListInputModelBase<T> implements ListInputModel<T> {
     private selectHandlers: selectHandler<T>[];
     private changeHandlers: invalidateHandler<T>[];
+    private selectedIndex_: number | undefined;
 
-    abstract amount: number;
-    abstract selected: T | undefined;
-    abstract selectedText: string | undefined;
-    abstract selectedIndex: number | undefined;
+    protected data: T[];
 
-    constructor() {
+    abstract readonly selectedText: string | undefined;
+
+    constructor(data: T[]) {
         this.selectHandlers = [];
         this.changeHandlers = [];
+        this.data = data;
+
+        this.selectedIndex_ = undefined;
+    }
+
+    get amount(): number {
+        return this.data.length;
+    }
+
+    get selectedIndex(): number | undefined {
+        return this.selectedIndex_;
+    }
+
+    get selected(): T | undefined {
+        if (this.selectedIndex !== undefined) {
+            return this.data[this.selectedIndex];
+        } else {
+            return undefined;
+        }
+    }
+
+    public set(...data: T[]) {
+        this.data = data;
+
+        this.fireInvalidateEvent();
+    }
+
+    select(index: number): boolean {
+        if (this.selectedIndex !== index) {
+            this.selectedIndex_ = index;
+            this.fireSelectionChanged(this.data[this.selectedIndex_]);
+
+            return true;
+        } else {
+            return false;
+        }
     }
 
     addOnSelectedHandler(fn: selectHandler<T>, thisArg?: any): void {
@@ -69,5 +105,4 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
     abstract label(index: number): string;
     abstract description(index: number): string | undefined;
     abstract detail(index: number): string | undefined;
-    abstract select(index: number): boolean;
 }
