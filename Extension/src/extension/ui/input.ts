@@ -39,7 +39,7 @@ class ListInput<T> implements Input<T> {
                 let tmp = selected as any;
                 let idx = tmp["index"];
 
-                this.model.select(idx);
+                newSelected = this.model.select(idx);
             }
         });
 
