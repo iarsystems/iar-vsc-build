@@ -29,8 +29,8 @@ export interface ListInputModel<T> extends InputModel<T> {
 export abstract class ListInputModelBase<T> implements ListInputModel<T> {
     private selectHandlers: Handler<selectHandler<T>>[];
     private changeHandlers: Handler<invalidateHandler<T>>[];
-    private selectedIndex_: number | undefined;
 
+    protected selectedIndex_: number | undefined;
     protected data: T[];
 
     abstract readonly selectedText: string | undefined;
