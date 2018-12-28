@@ -1,7 +1,9 @@
 
 'use strict';
 
-type selectHandler<T> = (model: ListInputModel<T>, selected: T) => void;
+import { Handler } from "../../utils/handler";
+
+type selectHandler<T> = (model: ListInputModel<T>, selected?: T) => void;
 type invalidateHandler<T> = (model: ListInputModel<T>) => void;
 
 export interface InputModel<T> {
@@ -25,8 +27,8 @@ export interface ListInputModel<T> extends InputModel<T> {
 }
 
 export abstract class ListInputModelBase<T> implements ListInputModel<T> {
-    private selectHandlers: selectHandler<T>[];
-    private changeHandlers: invalidateHandler<T>[];
+    private selectHandlers: Handler<selectHandler<T>>[];
+    private changeHandlers: Handler<invalidateHandler<T>>[];
     private selectedIndex_: number | undefined;
 
     protected data: T[];
@@ -75,30 +77,22 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
     }
 
     addOnSelectedHandler(fn: selectHandler<T>, thisArg?: any): void {
-        let tmp: any = fn;
-        tmp["__this__"] = thisArg;
-
-        this.selectHandlers.push(fn);
+        this.selectHandlers.push(new Handler(fn, thisArg));
     }
 
     addOnInvalidateHandler(fn: invalidateHandler<T>, thisArg?: any): void {
-        let tmp: any = fn;
-        tmp["__this__"] = thisArg;
-
-        this.changeHandlers.push(fn);
+        this.changeHandlers.push(new Handler(fn, thisArg));
     }
 
-    protected fireSelectionChanged(item: T): void {
-        this.selectHandlers.forEach(fn => {
-            let tmp: any = fn;
-            fn.apply(tmp["__this__"], [this, item]);
+    protected fireSelectionChanged(item?: T): void {
+        this.selectHandlers.forEach(handler => {
+            handler.call(this, item);
         });
     }
 
     protected fireInvalidateEvent(): void {
-        this.changeHandlers.forEach(fn => {
-            let tmp: any = fn;
-            fn.apply(tmp["__this__"], [this]);
+        this.changeHandlers.forEach(handler => {
+            handler.call(this);
         });
     }
 
