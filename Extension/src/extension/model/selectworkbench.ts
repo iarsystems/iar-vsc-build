@@ -5,24 +5,24 @@ import { ListInputModelBase } from "./model";
 import { Workbench } from "../../iar/tools/workbench";
 
 export class WorkbenchListModel extends ListInputModelBase<Workbench> {
-    private workbenches: Workbench[];
+    private workbenches_: Workbench[];
 
     selected: Workbench | undefined;
 
     constructor(...workbenches: Workbench[]) {
         super();
 
-        this.workbenches = workbenches;
+        this.workbenches_ = workbenches;
     }
 
     public setWorkbenches(...workbenches: Workbench[]) {
-        this.workbenches = workbenches;
+        this.workbenches_ = workbenches;
 
         this.fireInvalidateEvent();
     }
 
     get amount(): number {
-        return this.workbenches.length;
+        return this.workbenches_.length;
     }
 
     get selectedText(): string | undefined {
@@ -33,14 +33,18 @@ export class WorkbenchListModel extends ListInputModelBase<Workbench> {
         }
     }
 
+    get workbenches(): Workbench[] {
+        return this.workbenches_;
+    }
+
     label(index: number): string {
-        return this.workbenches[index].name;
+        return this.workbenches_[index].name;
     }
     description(index: number): string | undefined {
-        return this.workbenches[index].path.toString();
+        return this.workbenches_[index].path.toString();
     }
     detail(index: number): string | undefined {
-        return this.workbenches[index].idePath.toString();
+        return this.workbenches_[index].idePath.toString();
     }
 
     select(index: number): boolean {
