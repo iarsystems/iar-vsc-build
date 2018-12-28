@@ -4,7 +4,6 @@
 import * as Vscode from "vscode";
 import { ToolManager } from "../../iar/tools/manager";
 import { WorkbenchListModel } from "../model/selectworkbench";
-import { SelectWorkbenchCommand } from "../command/selectworkbench";
 import { SelectionView } from "./selectionview";
 import { Settings } from "../settings";
 import { Command } from "../command/command";
@@ -42,7 +41,7 @@ class Application {
 
     private createWorkbenchUi(): WorkbenchUi {
         let model = new WorkbenchListModel(...this.toolManager.workbenches);
-        let cmd = SelectWorkbenchCommand.createCommand(model);
+        let cmd = Command.createSelectWorkbenchCommand(model);
         let ui = SelectionView.createSelectionView(cmd, model, 1);
 
         cmd.register(this.context);
