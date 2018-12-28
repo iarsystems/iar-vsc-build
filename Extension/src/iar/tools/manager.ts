@@ -6,9 +6,14 @@ import * as Path from "path";
 import { Workbench } from "./workbench";
 import { Platform } from "./platform";
 import { Compiler } from "./compiler";
+import { Handler } from "../../utils/handler";
+
+type invalidateHandler = (manager: ToolManager) => void;
 
 export interface ToolManager {
     readonly workbenches: ReadonlyArray<Workbench>;
+
+    addInvalidateListener(handler: invalidateHandler, thisArg?: any): void;
 
     add(...workbenches: Workbench[]): void;
     collectFrom(directory: Fs.PathLike): void;
@@ -20,6 +25,7 @@ export interface ToolManager {
 
 class IarToolManager implements ToolManager {
     private workbenches_: Workbench[];
+    private invalidateHandlers: Handler<invalidateHandler>[] = [];
 
     constructor() {
         this.workbenches_ = [];
@@ -29,8 +35,14 @@ class IarToolManager implements ToolManager {
         return this.workbenches_;
     }
 
+    addInvalidateListener(handler: invalidateHandler, thisArg?: any): void {
+        this.invalidateHandlers.push(new Handler(handler, thisArg));
+    }
+
     add(...workbenches: Workbench[]): void {
         this.workbenches_ = Workbench.mergeUnique(this.workbenches_, workbenches);
+
+        this.fireInvalidateEvent();
     }
 
     collectFrom(directory: Fs.PathLike): void {
@@ -109,10 +121,15 @@ class IarToolManager implements ToolManager {
 
         return workbench;
     }
+
+    private fireInvalidateEvent() {
+        this.invalidateHandlers.forEach(handler => {
+            handler.call(this);
+        });
+    }
 }
 
 export namespace ToolManager {
-
     export function createIarToolManager(): ToolManager {
         return new IarToolManager();
     }
