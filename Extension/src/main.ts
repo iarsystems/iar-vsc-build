@@ -7,7 +7,9 @@ import { ToolManager } from './iar/tools/manager';
 import { Settings } from './extension/settings';
 
 export function activate(context: vscode.ExtensionContext) {
-    UI.createUi(IarVsc.toolManager, context);
+    UI.init(context, IarVsc.toolManager);
+
+    UI.getInstance().show();
 
     let roots = Settings.getIarInstallDirectories();
 
