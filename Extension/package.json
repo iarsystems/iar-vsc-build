@@ -36,8 +36,8 @@
         "category": "IAR"
       },
       {
-        "command": "iar.selectIarInstallation",
-        "title": "Select Installation",
+        "command": "iar.selectWorkbench",
+        "title": "Select Workbench",
         "category": "IAR"
       },
       {
