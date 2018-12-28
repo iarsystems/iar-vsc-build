@@ -3,8 +3,11 @@
 
 import * as Vscode from "vscode";
 import * as Fs from "fs";
+import { Handler } from "../utils/handler";
 
 export namespace Settings {
+    type ChangeHandler = (section: Field, newValue: string) => void;
+
     export enum Field {
         Workbench = "workbench",
         Compiler = "compiler",
@@ -14,6 +17,20 @@ export namespace Settings {
 
     const section = "iarvsc";
     const iarInstallDirectories = "iarInstallDirectories";
+
+    let observers: Map<Field, Handler<ChangeHandler>[]> = new Map();
+
+    export function addObserver(field: Field, handler: ChangeHandler) {
+        let list = observers.get(field);
+
+        if (!list) {
+            list = new Array<Handler<ChangeHandler>>();
+
+            observers.set(field, list);
+        }
+
+        list.push(new Handler(handler, undefined));
+    }
 
     export function getIarInstallDirectories(): Fs.PathLike[] {
         let directories = Vscode.workspace.getConfiguration(section).get(iarInstallDirectories);
@@ -31,6 +48,8 @@ export namespace Settings {
 
     export function setWorkbench(path: Fs.PathLike): void {
         Vscode.workspace.getConfiguration(section).update(Field.Workbench, path.toString());
+
+        fireChange(Field.Workbench, path.toString());
     }
 
     export function getCompiler(): Fs.PathLike | undefined {
@@ -39,6 +58,8 @@ export namespace Settings {
 
     export function setCompiler(path: Fs.PathLike): void {
         Vscode.workspace.getConfiguration(section).update(Field.Compiler, path.toString());
+
+        fireChange(Field.Compiler, path.toString());
     }
 
     export function getEwpFile(): Fs.PathLike | undefined {
@@ -47,6 +68,8 @@ export namespace Settings {
 
     export function setEwpFile(path: Fs.PathLike): void {
         Vscode.workspace.getConfiguration(section).update(Field.Ewp, path.toString());
+
+        fireChange(Field.Ewp, path.toString());
     }
 
     export function getConfiguration(): string | undefined {
@@ -55,5 +78,17 @@ export namespace Settings {
 
     export function setConfiguration(name: string): void {
         Vscode.workspace.getConfiguration(section).update(Field.Configuration, name);
+
+        fireChange(Field.Configuration, name);
+    }
+
+    function fireChange(field: Field, newValue: string) {
+        let list = observers.get(field);
+
+        if (list) {
+            list.forEach(handler => {
+                handler.call(field, newValue);
+            });
+        }
     }
 }
