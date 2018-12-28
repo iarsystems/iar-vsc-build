@@ -3,6 +3,8 @@
 import * as Vscode from "vscode";
 import { ListInputModel, InputModel } from "../model/model";
 
+type InputItem = Vscode.QuickPickItem & { index: number };
+
 export interface Input<T> {
     readonly model: InputModel<T>;
     show(): boolean;
@@ -20,7 +22,7 @@ export namespace Input {
 
 class ListInput<T> implements Input<T> {
     readonly model: ListInputModel<T>;
-    private inputItemWrapper: Vscode.QuickPickItem[];
+    private inputItemWrapper: InputItem[];
 
     constructor(model: ListInputModel<T>) {
         this.model = model;
