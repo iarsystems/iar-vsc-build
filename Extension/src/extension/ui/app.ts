@@ -83,6 +83,8 @@ class Application {
 
     private onWorbenchesChanged(manager: ToolManager): void {
         this.workbench.model.set(...manager.workbenches);
+
+        this.selectCurrentWorkbench();
     }
 }
 
