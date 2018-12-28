@@ -46,7 +46,7 @@
         "category": "IAR"
       },
       {
-        "command": "iar.selectIarProject",
+        "command": "iar.selectProject",
         "title": "Select Project",
         "category": "IAR"
       },

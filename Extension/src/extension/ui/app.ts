@@ -11,6 +11,8 @@ import { Workbench } from "../../iar/tools/workbench";
 import { CompilerListModel } from "../model/selectcompiler";
 import { ListInputModel } from "../model/model";
 import { Compiler } from "../../iar/tools/compiler";
+import { Project } from "../../iar/project/project";
+import { ProjectListModel } from "../model/selectproject";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -24,6 +26,7 @@ class Application {
 
     readonly workbench: UI<Workbench>;
     readonly compiler: UI<Compiler>;
+    readonly project: UI<Project>;
 
     constructor(context: Vscode.ExtensionContext, toolManager: ToolManager) {
         this.context = context;
@@ -32,6 +35,7 @@ class Application {
         // create different UIs
         this.workbench = this.createWorkbenchUi();
         this.compiler = this.createCompilerUi();
+        this.project = this.createProjectUi();
 
         // add listeners
         this.toolManager.addInvalidateListener(this.onWorbenchesChanged, this);
@@ -44,6 +48,7 @@ class Application {
     public show(): void {
         this.workbench.ui.show();
         this.compiler.ui.show();
+        this.project.ui.show();
     }
 
     private createWorkbenchUi(): UI<Workbench> {
@@ -78,9 +83,31 @@ class Application {
         };
     }
 
+    private createProjectUi(): UI<Project> {
+        let projects: Project[] = [];
+        if (Vscode.workspace.rootPath) {
+            projects = Project.createProjectsFrom(Vscode.workspace.rootPath, true);
+        }
+
+        let model = new ProjectListModel(...projects);
+        let cmd = Command.createSelectProjectCommand(model);
+        let ui = SelectionView.createSelectionView(cmd, model, 3);
+
+        cmd.register(this.context);
+        ui.label = "Project: ";
+        ui.defaultText = "None selected";
+
+        return {
+            model: model,
+            cmd: cmd,
+            ui: ui
+        };
+    }
+
     private selectCurrentSettings(): void {
         this.selectCurrentWorkbench();
         this.selectCurrentCompiler();
+        this.selectCurrentProject();
     }
 
     private selectCurrentWorkbench(): void {
@@ -116,6 +143,27 @@ class Application {
                 }
 
                 if (compiler.path === currentCompiler.toString()) {
+                    model.select(index);
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        }
+    }
+
+    private selectCurrentProject(): void {
+        let currentProject = Settings.getEwpFile();
+
+        if (currentProject) {
+            let model = this.project.model as ProjectListModel;
+
+            model.projects.some((project, index): boolean => {
+                if (!currentProject) {
+                    return true;
+                }
+
+                if (project.path === currentProject.toString()) {
                     model.select(index);
                     return true;
                 } else {

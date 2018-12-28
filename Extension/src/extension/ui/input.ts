@@ -29,6 +29,8 @@ class ListInput<T> implements Input<T> {
         this.inputItemWrapper = [];
 
         this.model.addOnInvalidateHandler(this.generateItemWrappers, this);
+
+        this.generateItemWrappers();
     }
 
     show(placeholder?: string): boolean {
