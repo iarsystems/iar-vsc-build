@@ -5,12 +5,15 @@ import * as Vscode from "vscode";
 import * as Fs from "fs";
 
 export namespace Settings {
+    export enum Field {
+        Workbench = "workbench",
+        Compiler = "compiler",
+        Ewp = "ewp",
+        Configuration = "configuration"
+    }
+
     const section = "iarvsc";
     const iarInstallDirectories = "iarInstallDirectories";
-    const workbench = "workbench";
-    const compiler = "compiler";
-    const ewp = "ewp";
-    const configuration = "configuration";
 
     export function getIarInstallDirectories(): Fs.PathLike[] {
         let directories = Vscode.workspace.getConfiguration(section).get(iarInstallDirectories);
@@ -23,34 +26,34 @@ export namespace Settings {
     }
 
     export function getWorkbench(): Fs.PathLike | undefined {
-        return Vscode.workspace.getConfiguration(section).get(workbench);
+        return Vscode.workspace.getConfiguration(section).get(Field.Workbench);
     }
 
     export function setWorkbench(path: Fs.PathLike): void {
-        Vscode.workspace.getConfiguration(section).update(workbench, path.toString());
+        Vscode.workspace.getConfiguration(section).update(Field.Workbench, path.toString());
     }
 
     export function getCompiler(): Fs.PathLike | undefined {
-        return Vscode.workspace.getConfiguration(section).get(compiler);
+        return Vscode.workspace.getConfiguration(section).get(Field.Compiler);
     }
 
     export function setCompiler(path: Fs.PathLike): void {
-        Vscode.workspace.getConfiguration(section).update(compiler, path.toString());
+        Vscode.workspace.getConfiguration(section).update(Field.Compiler, path.toString());
     }
 
     export function getEwpFile(): Fs.PathLike | undefined {
-        return Vscode.workspace.getConfiguration(section).get(ewp);
+        return Vscode.workspace.getConfiguration(section).get(Field.Ewp);
     }
 
     export function setEwpFile(path: Fs.PathLike): void {
-        Vscode.workspace.getConfiguration(section).update(ewp, path.toString());
+        Vscode.workspace.getConfiguration(section).update(Field.Ewp, path.toString());
     }
 
     export function getConfiguration(): string | undefined {
-        return Vscode.workspace.getConfiguration(section).get(configuration);
+        return Vscode.workspace.getConfiguration(section).get(Field.Configuration);
     }
 
     export function setConfiguration(name: string): void {
-        Vscode.workspace.getConfiguration(section).update(configuration, name);
+        Vscode.workspace.getConfiguration(section).update(Field.Configuration, name);
     }
 }
