@@ -2,7 +2,6 @@
 'use strict';
 
 import * as Vscode from "vscode";
-import { Input } from "./input";
 import { Command } from "../command/command";
 import { InputModel } from "../model/model";
 
@@ -21,7 +20,7 @@ class SelectionViewImpl<T> implements SelectionView<T> {
     private defaultText_: string;
     private label_: string;
 
-    readonly controller: Command
+    readonly controller: Command;
     readonly model: InputModel<T>;
 
     constructor(controller: Command, model: InputModel<T>, priority?: number) {
