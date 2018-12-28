@@ -27,7 +27,7 @@
     "onCommand:iar.rebuildIarProject",
     "workspaceContains:.vscode/iar-vsc.json"
   ],
-  "main": "./out/main",
+  "main": "./out/src/main",
   "contributes": {
     "commands": [
       {
