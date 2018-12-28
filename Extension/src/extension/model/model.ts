@@ -8,13 +8,13 @@ export interface InputModel<T> {
     readonly selected: T | undefined;
     readonly selectedText: string;
 
-    addOnSelectedHandler(fn: selectHandler<T>, thisArg: any): void;
+    addOnSelectedHandler(fn: selectHandler<T>, thisArg?: any): void;
 }
 
 export interface ListInputModel<T> extends InputModel<T> {
     readonly amount: number;
 
-    addOnInvalidateHandler(fn: invalidateHandler<T>, thisArg: any): void;
+    addOnInvalidateHandler(fn: invalidateHandler<T>, thisArg?: any): void;
 
     label(index: number): string;
     description(index: number): string | undefined;
@@ -36,14 +36,14 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
         this.changeHandlers = [];
     }
 
-    addOnSelectedHandler(fn: selectHandler<T>, thisArg: any): void {
+    addOnSelectedHandler(fn: selectHandler<T>, thisArg?: any): void {
         let tmp: any = fn;
         tmp["__this__"] = thisArg;
 
         this.selectHandlers.push(fn);
     }
 
-    addOnInvalidateHandler(fn: invalidateHandler<T>, thisArg: any): void {
+    addOnInvalidateHandler(fn: invalidateHandler<T>, thisArg?: any): void {
         let tmp: any = fn;
         tmp["__this__"] = thisArg;
 
