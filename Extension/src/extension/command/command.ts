@@ -6,6 +6,7 @@ import { ListInputModel } from "../model/model";
 import { Workbench } from "../../iar/tools/workbench";
 import { Compiler } from "../../iar/tools/compiler";
 import { Project } from "../../iar/project/project";
+import { Config } from "../../iar/project/config";
 
 export interface Command {
     readonly command: string;
@@ -44,5 +45,9 @@ export namespace Command {
 
     export function createSelectProjectCommand(model: ListInputModel<Project>): Command {
         return new CommandImpl("iar.selectProject", model);
+    }
+
+    export function createSelecConfigurationCommand(model: ListInputModel<Config>): Command {
+        return new CommandImpl("iar.selectConfiguration", model);
     }
 }

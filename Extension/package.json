@@ -51,6 +51,11 @@
         "category": "IAR"
       },
       {
+        "command": "iar.selectConfiguration",
+        "title": "Select Configuration",
+        "category": "IAR"
+      },
+      {
         "command": "iar.buildIarProject",
         "title": "Build",
         "category": "IAR"

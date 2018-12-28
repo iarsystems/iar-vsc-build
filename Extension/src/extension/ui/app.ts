@@ -13,6 +13,8 @@ import { ListInputModel } from "../model/model";
 import { Compiler } from "../../iar/tools/compiler";
 import { Project } from "../../iar/project/project";
 import { ProjectListModel } from "../model/selectproject";
+import { Config } from "../../iar/project/config";
+import { ConfigurationListModel } from "../model/selectconfiguration";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -27,6 +29,7 @@ class Application {
     readonly workbench: UI<Workbench>;
     readonly compiler: UI<Compiler>;
     readonly project: UI<Project>;
+    readonly config: UI<Config>;
 
     constructor(context: Vscode.ExtensionContext, toolManager: ToolManager) {
         this.context = context;
@@ -36,10 +39,12 @@ class Application {
         this.workbench = this.createWorkbenchUi();
         this.compiler = this.createCompilerUi();
         this.project = this.createProjectUi();
+        this.config = this.createConfigurationUi();
 
         // add listeners
         this.toolManager.addInvalidateListener(this.onWorbenchesChanged, this);
         this.workbench.model.addOnSelectedHandler(this.onSelectedWorkbenchChanged, this);
+        this.project.model.addOnSelectedHandler(this.onSelectedProjectChanged, this);
 
         // update UIs with current selected settings
         this.selectCurrentSettings();
@@ -49,6 +54,7 @@ class Application {
         this.workbench.ui.show();
         this.compiler.ui.show();
         this.project.ui.show();
+        this.config.ui.show();
     }
 
     private createWorkbenchUi(): UI<Workbench> {
@@ -104,10 +110,35 @@ class Application {
         };
     }
 
+    private createConfigurationUi(): UI<Config> {
+        let configs: ReadonlyArray<Config> = [];
+
+        let project = this.project.model.selected;
+
+        if (project) {
+            configs = project.configurations;
+        }
+
+        let model = new ConfigurationListModel(...configs);
+        let cmd = Command.createSelecConfigurationCommand(model);
+        let ui = SelectionView.createSelectionView(cmd, model, 2);
+
+        cmd.register(this.context);
+        ui.label = "Configuration: ";
+        ui.defaultText = "None selected";
+
+        return {
+            model: model,
+            cmd: cmd,
+            ui: ui
+        };
+    }
+
     private selectCurrentSettings(): void {
         this.selectCurrentWorkbench();
         this.selectCurrentCompiler();
         this.selectCurrentProject();
+        this.selectCurrenConfiguration();
     }
 
     private selectCurrentWorkbench(): void {
@@ -173,6 +204,27 @@ class Application {
         }
     }
 
+    private selectCurrenConfiguration(): void {
+        let currentConfiguration = Settings.getConfiguration();
+
+        if (currentConfiguration) {
+            let model = this.config.model as ConfigurationListModel;
+
+            model.configurations.some((config, index): boolean => {
+                if (!currentConfiguration) {
+                    return true;
+                }
+
+                if (config.name === currentConfiguration) {
+                    model.select(index);
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        }
+    }
+
     private onWorbenchesChanged(manager: ToolManager): void {
         let model = this.workbench.model as WorkbenchListModel;
 
@@ -186,6 +238,13 @@ class Application {
         let workbenchModel = this.workbench.model as WorkbenchListModel;
 
         compilerModel.useCompilersFromWorkbench(workbenchModel.selected);
+    }
+
+    private onSelectedProjectChanged(): void {
+        let projectModel = this.project.model as ProjectListModel;
+        let configModel = this.config.model as ConfigurationListModel;
+
+        configModel.useConfigurationsFromProject(projectModel.selected);
     }
 }
 
