@@ -25,11 +25,11 @@ export class WorkbenchListModel extends ListInputModelBase<Workbench> {
         return this.workbenches.length;
     }
 
-    get selectedText(): string {
+    get selectedText(): string | undefined {
         if (this.selected) {
             return this.selected.name;
         } else {
-            return "";
+            return undefined;
         }
     }
 
