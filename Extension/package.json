@@ -31,11 +31,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "iar.syncIarProjectFile",
-        "title": "Sync Project File",
-        "category": "IAR"
-      },
-      {
         "command": "iar.selectWorkbench",
         "title": "Select Workbench",
         "category": "IAR"
@@ -53,16 +48,6 @@
       {
         "command": "iar.selectConfiguration",
         "title": "Select Configuration",
-        "category": "IAR"
-      },
-      {
-        "command": "iar.buildIarProject",
-        "title": "Build",
-        "category": "IAR"
-      },
-      {
-        "command": "iar.rebuildIarProject",
-        "title": "Rebuild",
         "category": "IAR"
       }
     ],
