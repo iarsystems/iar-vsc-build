@@ -47,7 +47,7 @@ export namespace Command {
         return new CommandImpl("iar.selectProject", model);
     }
 
-    export function createSelecConfigurationCommand(model: ListInputModel<Config>): Command {
+    export function createSelectConfigurationCommand(model: ListInputModel<Config>): Command {
         return new CommandImpl("iar.selectConfiguration", model);
     }
 }

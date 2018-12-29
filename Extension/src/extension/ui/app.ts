@@ -120,7 +120,7 @@ class Application {
         }
 
         let model = new ConfigurationListModel(...configs);
-        let cmd = Command.createSelecConfigurationCommand(model);
+        let cmd = Command.createSelectConfigurationCommand(model);
         let ui = SelectionView.createSelectionView(cmd, model, 2);
 
         cmd.register(this.context);
