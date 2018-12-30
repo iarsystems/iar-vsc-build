@@ -1,8 +1,10 @@
 
 'use strict';
 
+import * as Os from "os";
 import * as Fs from "fs";
 import * as Path from "path";
+import * as Process from "child_process";
 import { FsUtils } from "../../utils/fs";
 import { ListUtils } from "../../utils/utils";
 import { Define } from "../project/define";
@@ -14,6 +16,8 @@ export interface Compiler {
     readonly defines: Define[];
     readonly includePaths: IncludePath[];
 }
+
+type CompilerOutput = { defines: Define[], includePaths: IncludePath[] };
 
 class IarCompiler implements Compiler {
     readonly path: Fs.PathLike;
@@ -32,8 +36,10 @@ class IarCompiler implements Compiler {
             throw new Error("path does not point to a valid compiler.");
         }
 
-        this.defines = this.computeDefines();
-        this.includePaths = this.computeIncludePaths();
+        let { defines, includePaths } = this.computeCompilerSpecifics();
+
+        this.defines = defines;
+        this.includePaths = includePaths;
     }
 
     get name(): string {
@@ -53,12 +59,54 @@ class IarCompiler implements Compiler {
         }
     }
 
-    protected computeDefines(): Define[] {
-        return [];
+    protected computeCompilerSpecifics(): CompilerOutput {
+        let cmd = this.path.toString();
+        let tmpFile = Path.join(Os.tmpdir(), "iarvsc.c");
+        let tmpOutFile = Path.join(Os.tmpdir(), "iarvsc.predef_macros");
+        let args = ["--IDE3", tmpFile, "--predef_macros", tmpOutFile];
+
+        try {
+            let stat = Fs.statSync(tmpFile);
+
+            if (stat.isDirectory()) {
+                Fs.rmdirSync(tmpFile);
+            } else if (stat.isFile()) {
+                Fs.unlinkSync(tmpFile);
+            }
+        } catch (e) {
+        }
+
+        try {
+            let stat = Fs.statSync(tmpOutFile);
+
+            if (stat.isDirectory()) {
+                Fs.rmdirSync(tmpOutFile);
+            } else if (stat.isFile()) {
+                Fs.unlinkSync(tmpOutFile);
+            }
+        } catch (e) {
+        }
+
+        Fs.writeFileSync(tmpFile, "");
+
+        let process = Process.spawnSync(cmd, args, { encoding: "utf8" });
+
+        let defines = this.parseDefinesFrom(tmpOutFile);
+        let includePaths = this.parseIncludePathsFrom(process.stdout);
+
+        return { defines: defines, includePaths: includePaths };
     }
 
-    protected computeIncludePaths(): IncludePath[] {
-        return [];
+    private parseDefinesFrom(filePath: Fs.PathLike): Define[] {
+        if (Fs.existsSync(filePath)) {
+            return Define.fromSourceFile(filePath);
+        } else {
+            return [];
+        }
+    }
+
+    private parseIncludePathsFrom(compilerOutput: string): IncludePath[] {
+        return IncludePath.fromCompilerOutput(compilerOutput);
     }
 }
 
