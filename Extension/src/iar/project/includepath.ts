@@ -121,12 +121,13 @@ export namespace IncludePath {
             if (result !== null && (result.length === 2)) {
                 let p = result[1].replace(/\\\\/g, "\\");
 
-                if (Fs.existsSync(p)) {
+                try {
                     let stat = Fs.statSync(p);
 
                     if (stat.isDirectory()) {
                         includes.push(new StringIncludePath(p));
                     }
+                } catch (e) {
                 }
             }
         } while (result);
