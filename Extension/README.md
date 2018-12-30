@@ -2,55 +2,55 @@
 
 This plugin make it possible to combine the IAR compiler solutions with Visual Studio Code. The goal is that this plugin supports all compiler
 variants. So not only ARM or AVR, but also STM8 and other compilers of IAR. The author of this extension only uses ARM, AVR and STM8, but when
-users find issues for other IAR compilers, open an issue on Github. In case you open an issue, please provide an *ewp* file which reproduce the
-issue and the used compiler with its version.
+users find issues for other IAR compilers, open an issue on Github. In case you open an issue, please report the used compiler with its version and if possible the ewp file.
 
-The plugin can parse *ewp* files and convert them to valid `c_cpp_properties.json` which are used by the *cpptools* extension made by *Microsoft*.
-Commands are available to help you configure this extension. In the `Features` section you can find more information about them.
+The plugin can parse *ewp* files and convert them to a valid `c_cpp_properties.json` configuration which is used by the *cpptools* extension made by *Microsoft*.
+In the `Features` section you can find more information how to use this extension.
 
 ## Features
 
-Images follow later, for now the features are explained using textual format only.
+### Configuring the extension
 
-### Configuration Commands
+It is adviced to use the extension UI to configure the extension. The UI are statusbar items which will execute a command when clicking on them.
 
-There are five commands available at the moment. Three help you configure the extension to generate the `c_cpp_properties.json` file. Two are used
-to compile the project using the IAR compiler.
+![Status bar](images/readme/statusbar.png)
 
-#### IAR: Select Installation
+You can also call the commands behind those buttons, see the `contribution` tab in the extension section of VS Code.
 
-With this command the extension searches for available IAR installations. This can take a couple of seconds depending on how many IAR solutions
-you have installed. It uses the folders specified in the `iarvsc.iarRootPaths` extension setting. By default they point to
-`C:\Program Files\IAR Systems` and `C:\Program Files (x86)\IAR Systems`. By default IAR installs their software in those two folders. If you use
-different folders, update this setting with the correct values.
+### Building
 
-A *quick pick list* is shown. When selecting an IAR installation, the path is stored in `.vscode\iar.json` file. So you can also specify the path
-manually if needed.
+In previous plugins there was a build command. However, from now on you can create a task because all necessary information is available through settings. You can use the following snippets to create a `build` and `rebuild` command. In alpha2 or beta1 will contain a `problem matcher`. Use the following template as a starting point:
+```
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "IAR Build",
+            "type": "process",
+            "command": "${config:iarvsc.workbench}\\common\\bin\\IarBuild.exe",
+            "args": [
+                "${config:iarvsc.ewp}",
+                "-make",
+                "${config:iarvsc.configuration}"
+            ]
+        },
+        {
+            "label": "IAR Rebuild",
+            "type": "process",
+            "command": "${config:iarvsc.workbench}\\common\\bin\\IarBuild.exe",
+            "args": [
+                "${config:iarvsc.ewp}",
+                "-build",
+                "${config:iarvsc.configuration}"
+            ]
+        }
+    ]
+}
+```
 
-#### IAR: Select Project
-
-This command searches your workspace for *ewp* files. A *quick pick list* is shown with all found projects. When you select a project file, its path
-is stored in the `.vscode\iar.json` file.
-
-#### IAR: Sync Project File
-
-When you have selected an IAR installation and an IAR project file, you can sync the file to the `c_cpp_properties.json` file. The ewp is parsed and
-all found *include paths*, *defines* and *pre include files* are detected and written. Beside those settings, the compiler specific *defines* and
-*system include pahts* are also detected and written.
-
-The plugin will create a configuration for each found configurations. The name inside `c_cpp_propreties.json` are generated using the following format:
-`IAR-{project file name}-{configuration}`.
-
-#### IAR: Build
-
-Executing the `Build` command will show you all available configurations in the *ewp* in a *quick pick list*. After selecting a build the extension calls
-the `IarBuild.exe` command with the configured *ewp file* and the selected *configuration* from the quick pick list.
-
-An output window is opened with the name *IAR* where the compiler output is shown.
-
-#### IAR: Rebuild
-
-The same as the `Build` command, except this command will first clean all output files.
+Improvements are welcome through *pull requests* or *issue reports*.
 
 ## Requirements
 
@@ -60,32 +60,50 @@ This extensions presumes that you have installed `cpptools` of `microsoft`.
 
 This extension contributes the following settings:
 
-* `iarvsc.iarRootPaths`: Specify root paths where IAR software is installed. This setting accepts an array of paths (string).
+* `iarvsc.iarInstallDirectories`: The rootfolders where all IAR workbenches are installed. By default this is `C:\Program Files (x86)\Iar Systems`. The default settings contain also the non-x86 folder in case IAR will move to 64-bit installations.
+* `iarvsc.workbench`: The last selected workbench in this workspace.
+* `iarvsc.compiler`: The last selected compiler.
+* `iarvsc.ewp`: The last selected project file.
+* `iarvsc.configuration`: The last selected configuration.
+* `iarvsc.defines`: Some custom defines you can add to the define list. They folow the `identifier=value` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
+
+An important note for the settings `iarvsc.workbench`, `iarvsc.compiler`, `iarvsc.ewp`, `iarvsc.configuration`:
+Those values get overwritten by the extension when invalid values are defined or you select different values using the extension UI (the status bar items) or commands.
 
 ## Known Issues
 
 ## Release Notes
 
-### 0.0.1
+### 1.0.0-alpha1
 
-Initial release of iar-vsc
-
-### 0.0.2
-
-Add system include paths
+* Redisgned the extension
+* Instead of completely command drive, status bar items are added to configure most things
+* Automatically monitor the selected ewp file and auto generate the config file
+* Only generate one config file `IAR` in the `c_cpp_properties.json` file. Changing between projects/configurations will
+  automatically trigger an update of the `IAR` config section in the json file.
+* Move all settings from iar-vsc.json to the configuration file of vscode. This way configurations are reusable.
+* Make extension platform aware so you can choose from all compilers from the selected workbench.
+* Add new setting to define your own `defines` through the IAR settings. This way it is possible to define the intrinsics
+  of your compiler so you do not have to wait for extension updates.
+* Add command to open IAR workbench. For now only the workbench opens without a workspace. See Issue #24 @ GitHub.
+* Extension is now loaded when the workspace contains `.ewp` files.
+* Added basic unit- and integrationtests.
+* Probably a lot more...
 
 ### 0.0.3
 
 * Fixes #1: Extension did not detect end of build command
 * Fixes #3: Renamed iar-vsc.js to iar-vsc.json
 
+### 0.0.2
+
+Add system include paths
+
+### 0.0.1
+
+Initial release of iar-vsc
+
+
 ## Road Map
 
-The following items are currently on the whish list to implement:
-* Improve UI feedback
-    * Let the user know when the extension is working (like when the *Select Installation* command is executing)
-    * More checks if everything is configured and when something is wrong, give better information windows
-* Update this README.md to use some animations to explain commands
-* Create *tasks* so the compiler output is parsed by a *Problem Matcher* and shown in the *Problems* tab.
-* Add commands to create *launch* commands to start a debugger using JLink.
-* Sync changes made in c_cpp_properties.json back to the *ewp* file
+Check the github project page for more information about the roadmap.
