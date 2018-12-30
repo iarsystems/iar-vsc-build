@@ -96,10 +96,10 @@ export namespace IncludePath {
                 let includePaths: IncludePath[] = [];
 
                 states.forEach(state => {
-                    let stateText = state.text;
+                    let path = new XmlIncludePath(state, projectPath);
 
-                    if (stateText && (stateText.trim() !== "")) {
-                        includePaths.push(new XmlIncludePath(state, projectPath));
+                    if (path.path !== "") {
+                        includePaths.push(path);
                     }
                 });
 
