@@ -12,7 +12,8 @@ export namespace Settings {
         Workbench = "workbench",
         Compiler = "compiler",
         Ewp = "ewp",
-        Configuration = "configuration"
+        Configuration = "configuration",
+        Defines = "defines"
     }
 
     const section = "iarvsc";
@@ -80,6 +81,16 @@ export namespace Settings {
         Vscode.workspace.getConfiguration(section).update(Field.Configuration, name);
 
         fireChange(Field.Configuration, name);
+    }
+
+    export function getDefines(): string[] {
+        let defines = Vscode.workspace.getConfiguration(section).get(Field.Defines);
+
+        if (defines) {
+            return defines as string[];
+        } else {
+            return [];
+        }
     }
 
     function fireChange(field: Field, newValue: string) {

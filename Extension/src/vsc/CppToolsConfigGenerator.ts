@@ -11,6 +11,7 @@ import { PreIncludePath } from "../iar/project/preincludepath";
 import { Define } from "../iar/project/define";
 import { Compiler } from "../iar/tools/compiler";
 import { FsUtils } from "../utils/fs";
+import { Settings } from "../extension/settings";
 
 export namespace CppToolsConfigGenerator {
     type loadConfigReturn = {
@@ -130,6 +131,8 @@ export namespace CppToolsConfigGenerator {
             includepaths = includepaths.concat(toIncludePathArray(config.includes));
             preincludes = preincludes.concat(toPreIncludePathArray(config.preIncludes));
         }
+
+        defines = defines.concat(Settings.getDefines());
 
         if (compiler) {
             defines = defines.concat(toDefineArray(compiler.defines));
