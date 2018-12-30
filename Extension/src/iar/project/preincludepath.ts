@@ -46,7 +46,7 @@ export class XmlPreIncludePath implements PreIncludePath {
         if (Vscode.workspace.rootPath) {
             let path = this.absolutePath.toString();
 
-            return Path.relative(path, Vscode.workspace.rootPath);
+            return Path.relative(Vscode.workspace.rootPath, path);
         } else {
             return this.absolutePath;
         }

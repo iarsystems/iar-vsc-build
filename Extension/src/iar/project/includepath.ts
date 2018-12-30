@@ -45,7 +45,7 @@ export class XmlIncludePath implements IncludePath {
 
     get workspacePath(): Fs.PathLike {
         if (Vscode.workspace.workspaceFolders && (Vscode.workspace.workspaceFolders.length > 0)) {
-            return Path.relative(this.absolutePath.toString(), Vscode.workspace.workspaceFolders[0].uri.path);
+            return Path.relative(Vscode.workspace.workspaceFolders[0].uri.path, this.absolutePath.toString());
         } else {
             return this.absolutePath;
         }
@@ -77,7 +77,7 @@ export class StringIncludePath implements IncludePath {
 
     get workspacePath(): Fs.PathLike {
         if (Vscode.workspace.workspaceFolders && (Vscode.workspace.workspaceFolders.length > 0)) {
-            return Path.relative(this.absolutePath.toString(), Vscode.workspace.workspaceFolders[0].uri.path);
+            return Path.relative(Vscode.workspace.workspaceFolders[0].uri.path, this.absolutePath.toString());
         } else {
             return this.absolutePath;
         }
