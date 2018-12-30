@@ -16,6 +16,9 @@ class GenerateCppToolsConfCommand extends CommandBase {
 
         this.compilerModel = compilerModel;
         this.configModel = configModel;
+
+        this.compilerModel.addOnSelectedHandler(this.executeImpl, this);
+        this.configModel.addOnSelectedHandler(this.executeImpl, this);
     }
 
     executeImpl(): void {
