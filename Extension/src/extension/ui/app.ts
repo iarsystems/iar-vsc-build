@@ -8,6 +8,7 @@ import { SelectionView } from "./selectionview";
 import { Settings } from "../settings";
 import { Command } from "../command/command";
 import { Command as GenerateCommand } from "../command/generatecpptoolsconf";
+import { Command as OpenWorkbenchCommand } from "../command/openworkbench";
 import { Workbench } from "../../iar/tools/workbench";
 import { CompilerListModel } from "../model/selectcompiler";
 import { ListInputModel } from "../model/model";
@@ -33,6 +34,7 @@ class Application {
     readonly config: UI<Config>;
 
     readonly generator: Command;
+    readonly openWorkbench: Command;
 
     constructor(context: Vscode.ExtensionContext, toolManager: ToolManager) {
         this.context = context;
@@ -44,6 +46,8 @@ class Application {
         this.project = this.createProjectUi();
         this.config = this.createConfigurationUi();
 
+        this.openWorkbench = OpenWorkbenchCommand.createOpenWorkbenchCommand(this.workbench.model as WorkbenchListModel);
+        this.openWorkbench.register(context);
         // add listeners
         this.toolManager.addInvalidateListener(this.onWorbenchesChanged, this);
         this.workbench.model.addOnSelectedHandler(this.onSelectedWorkbenchChanged, this);
@@ -64,10 +68,13 @@ class Application {
         this.showHelper(this.config);
 
         this.generator.enabled = true;
+        this.openWorkbench.enabled = true;
     }
 
     public hide(): void {
         this.generator.enabled = false;
+        this.openWorkbench.enabled = false;
+
         this.hideHelper(this.workbench);
         this.hideHelper(this.compiler);
         this.hideHelper(this.project);

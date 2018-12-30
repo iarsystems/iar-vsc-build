@@ -54,6 +54,11 @@
         "command": "iar.generateCppToolsConfig",
         "title": "Generate CppTools Config File",
         "category": "IAR"
+      },
+      {
+        "command": "iar.openWorkbench",
+        "title": "Open selected IAR Workbench",
+        "category": "IAR"
       }
     ],
     "configuration": [
