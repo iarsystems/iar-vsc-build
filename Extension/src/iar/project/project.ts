@@ -1,23 +1,29 @@
 'use strict';
 
+import * as Vscode from "vscode";
 import * as Fs from "fs";
 import * as Path from "path";
 import { Config } from "./config";
 import { XmlNode } from "../../utils/XmlNode";
 import { FsUtils } from "../../utils/fs";
+import { Handler } from "../../utils/handler";
 
 export interface Project {
     readonly path: Fs.PathLike;
     readonly configurations: ReadonlyArray<Config>;
     readonly name: string;
 
+    onChanged(callback: (project: Project) => void, thisArg?: any): void;
     reload(): any;
     findConfiguration(name: string): Config | undefined;
 }
 
 class EwpFile implements Project {
+    private fileWatcher: Vscode.FileSystemWatcher;
     private xml: XmlNode;
     private configurations_: Config[];
+
+    private onChangedHandlers: Handler<(project: Project) => void>[] = [];
 
     readonly path: Fs.PathLike;
 
@@ -25,6 +31,12 @@ class EwpFile implements Project {
         this.path = path;
         this.xml = this.loadXml();
         this.configurations_ = this.loadConfigurations();
+
+        this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString());
+
+        this.fileWatcher.onDidChange(() => {
+            this.reload();
+        });
     }
 
     get name(): string {
@@ -33,6 +45,10 @@ class EwpFile implements Project {
 
     get configurations(): ReadonlyArray<Config> {
         return this.configurations_;
+    }
+
+    public onChanged(callback: (project: Project) => void, thisArg?: any): void {
+        this.onChangedHandlers.push(new Handler(callback, thisArg));
     }
 
     /**
@@ -48,6 +64,8 @@ class EwpFile implements Project {
 
             this.xml = xml;
             this.configurations_ = configs;
+
+            this.fireChanged();
 
             return undefined;
         } catch (e) {
@@ -98,6 +116,12 @@ class EwpFile implements Project {
 
     private loadConfigurations(): Config[] {
         return Config.fromXml(this.xml, this.path);
+    }
+
+    private fireChanged() {
+        this.onChangedHandlers.forEach(handler => {
+            handler.call(this);
+        });
     }
 }
 
