@@ -58,11 +58,15 @@ export namespace CppToolsConfigGenerator {
         return array;
     }
 
-    function toIncludePathArray(includes: IncludePath[]): string[] {
+    function toIncludePathArray(includes: IncludePath[], absolutePath: boolean = false): string[] {
         let array: string[] = [];
 
         includes.forEach(item => {
-            array.push(item.workspacePath.toString());
+            if (absolutePath) {
+                array.push(item.absolutePath.toString());
+            } else {
+                array.push(item.workspacePath.toString());
+            }
         });
 
         return array;
@@ -129,7 +133,7 @@ export namespace CppToolsConfigGenerator {
 
         if (compiler) {
             defines = defines.concat(toDefineArray(compiler.defines));
-            includepaths = includepaths.concat(toIncludePathArray(compiler.includePaths));
+            includepaths = includepaths.concat(toIncludePathArray(compiler.includePaths, true));
         }
 
         obj["name"] = "IAR";
