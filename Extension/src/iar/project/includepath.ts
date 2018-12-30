@@ -118,7 +118,7 @@ export namespace IncludePath {
         do {
             result = regex.exec(output);
 
-            if (result) {
+            if (result !== null && (result.length === 2)) {
                 let p = result[1].replace(/\\\\/g, "\\");
 
                 if (Fs.existsSync(p)) {
