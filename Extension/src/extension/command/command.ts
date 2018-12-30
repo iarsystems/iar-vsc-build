@@ -15,18 +15,14 @@ export interface Command {
     register(context: Vscode.ExtensionContext): void;
 }
 
-class CommandImpl<T> implements Command {
-    command: string;
-    private input: Input<T>;
+export abstract class CommandBase implements Command {
+    readonly command: string;
 
-    constructor(command: string, model: ListInputModel<T>) {
+    constructor(command: string) {
         this.command = command;
-        this.input = Input.createListInput(model);
     }
 
-    execute(): void {
-        this.input.show();
-    }
+    abstract execute(): void;
 
     register(context: Vscode.ExtensionContext): void {
         let cmd = Vscode.commands.registerCommand(this.command, this.execute, this);
@@ -34,20 +30,34 @@ class CommandImpl<T> implements Command {
     }
 }
 
+class CommandWithInput<T> extends CommandBase {
+    private input: Input<T>;
+
+    constructor(command: string, model: ListInputModel<T>) {
+        super(command);
+
+        this.input = Input.createListInput(model);
+    }
+
+    execute(): void {
+        this.input.show();
+    }
+}
+
 export namespace Command {
     export function createSelectWorkbenchCommand(model: ListInputModel<Workbench>): Command {
-        return new CommandImpl("iar.selectWorkbench", model);
+        return new CommandWithInput("iar.selectWorkbench", model);
     }
 
     export function createSelectCompilerCommand(model: ListInputModel<Compiler>): Command {
-        return new CommandImpl("iar.selectCompiler", model);
+        return new CommandWithInput("iar.selectCompiler", model);
     }
 
     export function createSelectProjectCommand(model: ListInputModel<Project>): Command {
-        return new CommandImpl("iar.selectProject", model);
+        return new CommandWithInput("iar.selectProject", model);
     }
 
     export function createSelectConfigurationCommand(model: ListInputModel<Config>): Command {
-        return new CommandImpl("iar.selectConfiguration", model);
+        return new CommandWithInput("iar.selectConfiguration", model);
     }
 }
