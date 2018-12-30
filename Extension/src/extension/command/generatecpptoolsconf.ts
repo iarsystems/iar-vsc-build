@@ -18,7 +18,7 @@ class GenerateCppToolsConfCommand extends CommandBase {
         this.configModel = configModel;
     }
 
-    execute(): void {
+    executeImpl(): void {
         let result = CppToolsConfigGenerator.generate(this.configModel.selected, this.compilerModel.selected);
 
         if (result) {

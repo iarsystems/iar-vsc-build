@@ -58,10 +58,30 @@ class Application {
     }
 
     public show(): void {
-        this.workbench.ui.show();
-        this.compiler.ui.show();
-        this.project.ui.show();
-        this.config.ui.show();
+        this.showHelper(this.workbench);
+        this.showHelper(this.compiler);
+        this.showHelper(this.project);
+        this.showHelper(this.config);
+
+        this.generator.enabled = true;
+    }
+
+    public hide(): void {
+        this.generator.enabled = false;
+        this.hideHelper(this.workbench);
+        this.hideHelper(this.compiler);
+        this.hideHelper(this.project);
+        this.hideHelper(this.config);
+    }
+
+    private showHelper<T>(element: UI<T>) {
+        element.ui.show();
+        element.cmd.enabled = true;
+    }
+
+    private hideHelper<T>(element: UI<T>) {
+        element.cmd.enabled = false;
+        element.ui.hide();
     }
 
     private createWorkbenchUi(): UI<Workbench> {
