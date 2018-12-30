@@ -20,11 +20,12 @@
     "IAR"
   ],
   "activationEvents": [
-    "onCommand:iar.syncIarProjectFile",
-    "onCommand:iar.selectIarInstallation",
-    "onCommand:iar.selectIarProject",
-    "onCommand:iar.buildIarProject",
-    "onCommand:iar.rebuildIarProject",
+    "onCommand:iar.selectWorkbench",
+    "onCommand:iar.selectCompiler",
+    "onCommand:iar.selectProject",
+    "onCommand:iar.selectConfiguration",
+    "onCommand:iar.generateCppToolsConfig",
+    "onCommand:iar.openWorkbench",
     "workspaceContains:**/*.ewp"
   ],
   "main": "./out/src/main",
