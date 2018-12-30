@@ -46,6 +46,11 @@ class Application {
         this.project = this.createProjectUi();
         this.config = this.createConfigurationUi();
 
+        // Create commands without UI
+        this.generator = GenerateCommand.createGenerateCppToolsConfig(this.compiler.model as CompilerListModel,
+            this.config.model as ConfigurationListModel);
+        this.generator.register(context);
+
         this.openWorkbench = OpenWorkbenchCommand.createOpenWorkbenchCommand(this.workbench.model as WorkbenchListModel);
         this.openWorkbench.register(context);
         // add listeners
@@ -56,9 +61,6 @@ class Application {
         // update UIs with current selected settings
         this.selectCurrentSettings();
 
-        this.generator = GenerateCommand.createGenerateCppToolsConfig(this.compiler.model as CompilerListModel,
-            this.config.model as ConfigurationListModel);
-        this.generator.register(context);
     }
 
     public show(): void {
