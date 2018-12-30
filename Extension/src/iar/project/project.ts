@@ -59,11 +59,19 @@ class EwpFile implements Project {
      */
     public reload(): any {
         try {
-            let xml = this.loadXml();
-            let configs = this.loadConfigurations();
+            let oldXml = this.xml;
+            let oldConfigs = this.configurations_;
 
-            this.xml = xml;
-            this.configurations_ = configs;
+            try {
+                // if loading the xml or configurations fail, restore old state.
+                this.xml = this.loadXml();
+                this.configurations_ = this.loadConfigurations();
+            } catch (e) {
+                this.xml = oldXml;
+                this.configurations_ = oldConfigs;
+
+                throw e;
+            }
 
             this.fireChanged();
 
