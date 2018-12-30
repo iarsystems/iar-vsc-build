@@ -53,14 +53,12 @@ class Application {
 
         this.openWorkbench = OpenWorkbenchCommand.createOpenWorkbenchCommand(this.workbench.model as WorkbenchListModel);
         this.openWorkbench.register(context);
+
         // add listeners
-        this.toolManager.addInvalidateListener(this.onWorbenchesChanged, this);
-        this.workbench.model.addOnSelectedHandler(this.onSelectedWorkbenchChanged, this);
-        this.project.model.addOnSelectedHandler(this.onSelectedProjectChanged, this);
+        this.addListeners();
 
         // update UIs with current selected settings
         this.selectCurrentSettings();
-
     }
 
     public show(): void {
@@ -170,6 +168,12 @@ class Application {
         };
     }
 
+    private generateOutput(): void {
+        if (this.generator.enabled) {
+            this.generator.execute();
+        }
+    }
+
     private selectCurrentSettings(): void {
         this.selectCurrentWorkbench();
         this.selectCurrentCompiler();
@@ -261,27 +265,88 @@ class Application {
         }
     }
 
-    private onWorbenchesChanged(manager: ToolManager): void {
+    private addListeners(): void {
+        this.addToolManagerListeners();
+        this.addProjectContentListeners();
+
+        this.addWorkbenchModelListeners();
+        this.addCompilerModelListeners();
+
+        this.addProjectModelListeners();
+        this.addConfigurationModelListeners();
+    }
+
+    private addToolManagerListeners(): void {
+        this.toolManager.addInvalidateListener(() => {
+            let model = this.workbench.model as WorkbenchListModel;
+
+            model.set(...this.toolManager.workbenches);
+        });
+    }
+
+    private addProjectContentListeners(): void {
+        let model = this.project.model as ProjectListModel;
+
+        model.projects.forEach(project => {
+            project.onChanged(() => {
+                if (project === model.selected) {
+                    let configModel = this.config.model as ConfigurationListModel;
+
+                    configModel.set(...project.configurations);
+                }
+            });
+        });
+    }
+
+    private addWorkbenchModelListeners(): void {
         let model = this.workbench.model as WorkbenchListModel;
 
-        model.set(...manager.workbenches);
+        model.addOnInvalidateHandler(() => {
+            this.selectCurrentWorkbench();
+        });
 
-        this.selectCurrentWorkbench();
-        this.selectCurrentCompiler();
+        model.addOnSelectedHandler(() => {
+            let compilerModel = this.compiler.model as CompilerListModel;
+
+            compilerModel.useCompilersFromWorkbench(model.selected);
+        });
     }
 
-    private onSelectedWorkbenchChanged(): void {
-        let compilerModel = this.compiler.model as CompilerListModel;
-        let workbenchModel = this.workbench.model as WorkbenchListModel;
+    private addCompilerModelListeners(): void {
+        let model = this.compiler.model as CompilerListModel;
 
-        compilerModel.useCompilersFromWorkbench(workbenchModel.selected);
+        model.addOnInvalidateHandler(() => {
+            this.selectCurrentCompiler();
+        });
+
+        model.addOnSelectedHandler(() => {
+            this.generateOutput();
+        });
     }
 
-    private onSelectedProjectChanged(): void {
-        let projectModel = this.project.model as ProjectListModel;
-        let configModel = this.config.model as ConfigurationListModel;
+    private addProjectModelListeners(): void {
+        let model = this.project.model as ProjectListModel;
 
-        configModel.useConfigurationsFromProject(projectModel.selected);
+        model.addOnInvalidateHandler(() => {
+            this.selectCurrentProject();
+        });
+        model.addOnSelectedHandler(() => {
+            let configModel = this.config.model as ConfigurationListModel;
+
+            configModel.useConfigurationsFromProject(model.selected);
+        });
+    }
+
+    private addConfigurationModelListeners(): void {
+        let model = this.config.model as ConfigurationListModel;
+
+        model.addOnInvalidateHandler(() => {
+            this.selectCurrenConfiguration();
+        });
+
+        model.addOnSelectedHandler(() => {
+            this.generateOutput();
+        });
     }
 }
 
