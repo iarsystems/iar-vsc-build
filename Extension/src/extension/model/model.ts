@@ -61,6 +61,7 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
 
     public set(...data: T[]) {
         this.data = data;
+        this.selectedIndex_ = undefined;
 
         this.fireInvalidateEvent();
     }
