@@ -49,6 +49,11 @@
         "command": "iar.selectConfiguration",
         "title": "Select Configuration",
         "category": "IAR"
+      },
+      {
+        "command": "iar.generateCppToolsConfig",
+        "title": "Generate CppTools Config File",
+        "category": "IAR"
       }
     ],
     "configuration": [
