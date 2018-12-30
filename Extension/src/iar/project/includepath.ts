@@ -113,9 +113,6 @@ export namespace IncludePath {
     export function fromCompilerOutput(output: string): IncludePath[] {
         let includes: IncludePath[] = [];
 
-        let cFilePath = Path.join(Os.tmpdir(), "pluyckx_iar-vsc.c");
-        Fs.writeFileSync(cFilePath, "");
-
         let regex = /\$\$FILEPATH\s\"([^"]*)/g;
         let result: RegExpExecArray | null = null;
         do {
