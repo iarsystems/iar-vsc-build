@@ -67,7 +67,11 @@ export namespace PreIncludePath {
                 let preIncludePaths: PreIncludePath[] = [];
 
                 states.forEach(state => {
-                    preIncludePaths.push(new XmlPreIncludePath(state, projectPath));
+                    let path = new XmlPreIncludePath(state, projectPath);
+
+                    if (path.path) {
+                        preIncludePaths.push(path);
+                    }
                 });
 
                 return preIncludePaths;
