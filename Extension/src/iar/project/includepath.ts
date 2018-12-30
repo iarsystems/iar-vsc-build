@@ -2,7 +2,6 @@
 
 import * as Vscode from "vscode";
 import * as Path from "path";
-import * as Os from "os";
 import * as Fs from "fs";
 import { XmlNode } from "../../utils/XmlNode";
 import { IarXml } from "../../utils/xml";

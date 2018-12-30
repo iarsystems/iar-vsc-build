@@ -1,9 +1,8 @@
 
 'use strict';
 
-import { WorkbenchListModel } from "./model/selectworkbench";
 import { Workbench } from "../iar/tools/workbench";
-import { ListInputModel, ListInputModelBase } from "./model/model";
+import { ListInputModel } from "./model/model";
 import { Settings } from "./settings";
 import { Compiler } from "../iar/tools/compiler";
 import { Project } from "../iar/project/project";

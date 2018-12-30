@@ -5,7 +5,6 @@ import * as Vscode from "vscode";
 import * as Process from "child_process";
 import { CommandBase } from "./command";
 import { WorkbenchListModel } from "../model/selectworkbench";
-import { ProjectListModel } from "../model/selectproject";
 
 /**
  * A command to open the selected IAR workbench.

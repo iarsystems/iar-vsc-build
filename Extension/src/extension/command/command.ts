@@ -10,7 +10,7 @@ import { Config } from "../../iar/project/config";
 
 export interface Command {
     readonly command: string;
-    enabled: boolean
+    enabled: boolean;
 
     execute(): void;
     register(context: Vscode.ExtensionContext): void;
