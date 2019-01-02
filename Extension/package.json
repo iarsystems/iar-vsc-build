@@ -105,6 +105,32 @@
           }
         }
       }
+    ],
+    "problemMatchers": [
+      {
+        "name": "iar-cc",
+        "owner": "cpp",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^([^(]*)\\((\\d*)\\)\\s*:\\s*([^\\[]*)[^:]*:\\s*(.*)",
+          "file": 1,
+          "line": 2,
+          "severity": 3,
+          "message": 4
+        }
+      },
+      {
+        "name": "iar-linker",
+        "owner": "cpp",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^([^\\[]*)[^\\]]*\\]\\s*:\\s*([^\\(]*)\\(\\s*(.*)\\s*\\)",
+          "file": 3,
+          "message": 2,
+          "severity": 1,
+          "kind": "file"
+        }
+      }
     ]
   },
   "scripts": {

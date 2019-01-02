@@ -34,7 +34,15 @@ In previous plugins there was a build command. However, from now on you can crea
                 "${config:iarvsc.ewp}",
                 "-make",
                 "${config:iarvsc.configuration}"
-            ]
+            ],
+            "problemMatcher": [
+                "$iar-cc",
+                "$iar-linker"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "label": "IAR Rebuild",
@@ -44,6 +52,10 @@ In previous plugins there was a build command. However, from now on you can crea
                 "${config:iarvsc.ewp}",
                 "-build",
                 "${config:iarvsc.configuration}"
+            ],
+            "problemMatcher": [
+                "$iar-cc",
+                "$iar-linker"
             ]
         }
     ]
