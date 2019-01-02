@@ -1,6 +1,7 @@
 'use strict';
 
 import * as Fs from "fs";
+import * as Path from "path";
 
 import { XmlNode } from '../../utils/XmlNode';
 import { Define } from './define';
@@ -29,9 +30,11 @@ class XmlConfig implements Config {
             throw new Error("Expected an xml element 'configuration' instead of '" + this.xml.tagName + "'");
         }
 
+        const projectRoot = Path.parse(ewpPath.toString()).dir;
+
         this.defines = Define.fromXml(xmlConfigElement);
-        this.includes = IncludePath.fromXmlData(xmlConfigElement, ewpPath);
-        this.preIncludes = PreIncludePath.fromXml(xmlConfigElement, ewpPath);
+        this.includes = IncludePath.fromXmlData(xmlConfigElement, projectRoot);
+        this.preIncludes = PreIncludePath.fromXml(xmlConfigElement, projectRoot);
     }
 
     get name(): string {
