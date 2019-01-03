@@ -5,6 +5,7 @@ import * as Vscode from "vscode";
 import * as Fs from "fs";
 import * as Jsonc from 'jsonc-parser';
 import * as Path from "path";
+import * as equal from "fast-deep-equal";
 import { Config } from "../iar/project/config";
 import { IncludePath } from "../iar/project/includepath";
 import { PreIncludePath } from "../iar/project/preincludepath";
@@ -38,9 +39,9 @@ export namespace CppToolsConfigGenerator {
             return errRet;
         }
 
-        setConfiguration(cpptoolsConfigFile, "IAR", obj);
-
-        Fs.writeFileSync(outPath, JSON.stringify(cpptoolsConfigFile, undefined, 4));
+        if (setConfigurationIfChanged(cpptoolsConfigFile, "IAR", obj)) {
+            Fs.writeFileSync(outPath, JSON.stringify(cpptoolsConfigFile, undefined, 4));
+        }
 
         return undefined;
     }
@@ -159,7 +160,7 @@ export namespace CppToolsConfigGenerator {
         return obj;
     }
 
-    function setConfiguration(cpptoolsConfigFile: any, name: string, config: any): void {
+    function setConfigurationIfChanged(cpptoolsConfigFile: any, name: string, config: any): boolean {
         let configs = fetchConfigArray(cpptoolsConfigFile);
         let idx: number | undefined = undefined;
 
@@ -173,9 +174,15 @@ export namespace CppToolsConfigGenerator {
 
         if (idx === undefined) {
             configs.push(config);
+            return true;
         } else {
-            configs[idx] = config;
+            if (!equal(configs[idx], config)) {
+                configs[idx] = config;
+                return true;
+            }
         }
+
+        return false;
     }
 
     function fetchConfigArray(cpptoolsConfigFile: any): any[] {
