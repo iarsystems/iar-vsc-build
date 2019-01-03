@@ -86,6 +86,18 @@ Those values get overwritten by the extension when invalid values are defined or
 
 ## Release Notes
 
+### 1.0.0-beta1
+
+* Add listeners to the define settings so the cpptools config file is generated when changed
+* Fix issue when cpptools config file is empty or invalid: plugin would not load
+* Add some more settings for default c and c++ standard configuration
+
+### 1.0.0-alpha2
+
+* Correct relative include paths in cpptools config file
+* Add `=` sign to default defines in settings
+* Add a problem matcher
+
 ### 1.0.0-alpha1
 
 * Redisgned the extension
