@@ -102,6 +102,30 @@
               "__flash=",
               "__no_init="
             ]
+          },
+          "iarvsc.cStandard": {
+            "type": "string",
+            "enum": [
+              "${default}",
+              "c89",
+              "c99",
+              "c11"
+            ],
+            "description": "The c standard to use in the config tool configuration.",
+            "default": "${default}"
+          },
+          "iarvsc.cppStandard": {
+            "type": "string",
+            "enum": [
+              "${default}",
+              "c++98",
+              "c++03",
+              "c++11",
+              "c++14",
+              "c++17"
+            ],
+            "description": "The c++ standard to use in the config tool configuration.",
+            "default": "${default}"
           }
         }
       }

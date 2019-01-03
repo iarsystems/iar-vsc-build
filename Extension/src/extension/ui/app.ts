@@ -282,6 +282,12 @@ class Application {
         Settings.observeSetting(Settings.Field.Defines, () => {
             this.generateOutput();
         });
+        Settings.observeSetting(Settings.Field.CStandard, () => {
+            this.generateOutput();
+        });
+        Settings.observeSetting(Settings.Field.CppStandard, () => {
+            this.generateOutput();
+        });
     }
 
     private addToolManagerListeners(): void {

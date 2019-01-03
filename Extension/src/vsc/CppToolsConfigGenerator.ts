@@ -157,6 +157,9 @@ export namespace CppToolsConfigGenerator {
         obj["includePath"] = includepaths;
         obj["forcedInclude"] = preincludes;
 
+        obj["cStandard"] = Settings.getCStandard();
+        obj["cppStandard"] = Settings.getCppStandard();
+
         return obj;
     }
 

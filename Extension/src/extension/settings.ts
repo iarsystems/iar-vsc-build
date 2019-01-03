@@ -13,7 +13,9 @@ export namespace Settings {
         Compiler = "compiler",
         Ewp = "ewp",
         Configuration = "configuration",
-        Defines = "defines"
+        Defines = "defines",
+        CStandard = "cStandard",
+        CppStandard = "cppStandard"
     }
 
     const section = "iarvsc";
@@ -99,6 +101,14 @@ export namespace Settings {
         } else {
             return [];
         }
+    }
+
+    export function getCStandard(): string {
+        return Vscode.workspace.getConfiguration(section).get(Field.CStandard) as string;
+    }
+
+    export function getCppStandard(): string {
+        return Vscode.workspace.getConfiguration(section).get(Field.CppStandard) as string;
     }
 
     function fireChange(field: Field, newValue: string) {
