@@ -108,10 +108,22 @@ export namespace CppToolsConfigGenerator {
             let content = Fs.readFileSync(path);
             returnData.config = Jsonc.parse(content.toString());
 
+            if (returnData.config === undefined) {
+                returnData.config = {};
+            }
+
+            if (returnData.config["version"] === undefined) {
+                returnData.config["version"] = 4;
+            }
+
             if (returnData.config["configurations"] === undefined) {
                 returnData.config["configurations"] = [];
             }
         } catch (e) {
+            if (returnData.config === undefined) {
+                returnData.config = {};
+            }
+
             returnData.config["version"] = 4;
             returnData.config["configurations"] = [];
         }
