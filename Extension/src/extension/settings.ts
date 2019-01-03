@@ -33,6 +33,14 @@ export namespace Settings {
         list.push(new Handler(handler, undefined));
     }
 
+    export function observeSetting(field: Field, callback: () => void): void {
+        Vscode.workspace.onDidChangeConfiguration(event => {
+            if (event.affectsConfiguration(section + "." + field.toString())) {
+                callback();
+            }
+        });
+    }
+
     export function getIarInstallDirectories(): Fs.PathLike[] {
         let directories = Vscode.workspace.getConfiguration(section).get(iarInstallDirectories);
 

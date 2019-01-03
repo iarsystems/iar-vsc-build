@@ -274,6 +274,14 @@ class Application {
 
         this.addProjectModelListeners();
         this.addConfigurationModelListeners();
+
+        this.addSettingsListener();
+    }
+
+    private addSettingsListener(): void {
+        Settings.observeSetting(Settings.Field.Defines, () => {
+            this.generateOutput();
+        });
     }
 
     private addToolManagerListeners(): void {
