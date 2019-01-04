@@ -17,7 +17,11 @@
     "Other"
   ],
   "keywords": [
-    "IAR"
+    "IAR",
+    "ARM",
+    "AVR",
+    "STM8",
+    "Embedded"
   ],
   "activationEvents": [
     "onCommand:iar.selectWorkbench",
