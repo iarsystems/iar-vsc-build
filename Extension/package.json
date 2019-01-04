@@ -100,7 +100,8 @@
             "default": [
               "__eeprom=",
               "__flash=",
-              "__no_init="
+              "__no_init=",
+              "__root="
             ]
           },
           "iarvsc.cStandard": {
