@@ -86,6 +86,11 @@ Those values get overwritten by the extension when invalid values are defined or
 
 ## Release Notes
 
+### 1.0.0
+
+* Add __root to default defines
+* Add keywords so the extension is easier to find in the marketplace
+
 ### 1.0.0-beta1
 
 * Add listeners to the define settings so the cpptools config file is generated when changed
