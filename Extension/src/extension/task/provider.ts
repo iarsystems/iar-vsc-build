@@ -1,9 +1,5 @@
 
 import * as Vscode from "vscode";
-import * as Path from "path";
-
-import { Settings } from "../settings";
-
 
 interface IarTaskDefinition extends Vscode.TaskDefinition {
     readonly command: string;
