@@ -6,6 +6,7 @@ import { UI } from './extension/ui/app';
 import { ToolManager } from './iar/tools/manager';
 import { Settings } from './extension/settings';
 import { SettingsMonitor } from './extension/settingsmonitor';
+import { IarTaskProvider } from './extension/task/provider';
 
 export function activate(context: vscode.ExtensionContext) {
     UI.init(context, IarVsc.toolManager);
@@ -21,9 +22,12 @@ export function activate(context: vscode.ExtensionContext) {
     roots.forEach(path => {
         IarVsc.toolManager.collectFrom(path);
     });
+
+    IarTaskProvider.register();
 }
 
 export function deactivate() {
+    IarTaskProvider.unregister();
 }
 
 namespace IarVsc {

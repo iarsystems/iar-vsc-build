@@ -160,6 +160,38 @@
           "kind": "file"
         }
       }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "iar",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The command to use for the IarBuild.exe command",
+            "enum": [
+              "build",
+              "rebuild"
+            ]
+          },
+          "project": {
+            "type": "string",
+            "description": "The path to the project file"
+          },
+          "config": {
+            "type": "string",
+            "description": "The configuration in the project file to use"
+          },
+          "label": {
+            "type": "string",
+            "description": "The name for the task that is shown when executing the built-in command `Run Tasks` of VS Code."
+          }
+        },
+        "required": [
+          "command",
+          "project",
+          "config"
+        ]
+      }
     ]
   },
   "scripts": {
