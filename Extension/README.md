@@ -19,6 +19,15 @@ You can also call the commands behind those buttons, see the `contribution` tab 
 
 ### Building
 
+When you execute the VSCode command `Tasks: Configure Task` two items are added which are gnerated by this extension:
+
+1. `iar: IAR Build - template using selected workbench, project and config`
+2. `iar: IAR Rebuild - template using selected workbench, project and config`
+
+When selecting one of the two, a default task is generated which uses the workbench, project and configuration selected using the UI. When you select a different configuration, project or werkbench, this script will use the newly selected items.
+
+#### Depracated Method: Create manually
+
 In previous plugins there was a build command. However, from now on you can create a task because all necessary information is available through settings. You can use the following snippets to create a `build` and `rebuild` command. In alpha2 or beta1 will contain a `problem matcher`. Use the following template as a starting point:
 ```
 {
