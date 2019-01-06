@@ -130,6 +130,26 @@
           ],
           "description": "The c++ standard to use in the config tool configuration.",
           "default": "${default}"
+        },
+        "iarvsc.outFile": {
+          "type": "string",
+          "description": "The path to the output file. This is updated by the extension when changing the project or configuration",
+          "default": ""
+        },
+        "iarvsc.debugger": {
+          "type": "string",
+          "markdownDescription": "The path to the gdb debugger to use. In case the executable is not on the `PATH` environment, you have to specify the full path.",
+          "default": "arm-none-eabi-gdb.exe"
+        },
+        "iarvsc.gdbServer": {
+          "type": "string",
+          "markdownDescription": "The path to the gdb server to use. In case the executable is not on the `PATH` environment, you have to specify the full path.",
+          "default": "JLinkGDBServerCL.exe"
+        },
+        "iarvsc.gdbServerArgs": {
+          "type": "string",
+          "markdownDescription": "The arguments to use when launching the gdb server.",
+          "default": "-if swd -singlerun -strict -endian little -speed auto -port 3333 -device {enter mcu} -vd -strict -halt"
         }
       }
     },
