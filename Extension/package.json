@@ -66,75 +66,73 @@
         "category": "IAR"
       }
     ],
-    "configuration": [
-      {
-        "title": "IAR",
-        "properties": {
-          "iarvsc.iarInstallDirectories": {
-            "type": "array",
-            "description": "Root path where IAR installs its applications.",
-            "default": [
-              "C:\\Program Files\\IAR Systems",
-              "C:\\Program Files (x86)\\IAR Systems"
-            ]
-          },
-          "iarvsc.workbench": {
-            "type": "string",
-            "description": "Path the the workbench to use.",
-            "default": ""
-          },
-          "iarvsc.compiler": {
-            "type": "string",
-            "description": "Path to the compiler to use.",
-            "default": ""
-          },
-          "iarvsc.ewp": {
-            "type": "string",
-            "description": "Path to the currently selected ewp file.",
-            "default": ""
-          },
-          "iarvsc.configuration": {
-            "type": "string",
-            "description": "The selected configuration from the selected ewp file",
-            "default": ""
-          },
-          "iarvsc.defines": {
-            "type": "array",
-            "description": "A list of defines to use which are not listed in the project xml or compiler output. You can for example define here compiler intrisics, like __max, __min, __eeprom, .... example __max: add `__max(a, b)=` to this list.",
-            "default": [
-              "__eeprom=",
-              "__flash=",
-              "__no_init=",
-              "__root="
-            ]
-          },
-          "iarvsc.cStandard": {
-            "type": "string",
-            "enum": [
-              "${default}",
-              "c89",
-              "c99",
-              "c11"
-            ],
-            "description": "The c standard to use in the config tool configuration.",
-            "default": "${default}"
-          },
-          "iarvsc.cppStandard": {
-            "type": "string",
-            "enum": [
-              "${default}",
-              "c++98",
-              "c++03",
-              "c++11",
-              "c++14",
-              "c++17"
-            ],
-            "description": "The c++ standard to use in the config tool configuration.",
-            "default": "${default}"
-          }
+    "configuration": {
+      "title": "IAR",
+      "properties": {
+        "iarvsc.iarInstallDirectories": {
+          "type": "array",
+          "description": "Root path where IAR installs its applications.",
+          "default": [
+            "C:\\Program Files\\IAR Systems",
+            "C:\\Program Files (x86)\\IAR Systems"
+          ]
+        },
+        "iarvsc.workbench": {
+          "type": "string",
+          "description": "Path the the workbench to use.",
+          "default": ""
+        },
+        "iarvsc.compiler": {
+          "type": "string",
+          "description": "Path to the compiler to use.",
+          "default": ""
+        },
+        "iarvsc.ewp": {
+          "type": "string",
+          "description": "Path to the currently selected ewp file.",
+          "default": ""
+        },
+        "iarvsc.configuration": {
+          "type": "string",
+          "description": "The selected configuration from the selected ewp file",
+          "default": ""
+        },
+        "iarvsc.defines": {
+          "type": "array",
+          "description": "A list of defines to use which are not listed in the project xml or compiler output. You can for example define here compiler intrisics, like __max, __min, __eeprom, .... example __max: add `__max(a, b)=` to this list.",
+          "default": [
+            "__eeprom=",
+            "__flash=",
+            "__no_init=",
+            "__root="
+          ]
+        },
+        "iarvsc.cStandard": {
+          "type": "string",
+          "enum": [
+            "${default}",
+            "c89",
+            "c99",
+            "c11"
+          ],
+          "description": "The c standard to use in the config tool configuration.",
+          "default": "${default}"
+        },
+        "iarvsc.cppStandard": {
+          "type": "string",
+          "enum": [
+            "${default}",
+            "c++98",
+            "c++03",
+            "c++11",
+            "c++14",
+            "c++17"
+          ],
+          "description": "The c++ standard to use in the config tool configuration.",
+          "default": "${default}"
         }
       }
-    ],
+    },
     "problemMatchers": [
       {
         "name": "iar-cc",
