@@ -1,0 +1,236 @@
+{
+  "name": "iar-vsc",
+  "displayName": "IAR For Visual Studio Code",
+  "description": "An extension to uses IAR project files to config and debug projects",
+  "version": "1.1.0-beta1",
+  "publisher": "pluyckx",
+  "icon": "images/logo.png",
+  "preview": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pluyckx/iar-vsc.git"
+  },
+  "engines": {
+    "vscode": "^1.27.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "IAR",
+    "ARM",
+    "AVR",
+    "STM8",
+    "Embedded"
+  ],
+  "activationEvents": [
+    "onCommand:iar.selectWorkbench",
+    "onCommand:iar.selectCompiler",
+    "onCommand:iar.selectProject",
+    "onCommand:iar.selectConfiguration",
+    "onCommand:iar.generateCppToolsConfig",
+    "onCommand:iar.openWorkbench",
+    "workspaceContains:**/*.ewp"
+  ],
+  "main": "./out/src/main",
+  "contributes": {
+    "commands": [
+      {
+        "command": "iar.selectWorkbench",
+        "title": "Select Workbench",
+        "category": "IAR"
+      },
+      {
+        "command": "iar.selectCompiler",
+        "title": "Select Compiler",
+        "category": "IAR"
+      },
+      {
+        "command": "iar.selectProject",
+        "title": "Select Project",
+        "category": "IAR"
+      },
+      {
+        "command": "iar.selectConfiguration",
+        "title": "Select Configuration",
+        "category": "IAR"
+      },
+      {
+        "command": "iar.generateCppToolsConfig",
+        "title": "Generate CppTools Config File",
+        "category": "IAR"
+      },
+      {
+        "command": "iar.openWorkbench",
+        "title": "Open selected IAR Workbench",
+        "category": "IAR"
+      }
+    ],
+    "configuration": {
+      "title": "IAR",
+      "properties": {
+        "iarvsc.iarInstallDirectories": {
+          "type": "array",
+          "description": "Root path where IAR installs its applications.",
+          "default": [
+            "C:\\Program Files\\IAR Systems",
+            "C:\\Program Files (x86)\\IAR Systems"
+          ]
+        },
+        "iarvsc.workbench": {
+          "type": "string",
+          "description": "Path the the workbench to use.",
+          "default": ""
+        },
+        "iarvsc.compiler": {
+          "type": "string",
+          "description": "Path to the compiler to use.",
+          "default": ""
+        },
+        "iarvsc.ewp": {
+          "type": "string",
+          "description": "Path to the currently selected ewp file.",
+          "default": ""
+        },
+        "iarvsc.configuration": {
+          "type": "string",
+          "description": "The selected configuration from the selected ewp file",
+          "default": ""
+        },
+        "iarvsc.defines": {
+          "type": "array",
+          "description": "A list of defines to use which are not listed in the project xml or compiler output. You can for example define here compiler intrisics, like __max, __min, __eeprom, .... example __max: add `__max(a, b)=` to this list.",
+          "default": [
+            "__eeprom=",
+            "__flash=",
+            "__no_init=",
+            "__root="
+          ]
+        },
+        "iarvsc.cStandard": {
+          "type": "string",
+          "enum": [
+            "${default}",
+            "c89",
+            "c99",
+            "c11"
+          ],
+          "description": "The c standard to use in the config tool configuration.",
+          "default": "${default}"
+        },
+        "iarvsc.cppStandard": {
+          "type": "string",
+          "enum": [
+            "${default}",
+            "c++98",
+            "c++03",
+            "c++11",
+            "c++14",
+            "c++17"
+          ],
+          "description": "The c++ standard to use in the config tool configuration.",
+          "default": "${default}"
+        },
+        "iarvsc.outFile": {
+          "type": "string",
+          "description": "The path to the output file. This is updated by the extension when changing the project or configuration",
+          "default": ""
+        },
+        "iarvsc.debugger": {
+          "type": "string",
+          "markdownDescription": "The path to the gdb debugger to use. In case the executable is not on the `PATH` environment, you have to specify the full path.",
+          "default": "arm-none-eabi-gdb.exe"
+        },
+        "iarvsc.gdbServer": {
+          "type": "string",
+          "markdownDescription": "The path to the gdb server to use. In case the executable is not on the `PATH` environment, you have to specify the full path.",
+          "default": "JLinkGDBServerCL.exe"
+        },
+        "iarvsc.gdbServerArgs": {
+          "type": "string",
+          "markdownDescription": "The arguments to use when launching the gdb server.",
+          "default": "-if swd -singlerun -strict -endian little -speed auto -port 3333 -device {enter mcu} -vd -strict -halt"
+        }
+      }
+    },
+    "problemMatchers": [
+      {
+        "name": "iar-cc",
+        "owner": "cpp",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^([^(]*)\\((\\d*)\\)\\s*:\\s*([^\\[]*)[^:]*:\\s*(.*)",
+          "file": 1,
+          "line": 2,
+          "severity": 3,
+          "message": 4
+        }
+      },
+      {
+        "name": "iar-linker",
+        "owner": "cpp",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^([^\\[]*)[^\\]]*\\]\\s*:\\s*([^\\(]*)\\(\\s*(.*)\\s*\\)",
+          "file": 3,
+          "message": 2,
+          "severity": 1,
+          "kind": "file"
+        }
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "iar",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The command to use for the IarBuild.exe command",
+            "enum": [
+              "build",
+              "rebuild"
+            ]
+          },
+          "project": {
+            "type": "string",
+            "description": "The path to the project file"
+          },
+          "config": {
+            "type": "string",
+            "description": "The configuration in the project file to use"
+          },
+          "label": {
+            "type": "string",
+            "description": "The name for the task that is shown when executing the built-in command `Run Tasks` of VS Code."
+          }
+        },
+        "required": [
+          "command",
+          "project",
+          "config"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test"
+  },
+  "devDependencies": {
+    "typescript": "^2.6.1",
+    "vscode": "^1.1.21",
+    "tslint": "^5.8.0",
+    "@types/node": "^8.10.25",
+    "@types/mocha": "^2.2.42",
+    "ts-sinon": "1.0.12"
+  },
+  "dependencies": {
+    "xml-js": "1.6.8",
+    "jsonc-parser": "1.0.0",
+    "child-exec": "1.0.0",
+    "fast-deep-equal": "2.0.1"
+  }
+}

@@ -1,4 +1,7 @@
-out
-node_modules
-.vscode-test/
-*.vsix
+Extension/out
+Extension/node_modules
+Extension/*.vsix
+Extension/package-lock.json
+TestWorkspaces/**/Debug
+TestWorkspaces/**/settings
+.vscode-test
