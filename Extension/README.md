@@ -144,6 +144,12 @@ Those values get overwritten by the extension when invalid values are defined or
 
 ## Release Notes
 
+### 1.1.0-beta1
+
+* Implement #28: Add support to generate build tasks using the VSCode built-in command `Tasks: Configure Task`.
+* Fix #18: Save all files before build. (this is actually fixed because we are now using tasks)
+* Add settings to test a generic launch script to start debugging.
+
 ### 1.0.0
 
 * Add __root to default defines
