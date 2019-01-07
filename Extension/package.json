@@ -146,10 +146,10 @@
           "markdownDescription": "The path to the gdb server to use. In case the executable is not on the `PATH` environment, you have to specify the full path.",
           "default": "JLinkGDBServerCL.exe"
         },
-        "iarvsc.gdbServerArgs": {
+        "iarvsc.device": {
           "type": "string",
-          "markdownDescription": "The arguments to use when launching the gdb server.",
-          "default": "-if swd -singlerun -strict -endian little -speed auto -port 3333 -device {enter mcu} -vd -strict -halt"
+          "markdownDescription": "The name of the target microcontroller",
+          "default": "undefined"
         }
       }
     },
