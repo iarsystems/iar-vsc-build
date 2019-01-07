@@ -136,7 +136,7 @@
           "description": "The path to the output file. This is updated by the extension when changing the project or configuration",
           "default": ""
         },
-        "iarvsc.debugger": {
+        "iarvsc.gdb": {
           "type": "string",
           "markdownDescription": "The path to the gdb debugger to use. In case the executable is not on the `PATH` environment, you have to specify the full path.",
           "default": "arm-none-eabi-gdb.exe"
