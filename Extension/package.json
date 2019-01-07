@@ -210,6 +210,54 @@
           "config"
         ]
       }
+    ],
+    "debuggers": [
+      {
+        "type": "IAR: gdb server",
+        "configurationSnippets": [
+          {
+            "label": "Debug using gdb server",
+            "description": "Description",
+            "body": {
+              "name": "Debug GDBServer",
+              "type": "cppdbg",
+              "request": "launch",
+              "program": "${${workspaceFolder}workspaceFolder}/${${config:iarvsc.outFile}}",
+              "stopAtEntry": true,
+              "cwd": "${${workspaceFolder}workspaceFolder}",
+              "externalConsole": true,
+              "MIMode": "gdb",
+              "miDebuggerPath": "${${config:iarvsc.gdb}}",
+              "debugServerPath": "${${config:iarvsc.gdbServer}}",
+              "debugServerArgs": "-if swd -singlerun -strict -endian little -speed auto -port 3333 -device ${${config:iarvsc.device}} -vd -strict -halt",
+              "serverStarted": "Connected\\\\ to\\\\ target",
+              "serverLaunchTimeout": 5000,
+              "filterStderr": false,
+              "filterStdout": true,
+              "setupCommands": [
+                {
+                  "text": "target remote localhost:3333"
+                },
+                {
+                  "text": "monitor flash breakpoints = 1"
+                },
+                {
+                  "text": "monitor flash download = 1"
+                },
+                {
+                  "text": "monitor reset"
+                },
+                {
+                  "text": "load \\\\\"${${workspaceFolder}workspaceFolder}/${${config:iarvsc.outFile}}}\\\\\""
+                },
+                {
+                  "text": "monitor reset"
+                }
+              ]
+            }
+          }
+        ]
+      }
     ]
   },
   "scripts": {
