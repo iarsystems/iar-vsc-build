@@ -65,6 +65,8 @@ export namespace IarTaskProvider {
             tasks.push(task);
         }
 
+        tasks.push(generateOpenWorkbenchTask());
+
         return tasks;
     }
 
@@ -153,5 +155,17 @@ export namespace IarTaskProvider {
         }
 
         return isIarTaskDefinition;
+    }
+
+    function generateOpenWorkbenchTask(): Vscode.Task {
+        let folders = Vscode.workspace.workspaceFolders as Vscode.WorkspaceFolder[];
+
+        let definition = {
+            type: "iar-workbench",
+            workbench: "${config:iarvsc.workbench}",
+            workspace: "${command:iar.selectIarWorkspace}"
+        };
+
+        return new Vscode.Task(definition, folders[0], "test open workbench", "iar", new Vscode.ProcessExecution("${config:iarvsc.workbench}\\\\common\\\\bin\\\\IarIdePm.exe", ["${command:iar.selectIarWorkspace}"]));
     }
 }

@@ -8,7 +8,6 @@ import { SelectionView } from "./selectionview";
 import { Settings } from "../settings";
 import { Command } from "../command/command";
 import { Command as GenerateCommand } from "../command/generatecpptoolsconf";
-import { Command as OpenWorkbenchCommand } from "../command/openworkbench";
 import { Workbench } from "../../iar/tools/workbench";
 import { CompilerListModel } from "../model/selectcompiler";
 import { ListInputModel } from "../model/model";
@@ -17,6 +16,7 @@ import { Project } from "../../iar/project/project";
 import { ProjectListModel } from "../model/selectproject";
 import { Config } from "../../iar/project/config";
 import { ConfigurationListModel } from "../model/selectconfiguration";
+import { SelectIarWorkspace } from "../command/selectIarWorkspace";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -34,7 +34,7 @@ class Application {
     readonly config: UI<Config>;
 
     readonly generator: Command;
-    readonly openWorkbench: Command;
+    readonly selectIarWorkspace: Command;
 
     constructor(context: Vscode.ExtensionContext, toolManager: ToolManager) {
         this.context = context;
@@ -51,8 +51,8 @@ class Application {
             this.config.model as ConfigurationListModel);
         this.generator.register(context);
 
-        this.openWorkbench = OpenWorkbenchCommand.createOpenWorkbenchCommand(this.workbench.model as WorkbenchListModel);
-        this.openWorkbench.register(context);
+        this.selectIarWorkspace = new SelectIarWorkspace();
+        this.selectIarWorkspace.register(context);
 
         // add listeners
         this.addListeners();
@@ -68,12 +68,10 @@ class Application {
         this.showHelper(this.config);
 
         this.generator.enabled = true;
-        this.openWorkbench.enabled = true;
     }
 
     public hide(): void {
         this.generator.enabled = false;
-        this.openWorkbench.enabled = false;
 
         this.hideHelper(this.workbench);
         this.hideHelper(this.compiler);

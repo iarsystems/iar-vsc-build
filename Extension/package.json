@@ -29,7 +29,7 @@
     "onCommand:iar.selectProject",
     "onCommand:iar.selectConfiguration",
     "onCommand:iar.generateCppToolsConfig",
-    "onCommand:iar.openWorkbench",
+    "onCommand:iar.selectIarWorkspace",
     "workspaceContains:**/*.ewp"
   ],
   "main": "./out/src/main",
@@ -58,11 +58,6 @@
       {
         "command": "iar.generateCppToolsConfig",
         "title": "Generate CppTools Config File",
-        "category": "IAR"
-      },
-      {
-        "command": "iar.openWorkbench",
-        "title": "Open selected IAR Workbench",
         "category": "IAR"
       }
     ],
@@ -208,6 +203,23 @@
           "command",
           "project",
           "config"
+        ]
+      },
+      {
+        "type": "iar-workbench",
+        "properties": {
+          "workbench": {
+            "type": "string",
+            "description": "The path to the workbench to start"
+          },
+          "workspace": {
+            "type": "string",
+            "description": "The workspace to load"
+          }
+        },
+        "required": [
+          "workbench",
+          "workspace"
         ]
       }
     ],
