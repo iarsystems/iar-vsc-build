@@ -1,16 +1,16 @@
 
 import * as Vscode from "vscode";
+import * as Fs from "fs";
+import * as Path from "path";
+import * as Jsonc from "jsonc-parser";
 
-interface IarTaskDefinition extends Vscode.TaskDefinition {
-    readonly command: string;
-    readonly project: string;
-    readonly config: string;
-    readonly label?: string;
-}
+import { BuildTasks } from "./buildtasks";
+import { OpenTasks } from "./opentasks";
 
 export namespace IarTaskProvider {
     let tasks: Vscode.Task[] = [];
     let taskProvider: Vscode.Disposable | undefined = undefined;
+    let watcher: Vscode.FileSystemWatcher | undefined = undefined;
 
     export function register(): void {
         if (!taskProvider) {
@@ -22,10 +22,29 @@ export namespace IarTaskProvider {
 
                     return tasks;
                 },
-                resolveTask: (task: Vscode.Task) => {
-                    return resolve(task);
+                resolveTask: (_task: Vscode.Task) => {
+                    return undefined;
                 }
             });
+        }
+
+        if (!watcher) {
+            let workspaceFolder = Vscode.workspace.rootPath;
+
+            if (workspaceFolder) {
+                let tasksPath = Path.join(workspaceFolder, ".vscode", "tasks.json");
+                watcher = Vscode.workspace.createFileSystemWatcher(tasksPath);
+
+                watcher.onDidChange(() => {
+                    tasks = [];
+                });
+                watcher.onDidCreate(() => {
+                    tasks = [];
+                });
+                watcher.onDidDelete(() => {
+                    tasks = [];
+                });
+            }
         }
     }
 
@@ -34,138 +53,55 @@ export namespace IarTaskProvider {
             taskProvider.dispose();
             taskProvider = undefined;
         }
+
+        if (watcher) {
+            watcher.dispose();
+        }
+
+        tasks = [];
     }
 
     function getTasks(): Vscode.Task[] {
-        let tasks: Vscode.Task[] = [];
+        let tasks = new Map<string, Vscode.Task>();
 
-        let ewpLocation = "${config:iarvsc.ewp}";
-        let config = "${config:iarvsc.configuration}";
+        let json = readTasksJson();
 
-        let task: Vscode.Task | undefined;
-        let definition: IarTaskDefinition;
-        let label: string;
-        let name: string;
-
-        definition = generateDefinition("build", ewpLocation, config);
-        label = definition.label as string; /* we generated it, so the label exists */
-        name = label + " - template using selected workbench, project and config";
-        task = generateTask(name, definition);
-        if (task) {
-            setProblemMatchers(task);
-            tasks.push(task);
+        if (json !== undefined) {
+            BuildTasks.generateFromTasksJson(json, tasks);
+            OpenTasks.generateFromTasksJson(json, tasks);
         }
 
-        definition = generateDefinition("rebuild", ewpLocation, config);
-        label = definition.label as string; /* we generated it, so the label exists */
-        name = label + " - template using selected workbench, project and config";
-        task = generateTask(name, definition);
-        if (task) {
-            setProblemMatchers(task);
-            tasks.push(task);
-        }
+        BuildTasks.generateTasks(tasks);
+        OpenTasks.generateTasks(tasks);
 
-        tasks.push(generateOpenWorkbenchTask());
-
-        return tasks;
+        return Array.from(tasks.values());
     }
 
-    function setProblemMatchers(task: Vscode.Task): void {
-        task.problemMatchers.push("$iar-cc");
-        task.problemMatchers.push("$iar-linker");
-    }
+    function readTasksJson(): any | undefined {
+        let workspaceFolders = Vscode.workspace.workspaceFolders;
 
-    function generateTask(name: string, definition: IarTaskDefinition): Vscode.Task | undefined {
-        let compilerCommand: string | undefined = getCompilerCommand(definition.command);
-
-        if (compilerCommand) {
-            let task = new Vscode.Task(definition,
-                name,
-                "iar",
-                generateExecution("${config:iarvsc.workbench}\\common\\bin\\IarBuild.exe",
-                    definition.project, compilerCommand, definition.config)
-            );
-
-            return task;
-        } else {
+        if (workspaceFolders === undefined) {
             return undefined;
         }
-    }
 
-    function generateDefinition(command: string, project: string, config: string): IarTaskDefinition {
-        let label = "IAR " + command.charAt(0).toUpperCase() + command.slice(1);
+        let workspaceFolder = workspaceFolders[0];
 
-        return {
-            label: label,
-            type: "iar",
-            command: command,
-            project: project,
-            config: config
-        };
-    }
-
-    function generateExecution(compilerPath: string, project: string, compilerCommand: string, config: string) {
-        return new Vscode.ProcessExecution(compilerPath, [project, compilerCommand, config]);
-    }
-
-    function resolve(task: Vscode.Task): Vscode.Task | undefined {
-        let definition = task.definition;
-
-        if (isIarTaskDefinition(definition)) {
-            let compilerPath = "${config:iarvsc.workbench}\\common\\bin\\IarBuild.exe";
-            task.execution = generateExecution(compilerPath, definition.project, definition.command, definition.config);
-            return task;
-        } else {
+        if (workspaceFolder === undefined) {
             return undefined;
         }
-    }
 
-    function getCompilerCommand(command: string): string | undefined {
-        switch (command) {
-            case "build":
-                return "-make";
-            case "rebuild":
-                return "-build";
-            default:
+        let path = Path.join(workspaceFolder.uri.fsPath, ".vscode", "tasks.json");
+
+        try {
+            let stat = Fs.statSync(path);
+
+            if (!stat.isFile()) {
                 return undefined;
-        }
-    }
-
-    function isIarTaskDefinition(definition: Vscode.TaskDefinition | IarTaskDefinition): definition is IarTaskDefinition {
-        let isIarTaskDefinition: boolean = true;
-        let iarTaskDefinition = definition as IarTaskDefinition;
-
-        if (isIarTaskDefinition) {
-            isIarTaskDefinition = (iarTaskDefinition.command !== undefined)
-                && (getCompilerCommand(iarTaskDefinition.command) !== undefined);
+            }
+        } catch (e) {
+            return undefined;
         }
 
-        if (isIarTaskDefinition) {
-            isIarTaskDefinition = iarTaskDefinition.config !== undefined;
-        }
-
-        if (isIarTaskDefinition) {
-            isIarTaskDefinition = iarTaskDefinition.project !== undefined;
-        }
-
-
-        if (isIarTaskDefinition) {
-            isIarTaskDefinition = (iarTaskDefinition.type !== undefined)
-                && (iarTaskDefinition.type === "iar");
-        }
-
-        return isIarTaskDefinition;
-    }
-
-    function generateOpenWorkbenchTask(): Vscode.Task {
-        let folders = Vscode.workspace.workspaceFolders as Vscode.WorkspaceFolder[];
-
-        let definition = {
-            type: "iar-workbench",
-            workbench: "${config:iarvsc.workbench}",
-            workspace: "${command:iar.selectIarWorkspace}"
-        };
-
-        return new Vscode.Task(definition, folders[0], "test open workbench", "iar", new Vscode.ProcessExecution("${config:iarvsc.workbench}\\\\common\\\\bin\\\\IarIdePm.exe", ["${command:iar.selectIarWorkspace}"]));
+        return Jsonc.parse(Fs.readFileSync(path, { encoding: "utf8" }));
     }
 }

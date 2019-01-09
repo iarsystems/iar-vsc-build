@@ -183,7 +183,8 @@
             "description": "The command to use for the IarBuild.exe command",
             "enum": [
               "build",
-              "rebuild"
+              "rebuild",
+              "open"
             ]
           },
           "project": {
@@ -194,32 +195,25 @@
             "type": "string",
             "description": "The configuration in the project file to use"
           },
+          "workbench": {
+            "type": "string",
+            "description": "Path to the workbench to use"
+          },
+          "builder": {
+            "type": "string",
+            "description": "Path to the builder to use"
+          },
+          "workspace": {
+            "type": "string",
+            "description": "The path to the workspace file to use"
+          },
           "label": {
             "type": "string",
             "description": "The name for the task that is shown when executing the built-in command `Run Tasks` of VS Code."
           }
         },
         "required": [
-          "command",
-          "project",
-          "config"
-        ]
-      },
-      {
-        "type": "iar-workbench",
-        "properties": {
-          "workbench": {
-            "type": "string",
-            "description": "The path to the workbench to start"
-          },
-          "workspace": {
-            "type": "string",
-            "description": "The workspace to load"
-          }
-        },
-        "required": [
-          "workbench",
-          "workspace"
+          "command"
         ]
       }
     ],
