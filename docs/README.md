@@ -13,3 +13,9 @@ After this you can install all dependencies with:
 bundle install --path vendor/bundle
 bundler exec jekyll serve
 ```
+
+### Possible Issues
+
+When running `bundler exec jekyll serve` you can get a warning that the file `head.html` isn't found. This is because in
+the _config.yml a *remote theme* is used. On line *28*, comment out `remote_theme: pmarsceill/just-the-docs` and
+uncomment line *29* `theme: just-the-docs`.
