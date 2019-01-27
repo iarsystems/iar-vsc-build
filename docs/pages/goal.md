@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Goal
-nav_order: 0
+nav_order: 1
 has_children: false
 permalink: /goal
 ---
