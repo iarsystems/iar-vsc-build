@@ -2,8 +2,6 @@
 layout: home
 ---
 
-{% include references.md %}
-
 # IAR-VSC
 
 Welcome to the `IAR-vsc` documentation. The `IAR-vsc` plugin makes it possible
@@ -25,3 +23,5 @@ The source of this project is hosted on [Github][github-repo].
 
 If you find any issue or if you have a feature request, please submit it at
 through [github issues][github-issues].
+
+{% include references.md %}
