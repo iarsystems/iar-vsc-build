@@ -33,7 +33,7 @@ export class SelectIarWorkspace implements Command {
 
             if (workspacePaths.length > 1) {
                 return Vscode.window.showQuickPick(workspacePaths);
-            } else if(workspacePaths.length == 1) {
+            } else if (workspacePaths.length === 1) {
                 return workspacePaths[0];
             } else {
                 Vscode.window.showErrorMessage("No IAR Workspaces found.");
