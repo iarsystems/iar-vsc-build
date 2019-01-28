@@ -121,7 +121,7 @@ export namespace BuildTasks {
                 type: "iar",
                 command: command,
                 builder: "${config:iarvsc.workbench}\\\\common\\\\bin\\\\IarBuild.exe",
-                project: "${config:iarvsc.ewpFile}",
+                project: "${config:iarvsc.ewp}",
                 config: "${config:iarvsc.configuration}",
                 problemMatcher: ["$iar-cc", "$iar-linker"]
             };
