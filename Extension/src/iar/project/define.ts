@@ -83,7 +83,10 @@ export namespace Define {
                 let defines: Define[] = [];
 
                 states.forEach(state => {
-                    defines.push(new XmlDefine(state));
+                    try {
+                        defines.push(new XmlDefine(state));
+                    } catch (e) {
+                    }
                 });
 
                 return defines;
