@@ -222,7 +222,7 @@
         "type": "IAR: gdb server",
         "configurationSnippets": [
           {
-            "label": "Debug using gdb server",
+            "label": "IAR: Debug using gdb server",
             "description": "Description",
             "body": {
               "name": "Debug GDBServer",

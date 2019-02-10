@@ -80,6 +80,11 @@ the `launch.json` file will use this configuration to start debugging. Currently
 testing and is work in progress. The settings are nog yet automatically updated when selecting
 different projects or confiugrations (even though the description of the settings mention this).
 
+Open or create the `launch.json` file and place your cursor at the beginning of the configurations
+array. Now press `Ctrl + Space` to activate autocompletion. You should see an item like
+`IAR: Debug using gdb server`. If you select this, the configuration below is automatically
+generated.
+
 Some information about the used config parameters:
 
 * `iarvsc.outFile`: The path to the output file to flash on the target. Use a path relative from
