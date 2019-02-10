@@ -7,31 +7,24 @@ permalink: /release-notes
 
 ## Release Notes
 
-### [1.1.0-beta1](https://github.com/pluyckx/iar-vsc/releases/tag/1.1.0-beta1)
+### [1.0.0](https://github.com/pluyckx/iar-vsc/releases/tag/1.1.0-rc1)
 
 * Implement #28: Add support to generate build tasks using the VSCode built-in command `Tasks: Configure Task`.
 * Fix #18: Save all files before build. (this is actually fixed because we are now using tasks)
 * Add settings to test a generic launch script to start debugging.
+* Implement #10: Create a launch task to start debugging using the Segger J-Link debugger using
+  settings configurations parameters.
 
 ### [1.0.0](https://github.com/pluyckx/iar-vsc/releases/tag/1.0.0)
 
 * Add __root to default defines
 * Add keywords so the extension is easier to find in the marketplace
-
-### [1.0.0-beta1](https://github.com/pluyckx/iar-vsc/releases/tag/1.0.0-beta1)
-
 * Add listeners to the define settings so the cpptools config file is generated when changed
 * Fix issue when cpptools config file is empty or invalid: plugin would not load
 * Add some more settings for default c and c++ standard configuration
-
-### [1.0.0-alpha2](https://github.com/pluyckx/iar-vsc/releases/tag/1.0.0-alpha2)
-
 * Correct relative include paths in cpptools config file
 * Add `=` sign to default defines in settings
 * Add a problem matcher
-
-### [1.0.0-alpha1](https://github.com/pluyckx/iar-vsc/releases/tag/1.0.0-alpha1)
-
 * Redisgned the extension
 * Instead of completely command drive, status bar items are added to configure most things
 * Automatically monitor the selected ewp file and auto generate the config file
