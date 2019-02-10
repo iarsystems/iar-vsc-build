@@ -29,7 +29,8 @@ When selecting one of the two, a default task is generated which uses the workbe
 #### Depracated Method: Create manually
 
 In previous plugins there was a build command. However, from now on you can create a task because all necessary information is available through settings. You can use the following snippets to create a `build` and `rebuild` command. In alpha2 or beta1 will contain a `problem matcher`. Use the following template as a starting point:
-```
+
+```[json]
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
@@ -214,7 +215,6 @@ Add system include paths
 ### 0.0.1
 
 Initial release of iar-vsc
-
 
 ## Road Map
 
