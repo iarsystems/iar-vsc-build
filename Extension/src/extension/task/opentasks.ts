@@ -60,7 +60,7 @@ export namespace OpenTasks {
             ]
         );
 
-        let task: Vscode.Task = new Vscode.Task(definition, label, "iar", process);
+        let task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);
 
         return task;
     }
