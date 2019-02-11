@@ -22,7 +22,7 @@ export class SelectIarWorkspace implements Command {
             let workspaceFolder = Vscode.workspace.rootPath;
 
             let filter = FsUtils.createFilteredListDirectoryFilenameRegex(/\.*\.eww/);
-            let files = FsUtils.filteredListDirectory(workspaceFolder, filter);
+            let files = FsUtils.walkAndFind(workspaceFolder, true, filter);
 
             let workspacePaths: string[] = [];
 
