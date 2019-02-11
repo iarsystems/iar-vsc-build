@@ -62,6 +62,9 @@ export namespace OpenTasks {
 
         let task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);
 
+        if (definition["problemMatcher"] !== undefined) {
+            task.problemMatchers = definition["problemMatcher"];
+        }
         return task;
     }
 
@@ -90,7 +93,8 @@ export namespace OpenTasks {
             type: "iar",
             command: "open",
             workbench: "${config:iarvsc.workbench}\\\\common\\\\bin\\\\IarIdePm.exe",
-            workspace: "${command:iar.selectIarWorkspace}"
+            workspace: "${command:iar.selectIarWorkspace}",
+            problemMatcher: []
         };
 
         return generateFromDefinition(definition);
