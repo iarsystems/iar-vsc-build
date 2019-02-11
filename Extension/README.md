@@ -174,6 +174,7 @@ Those values get overwritten by the extension when invalid values are defined or
 * Fix #18: Save all files before build. (this is actually fixed because we are now using tasks)
 * Implement #10: Create a launch task to start debugging using the Segger J-Link debugger using settings configurations
   parameters.
+* Fix #44: Perform a recursive search to find eww files in the workspace root folder.
 
 ### 1.0.1
 

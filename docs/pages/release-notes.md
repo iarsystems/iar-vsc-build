@@ -7,13 +7,14 @@ permalink: /release-notes
 
 ## Release Notes
 
-### [1.0.0](https://github.com/pluyckx/iar-vsc/releases/tag/1.1.0-rc1)
+### [1.1.0](https://github.com/pluyckx/iar-vsc/releases/tag/1.1.0-rc2)
 
 * Implement #28: Add support to generate build tasks using the VSCode built-in command `Tasks: Configure Task`.
 * Fix #18: Save all files before build. (this is actually fixed because we are now using tasks)
 * Add settings to test a generic launch script to start debugging.
-* Implement #10: Create a launch task to start debugging using the Segger J-Link debugger using
+* Implement #10: Create a launch task to start debugging using the Segger J-Link debugger using.
   settings configurations parameters.
+* Fix #44: Perform a recursive search to find eww files in the workspace root folder.
 
 ### [1.0.0](https://github.com/pluyckx/iar-vsc/releases/tag/1.0.0)
 
