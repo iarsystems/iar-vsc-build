@@ -128,7 +128,7 @@
         },
         "iarvsc.outFile": {
           "type": "string",
-          "description": "The path to the output file. This is updated by the extension when changing the project or configuration",
+          "description": "Currently not used, but will be used in the future to generate launch configurations.",
           "default": ""
         },
         "iarvsc.gdb": {
@@ -228,7 +228,7 @@
               "name": "Debug GDBServer",
               "type": "cppdbg",
               "request": "launch",
-              "program": "${${workspaceFolder}workspaceFolder}/${${config:iarvsc.outFile}}",
+              "program": "Absolute path to the out file.",
               "stopAtEntry": true,
               "cwd": "${${workspaceFolder}workspaceFolder}",
               "externalConsole": true,
@@ -254,7 +254,7 @@
                   "text": "monitor reset"
                 },
                 {
-                  "text": "load \\\\\"${${workspaceFolder}workspaceFolder}/${${config:iarvsc.outFile}}}\\\\\""
+                  "text": "load \\\\\"Path to the out file.\\\\\""
                 },
                 {
                   "text": "monitor reset"

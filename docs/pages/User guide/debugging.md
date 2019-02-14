@@ -20,9 +20,6 @@ generated.
 
 Some information about the used config parameters:
 
-* `iarvsc.outFile`: The path to the output file to flash on the target. Use a path relative from
-  your workspace folder and use the following construction for the *program* property of the launch
-  config: `${workspaceFolder}/${config:iarvsc.outFile}`.
 * `iarvsc.debugger`: The path to the debugger to use. In case your debugger is on your `PATH`
   environment you can just enter the debugger executable like `arm-none-eabi-gdb.exe`, otherwise,
   use the absolute path to the debugger.
@@ -31,6 +28,9 @@ Some information about the used config parameters:
   Keep in mind you have to escape the *backslashes* `\` in *json*.
 * `iarvsc.device`: The device you are want to *flash* and *debug*. Check your *debug server*
   documentation which values you can use here.
+* `iarvsc.outFile`: This field is not yet used in the current release, but it is mentioned here for
+  completeness. You can use it, but keep in  mind the value you enter here can conflict in future
+  releases.
 
 ```[json]
 {
@@ -40,7 +40,7 @@ Some information about the used config parameters:
             "name": "Debug GDBServer",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/${config:iarvsc.outFile}",
+            "program": "Path to the out file",
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "externalConsole": true,
@@ -66,7 +66,7 @@ Some information about the used config parameters:
                     "text": "monitor reset"
                 },
                 {
-                    "text": "load \\\"${config:iarvsc.outFile}\\\""
+                    "text": "load \\\"Path to the out file\\\""
                 },
                 {
                     "text": "monitor reset"
