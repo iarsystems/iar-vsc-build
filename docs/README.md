@@ -1,7 +1,9 @@
 # Documentation
+
 The documentation is generated using [jekyll](https://jekyllrb.com/), GitHub can automatically build and serve the site from the markdownfiles as long as they are in the `docs` folder on the `master` branch ([more info](https://help.github.com/articles/configuring-a-publishing-source-for-github-pages/#publishing-your-github-pages-site-from-a-docs-folder-on-your-master-branch)).
 
 ## Developing locally
+
 To develop locally you need the following dependencies:
 
 * [`ruby`](https://www.ruby-lang.org/en/downloads/) 
