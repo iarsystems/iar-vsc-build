@@ -7,7 +7,7 @@ permalink: /release-notes
 
 ## Release Notes
 
-### [1.1.0](https://github.com/pluyckx/iar-vsc/releases/tag/1.1.0-rc2)
+### [1.1.0](https://github.com/pluyckx/iar-vsc/releases/tag/1.1.0)
 
 * Implement #28: Add support to generate build tasks using the VSCode built-in command `Tasks: Configure Task`.
 * Fix #18: Save all files before build. (this is actually fixed because we are now using tasks)
