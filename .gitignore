@@ -5,3 +5,7 @@ Extension/package-lock.json
 TestWorkspaces/**/Debug
 TestWorkspaces/**/settings
 .vscode-test
+venv/
+docs/_build
+docs/node_modules
+docs/venv
