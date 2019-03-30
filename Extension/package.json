@@ -145,6 +145,11 @@
           "type": "string",
           "markdownDescription": "The name of the target microcontroller",
           "default": "undefined"
+        },
+        "iarvsc.extraBuildArguments": {
+          "type": "array",
+          "markdownDescription": "Extra command line arguments to supply to IarBuild.exe.",
+          "default": []
         }
       }
     },
