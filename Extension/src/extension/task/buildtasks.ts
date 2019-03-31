@@ -6,6 +6,7 @@
 
 import * as Vscode from "vscode";
 import { isArray } from "util";
+import { Settings } from "../settings";
 
 export interface BuildTaskDefinition {
     readonly label: string;
@@ -74,14 +75,21 @@ export namespace BuildTasks {
             return undefined;
         }
 
+        let args = [
+            project,
+            iarCommand,
+            config
+        ];
+
+        let extraArgs = Settings.getExtraBuildArguments();
+        if (extraArgs.length != 0) {
+            args = args.concat(extraArgs);
+        }
+
         if (iarCommand) {
             let process = new Vscode.ProcessExecution(
                 builder,
-                [
-                    project,
-                    iarCommand,
-                    config
-                ]
+                args
             );
 
             let task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);
