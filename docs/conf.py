@@ -24,7 +24,7 @@ copyright = '2019, Philip Luyckx'
 author = 'Philip Luyckx'
 
 # The short X.Y version
-version = '1.1'
+version = '1.2'
 # The full version, including alpha/beta/rc tags
 release = version
 
