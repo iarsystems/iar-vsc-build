@@ -6,7 +6,66 @@
 
 import * as Vscode from "vscode";
 import * as Fs from "fs";
+import * as Path from "path";
 import { Handler } from "../utils/handler";
+
+class SettingsFile {
+    private path_: Fs.PathLike;
+    private json_: any
+
+    constructor(path: Fs.PathLike) {
+        this.path_ = path;
+        this.json_ = SettingsFile.loadFile(this.path);
+    }
+
+    get path(): Fs.PathLike {
+        return this.path_;
+    }
+
+    public get(field: Settings.Field): any {
+        if (field in this.json_) {
+            return this.json_[field];
+        } else {
+            return undefined;
+        }
+    }
+
+    public set(field: Settings.Field, value: any): void {
+        this.json_[field] = value;
+        this.save();
+    }
+
+    public remove(field: Settings.Field): void {
+        if (field in this.json_) {
+            delete this.json_[field];
+            this.save();
+        }
+    }
+
+    private save(): void {
+        let dirname = Path.parse(this.path.toString()).dir;
+
+        if (!Fs.existsSync(dirname)) {
+            Fs.mkdirSync(dirname);
+        }
+
+        Fs.writeFileSync(this.path, JSON.stringify(this.json_, undefined, 4));
+    }
+
+    public static exists(path: Fs.PathLike): boolean {
+        return Fs.existsSync(path);
+    }
+
+    private static loadFile(path: Fs.PathLike): any {
+        if (!SettingsFile.exists(path)) {
+            return {};
+        } else {
+            let content = Fs.readFileSync(path);
+
+            return JSON.parse(content.toString());
+        }
+    }
+}
 
 export namespace Settings {
     type ChangeHandler = (section: Field, newValue: string) => void;
@@ -25,6 +84,7 @@ export namespace Settings {
     const section = "iarvsc";
     const iarInstallDirectories = "iarInstallDirectories";
 
+    let settingsFile: SettingsFile | undefined = undefined;
     let observers: Map<Field, Handler<ChangeHandler>[]> = new Map();
 
     export function addObserver(field: Field, handler: ChangeHandler) {
@@ -58,41 +118,41 @@ export namespace Settings {
     }
 
     export function getWorkbench(): Fs.PathLike | undefined {
-        return Vscode.workspace.getConfiguration(section).get(Field.Workbench);
+        return getSettingsFile().get(Field.Workbench);
     }
 
     export function setWorkbench(path: Fs.PathLike): void {
-        Vscode.workspace.getConfiguration(section).update(Field.Workbench, path.toString());
+        getSettingsFile().set(Field.Workbench, path);
 
         fireChange(Field.Workbench, path.toString());
     }
 
     export function getCompiler(): Fs.PathLike | undefined {
-        return Vscode.workspace.getConfiguration(section).get(Field.Compiler);
+        return getSettingsFile().get(Field.Compiler);
     }
 
     export function setCompiler(path: Fs.PathLike): void {
-        Vscode.workspace.getConfiguration(section).update(Field.Compiler, path.toString());
+        getSettingsFile().set(Field.Compiler, path);
 
         fireChange(Field.Compiler, path.toString());
     }
 
     export function getEwpFile(): Fs.PathLike | undefined {
-        return Vscode.workspace.getConfiguration(section).get(Field.Ewp);
+        return getSettingsFile().get(Field.Ewp);
     }
 
     export function setEwpFile(path: Fs.PathLike): void {
-        Vscode.workspace.getConfiguration(section).update(Field.Ewp, path.toString());
+        getSettingsFile().set(Field.Ewp, path);
 
         fireChange(Field.Ewp, path.toString());
     }
 
     export function getConfiguration(): string | undefined {
-        return Vscode.workspace.getConfiguration(section).get(Field.Configuration);
+        return getSettingsFile().get(Field.Configuration);
     }
 
     export function setConfiguration(name: string): void {
-        Vscode.workspace.getConfiguration(section).update(Field.Configuration, name);
+        getSettingsFile().set(Field.Configuration, name);
 
         fireChange(Field.Configuration, name);
     }
@@ -117,6 +177,24 @@ export namespace Settings {
 
     export function getExtraBuildArguments(): Array<string> {
         return Vscode.workspace.getConfiguration(section).get(Field.ExtraBuildArguments) as Array<string>;
+    }
+
+    function generateSettingsFilePath(): Fs.PathLike {
+        let folders = Vscode.workspace.workspaceFolders as Vscode.WorkspaceFolder[];
+        let folder = folders[0].uri.fsPath;
+
+        let path = Path.join(folder, ".vscode", "iar-vsc.json");
+
+        return path;
+    }
+
+    function getSettingsFile(): SettingsFile {
+        if (settingsFile === undefined) {
+
+            settingsFile = new SettingsFile(generateSettingsFilePath());
+        }
+
+        return settingsFile;
     }
 
     function fireChange(field: Field, newValue: string) {
