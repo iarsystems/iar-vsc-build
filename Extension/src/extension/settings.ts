@@ -12,14 +12,14 @@ export namespace Settings {
     type ChangeHandler = (section: Field, newValue: string) => void;
 
     export enum Field {
-      Workbench = "workbench",
-      Compiler = "compiler",
-      Ewp = "ewp",
-      Configuration = "configuration",
-      Defines = "defines",
-      CStandard = "cStandard",
-      CppStandard = "cppStandard",
-      ExtraBuildArguments = "extraBuildArguments"
+        Workbench = "workbench",
+        Compiler = "compiler",
+        Ewp = "ewp",
+        Configuration = "configuration",
+        Defines = "defines",
+        CStandard = "cStandard",
+        CppStandard = "cppStandard",
+        ExtraBuildArguments = "extraBuildArguments"
     }
 
     const section = "iarvsc";
