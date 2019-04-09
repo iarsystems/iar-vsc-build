@@ -29,7 +29,8 @@ When selecting one of the two, a default task is generated which uses the workbe
 #### Depracated Method: Create manually
 
 In previous plugins there was a build command. However, from now on you can create a task because all necessary information is available through settings. You can use the following snippets to create a `build` and `rebuild` command. In alpha2 or beta1 will contain a `problem matcher`. Use the following template as a starting point:
-```
+
+```[json]
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
@@ -75,9 +76,31 @@ Improvements are welcome through *pull requests* or *issue reports*.
 
 ### Debugging
 
-In v1.1.0-beta1 settings are added to configure a gdbserver and a gdb executable. The following data for the `launch.json` file will use this configuration to start debugging. Currently this is only for testing and is work in progress. The settings are nog yet automatically updated when selecting different projects or confiugrations (even though the description of the settings mention this).
+In v1.1.0 settings are added to configure a gdbserver and a gdb executable. The following data for
+the `launch.json` file will use this configuration to start debugging. Currently this is only for
+testing and is work in progress. The settings are nog yet automatically updated when selecting
+different projects or confiugrations (even though the description of the settings mention this).
 
-```
+Open or create the `launch.json` file and place your cursor at the beginning of the configurations
+array. Now press `Ctrl + Space` to activate autocompletion. You should see an item like
+`IAR: Debug using gdb server`. If you select this, the configuration below is automatically
+generated.
+
+Some information about the used config parameters:
+
+* `iarvsc.debugger`: The path to the debugger to use. In case your debugger is on your `PATH`
+  environment you can just enter the debugger executable like `arm-none-eabi-gdb.exe`, otherwise,
+  use the absolute path to the debugger.
+* `iarvsc.gdbServer`: The path to the gdb server. If you are using a J-Link Segger, you will
+  probably have to enter the full path like: `C:\GNU Tools ARM Embedded\2018-q4-major\bin\arm-none-eabi-gdb.exe`.
+  Keep in mind you have to escape the *backslashes* `\` in *json*.
+* `iarvsc.device`: The device you are want to *flash* and *debug*. Check your *debug server*
+  documentation which values you can use here.
+* `iarvsc.outFile`: This field is not yet used in the current release, but it is mentioned here for
+  completeness. You can use it, but keep in  mind the value you enter here can conflict in future
+  releases.
+
+```[json]
 {
     "version": "0.2.0",
     "configurations": [
@@ -85,14 +108,14 @@ In v1.1.0-beta1 settings are added to configure a gdbserver and a gdb executable
             "name": "Debug GDBServer",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${config:iarvsc.outFile}",
+            "program": "Path to the out file",
             "stopAtEntry": true,
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceFolder}",
             "externalConsole": true,
             "MIMode": "gdb",
             "miDebuggerPath": "${config:iarvsc.debugger}",
             "debugServerPath": "${config:iarvsc.gdbServer}",
-            "debugServerArgs": "${config:iarvsc.gdbServerArgs",
+            "debugServerArgs": "-if swd -singlerun -strict -endian little -speed auto -port 3333 -device ${config:iarvsc.device} -vd -strict -halt",
             "serverStarted": "Connected\\ to\\ target",
             "serverLaunchTimeout": 5000,
             "filterStderr": false,
@@ -111,7 +134,7 @@ In v1.1.0-beta1 settings are added to configure a gdbserver and a gdb executable
                     "text": "monitor reset"
                 },
                 {
-                    "text": "load \\\"${config:iarvsc.outFile}\\\""
+                    "text": "load \\\"Path to the out file\\\""
                 },
                 {
                     "text": "monitor reset"
@@ -144,31 +167,29 @@ Those values get overwritten by the extension when invalid values are defined or
 
 ## Release Notes
 
-### 1.1.0-beta1
+### 1.1.0
 
+* Fixes #38: IAR:Select Configuration does not autopopulate with options
 * Implement #28: Add support to generate build tasks using the VSCode built-in command `Tasks: Configure Task`.
 * Fix #18: Save all files before build. (this is actually fixed because we are now using tasks)
-* Add settings to test a generic launch script to start debugging.
+* Implement #10: Create a launch task to start debugging using the Segger J-Link debugger using settings configurations
+  parameters.
+* Fix #44: Perform a recursive search to find eww files in the workspace root folder.
+
+### 1.0.1
+
+* Fixes #38: IAR:Select Configuration does not autopopulate with options
 
 ### 1.0.0
 
 * Add __root to default defines
 * Add keywords so the extension is easier to find in the marketplace
-
-### 1.0.0-beta1
-
 * Add listeners to the define settings so the cpptools config file is generated when changed
 * Fix issue when cpptools config file is empty or invalid: plugin would not load
 * Add some more settings for default c and c++ standard configuration
-
-### 1.0.0-alpha2
-
 * Correct relative include paths in cpptools config file
 * Add `=` sign to default defines in settings
 * Add a problem matcher
-
-### 1.0.0-alpha1
-
 * Redisgned the extension
 * Instead of completely command drive, status bar items are added to configure most things
 * Automatically monitor the selected ewp file and auto generate the config file
@@ -195,7 +216,6 @@ Add system include paths
 ### 0.0.1
 
 Initial release of iar-vsc
-
 
 ## Road Map
 

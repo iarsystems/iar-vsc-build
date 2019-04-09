@@ -2,7 +2,7 @@
   "name": "iar-vsc",
   "displayName": "IAR For Visual Studio Code",
   "description": "An extension to uses IAR project files to config and debug projects",
-  "version": "1.1.0-beta1",
+  "version": "1.1.0",
   "publisher": "pluyckx",
   "icon": "images/logo.png",
   "preview": true,
@@ -29,7 +29,7 @@
     "onCommand:iar.selectProject",
     "onCommand:iar.selectConfiguration",
     "onCommand:iar.generateCppToolsConfig",
-    "onCommand:iar.openWorkbench",
+    "onCommand:iar.selectIarWorkspace",
     "workspaceContains:**/*.ewp"
   ],
   "main": "./out/src/main",
@@ -58,11 +58,6 @@
       {
         "command": "iar.generateCppToolsConfig",
         "title": "Generate CppTools Config File",
-        "category": "IAR"
-      },
-      {
-        "command": "iar.openWorkbench",
-        "title": "Open selected IAR Workbench",
         "category": "IAR"
       }
     ],
@@ -133,10 +128,10 @@
         },
         "iarvsc.outFile": {
           "type": "string",
-          "description": "The path to the output file. This is updated by the extension when changing the project or configuration",
+          "description": "Currently not used, but will be used in the future to generate launch configurations.",
           "default": ""
         },
-        "iarvsc.debugger": {
+        "iarvsc.gdb": {
           "type": "string",
           "markdownDescription": "The path to the gdb debugger to use. In case the executable is not on the `PATH` environment, you have to specify the full path.",
           "default": "arm-none-eabi-gdb.exe"
@@ -146,10 +141,10 @@
           "markdownDescription": "The path to the gdb server to use. In case the executable is not on the `PATH` environment, you have to specify the full path.",
           "default": "JLinkGDBServerCL.exe"
         },
-        "iarvsc.gdbServerArgs": {
+        "iarvsc.device": {
           "type": "string",
-          "markdownDescription": "The arguments to use when launching the gdb server.",
-          "default": "-if swd -singlerun -strict -endian little -speed auto -port 3333 -device {enter mcu} -vd -strict -halt"
+          "markdownDescription": "The name of the target microcontroller",
+          "default": "undefined"
         }
       }
     },
@@ -188,7 +183,8 @@
             "description": "The command to use for the IarBuild.exe command",
             "enum": [
               "build",
-              "rebuild"
+              "rebuild",
+              "open"
             ]
           },
           "project": {
@@ -199,15 +195,73 @@
             "type": "string",
             "description": "The configuration in the project file to use"
           },
+          "workbench": {
+            "type": "string",
+            "description": "Path to the workbench to use"
+          },
+          "builder": {
+            "type": "string",
+            "description": "Path to the builder to use"
+          },
+          "workspace": {
+            "type": "string",
+            "description": "The path to the workspace file to use"
+          },
           "label": {
             "type": "string",
             "description": "The name for the task that is shown when executing the built-in command `Run Tasks` of VS Code."
           }
         },
         "required": [
-          "command",
-          "project",
-          "config"
+          "command"
+        ]
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "IAR: gdb server",
+        "configurationSnippets": [
+          {
+            "label": "IAR: Debug using gdb server",
+            "description": "Description",
+            "body": {
+              "name": "Debug GDBServer",
+              "type": "cppdbg",
+              "request": "launch",
+              "program": "Absolute path to the out file.",
+              "stopAtEntry": true,
+              "cwd": "${${workspaceFolder}workspaceFolder}",
+              "externalConsole": true,
+              "MIMode": "gdb",
+              "miDebuggerPath": "${${c}config:iarvsc.gdb}",
+              "debugServerPath": "${${c}config:iarvsc.gdbServer}",
+              "debugServerArgs": "-if swd -singlerun -strict -endian little -speed auto -port 3333 -device ${${c}config:iarvsc.device} -vd -strict -halt",
+              "serverStarted": "Connected\\\\ to\\\\ target",
+              "serverLaunchTimeout": 5000,
+              "filterStderr": false,
+              "filterStdout": true,
+              "setupCommands": [
+                {
+                  "text": "target remote localhost:3333"
+                },
+                {
+                  "text": "monitor flash breakpoints = 1"
+                },
+                {
+                  "text": "monitor flash download = 1"
+                },
+                {
+                  "text": "monitor reset"
+                },
+                {
+                  "text": "load \\\\\"Path to the out file.\\\\\""
+                },
+                {
+                  "text": "monitor reset"
+                }
+              ]
+            }
+          }
         ]
       }
     ]
