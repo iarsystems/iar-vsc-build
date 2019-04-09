@@ -9,4 +9,4 @@ used to verify the Extension.
 
 ## Documentation
 
-* [IAR-VSC documentation](https://spoorcc.github.io/iar-vsc/)
+* [IAR-VSC documentation](https://iar-vsc.readthedocs.io/en/latest/)
