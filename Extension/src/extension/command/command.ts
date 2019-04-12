@@ -68,19 +68,60 @@ class CommandWithInput<T> extends CommandBase {
 }
 
 export namespace Command {
+
+    class CommandManager {
+        private commands_: Command[];
+
+        public constructor() {
+            this.commands_ = [];
+        }
+
+        public get commands(): Command[] {
+            return this.commands_;
+        }
+
+        public add(command: Command): void {
+            this.commands_.push(command);
+        }
+
+        public find(command: string): Command | undefined {
+            return this.commands.find((value): boolean => {
+                if (value.command === command) {
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        }
+    }
+
+    let manager = new CommandManager();
+
+    export function getCommandManager(): CommandManager {
+        return manager;
+    }
+
     export function createSelectWorkbenchCommand(model: ListInputModel<Workbench>): Command {
-        return new CommandWithInput("iar.selectWorkbench", model);
+        return createInputCommand("iar.selectWorkbench", model);
     }
 
     export function createSelectCompilerCommand(model: ListInputModel<Compiler>): Command {
-        return new CommandWithInput("iar.selectCompiler", model);
+        return createInputCommand("iar.selectCompiler", model);
     }
 
     export function createSelectProjectCommand(model: ListInputModel<Project>): Command {
-        return new CommandWithInput("iar.selectProject", model);
+        return createInputCommand("iar.selectProject", model);
     }
 
     export function createSelectConfigurationCommand(model: ListInputModel<Config>): Command {
-        return new CommandWithInput("iar.selectConfiguration", model);
+        return createInputCommand("iar.selectConfiguration", model);
+    }
+
+    function createInputCommand<T>(command: string, model: ListInputModel<T>): Command {
+        let cmd = new CommandWithInput(command, model);
+
+        manager.add(cmd);
+
+        return cmd;
     }
 }
