@@ -16,7 +16,7 @@ export interface Command {
     readonly command: string;
     enabled: boolean;
 
-    execute(): void;
+    execute(): any;
     register(context: Vscode.ExtensionContext): void;
 }
 
@@ -37,7 +37,7 @@ export abstract class CommandBase implements Command {
         this.enabled_ = value;
     }
 
-    execute(): void {
+    execute(): any {
         if (this.enabled) {
             this.executeImpl();
         } else {

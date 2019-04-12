@@ -19,7 +19,6 @@ export class SelectIarWorkspace implements Command {
         this.enabled = true;
     }
 
-    /* FIXME: interface says, `void`, we say `any`: fix this! */
     execute(): any {
         if (Vscode.workspace.rootPath) {
             let workspaceFolder = Vscode.workspace.rootPath;
@@ -54,6 +53,4 @@ export class SelectIarWorkspace implements Command {
 
         context.subscriptions.push(cmd);
     }
-
-
 }
