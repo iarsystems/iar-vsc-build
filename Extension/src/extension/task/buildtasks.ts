@@ -82,7 +82,7 @@ export namespace BuildTasks {
         ];
 
         let extraArgs = Settings.getExtraBuildArguments();
-        if (extraArgs.length != 0) {
+        if (extraArgs.length !== 0) {
             args = args.concat(extraArgs);
         }
 
