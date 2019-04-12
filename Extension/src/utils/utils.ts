@@ -4,6 +4,9 @@
 
 'use strict';
 
+import { Command } from "../extension/command/command";
+import { isString } from "util";
+
 
 export namespace ReplaceUtils {
     /**
@@ -41,5 +44,40 @@ export namespace ListUtils {
         });
 
         return Array.from(result.values());
+    }
+}
+
+export namespace CommandUtils {
+    export function parseSettingCommands(inStr: string): string {
+        let position = inStr.indexOf("${command:");
+
+        while (position !== -1) {
+            let start = inStr.indexOf(":", position) + 1;
+            let end = inStr.indexOf("}", start);
+
+            let command = inStr.substring(start, end);
+
+            let cmd = Command.getCommandManager().find(command);
+            if (cmd !== undefined) {
+                let result = cmd.execute();
+
+                if (isString(result)) {
+                    let replaceString = "${command:" + command + "}";
+                    let replaceBy = result as string;
+
+                    inStr = inStr.replace(replaceString, replaceBy);
+
+                    position = 0;
+                } else {
+                    position = end;
+                }
+            } else {
+                position = end;
+            }
+
+            position = inStr.indexOf("${command:", position);
+        }
+
+        return inStr;
     }
 }
