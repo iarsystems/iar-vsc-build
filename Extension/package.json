@@ -59,6 +59,26 @@
         "command": "iar.generateCppToolsConfig",
         "title": "Generate CppTools Config File",
         "category": "IAR"
+      },
+      {
+        "command": "iar-settings.workbench",
+        "title": "Get the selected workbench location",
+        "category": "IAR Settings"
+      },
+      {
+        "command": "iar-settings.compiler",
+        "title": "Get the selected compiler location",
+        "category": "IAR Settings"
+      },
+      {
+        "command": "iar-settings.project-file",
+        "title": "Get the selected project file",
+        "category": "IAR Settings"
+      },
+      {
+        "command": "iar-settings.project-configuration",
+        "title": "Get the selected project configuration",
+        "category": "IAR Settings"
       }
     ],
     "configuration": {
