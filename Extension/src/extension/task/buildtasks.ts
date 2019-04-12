@@ -7,6 +7,7 @@
 import * as Vscode from "vscode";
 import { isArray } from "util";
 import { Settings } from "../settings";
+import { CommandUtils } from "../../utils/utils";
 
 export interface BuildTaskDefinition {
     readonly label: string;
@@ -58,6 +59,8 @@ export namespace BuildTasks {
         if (builder === undefined) {
             showErrorMissingField("builder", label);
             return undefined;
+        } else {
+            builder = CommandUtils.parseSettingCommands(builder);
         }
 
         if (project === undefined) {
@@ -131,9 +134,9 @@ export namespace BuildTasks {
                 label: label,
                 type: "iar",
                 command: command,
-                builder: "${config:iarvsc.workbench}\\\\common\\\\bin\\\\IarBuild.exe",
-                project: "${config:iarvsc.ewp}",
-                config: "${config:iarvsc.configuration}",
+                builder: "${command:iar-settings.workbench}\\\\common\\\\bin\\\\IarBuild.exe",
+                project: "${command:iar-settings.project-file}",
+                config: "${command:iar-settings.project-configuration}",
                 problemMatcher: ["$iar-cc", "$iar-linker"]
             };
 

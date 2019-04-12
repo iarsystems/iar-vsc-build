@@ -5,7 +5,9 @@
 'use strict';
 
 import * as Vscode from "vscode";
-import { isArray } from "util";
+import { isArray, isString } from "util";
+import { Command } from "../command/command";
+import { CommandUtils } from "../../utils/utils";
 
 export interface OpenTaskDefinition {
     readonly label: string;
@@ -54,6 +56,8 @@ export namespace OpenTasks {
         if (workbench === undefined) {
             showErrorMissingField("workbench", label);
             return undefined;
+        } else {
+            workbench = CommandUtils.parseSettingCommands(workbench);
         }
 
         let process = new Vscode.ProcessExecution(
@@ -95,7 +99,7 @@ export namespace OpenTasks {
             label: label,
             type: "iar",
             command: "open",
-            workbench: "${config:iarvsc.workbench}\\\\common\\\\bin\\\\IarIdePm.exe",
+            workbench: "${command:iar-settings.workbench}\\\\common\\\\bin\\\\IarIdePm.exe",
             workspace: "${command:iar.selectIarWorkspace}",
             problemMatcher: []
         };
