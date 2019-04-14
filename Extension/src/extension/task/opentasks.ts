@@ -6,8 +6,7 @@
 
 import * as Vscode from "vscode";
 import { isArray, isString } from "util";
-import { Command } from "../command/command";
-import { CommandUtils } from "../../utils/utils";
+import { IarExecution } from "./iarexecution";
 
 export interface OpenTaskDefinition {
     readonly label: string;
@@ -56,11 +55,9 @@ export namespace OpenTasks {
         if (workbench === undefined) {
             showErrorMissingField("workbench", label);
             return undefined;
-        } else {
-            workbench = CommandUtils.parseSettingCommands(workbench);
         }
 
-        let process = new Vscode.ProcessExecution(
+        let process = new IarExecution(
             workbench,
             [
                 workspace

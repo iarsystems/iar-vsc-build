@@ -7,7 +7,7 @@
 import * as Vscode from "vscode";
 import { isArray } from "util";
 import { Settings } from "../settings";
-import { CommandUtils } from "../../utils/utils";
+import { IarExecution } from "./iarexecution";
 
 export interface BuildTaskDefinition {
     readonly label: string;
@@ -59,8 +59,6 @@ export namespace BuildTasks {
         if (builder === undefined) {
             showErrorMissingField("builder", label);
             return undefined;
-        } else {
-            builder = CommandUtils.parseSettingCommands(builder);
         }
 
         if (project === undefined) {
@@ -90,7 +88,7 @@ export namespace BuildTasks {
         }
 
         if (iarCommand) {
-            let process = new Vscode.ProcessExecution(
+            let process = new IarExecution(
                 builder,
                 args
             );
