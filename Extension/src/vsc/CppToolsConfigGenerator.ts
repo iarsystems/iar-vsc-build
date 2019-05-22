@@ -23,7 +23,11 @@ export namespace CppToolsConfigGenerator {
         error: Error | undefined;
     };
 
-    export function generate(config?: Config, compiler?: Compiler, outPath?: Fs.PathLike): Error | undefined {
+    export async function generate(config?: Config, compiler?: Compiler, outPath?: Fs.PathLike): Promise<Error | undefined> {
+        if (compiler !== undefined) {
+            compiler.prepare();
+        }
+
         if (!outPath) {
             let workspaceFolder = Vscode.workspace.rootPath;
 

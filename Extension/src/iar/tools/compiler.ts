@@ -18,14 +18,16 @@ export interface Compiler {
     readonly path: Fs.PathLike;
     readonly defines: Define[];
     readonly includePaths: IncludePath[];
+
+    prepare(): void;
 }
 
 type CompilerOutput = { defines: Define[], includePaths: IncludePath[] };
 
 class IarCompiler implements Compiler {
     readonly path: Fs.PathLike;
-    readonly defines: Define[];
-    readonly includePaths: IncludePath[];
+    private _defines: Define[] | undefined;
+    private _includePaths: IncludePath[] | undefined;
 
     /**
      * Create a new Compiler object.
@@ -39,14 +41,37 @@ class IarCompiler implements Compiler {
             throw new Error("path does not point to a valid compiler.");
         }
 
-        let { defines, includePaths } = this.computeCompilerSpecifics();
+        this._defines = undefined;
+        this._includePaths = undefined;
+    }
 
-        this.defines = defines;
-        this.includePaths = includePaths;
+    public prepare(): void {
+        if ((this._defines === undefined) || (this._includePaths === undefined)) {
+            let { defines, includePaths } = this.computeCompilerSpecifics();
+
+            this._defines = defines;
+            this._includePaths = includePaths;
+        }
     }
 
     get name(): string {
         return Path.parse(this.path.toString()).name;
+    }
+
+    get defines(): Define[] {
+        if (this._defines === undefined) {
+            return [];
+        } else {
+            return this._defines;
+        }
+    }
+
+    get includePaths(): IncludePath[] {
+        if (this._includePaths === undefined) {
+            return [];
+        } else {
+            return this._includePaths;
+        }
     }
 
     /**
