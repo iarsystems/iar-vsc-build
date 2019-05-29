@@ -1,7 +1,3 @@
 # Change Log
-All notable changes to the "iar-vsc" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-- Initial release
+See [https://iar-vsc.readthedocs.io/en/latest/pages/release_notes.html][https://iar-vsc.readthedocs.io/en/latest/pages/release_notes.html] for the change logs.

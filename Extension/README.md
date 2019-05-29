@@ -167,6 +167,15 @@ Those values get overwritten by the extension when invalid values are defined or
 
 ## Release Notes
 
+### 1.2.0
+
+* Set license to MPL 2.0
+* Updated documentation and use readthedocs as host
+* Pull #48: Add extra build argument
+* Add dependency on `ms-vscode.cpptools` so it is easier to install it
+* #51: Use a separate config file to store IAR project related configs which can differ between developers
+* #47: Speed up startup time by only calling the compiler when selecting it and not go through all compilers at startup
+
 ### 1.1.0
 
 * Fixes #38: IAR:Select Configuration does not autopopulate with options
