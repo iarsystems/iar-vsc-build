@@ -15,6 +15,10 @@ Developing
 
 The ``IAR-vsc`` plugin is written in *TypeScript*. It's not necessary to be an expert in this language to contribute (the author is also not an expert). Again, the `gitter room`_ is the place to be to ask questions and discuss things.
 
+Before starting implementing things, please create first an ``issue`` or ``feature request`` on the `github issue page`_. This way I have an overview what is going on and we can start a discussion when necessary.
+
+.. _github issue page: https://github.com/pluyckx/iar-vsc/issues
+
 Branches
 --------
 
