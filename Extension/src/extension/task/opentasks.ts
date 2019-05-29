@@ -5,7 +5,7 @@
 'use strict';
 
 import * as Vscode from "vscode";
-import { isArray, isString } from "util";
+import { isArray } from "util";
 import { IarExecution } from "./iarexecution";
 
 export interface OpenTaskDefinition {

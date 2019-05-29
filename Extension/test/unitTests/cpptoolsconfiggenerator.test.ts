@@ -106,7 +106,8 @@ suite("CppToolsConfigGenerator", () => {
             name: "cc",
             path: path,
             defines: defines,
-            includePaths: includePaths
+            includePaths: includePaths,
+            prepare: function () { }
         };
     }
 
