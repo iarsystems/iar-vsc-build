@@ -17,6 +17,7 @@ import { Compiler } from "../iar/tools/compiler";
 import { FsUtils } from "../utils/fs";
 import { Settings } from "../extension/settings";
 import { SourceFileConfiguration } from "vscode-cpptools";
+import { Logging } from "../utils/logging";
 
 export type language = "c" | "cpp";
 
@@ -50,12 +51,16 @@ export namespace CppToolsConfigGenerator {
 
         let obj = await GenerateConfigObject(language, config, compiler);
 
+        let tmp = obj as any;
+        tmp["name"] = "IAR";
+
         let { "error": errRet, "config": cpptoolsConfigFile } = loadConfiguration(outPath);
         if (errRet !== undefined) {
             return errRet;
         }
 
         if (setConfigurationIfChanged(cpptoolsConfigFile, "IAR", obj)) {
+            Logging.getInstance().debug("Writing 'c_cpp_properties.json'");
             Fs.writeFileSync(outPath, JSON.stringify(cpptoolsConfigFile, undefined, 4));
         }
 
@@ -88,7 +93,6 @@ export namespace CppToolsConfigGenerator {
         });
 
         return array;
-
     }
 
     function toPreIncludePathArray(includes: PreIncludePath[]): string[] {
