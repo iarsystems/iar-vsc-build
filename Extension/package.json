@@ -293,6 +293,7 @@
     "xml-js": "1.6.8",
     "jsonc-parser": "1.0.0",
     "child-exec": "1.0.0",
-    "fast-deep-equal": "2.0.1"
+    "fast-deep-equal": "2.0.1",
+    "vscode-cpptools": "2.1.2"
   }
 }

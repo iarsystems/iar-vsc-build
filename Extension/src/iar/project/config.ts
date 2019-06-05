@@ -15,8 +15,10 @@ import { IarXml } from "../../utils/xml";
 
 export interface Config {
     readonly name: string;
-    readonly defines: Define[];
-    readonly includes: IncludePath[];
+    readonly cppDefines: Define[];
+    readonly cDefines: Define[];
+    readonly cppIncludes: IncludePath[];
+    readonly cIncludes: IncludePath[];
     readonly preIncludes: PreIncludePath[];
 }
 
@@ -39,6 +41,22 @@ class XmlConfig implements Config {
         this.defines = Define.fromXml(xmlConfigElement);
         this.includes = IncludePath.fromXmlData(xmlConfigElement, projectRoot);
         this.preIncludes = PreIncludePath.fromXml(xmlConfigElement, projectRoot);
+    }
+
+    get cDefines(): Define[] {
+        return this.defines;
+    }
+
+    get cppDefines(): Define[] {
+        return this.defines;
+    }
+
+    get cIncludes(): IncludePath[] {
+        return this.includes;
+    }
+
+    get cppIncludes(): IncludePath[] {
+        return this.includes;
     }
 
     get name(): string {

@@ -12,8 +12,11 @@ import { Settings } from './extension/settings';
 import { SettingsMonitor } from './extension/settingsmonitor';
 import { IarTaskProvider } from './extension/task/provider';
 import { GetSettingsCommand } from "./extension/command/getsettings";
+import { Logging } from './utils/logging';
 
 export function activate(context: vscode.ExtensionContext) {
+    Logging.setup(context);
+
     GetSettingsCommand.initCommands(context);
     UI.init(context, IarVsc.toolManager);
 

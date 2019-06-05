@@ -9,6 +9,9 @@ import * as Fs from "fs";
 import * as Path from "path";
 import { Handler } from "../utils/handler";
 
+type cStandards = "c89" | "c99" | "c11";
+type cppStandards = "c++98" | "c++03" | "c++11" | "c++14" | "c++17";
+
 class SettingsFile {
     private path_: Fs.PathLike;
     private json_: any
@@ -167,12 +170,24 @@ export namespace Settings {
         }
     }
 
-    export function getCStandard(): string {
-        return Vscode.workspace.getConfiguration(section).get(Field.CStandard) as string;
+    export function getCStandard(): cStandards {
+        let standard = Vscode.workspace.getConfiguration(section).get(Field.CStandard) as string;
+
+        if (isCStandard(standard)) {
+            return standard;
+        } else {
+            return "c89";
+        }
     }
 
-    export function getCppStandard(): string {
-        return Vscode.workspace.getConfiguration(section).get(Field.CppStandard) as string;
+    export function getCppStandard(): cppStandards {
+        let standard = Vscode.workspace.getConfiguration(section).get(Field.CppStandard) as string;
+
+        if (isCppStandard(standard)) {
+            return standard;
+        } else {
+            return "c++98";
+        }
     }
 
     export function getExtraBuildArguments(): Array<string> {
@@ -204,6 +219,30 @@ export namespace Settings {
             list.forEach(handler => {
                 handler.call(field, newValue);
             });
+        }
+    }
+
+    function isCStandard(value: string): value is cStandards {
+        switch (value) {
+            case "c89":
+            case "c99":
+            case "c11":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    function isCppStandard(value: string): value is cppStandards {
+        switch (value) {
+            case "c++98":
+            case "c++03":
+            case "c++11":
+            case "c++14":
+            case "c++17":
+                return true;
+            default:
+                return false;
         }
     }
 }

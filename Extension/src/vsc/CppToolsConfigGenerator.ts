@@ -16,6 +16,9 @@ import { Define } from "../iar/project/define";
 import { Compiler } from "../iar/tools/compiler";
 import { FsUtils } from "../utils/fs";
 import { Settings } from "../extension/settings";
+import { SourceFileConfiguration } from "vscode-cpptools";
+
+export type language = "c" | "cpp";
 
 export namespace CppToolsConfigGenerator {
     type loadConfigReturn = {
@@ -23,10 +26,16 @@ export namespace CppToolsConfigGenerator {
         error: Error | undefined;
     };
 
-    export async function generate(config?: Config, compiler?: Compiler, outPath?: Fs.PathLike): Promise<Error | undefined> {
+    export async function GenerateConfigObject(language: language, config?: Config, compiler?: Compiler): Promise<SourceFileConfiguration> {
+
         if (compiler !== undefined) {
             compiler.prepare();
         }
+
+        return generateConfiguration(language, config, compiler);
+    }
+
+    export async function generate(language: language, config?: Config, compiler?: Compiler, outPath?: Fs.PathLike): Promise<Error | undefined> {
 
         if (!outPath) {
             let workspaceFolder = Vscode.workspace.rootPath;
@@ -37,9 +46,9 @@ export namespace CppToolsConfigGenerator {
             outPath = createDefaultOutputPath(workspaceFolder);
         }
 
-        let obj = generateConfiguration(config, compiler);
-
         createOutDirectory(outPath);
+
+        let obj = await GenerateConfigObject(language, config, compiler);
 
         let { "error": errRet, "config": cpptoolsConfigFile } = loadConfiguration(outPath);
         if (errRet !== undefined) {
@@ -139,37 +148,44 @@ export namespace CppToolsConfigGenerator {
         return returnData;
     }
 
-    function generateConfiguration(config?: Config, compiler?: Compiler): any {
-        let obj: any = {};
+    function generateConfiguration(language: language, config?: Config, compiler?: Compiler): SourceFileConfiguration {
 
         let defines: string[] = [];
         let includepaths: string[] = [];
         let preincludes: string[] = [];
 
         if (config) {
-            defines = defines.concat(toDefineArray(config.defines));
-            includepaths = includepaths.concat(toIncludePathArray(config.includes));
+            if (language === "c") {
+                defines = defines.concat(toDefineArray(config.cDefines));
+                includepaths = includepaths.concat(toIncludePathArray(config.cIncludes));
+            } else {
+                defines = defines.concat(toDefineArray(config.cppDefines));
+                includepaths = includepaths.concat(toIncludePathArray(config.cppIncludes));
+            }
+
             preincludes = preincludes.concat(toPreIncludePathArray(config.preIncludes));
         }
 
         defines = defines.concat(Settings.getDefines());
 
         if (compiler) {
-            defines = defines.concat(toDefineArray(compiler.defines));
-            includepaths = includepaths.concat(toIncludePathArray(compiler.includePaths, true));
+            if (language === "c") {
+                defines = defines.concat(toDefineArray(compiler.cDefines));
+                includepaths = includepaths.concat(toIncludePathArray(compiler.cIncludePaths, true));
+            } else {
+                defines = defines.concat(toDefineArray(compiler.cppDefines));
+                includepaths = includepaths.concat(toIncludePathArray(compiler.cppIncludePaths, true));
+            }
         }
 
-        obj["name"] = "IAR";
-        obj["defines"] = defines;
-        obj["includePath"] = includepaths;
-        obj["forcedInclude"] = preincludes;
-
-        obj["cStandard"] = Settings.getCStandard();
-        obj["cppStandard"] = Settings.getCppStandard();
-
-        obj["compilerPath"] = "";
-
-        return obj;
+        return {
+            defines: defines,
+            includePath: includepaths,
+            forcedInclude: preincludes,
+            standard: (language === "cpp") ? Settings.getCppStandard() : Settings.getCStandard(),
+            intelliSenseMode: "msvc-x64",
+            compilerPath: ""
+        };
     }
 
     function setConfigurationIfChanged(cpptoolsConfigFile: any, name: string, config: any): boolean {

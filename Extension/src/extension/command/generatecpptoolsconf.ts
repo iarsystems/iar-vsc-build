@@ -27,7 +27,7 @@ class GenerateCppToolsConfCommand extends CommandBase {
     executeImpl(): void {
         Vscode.window.showInformationMessage("Generating cpptools config file");
 
-        CppToolsConfigGenerator.generate(this.configModel.selected, this.compilerModel.selected).then((result) => {
+        CppToolsConfigGenerator.generate("c", this.configModel.selected, this.compilerModel.selected).then((result) => {
             if (result) {
                 Vscode.window.showErrorMessage(result.message);
             }

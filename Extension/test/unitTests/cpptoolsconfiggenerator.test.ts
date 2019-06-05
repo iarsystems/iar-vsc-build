@@ -24,7 +24,7 @@ suite("CppToolsConfigGenerator", () => {
             jsonString = args[1];
         });
 
-        CppToolsConfigGenerator.generate(config, compiler, outPath);
+        CppToolsConfigGenerator.generate("c", config, compiler, outPath);
 
         let json = Jsonc.parse(jsonString);
         verifyConfig(json, config, compiler);
@@ -46,8 +46,8 @@ suite("CppToolsConfigGenerator", () => {
 
         Assert.notEqual(iarConfiguration, undefined);
 
-        let defines = config.defines.concat(compiler.defines);
-        let includePaths = config.includes.concat(compiler.includePaths);
+        let defines = config.cDefines.concat(compiler.cDefines);
+        let includePaths = config.cIncludes.concat(compiler.cIncludePaths);
         let preincludes = config.preIncludes;
 
         Assert.equal(iarConfiguration["defines"].length, defines.length);
@@ -86,9 +86,11 @@ suite("CppToolsConfigGenerator", () => {
 
         return {
             name: name,
-            defines: defines,
-            includes: includePaths,
-            preIncludes: preIncludePaths
+            cDefines: defines,
+            cIncludes: includePaths,
+            preIncludes: preIncludePaths,
+            cppDefines: defines,
+            cppIncludes: includePaths
         };
     }
 
@@ -105,8 +107,10 @@ suite("CppToolsConfigGenerator", () => {
         return {
             name: "cc",
             path: path,
-            defines: defines,
-            includePaths: includePaths,
+            cDefines: defines,
+            cIncludePaths: includePaths,
+            cppDefines: defines,
+            cppIncludePaths: includePaths,
             prepare: function () { }
         };
     }
