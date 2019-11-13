@@ -97,6 +97,16 @@
         }
       ]
     },
+    "grammars": [
+      {
+        "scopeName": "iar-keywords.injection",
+        "path": "./syntaxes/iar-c-cpp.tmLanguage.json",
+        "injectTo": [
+          "source.c",
+          "source.cpp"
+        ]
+      }
+    ],
     "configuration": {
       "title": "IAR",
       "properties": {
