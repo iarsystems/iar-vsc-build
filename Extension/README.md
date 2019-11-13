@@ -26,7 +26,7 @@ When you execute the VSCode command `Tasks: Configure Task` two items are added 
 
 When selecting one of the two, a default task is generated which uses the workbench, project and configuration selected using the UI. When you select a different configuration, project or werkbench, this script will use the newly selected items.
 
-#### Depracated Method: Create manually
+#### Deprecated Method: Create manually
 
 In previous plugins there was a build command. However, from now on you can create a task because all necessary information is available through settings. You can use the following snippets to create a `build` and `rebuild` command. In alpha2 or beta1 will contain a `problem matcher`. Use the following template as a starting point:
 
@@ -73,6 +73,10 @@ In previous plugins there was a build command. However, from now on you can crea
 ```
 
 Improvements are welcome through *pull requests* or *issue reports*.
+
+### C-STAT
+
+You can run C-STAT on your project with the `iar: Run C-STAT Analysis` command, and clear the warnings with `iar: Clear C-STAT Diagnostics`. You can filter the warnings by setting `iarvsc.cstatFilterLevel` in your user settings.
 
 ### Debugging
 
@@ -159,6 +163,8 @@ This extension contributes the following settings:
 * `iarvsc.ewp`: The last selected project file.
 * `iarvsc.configuration`: The last selected configuration.
 * `iarvsc.defines`: Some custom defines you can add to the define list. They folow the `identifier=value` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
+* `iarvsc.cstatFilterLevel`: Sets the lowest severity of C-STAT warnings to display.
+* `iarvsc.cstatDisplayLowSeverityWarningsAsHints`: When the filter level is set to low, this option will display low severity warnings as 'hints' instead of warnings. This is helpful if you have lots of low severity warnings and want to hide them from the problems list (but still see them in the editor).
 
 An important note for the settings `iarvsc.workbench`, `iarvsc.compiler`, `iarvsc.ewp`, `iarvsc.configuration`:
 Those values get overwritten by the extension when invalid values are defined or you select different values using the extension UI (the status bar items) or commands.

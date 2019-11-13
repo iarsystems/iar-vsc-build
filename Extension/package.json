@@ -30,6 +30,8 @@
     "onCommand:iar.selectConfiguration",
     "onCommand:iar.generateCppToolsConfig",
     "onCommand:iar.selectIarWorkspace",
+    "oncommand:iar.runCStat",
+    "oncommand:iar.clearCStat",
     "workspaceContains:**/*.ewp"
   ],
   "main": "./out/src/main",
@@ -79,6 +81,16 @@
         "command": "iar-settings.project-configuration",
         "title": "Get the selected project configuration",
         "category": "IAR Settings"
+      },
+      {
+        "command": "iar.runCStat",
+        "title": "Run C-STAT Analysis",
+        "category": "IAR"
+      },
+      {
+        "command": "iar.clearCStat",
+        "title": "Clear C-STAT Diagnostics",
+        "category": "IAR"
       }
     ],
     "configuration": {
@@ -125,6 +137,21 @@
           ],
           "description": "The c++ standard to use in the config tool configuration.",
           "default": "${default}"
+        },
+        "iarvsc.cstatFilterLevel": {
+          "description": "C-STAT warnings with a lower severity than this are filtered out.",
+          "default": "Medium",
+          "type": "string",
+          "enum": [
+            "Low",
+            "Medium",
+            "High"
+          ]
+        },
+        "iarvsc.cstatDisplayLowSeverityWarningsAsHints": {
+          "description": "If the filter level is set to Low, displays low severity C-STAT warnings as hints rather than warnings. This hides them from the problem list, but still shows them in the editor.",
+          "type": "boolean",
+          "default": false
         },
         "iarvsc.outFile": {
           "type": "string",
@@ -290,6 +317,7 @@
     "ts-sinon": "1.0.12"
   },
   "dependencies": {
+    "csv-parse": "4.4.3",
     "xml-js": "1.6.8",
     "jsonc-parser": "1.0.0",
     "child-exec": "1.0.0",

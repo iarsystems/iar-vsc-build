@@ -20,6 +20,7 @@ import { ProjectListModel } from "../model/selectproject";
 import { Config } from "../../iar/project/config";
 import { ConfigurationListModel } from "../model/selectconfiguration";
 import { SelectIarWorkspace } from "../command/selectIarWorkspace";
+import { RunCStat, ClearCStat, CStatDiagnosticsManager } from "../cstatDiagnostics"
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -39,6 +40,9 @@ class Application {
     readonly generator: Command;
     readonly selectIarWorkspace: Command;
 
+    readonly runCStat: Command;
+    readonly clearCStat: Command;
+
     constructor(context: Vscode.ExtensionContext, toolManager: ToolManager) {
         this.context = context;
         this.toolManager = toolManager;
@@ -56,6 +60,14 @@ class Application {
 
         this.selectIarWorkspace = new SelectIarWorkspace();
         this.selectIarWorkspace.register(context);
+
+        const cstatDiagnostics = new CStatDiagnosticsManager(this.workbench.model, this.project.model, this.config.model, context.extensionPath);
+        this.runCStat = new RunCStat(cstatDiagnostics);
+        this.runCStat.register(context);
+        this.runCStat.enabled = true;
+        this.clearCStat = new ClearCStat(cstatDiagnostics);
+        this.clearCStat.register(context);
+        this.clearCStat.enabled = true;
 
         // add listeners
         this.addListeners();
