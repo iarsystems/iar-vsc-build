@@ -16,6 +16,7 @@ import { Define } from "../iar/project/define";
 import { Compiler } from "../iar/tools/compiler";
 import { FsUtils } from "../utils/fs";
 import { Settings } from "../extension/settings";
+import { Keyword } from "../iar/project/keyword";
 
 export namespace CppToolsConfigGenerator {
     type loadConfigReturn = {
@@ -156,6 +157,10 @@ export namespace CppToolsConfigGenerator {
 
         if (compiler) {
             defines = defines.concat(toDefineArray(compiler.defines));
+            // To force cpptools to recognize extended keywords we pretend they're compiler-defined macros
+            const keywordDefines = compiler.supportedKeywords.map(Keyword.toDefine);
+            defines = defines.concat(toDefineArray(keywordDefines));
+
             includepaths = includepaths.concat(toIncludePathArray(compiler.includePaths, true));
         }
 
