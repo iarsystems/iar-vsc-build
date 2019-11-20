@@ -200,6 +200,8 @@ class Application {
                     return false;
                 }
             });
+        } else {
+            this.workbench.model.select(0)
         }
     }
 
@@ -221,7 +223,10 @@ class Application {
                     return false;
                 }
             });
+        }else {
+            this.compiler.model.select(0)
         }
+
     }
 
     private selectCurrentProject(): void {
@@ -242,7 +247,10 @@ class Application {
                     return false;
                 }
             });
+        }else {
+            this.project.model.select(0)
         }
+
     }
 
     private selectCurrenConfiguration(): void {
@@ -263,7 +271,10 @@ class Application {
                     return false;
                 }
             });
+        } else {
+            this.config.model.select(0)
         }
+
     }
 
     private addListeners(): void {
