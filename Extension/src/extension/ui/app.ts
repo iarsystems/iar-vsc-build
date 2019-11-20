@@ -20,6 +20,7 @@ import { ProjectListModel } from "../model/selectproject";
 import { Config } from "../../iar/project/config";
 import { ConfigurationListModel } from "../model/selectconfiguration";
 import { SelectIarWorkspace } from "../command/selectIarWorkspace";
+import { TreeSelectionView } from "./treeselectionview";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -48,6 +49,11 @@ class Application {
         this.compiler = this.createCompilerUi();
         this.project = this.createProjectUi();
         this.config = this.createConfigurationUi();
+        Vscode.window.registerTreeDataProvider('iar-settings', new TreeSelectionView(context,
+                                                                                        this.workbench.model,
+                                                                                        this.compiler.model,
+                                                                                        this.project.model,
+                                                                                        this.config.model));
 
         // Create commands without UI
         this.generator = GenerateCommand.createGenerateCppToolsConfig(this.compiler.model as CompilerListModel,

@@ -15,7 +15,8 @@ It is adviced to use the extension UI to configure the extension. The UI are sta
 
 ![Status bar](images/readme/statusbar.png)
 
-You can also call the commands behind those buttons, see the `contribution` tab in the extension section of VS Code.
+There is also a view in the explorer tab for these settings.
+Alternatively, you can call the commands behind those buttons, see the `contribution` tab in the extension section of VS Code.
 
 ### Building
 

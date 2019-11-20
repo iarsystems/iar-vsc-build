@@ -81,6 +81,22 @@
         "category": "IAR Settings"
       }
     ],
+    "views": {
+      "explorer": [
+        {
+          "id": "iar-settings",
+          "name": "IAR Settings"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "iar.generateCppToolsConfig",
+          "when": "view == iar-settings"
+        }
+      ]
+    },
     "configuration": {
       "title": "IAR",
       "properties": {
