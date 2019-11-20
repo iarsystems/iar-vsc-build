@@ -20,12 +20,14 @@ import { CommandBase } from "./command/command";
  */
 export class CStatDiagnosticsManager {
     private diagnosticCollection: vscode.DiagnosticCollection;
+    private readonly outputChannel: vscode.OutputChannel;
 
     constructor(private workbenchModel: ListInputModel<Workbench>,
                 private projectModel: ListInputModel<Project>,
                 private configurationModel: ListInputModel<Config>,
                 private extensionPath: PathLike,) {
         this.diagnosticCollection = vscode.languages.createDiagnosticCollection("C-STAT");
+        this.outputChannel = vscode.window.createOutputChannel("C-STAT");
     }
 
     /**
@@ -51,16 +53,22 @@ export class CStatDiagnosticsManager {
 
         const projectPath = this.projectModel.selected.path;
         const configName = this.configurationModel.selected.name;
-        const analysis = CStat.runAnalysis(this.workbenchModel.selected.path, projectPath, configName);
 
+        this.outputChannel.show(true);
+        this.outputChannel.appendLine("Running C-STAT...");
+
+        const analysis = CStat.runAnalysis(this.workbenchModel.selected.path, projectPath, configName, this.outputChannel);
         analysis.then(() => {
             CStat.getAllWarnings(projectPath, configName, this.extensionPath).then(warnings => {
+                this.outputChannel.appendLine("Analyzing output...");
                 this.diagnosticCollection.clear();
+
                 const filterString = vscode.workspace.getConfiguration("iarvsc").get<string>("cstatFilterLevel");
                 const filterLevel = filterString ? 
                                         CStat.SeverityStringToSeverityEnum(filterString)
                                         : CStat.CStatWarningSeverity.LOW;
                 warnings = warnings.filter(w => w.severity >= filterLevel);
+                this.outputChannel.appendLine("After filtering, " + warnings.length + " warning(s) remain.");
 
                 let fileDiagnostics: [vscode.Uri, vscode.Diagnostic[]][] = [];
                 warnings.forEach(warning => {
@@ -69,18 +77,22 @@ export class CStatDiagnosticsManager {
                 });
 
                 this.diagnosticCollection.set(fileDiagnostics);
+                this.outputChannel.appendLine("C-STAT is done!");
+            }, this.onError); /* getAllWarnings.then */
 
-            });
-        }, () => {
-            vscode.window.showWarningMessage("Something went wrong while running C-STAT");
-        })
+        }, this.onError); /* analysis.then */
     }
 
     /**
      * Clears all C-STAT warnings
      */
     clearDiagnostics() {
+        this.outputChannel.appendLine("Clearing C-STAT Warnings...");
         this.diagnosticCollection.clear();
+    }
+
+    private onError(reason: any) {
+        this.outputChannel.appendLine(reason);
     }
 
     private static warningToDiagnostic(warning: CStat.CStatWarning): vscode.Diagnostic {

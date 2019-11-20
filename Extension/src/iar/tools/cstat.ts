@@ -10,6 +10,7 @@ import * as vscode from "vscode"
 import { PathLike } from "fs";
 import { join, dirname } from "path";
 import CsvParser = require("csv-parse/lib/sync");
+import * as Fs from "fs";
 
 /**
  * Functions for interacting with C-STAT
@@ -40,7 +41,7 @@ export namespace CStat {
         CHECKID = "property_alias",
         TRACE = "encoded_trace",
     }
-    const fieldsToLoad: CStatWarningField[] = Object.values(CStatWarningField);
+    const fieldsToLoad: string[] = Object.values(CStatWarningField);
 
     /**
      * Returns all warnings from the last C-STAT analysis.
@@ -49,9 +50,10 @@ export namespace CStat {
         // the warnings are parsed from cstat.db in the Obj/ output folder
         // we use the sqlite3 executable CLI to perform queries against the database
         const sqliteBin = getSqliteBinaryName();
-        if (sqliteBin == null) return Promise.reject();
+        if (sqliteBin == null) return Promise.reject("Couldn't find sqlite binaries for cstat. Your OS likely isn't supported.");
         const sqliteBinPath = join(extensionPath.toString(), "sqlite-bin", sqliteBin);
-        const cstatDBPath = join(dirname(projectPath.toString()), configurationName, "Obj", "cstat.db");
+        const cstatDBPath = getCStatDBPath(projectPath, configurationName);
+        if (!Fs.existsSync(cstatDBPath)) Promise.reject("Couldn't find cstat DB: " + cstatDBPath);
 
         return new Promise((resolve, reject) => {
             const sqlProc = spawn(sqliteBinPath, [cstatDBPath, "-csv"]); // we want csv output for easier parsing
@@ -75,8 +77,7 @@ export namespace CStat {
             }); /* stdout.once() */
 
             sqlProc.stderr.on('data', data => {
-                console.log(data.toString());
-                reject();
+                reject(data.toString());
                 sqlProc.kill();
             });
         }); /* new Promise() */
@@ -86,15 +87,25 @@ export namespace CStat {
      * Runs a C-STAT analysis on a given project and configuration
      * (calls IarBuild with the -cstat_analyze parameter)
      */
-    export function runAnalysis(workbenchPath: PathLike, projectPath: PathLike, configurationName: string): Thenable<void> {
+    export function runAnalysis(workbenchPath: PathLike, projectPath: PathLike, configurationName: string, output?: vscode.OutputChannel): Thenable<void> {
+        // It seems we need to delete the db and regenerate it every time to get around
+        // some weird behaviour where the db keeps references to files outside the project
+        // (specifically when the project is moved or the db is accidentally put under VCS).
+        // It seems EW solves this by checking if each file in the db is in the project,
+        // but i'm not sure how I would do that in VS Code
+        const dbPath = getCStatDBPath(projectPath, configurationName);
+        if (Fs.existsSync(dbPath)) Fs.unlinkSync(dbPath);
+
         let iarBuildPath = workbenchPath + "/common/bin/IarBuild";
         if (OsUtils.detectOsType() == OsUtils.OsType.Windows) {
             iarBuildPath += ".exe";
         }
         const iarbuild = spawn(iarBuildPath.toString(), [projectPath.toString(), "-cstat_analyze", configurationName.toString()]);
         iarbuild.stdout.on("data", data => {
-            console.log(data.toString()); // TODO: Maybe remove in production code?
-        })
+            if (output) {
+                output.appendLine(data.toString());
+            }
+        });
 
         return new Promise<void>((resolve, reject) => {
             iarbuild.on("close", (code) => {
@@ -117,6 +128,10 @@ export namespace CStat {
                 console.log("Unrecognized C-STAT severity: " + severity);
                 return CStatWarningSeverity.HIGH;
         }
+    }
+
+    function getCStatDBPath(projectPath: PathLike, configurationName: string) {
+        return join(dirname(projectPath.toString()), configurationName, "Obj", "cstat.db");
     }
 
     function parseWarning(warnRow: string[]): CStatWarning {
