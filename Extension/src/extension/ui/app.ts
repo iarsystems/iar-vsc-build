@@ -10,7 +10,7 @@ import { WorkbenchListModel } from "../model/selectworkbench";
 import { SelectionView } from "./selectionview";
 import { Settings } from "../settings";
 import { Command } from "../command/command";
-import { Command as GenerateCommand } from "../command/generatecpptoolsconf";
+import { Command as GenerateCommand, GenerateCppToolsConfCommand } from "../command/generatecpptoolsconf";
 import { Workbench } from "../../iar/tools/workbench";
 import { CompilerListModel } from "../model/selectcompiler";
 import { ListInputModel } from "../model/model";
@@ -37,7 +37,7 @@ class Application {
     readonly project: UI<Project>;
     readonly config: UI<Config>;
 
-    readonly generator: Command;
+    readonly generator: GenerateCppToolsConfCommand;
     readonly selectIarWorkspace: Command;
 
     constructor(context: Vscode.ExtensionContext, toolManager: ToolManager) {
@@ -176,7 +176,7 @@ class Application {
     }
 
     private generateOutput(): void {
-        if (this.generator.enabled) {
+        if (this.generator.enabled && this.generator.canExecute()) {
             this.generator.execute();
         }
     }

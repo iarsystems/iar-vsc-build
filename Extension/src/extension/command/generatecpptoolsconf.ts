@@ -10,7 +10,7 @@ import { CompilerListModel } from "../model/selectcompiler";
 import { ConfigurationListModel } from "../model/selectconfiguration";
 import { CppToolsConfigGenerator } from "../../vsc/CppToolsConfigGenerator";
 
-class GenerateCppToolsConfCommand extends CommandBase {
+export class GenerateCppToolsConfCommand extends CommandBase {
     private compilerModel: CompilerListModel;
     private configModel: ConfigurationListModel;
 
@@ -19,12 +19,13 @@ class GenerateCppToolsConfCommand extends CommandBase {
 
         this.compilerModel = compilerModel;
         this.configModel = configModel;
-
-        this.compilerModel.addOnSelectedHandler(this.executeImpl, this);
-        this.configModel.addOnSelectedHandler(this.executeImpl, this);
     }
 
     executeImpl(): void {
+        if (!this.canExecute()) {
+            Vscode.window.showErrorMessage("You need to select a compiler and configuration to generate the cpptools config file");
+            return;
+        }
         Vscode.window.showInformationMessage("Generating cpptools config file");
 
         CppToolsConfigGenerator.generate(this.configModel.selected, this.compilerModel.selected).then((result) => {
@@ -32,6 +33,14 @@ class GenerateCppToolsConfCommand extends CommandBase {
                 Vscode.window.showErrorMessage(result.message);
             }
         });
+    }
+
+    /**
+     * Checks whether the command has all data it needs to execute. While this function returns false,
+     * executing the command will print an error message to the user.
+     */
+    canExecute(): boolean {
+        return this.compilerModel.selected !== undefined && this.configModel.selected !== undefined;
     }
 }
 
