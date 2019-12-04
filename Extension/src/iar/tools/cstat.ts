@@ -103,7 +103,7 @@ export namespace CStat {
         const iarbuild = spawn(iarBuildPath.toString(), [projectPath.toString(), "-cstat_analyze", configurationName.toString()]);
         iarbuild.stdout.on("data", data => {
             if (output) {
-                output.appendLine(data.toString());
+                output.append(data.toString());
             }
         });
 
