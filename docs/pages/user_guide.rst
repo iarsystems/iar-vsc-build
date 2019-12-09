@@ -40,6 +40,10 @@ It is adviced to use the extension UI to configure the extension. The UI are sta
 .. image:: https://raw.githubusercontent.com/pluyckx/iar-vsc/master/Extension/images/readme/statusbar.png
 
 You can also call the commands behind those buttons, see the ``contribution`` tab in the extension section of VS Code.
+There is also a view in the explorer tab for changing these settings. The explorer view and status bar view are functionally equivalent,
+so if you want you can hide one of them by right clicking on it.
+
+.. image:: https://raw.githubusercontent.com/pluyckx/iar-vsc/master/Extension/images/readme/treeview.png
 
 To configure your project, configure the following options:
 
