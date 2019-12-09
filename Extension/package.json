@@ -1,7 +1,7 @@
 {
   "name": "iar-vsc",
   "displayName": "IAR For Visual Studio Code",
-  "description": "An extension to uses IAR project files to config and debug projects",
+  "description": "Develop IAR projects with intellisense, C-STAT and build support.",
   "version": "1.2.0",
   "publisher": "pluyckx",
   "icon": "images/logo.png",
