@@ -20,11 +20,18 @@ class StringKeyword implements Keyword {
 }
 
 export namespace Keyword {
+    /**
+     * Reads keywords from a platform syntax file (usually called syntax_icc.cfg)
+     * @param path The path to the syntax file
+     */
     export function fromSyntaxFile(path: Fs.PathLike): Keyword[] {
         const buf = Fs.readFileSync(path.toString());
-        const content = buf.toString();
+        const contents = buf.toString();
+        return fromSyntaxFileContents(contents)
+    }
 
-        let lines = content.split(/\n|\r\n/);
+    export function fromSyntaxFileContents(contents: string): Keyword[] {
+        let lines = contents.split(/\n|\r\n/);
         lines = lines.filter(line => line && line.trim()); // remove empty lines
         lines = lines.map(line => line.trim()) // some older workbenches have keywords with surrounding spaces
         return lines.map(line => new StringKeyword(line));
