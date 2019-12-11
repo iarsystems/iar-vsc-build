@@ -58,7 +58,7 @@ export namespace CppToolsConfigGenerator {
         let array: string[] = [];
 
         defines.forEach(item => {
-            if (item.value) {
+            if (item.value != null) {
                 array.push(item.identifier + "=" + item.value);
             } else {
                 array.push(item.identifier);

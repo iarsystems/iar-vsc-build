@@ -26,12 +26,14 @@ export namespace Keyword {
 
         let lines = content.split(/\n|\r\n/);
         lines = lines.filter(line => line && line.trim()); // remove empty lines
+        lines = lines.map(line => line.trim()) // some older workbenches have keywords with surrounding spaces
         return lines.map(line => new StringKeyword(line));
     }
 
     // Right now the best way to get cpptools to recognize custom keywords is to
     // pretend they're compiler-defined macros, so we need a way to convert keywords to macros
     export function toDefine(keyword: Keyword) {
-        return Define.fromIdentifierValuePair(keyword.identifier, " ");
+        // We make the define expand to an empty string to force the error checker to ignore it
+        return Define.fromIdentifierValuePair(keyword.identifier, "");
     }
 }
