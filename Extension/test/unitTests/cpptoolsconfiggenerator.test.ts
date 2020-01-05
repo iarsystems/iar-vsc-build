@@ -12,6 +12,7 @@ import { Define } from "../../src/iar/project/define";
 import { IncludePath } from "../../src/iar/project/includepath";
 import { PreIncludePath } from "../../src/iar/project/preincludepath";
 import { Compiler } from "../../src/iar/tools/compiler";
+import { Keyword } from "../../src/iar/project/keyword";
 
 suite("CppToolsConfigGenerator", () => {
     test("Verify fixed path", () => {
@@ -46,7 +47,9 @@ suite("CppToolsConfigGenerator", () => {
 
         Assert.notEqual(iarConfiguration, undefined);
 
-        let defines = config.defines.concat(compiler.defines);
+        let defines = config.defines
+                                .concat(compiler.defines)
+                                .concat(compiler.supportedKeywords.map(Keyword.toDefine))
         let includePaths = config.includes.concat(compiler.includePaths);
         let preincludes = config.preIncludes;
 
@@ -101,12 +104,16 @@ suite("CppToolsConfigGenerator", () => {
         let includePaths: IncludePath[] = [
             { path: "C:\\MyCompiler\\inc", absolutePath: "C:\\MyCompiler\\inc", workspacePath: "..\\MyCompiler\\inc" },
         ];
+        let keywords: Keyword[] = [
+            { identifier: "MyKeyword" }
+        ];
 
         return {
             name: "cc",
             path: path,
             defines: defines,
             includePaths: includePaths,
+            supportedKeywords: keywords,
             prepare: function () { }
         };
     }

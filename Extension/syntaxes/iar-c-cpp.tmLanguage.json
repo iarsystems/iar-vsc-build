@@ -1,0 +1,654 @@
+{
+    "scopeName": "iar-keywords.injection",
+    "injectionSelector": "L:source.c, L:source.cpp",
+    "patterns": [
+        {
+            "name": "keyword.c",
+            "match": "(__aapcs_core)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__absolute)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__absolute_to_pic)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__acall)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__arm)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__asm)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__banked_func)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__banked_func_ext2)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__bdata)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__big_endian)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__bit)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__bitvar)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__bkpt)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__brel)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__brel23)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__C_task)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__callt)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__cc_version1)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__cc_version2)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__cmse_nonsecure_call)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__cmse_nonsecure_entry)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__code)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__code20)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__code21)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__code24)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__code32)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__count_ones_left)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__count_ones_right)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__count_zeros_left)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__count_zeros_right)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__data)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__data13)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__data16)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__data17)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__data20)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__data21)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__data24)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__data32)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__data_overlay)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__dbgreg)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__debug_exception)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__eeprom)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__exception)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__ext_io)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__ext_stack_reentrant)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__far22)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__far22_code)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__far22_rom)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__far)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__far_code)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__far_func)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__far_rom)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__far_22)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__far_22_code)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__far_22_rom)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__farflash)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__farfunc)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__fast_interrupt)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__fiq)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__flash)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__flashvault)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__flashvault_impl)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__flat)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__fpu_sqrt_float32)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__fpu_sqrt_float64)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__generic)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__get_processor_register)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__huge)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__huge_code)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__huge_func)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__huge_rom)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__hugeflash)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__idata)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__idata_overlay)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__idata_reentrant)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__imported)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__interrupt)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__interwork)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__intrinsic)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__io)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__irq)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__ixdata)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__little_endian)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__monitor)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__near)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__near_func)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__near_rom)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__nearfunc)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__nested)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__no_alloc)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__no_alloc16)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__no_alloc_str)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__no_alloc_str16)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__no_bit_access)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__no_init)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__no_pic)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__no_runtime_init)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__no_save)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__no_xdata)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__noreturn)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__nounwind)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__overlay_near_func)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__packed)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__pcrel)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__pdata)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__pdata_reentrant)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__persistent)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__pic_to_absolute)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__ramfunc)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__raw)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__regbank_interrupt)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__regvar)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__ret_addr_on_ext_stack)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__root)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__ro_placement)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__saddr)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__saturated_add)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__saturated_sub)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__save_reg20)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__sbdata16)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__sbdata24)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__sbrel)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__scall)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__set_processor_register)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__sfr)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__simple)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__softfp)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__spec_string)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__stackless)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__svc)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__swi)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__synchronize_exceptions)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__synchronize_memory)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__synchronize_pipeline)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__syscall)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__sysreg)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__task)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__thumb)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__tiny)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__tiny_func)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__tinyflash)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__ubdef)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__upper_mul64)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__using)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__v1_call)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__v2_call)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__value_in_regs)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__veccopy)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__vecset)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__version_1)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__version_2)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__version_3)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__version_4)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__vfp)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__weak)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__x)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__x_z)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__xdata)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__xdata_reentrant)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__xdata_rom)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__z)\\s"
+        },
+        {
+            "name": "keyword.c",
+            "match": "(__z_x)\\s"
+        }
+    ]
+}
