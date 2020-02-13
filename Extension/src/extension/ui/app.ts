@@ -21,6 +21,7 @@ import { Config } from "../../iar/project/config";
 import { ConfigurationListModel } from "../model/selectconfiguration";
 import { SelectIarWorkspace } from "../command/selectIarWorkspace";
 import { RunCStat, ClearCStat, CStatDiagnosticsManager } from "../cstatDiagnostics"
+import { TreeSelectionView } from "./treeselectionview";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -52,6 +53,11 @@ class Application {
         this.compiler = this.createCompilerUi();
         this.project = this.createProjectUi();
         this.config = this.createConfigurationUi();
+        Vscode.window.registerTreeDataProvider('iar-settings', new TreeSelectionView(context,
+                                                                                        this.workbench.model,
+                                                                                        this.compiler.model,
+                                                                                        this.project.model,
+                                                                                        this.config.model));
 
         // Create commands without UI
         this.generator = GenerateCommand.createGenerateCppToolsConfig(this.compiler.model as CompilerListModel,
@@ -212,6 +218,8 @@ class Application {
                     return false;
                 }
             });
+        } else {
+            this.workbench.model.select(0)
         }
     }
 
@@ -233,7 +241,10 @@ class Application {
                     return false;
                 }
             });
+        }else {
+            this.compiler.model.select(0)
         }
+
     }
 
     private selectCurrentProject(): void {
@@ -254,7 +265,10 @@ class Application {
                     return false;
                 }
             });
+        }else {
+            this.project.model.select(0)
         }
+
     }
 
     private selectCurrenConfiguration(): void {
@@ -275,7 +289,10 @@ class Application {
                     return false;
                 }
             });
+        } else {
+            this.config.model.select(0)
         }
+
     }
 
     private addListeners(): void {
