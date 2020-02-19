@@ -26,12 +26,19 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         // substitute command variables
         const resolvedDef: any = definition;
         for (const property in resolvedDef) {
+            if (resolvedDef[property]) {
                 resolvedDef[property] = CommandUtils.parseSettingCommands(resolvedDef[property]);
+            }
         }
         this.definition = resolvedDef;
 	}
 
     open(_initialDimensions: Vscode.TerminalDimensions | undefined): void {
+        if (!this.definition.builder || !this.definition.project || !this.definition.config) {
+            this.writeEmitter.fire("Error: Make sure you select a workbench, project and configuration before running this task.");
+            this.closeEmitter.fire();
+            return;
+        }
         if (this.definition.action === "run") {
             this.generateDiagnostics();
         } else if (this.definition.action === "clear") {
