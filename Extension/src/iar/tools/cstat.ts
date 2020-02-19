@@ -63,16 +63,21 @@ export namespace CStat {
                 const expectedRows = Number(data.toString());
 
                 let warnings: CStatWarning[] = [];
-                const query = "SELECT " + fieldsToLoad.join(",") + " FROM warnings;\n";
-                sqlProc.stdin.write(query);
-                sqlProc.stdout.on('data', data => {
-                    const warnsRaw: string[][] = CsvParser(data.toString());
-                    warnings = warnings.concat(warnsRaw.map(row => parseWarning(row)));
-                    if (warnings.length === expectedRows) {
-                        resolve(warnings);  // We are done
-                        sqlProc.kill();
-                    }
-                });
+                if (expectedRows > 0) {
+                    const query = "SELECT " + fieldsToLoad.join(",") + " FROM warnings;\n";
+                    sqlProc.stdin.write(query);
+                    sqlProc.stdout.on('data', data => {
+                        const warnsRaw: string[][] = CsvParser(data.toString());
+                        warnings = warnings.concat(warnsRaw.map(row => parseWarning(row)));
+                        if (warnings.length === expectedRows) {
+                            resolve(warnings);  // We are done
+                            sqlProc.kill();
+                        }
+                    });
+                } else {
+                    resolve(warnings);
+                    sqlProc.kill();
+                }
 
             }); /* stdout.once() */
 
@@ -88,6 +93,10 @@ export namespace CStat {
      * (calls IarBuild with the -cstat_analyze parameter)
      */
     export function runAnalysis(builderPath: PathLike, projectPath: PathLike, configurationName: string, onWrite?: (msg: string) => void): Thenable<void> {
+        if (!Fs.existsSync(builderPath)) {
+            return Promise.reject(`The builder ${builderPath} does not exists.`);
+        }
+
         // It seems we need to delete the db and regenerate it every time to get around
         // some weird behaviour where the db keeps references to files outside the project
         // (specifically when the project is moved or the db is accidentally put under VCS).
@@ -106,8 +115,7 @@ export namespace CStat {
         return new Promise<void>((resolve, reject) => {
             iarbuild.on("close", (code) => {
                 if (code !== 0) {
-                    vscode.window.showErrorMessage("An error occured when running C-STAT, exit code: " + code);
-                    reject();
+                    reject("C-STAT exited with code: " + code);
                 } else {
                     resolve(); // C-STAT is done!
                 }

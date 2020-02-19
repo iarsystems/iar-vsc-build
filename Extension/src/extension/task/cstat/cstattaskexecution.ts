@@ -79,9 +79,9 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
                 this.diagnostics.set(fileDiagnostics);
                 this.writeEmitter.fire("C-STAT is done!\r\n");
                 this.closeEmitter.fire();
-            }, this.onError); /* getAllWarnings.then */
+            }, this.onError.bind(this)); /* getAllWarnings.then */
 
-        }, this.onError); /* analysis.then */
+        }, this.onError.bind(this)); /* analysis.then */
     }
 
     /**
