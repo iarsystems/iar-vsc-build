@@ -6,7 +6,7 @@
 
 import { OsUtils } from "../../utils/utils";
 import { spawn } from "child_process";
-import * as vscode from "vscode"
+import * as vscode from "vscode";
 import { PathLike } from "fs";
 import { join, dirname } from "path";
 import CsvParser = require("csv-parse/lib/sync");
@@ -50,10 +50,10 @@ export namespace CStat {
         // the warnings are parsed from cstat.db in the Obj/ output folder
         // we use the sqlite3 executable CLI to perform queries against the database
         const sqliteBin = getSqliteBinaryName();
-        if (sqliteBin == null) return Promise.reject("Couldn't find sqlite binaries for cstat. Your OS likely isn't supported.");
+        if (sqliteBin === null) { return Promise.reject("Couldn't find sqlite binaries for cstat. Your OS likely isn't supported."); }
         const sqliteBinPath = join(extensionPath.toString(), "sqlite-bin", sqliteBin);
         const cstatDBPath = getCStatDBPath(projectPath, configurationName);
-        if (!Fs.existsSync(cstatDBPath)) Promise.reject("Couldn't find cstat DB: " + cstatDBPath);
+        if (!Fs.existsSync(cstatDBPath)) { Promise.reject("Couldn't find cstat DB: " + cstatDBPath); }
 
         return new Promise((resolve, reject) => {
             const sqlProc = spawn(sqliteBinPath, [cstatDBPath, "-csv"]); // we want csv output for easier parsing
@@ -62,13 +62,13 @@ export namespace CStat {
             sqlProc.stdout.once('data', data => {
                 const expectedRows = Number(data.toString());
 
+                let warnings: CStatWarning[] = [];
                 const query = "SELECT " + fieldsToLoad.join(",") + " FROM warnings;\n";
                 sqlProc.stdin.write(query);
-                let warnings: CStatWarning[] = [];
                 sqlProc.stdout.on('data', data => {
                     const warnsRaw: string[][] = CsvParser(data.toString());
                     warnings = warnings.concat(warnsRaw.map(row => parseWarning(row)));
-                    if (warnings.length == expectedRows) {
+                    if (warnings.length === expectedRows) {
                         resolve(warnings);  // We are done
                         sqlProc.kill();
                     }
@@ -87,23 +87,19 @@ export namespace CStat {
      * Runs a C-STAT analysis on a given project and configuration
      * (calls IarBuild with the -cstat_analyze parameter)
      */
-    export function runAnalysis(workbenchPath: PathLike, projectPath: PathLike, configurationName: string, output?: vscode.OutputChannel): Thenable<void> {
+    export function runAnalysis(builderPath: PathLike, projectPath: PathLike, configurationName: string, onWrite?: (msg: string) => void): Thenable<void> {
         // It seems we need to delete the db and regenerate it every time to get around
         // some weird behaviour where the db keeps references to files outside the project
         // (specifically when the project is moved or the db is accidentally put under VCS).
         // It seems EW solves this by checking if each file in the db is in the project,
         // but i'm not sure how I would do that in VS Code
         const dbPath = getCStatDBPath(projectPath, configurationName);
-        if (Fs.existsSync(dbPath)) Fs.unlinkSync(dbPath);
+        if (Fs.existsSync(dbPath)) { Fs.unlinkSync(dbPath); }
 
-        let iarBuildPath = workbenchPath + "/common/bin/IarBuild";
-        if (OsUtils.detectOsType() == OsUtils.OsType.Windows) {
-            iarBuildPath += ".exe";
-        }
-        const iarbuild = spawn(iarBuildPath.toString(), [projectPath.toString(), "-cstat_analyze", configurationName.toString()]);
+        const iarbuild = spawn(builderPath.toString(), [projectPath.toString(), "-cstat_analyze", configurationName.toString()]);
         iarbuild.stdout.on("data", data => {
-            if (output) {
-                output.append(data.toString());
+            if (onWrite) {
+                onWrite(data.toString());
             }
         });
 
@@ -148,7 +144,7 @@ export namespace CStat {
             message: message,
             severity: SeverityStringToSeverityEnum(severity),
             checkId: checkId,
-        }
+        };
     }
 
     function getSqliteBinaryName(): string | null {
@@ -156,7 +152,7 @@ export namespace CStat {
             case OsUtils.OsType.Windows:
                 return "sqlite-v3.26.0-win32-x86.exe";
             case OsUtils.OsType.Linux:
-                if (OsUtils.detectArchitecture() == OsUtils.Architecture.x64) {
+                if (OsUtils.detectArchitecture() === OsUtils.Architecture.x64) {
                     return 'sqlite-v3.26.0-linux-x64';
                 } else {
                     return 'sqlite-v3.26.0-linux-x86';
