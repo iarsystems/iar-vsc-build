@@ -273,6 +273,36 @@
         "required": [
           "command"
         ]
+      },
+      {
+        "type": "iar-cstat",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "The name for the task that is shown when executing the built-in command `Run Tasks` of VS Code."
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "run",
+              "clear"
+            ],
+            "description": "What to do when running the task (generate warnings or clear them)"
+          },
+          "project": {
+            "type": "string",
+            "description": "The path to the project file"
+          },
+          "config": {
+            "type": "string",
+            "description": "The configuration in the project file to use"
+          },
+          "builder": {
+            "type": "string",
+            "description": "Path to the builder to use"
+          }
+        },
+        "required": ["label", "action"]
       }
     ],
     "debuggers": [
