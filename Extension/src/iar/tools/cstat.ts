@@ -6,7 +6,6 @@
 
 import { OsUtils } from "../../utils/utils";
 import { spawn } from "child_process";
-import * as vscode from "vscode";
 import { PathLike } from "fs";
 import { join, dirname } from "path";
 import CsvParser = require("csv-parse/lib/sync");
