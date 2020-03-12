@@ -15,7 +15,7 @@ Improvements are welcome through *pull requests* or *issue reports*.
 
 The extension will automatically detect Embedded Workbench installations on your systems, as well as IAR projects in your VS Code workspace.
 You may select which workbench to use, which configuration to build, and other settings using buttons in the statusbar.
-![Status bar](./images/readme/statusbar.png)
+![Status bar](https://raw.githubusercontent.com/pluyckx/iar-vsc/master/Extension/images/readme/statusbar.png)
 
 There is also a view in the explorer tab for these settings.
 Alternatively, you can call the commands behind those buttons, see the `contribution` tab in the extension section of VS Code.
