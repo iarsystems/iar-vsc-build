@@ -7,16 +7,20 @@ users find issues for other IAR compilers, open an issue on Github. In case you 
 The plugin can parse *ewp* files and convert them to a valid `c_cpp_properties.json` configuration which is used by the *cpptools* extension made by *Microsoft*.
 In the `Features` section you can find more information how to use this extension.
 
+Improvements are welcome through *pull requests* or *issue reports*.
+
 ## Features
 
 ### Configuring the extension
 
-It is advised to use the extension UI to configure the extension. The UI are statusbar items which will execute a command when clicking on them.
-
-![Status bar](images/readme/statusbar.png)
+The extension will automatically detect Embedded Workbench installations on your systems, as well as IAR projects in your VS Code workspace.
+You may select which workbench to use, which configuration to build, and other settings using buttons in the statusbar.
+![Status bar](./images/readme/statusbar.png)
 
 There is also a view in the explorer tab for these settings.
 Alternatively, you can call the commands behind those buttons, see the `contribution` tab in the extension section of VS Code.
+
+If your Embedded Workbench is installed in a non-standard location, the plugin might not autodetect it. In that case you will need to set `iarvsc.iarInstallDirectories` in your `settings.json` file, see [Extension Settings](#extension-settings)
 
 ### Building
 
@@ -26,54 +30,6 @@ When you execute the VSCode command `Tasks: Configure Task` two items are added 
 2. `iar: IAR Rebuild - template using selected workbench, project and config`
 
 When selecting one of the two, a default task is generated which uses the workbench, project and configuration selected using the UI. When you select a different configuration, project or workbench, this script will use the newly selected items.
-
-#### Deprecated Method: Create manually
-
-In previous plugins there was a build command. However, from now on you can create a task because all necessary information is available through settings. You can use the following snippets to create a `build` and `rebuild` command. In alpha2 or beta1 will contain a `problem matcher`. Use the following template as a starting point:
-
-```[json]
-{
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "IAR Build",
-            "type": "process",
-            "command": "${config:iarvsc.workbench}\\common\\bin\\IarBuild.exe",
-            "args": [
-                "${config:iarvsc.ewp}",
-                "-make",
-                "${config:iarvsc.configuration}"
-            ],
-            "problemMatcher": [
-                "$iar-cc",
-                "$iar-linker"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "IAR Rebuild",
-            "type": "process",
-            "command": "${config:iarvsc.workbench}\\common\\bin\\IarBuild.exe",
-            "args": [
-                "${config:iarvsc.ewp}",
-                "-build",
-                "${config:iarvsc.configuration}"
-            ],
-            "problemMatcher": [
-                "$iar-cc",
-                "$iar-linker"
-            ]
-        }
-    ]
-}
-```
-
-Improvements are welcome through *pull requests* or *issue reports*.
 
 ### C-STAT
 
@@ -158,17 +114,16 @@ This extensions presumes that you have installed `cpptools` of `microsoft`.
 
 This extension contributes the following settings:
 
-* `iarvsc.iarInstallDirectories`: The rootfolders where all IAR workbenches are installed. By default this is `C:\Program Files (x86)\Iar Systems`. The default settings contain also the non-x86 folder in case IAR will move to 64-bit installations.
-* `iarvsc.workbench`: The last selected workbench in this workspace.
-* `iarvsc.compiler`: The last selected compiler.
-* `iarvsc.ewp`: The last selected project file.
-* `iarvsc.configuration`: The last selected configuration.
-* `iarvsc.defines`: Some custom defines you can add to the define list. They folow the `identifier=value` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
+* `iarvsc.iarInstallDirectories`: The rootfolder where all IAR workbenches are installed. By default this is `C:\Program Files (x86)\Iar Systems`. The default settings contain also the non-x86 folder in case IAR will move to 64-bit installations.
+Example for a custom install location:
+
+```json
+"iarvsc.iarInstallDirectories": ["C:\\Custom\\Install\\Path"],
+```
+
+* `iarvsc.defines`: Some custom defines you can add to the define list. They follow the `identifier=value` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
 * `iarvsc.cstatFilterLevel`: Sets the lowest severity of C-STAT warnings to display.
 * `iarvsc.cstatDisplayLowSeverityWarningsAsHints`: When the filter level is set to low, this option will display low severity warnings as 'hints' instead of warnings. This is helpful if you have lots of low severity warnings and want to hide them from the problems list (but still see them in the editor).
-
-An important note for the settings `iarvsc.workbench`, `iarvsc.compiler`, `iarvsc.ewp`, `iarvsc.configuration`:
-Those values get overwritten by the extension when invalid values are defined or you select different values using the extension UI (the status bar items) or commands.
 
 ## Known Issues
 
