@@ -17,7 +17,8 @@ import { Compiler } from "../../iar/tools/compiler";
 import { tmpdir } from "os";
 
 /**
- * Generates/detects per-file configuration data (include paths/defines) for an entire project.
+ * Generates/detects per-file configuration data (include paths/defines) for an entire project,
+ * and caches them (in memory) for later retrieval.
  * This implementation is somewhat slow, but should be completely correct.
  */
 export class IarConfigurationGenerator {
@@ -74,6 +75,7 @@ export class IarConfigurationGenerator {
         this.cache.putDefines(file, defines);
     }
 
+    // parses output from builder to find the calls to a compiler (eg iccarm) and what arguments it uses
     private async findCompilerInvocations(builderOutput: Readable): Promise<string[][]> {
         // TODO: handle errors
         return new Promise((resolve, _reject) => {

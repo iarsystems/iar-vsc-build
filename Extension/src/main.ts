@@ -13,8 +13,9 @@ import { SettingsMonitor } from './extension/settingsmonitor';
 import { IarTaskProvider } from './extension/task/provider';
 import { GetSettingsCommand } from "./extension/command/getsettings";
 import { Logging } from './utils/logging';
+import { IarConfigurationProvider } from './extension/configprovider/configurationprovider';
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     Logging.setup(context);
 
     GetSettingsCommand.initCommands(context);
@@ -32,10 +33,14 @@ export function activate(context: vscode.ExtensionContext) {
         IarVsc.toolManager.collectFrom(path);
     });
 
+    IarConfigurationProvider.init();
     IarTaskProvider.register();
 }
 
 export function deactivate() {
+    if (IarConfigurationProvider.instance) {
+        IarConfigurationProvider.instance.dispose();
+    }
     IarTaskProvider.unregister();
 }
 

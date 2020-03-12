@@ -21,6 +21,9 @@ import { Logging } from "../utils/logging";
 
 export type language = "c" | "cpp";
 
+/**
+ * Detects source file configuration for an IAR project.
+ */
 export namespace CppToolsConfigGenerator {
     type loadConfigReturn = {
         config: any;
@@ -188,7 +191,7 @@ export namespace CppToolsConfigGenerator {
             forcedInclude: preincludes,
             standard: (language === "cpp") ? Settings.getCppStandard() : Settings.getCStandard(),
             intelliSenseMode: "msvc-x64",
-            compilerPath: ""
+            compilerPath: "",
         };
     }
 

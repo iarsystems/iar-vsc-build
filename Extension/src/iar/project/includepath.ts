@@ -122,7 +122,7 @@ export namespace IncludePath {
             result = regex.exec(output);
 
             if (result !== null && (result.length === 2)) {
-                let p = result[1].replace(/\\\\/g, "\\");
+                let p = result[1].replace(/\\\\/g, "\\"); //TODO: cross-platformize this
 
                 try {
                     let stat = Fs.statSync(p);

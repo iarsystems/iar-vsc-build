@@ -20,7 +20,6 @@ import { ProjectListModel } from "../model/selectproject";
 import { Config } from "../../iar/project/config";
 import { ConfigurationListModel } from "../model/selectconfiguration";
 import { SelectIarWorkspace } from "../command/selectIarWorkspace";
-import { IarConfigurationProvider, CppToolsConfigGeneratorProvider } from "../../vsc/CppToolsConfigProvider";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -40,7 +39,7 @@ class Application {
     readonly generator: Command;
     readonly selectIarWorkspace: Command;
 
-    private cppToolsProvider: IarConfigurationProvider | undefined;
+    //private cppToolsProvider: IarConfigurationProvider | undefined;
 
     constructor(context: Vscode.ExtensionContext, toolManager: ToolManager) {
         this.context = context;
@@ -61,13 +60,13 @@ class Application {
         this.selectIarWorkspace.register(context);
 
         /* create cpptools provider */
-        CppToolsConfigGeneratorProvider.getInstance().then(value => {
+/*         CppToolsConfigGeneratorProvider.getInstance().then(value => {
             if (value !== undefined) {
                 this.cppToolsProvider = value;
             }
         }).catch(() => {
             Vscode.window.showWarningMessage("Could not create provider!")
-        });
+        }); */
 
         // add listeners
         this.addListeners();
