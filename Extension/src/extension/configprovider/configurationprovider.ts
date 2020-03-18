@@ -97,6 +97,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     dispose() {
         this.canProvideConfiguration = (): Thenable<boolean> => Promise.reject(false);
         this.api.dispose();
+        this.generator.dispose();
     }
 
     private async generateConfigs() {
@@ -107,7 +108,11 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         if (!workbench || !compiler || !config || !project) {
             return;
         }
-        await this.generator.generateConfiguration(workbench, project, compiler, config);
+        try {
+            await this.generator.generateConfiguration(workbench, project, compiler, config);
+        } catch (err) {
+            Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err);
+        }
     }
 
     private async onSettingsChanged() {
