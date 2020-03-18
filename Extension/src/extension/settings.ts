@@ -9,8 +9,8 @@ import * as Fs from "fs";
 import * as Path from "path";
 import { Handler } from "../utils/handler";
 
-type cStandards = "c89" | "c99" | "c11";
-type cppStandards = "c++98" | "c++03" | "c++11" | "c++14" | "c++17";
+export type cStandards = "c89" | "c99" | "c11";
+export type cppStandards = "c++98" | "c++03" | "c++11" | "c++14" | "c++17";
 
 class SettingsFile {
     private path_: Fs.PathLike;
@@ -176,7 +176,7 @@ export namespace Settings {
         if (isCStandard(standard)) {
             return standard;
         } else {
-            return "c89";
+            return "c11";
         }
     }
 
@@ -186,7 +186,7 @@ export namespace Settings {
         if (isCppStandard(standard)) {
             return standard;
         } else {
-            return "c++98";
+            return "c++14";
         }
     }
 

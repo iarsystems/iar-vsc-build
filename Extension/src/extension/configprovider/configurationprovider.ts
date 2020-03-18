@@ -6,7 +6,7 @@ import * as Vscode from "vscode";
 import { IarConfigurationGenerator } from "./configurationgenerator";
 import { CustomConfigurationProvider, getCppToolsApi, Version, CppToolsApi, SourceFileConfiguration, SourceFileConfigurationItem, WorkspaceBrowseConfiguration } from "vscode-cpptools";
 import { UI } from "../ui/app";
-import { Settings } from "../settings";
+import { Settings, cStandards, cppStandards } from "../settings";
 import { CancellationToken } from "vscode-jsonrpc";
 import { LanguageUtils } from "../../utils/utils";
 
@@ -36,16 +36,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         return false;
     }
 
-
-    private readonly cStandard = "c11";
-    private readonly cppStandard = "c++17";
     private readonly nullConfiguration: SourceFileConfiguration = {
         compilerPath: "",
         defines: [],
         forcedInclude: [],
         includePath: [],
         intelliSenseMode: "msvc-x64",
-        standard: this.cStandard
+        standard: "c11",
     };
 
     readonly name = "IAR-cpptools-API";
@@ -55,7 +52,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         UI.getInstance().compiler.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
         UI.getInstance().config.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
         UI.getInstance().project.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
-        Settings.observeSetting(Settings.Field.Defines, this.onSettingsChanged.bind(this)); // TODO: are these needed?
+        Settings.observeSetting(Settings.Field.Defines, this.onSettingsChanged.bind(this));
         Settings.observeSetting(Settings.Field.CStandard, this.onSettingsChanged.bind(this));
         Settings.observeSetting(Settings.Field.CppStandard, this.onSettingsChanged.bind(this));
 
@@ -69,11 +66,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         return Promise.resolve(lang !== undefined);
     }
     provideConfigurations(uris: Vscode.Uri[], _token?: CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
+        const cStandard = Settings.getCStandard();
+        const cppStandard = Settings.getCppStandard();
         return Promise.resolve(uris.map(uri => {
             const defines = this.generator.getDefines(uri).map(d => `${d.identifier}=${d.value}`);
             const includes = this.generator.getIncludes(uri).map(i => i.absolutePath.toString());
             const lang = LanguageUtils.determineLanguage(uri.fsPath);
-            const standard: "c11" | "c++17" = lang === "cpp" ? this.cppStandard : this.cStandard;
+            const standard: cStandards | cppStandards = lang === "cpp" ? cppStandard : cStandard;
             const config = {
                 compilerPath: this.nullConfiguration.compilerPath,
                 defines: defines.concat(this.nullConfiguration.defines),
