@@ -2,7 +2,7 @@
 
 This plugin make it possible to combine the IAR compiler solutions with Visual Studio Code. The goal is that this plugin supports all compiler
 variants. So not only ARM or AVR, but also STM8 and other compilers of IAR. The author of this extension only uses ARM, AVR and STM8, but when
-users find issues for other IAR compilers, open an issue on Github. In case you open an issue, please report the used compiler with its version and if possible the ewp file.
+users find issues for other IAR compilers, open an issue on Github. In case you open an issue, please report the used compiler with its version and if possible the ewp file. This plugin works on any operating system supported by VS Code and IAR.
 
 The plugin can parse *ewp* files and convert them to a valid `c_cpp_properties.json` configuration which is used by the *cpptools* extension made by *Microsoft*.
 In the `Features` section you can find more information how to use this extension.

@@ -9,7 +9,7 @@ import * as Fs from "fs";
 import * as Path from "path";
 import * as Process from "child_process";
 import { FsUtils } from "../../utils/fs";
-import { ListUtils } from "../../utils/utils";
+import { ListUtils, OsUtils } from "../../utils/utils";
 import { Define } from "../project/define";
 import { IncludePath } from "../project/includepath";
 import { Logging } from "../../utils/logging";
@@ -182,7 +182,11 @@ export namespace Compiler {
      */
     export function collectCompilersFrom(root: Fs.PathLike): Compiler[] {
         let compilers: Compiler[] = [];
-        let filter = FsUtils.createFilteredListDirectoryFilenameRegex(/icc.*\.exe/);
+        let regex = "icc.*";
+        if (OsUtils.detectOsType() === OsUtils.OsType.Windows) {
+            regex += "\.exe";
+        }
+        let filter = FsUtils.createFilteredListDirectoryFilenameRegex(new RegExp(regex));
         let compilerPaths = FsUtils.filteredListDirectory(root, filter);
 
         compilerPaths.forEach(compilerPath => {
