@@ -10,7 +10,7 @@ import * as Vscode from "vscode";
 import { IncludePath } from "../../iar/project/includepath";
 import { Define } from "../../iar/project/define";
 import { join } from "path";
-import { spawn, spawnSync } from "child_process";
+import { spawn } from "child_process";
 import * as readline from "readline";
 import { Readable } from "stream";
 import { Compiler } from "../../iar/tools/compiler";
@@ -92,7 +92,9 @@ export class IarConfigurationGenerator {
                     hasIncorrectCompiler = true;
                     continue;
                 }
-                fileConfigs.push(this.generateConfigurationForFile(compiler, compInv.slice(1)));
+                try {
+                    fileConfigs.push(await this.generateConfigurationForFile(compiler, compInv.slice(1)));
+                } catch {}
 
                 if (this.shouldCancel) {
                     reject();
@@ -179,24 +181,32 @@ export class IarConfigurationGenerator {
      * Generates config data for a single translation unit
      * by invoking the compiler with specific flags
      */
-    private generateConfigurationForFile(compiler: Compiler, compilerArgs: string[]): {includes: IncludePath[], defines: Define[]} {
-        // TODO: make this async
+    private generateConfigurationForFile(compiler: Compiler, compilerArgs: string[]): Promise<{includes: IncludePath[], defines: Define[]}> {
         const macrosOutFile = join(tmpdir(), "iarvsc.predef_macros");
         const args = ["--IDE3", "--NCG", "--predef-macros", macrosOutFile].concat(compilerArgs);
-        const compilerProc = spawnSync(compiler.path.toString(), args);
-        if (compilerProc.error) {
-            this.output.appendLine("WARN: Compiler gave error: " + compilerProc.error.message);
-            return {includes: [], defines: []};
-        }
-        if (compilerProc.status && compilerProc.status !== 0) {
-            this.output.appendLine("WARN: Compiler gave non-zero exit code: " + compilerProc.status);
-        }
+        const compilerProc = spawn(compiler.path.toString(), args);
+        return new Promise((resolve, reject) => {
+            compilerProc.on("error", (err) => {
+                this.output.appendLine("WARN: Compiler gave error: " + err);
+                reject(err);
+            });
+            compilerProc.on("exit", code => {
+                if (code !== 0) {
+                    this.output.appendLine("WARN: Compiler gave non-zero exit code: " + code);
+                }
+            });
+            const chunks: Buffer[] = [];
+            compilerProc.stdout.on("data", (chunk: Buffer) => { chunks.push(chunk); });
+            compilerProc.stdout.on("end", () => {
+                const output = Buffer.concat(chunks).toString();
+                const includePaths = IncludePath.fromCompilerOutput(output);
+                const defines = Define.fromSourceFile(macrosOutFile);
+                resolve({
+                    includes: includePaths,
+                    defines: defines,
+                });
+            });
 
-        const includePaths = IncludePath.fromCompilerOutput(compilerProc.stdout);
-        const defines = Define.fromSourceFile(macrosOutFile);
-        return {
-            includes: includePaths,
-            defines: defines,
-        };
+        });
     }
 }
