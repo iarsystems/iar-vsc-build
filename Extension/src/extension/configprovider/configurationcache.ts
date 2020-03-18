@@ -32,8 +32,6 @@ export class SimpleConfigurationCache {
     }
 
     putIncludes(file: Uri, includes: IncludePath[]) {
-        console.log(`Putting includes for ${file.path}`);
-        console.log(includes);
         this.includes[file.path.toLowerCase()] = includes;
     }
 
@@ -43,8 +41,6 @@ export class SimpleConfigurationCache {
     }
 
     putDefines(file: Uri, defines: Define[]) {
-        console.log(`Putting defines for ${file.path}`);
-        console.log(defines);
         this.defines[file.path.toLowerCase()] = defines;
     }
 }
