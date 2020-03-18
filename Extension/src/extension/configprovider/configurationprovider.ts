@@ -8,6 +8,7 @@ import { CustomConfigurationProvider, getCppToolsApi, Version, CppToolsApi, Sour
 import { UI } from "../ui/app";
 import { Settings } from "../settings";
 import { CancellationToken } from "vscode-jsonrpc";
+import { LanguageUtils } from "../../utils/utils";
 
 /**
  * Provides source file configurations for an IAR project to cpptools via the cpptools typescript api.
@@ -36,13 +37,15 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     }
 
 
+    private readonly cStandard = "c11";
+    private readonly cppStandard = "c++17";
     private readonly nullConfiguration: SourceFileConfiguration = {
         compilerPath: "",
         defines: [],
         forcedInclude: [],
         includePath: [],
         intelliSenseMode: "msvc-x64",
-        standard: "c11"
+        standard: this.cStandard
     };
 
     readonly name = "IAR-cpptools-API";
@@ -61,20 +64,23 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         });
     }
 
-    canProvideConfiguration(_uri: Vscode.Uri, _token?: CancellationToken | undefined): Thenable<boolean> {
-        return Promise.resolve(true);
+    canProvideConfiguration(uri: Vscode.Uri, _token?: CancellationToken | undefined): Thenable<boolean> {
+        const lang = LanguageUtils.determineLanguage(uri.fsPath);
+        return Promise.resolve(lang !== undefined);
     }
     provideConfigurations(uris: Vscode.Uri[], _token?: CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
         return Promise.resolve(uris.map(uri => {
             const defines = this.generator.getDefines(uri).map(d => `${d.identifier}=${d.value}`);
             const includes = this.generator.getIncludes(uri).map(i => i.absolutePath.toString());
+            const lang = LanguageUtils.determineLanguage(uri.fsPath);
+            const standard: "c11" | "c++17" = lang === "cpp" ? this.cppStandard : this.cStandard;
             const config = {
                 compilerPath: this.nullConfiguration.compilerPath,
                 defines: defines.concat(this.nullConfiguration.defines),
                 includePath: includes.concat(this.nullConfiguration.includePath),
                 forcedInclude: this.nullConfiguration.forcedInclude,
                 intelliSenseMode: this.nullConfiguration.intelliSenseMode,
-                standard: this.nullConfiguration.standard, // TODO: maybe change depending on language
+                standard: standard,
             };
             return {
                 uri: uri,

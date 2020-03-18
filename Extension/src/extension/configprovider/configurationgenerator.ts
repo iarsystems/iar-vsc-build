@@ -16,7 +16,7 @@ import { Readable } from "stream";
 import { Compiler } from "../../iar/tools/compiler";
 import { tmpdir } from "os";
 import * as Path from "path";
-import { OsUtils } from "../../utils/utils";
+import { OsUtils, LanguageUtils } from "../../utils/utils";
 
 /**
  * Generates/detects per-file configuration data (include paths/defines) for an entire project,
@@ -24,8 +24,6 @@ import { OsUtils } from "../../utils/utils";
  * This implementation is somewhat slow, but should be completely correct.
  */
 export class IarConfigurationGenerator {
-    private readonly validExtensions = [".c", ".h", ".cpp", ".hpp", ".cxx", ".hxx", ".cc", ".hh"]; // extensions we can generate configs for
-
     private runningPromise: Promise<void> | null = null;
     private shouldCancel = false;
     private readonly cache: ConfigurationCache = new SimpleConfigurationCache();
@@ -86,8 +84,7 @@ export class IarConfigurationGenerator {
             const fileConfigs: Array<{includes: IncludePath[], defines: Define[]}> = [];
             for (let i = 0; i < compilerInvocations.length; i++) {
                 const compInv = compilerInvocations[i];
-                const extension = Path.extname(compInv[1]);
-                if (!this.validExtensions.includes(extension)) {
+                if (LanguageUtils.determineLanguage(compInv[1]) === undefined) {
                     this.output.appendLine("Skipping file of unsupported type: " + compInv[1]);
                     continue;
                 }
@@ -183,7 +180,9 @@ export class IarConfigurationGenerator {
 
     /**
      * Generates config data for a single translation unit
-     * by invoking the compiler with specific flags
+     * by invoking the compiler with specific flags.
+     * It is unadvised to run multiple instances of this function at the same time,
+     * doing so may cause undefined behaviour.  TODO: fix this by using a unique predef_macros file
      */
     private generateConfigurationForFile(compiler: Compiler, compilerArgs: string[]): Promise<{includes: IncludePath[], defines: Define[]}> {
         const macrosOutFile = join(tmpdir(), "iarvsc.predef_macros");

@@ -7,6 +7,8 @@
 import { Command } from "../extension/command/command";
 import { isString } from "util";
 import * as os from 'os';
+import { PathLike } from "fs";
+import * as Path from "path";
 
 
 export namespace ReplaceUtils {
@@ -118,6 +120,23 @@ export namespace OsUtils {
             default:
                 console.error("Unsupported architecture " + arch);
                 return Architecture.x64;
+        }
+    }
+}
+
+export namespace LanguageUtils {
+    const cExtensions = [".c", ".h"];
+    const cppExtensions = [".cpp", ".hpp", ".cxx", ".hxx", ".cc", ".hh"];
+
+    export function determineLanguage(filePath: PathLike): "c" | "cpp" | undefined {
+        const extension = Path.extname(filePath.toString());
+
+        if (cExtensions.includes(extension)) {
+            return "c";
+        } else if (cppExtensions.includes(extension)) {
+            return "cpp";
+        } else {
+            return undefined;
         }
     }
 }
