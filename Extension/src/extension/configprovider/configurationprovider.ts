@@ -52,7 +52,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         UI.getInstance().compiler.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
         UI.getInstance().config.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
         UI.getInstance().project.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
-        Settings.observeSetting(Settings.Field.Defines, this.onSettingsChanged.bind(this));
+        Settings.observeSetting(Settings.Field.Defines, this.onSettingsChanged.bind(this)); // TODO: are these needed?
         Settings.observeSetting(Settings.Field.CStandard, this.onSettingsChanged.bind(this));
         Settings.observeSetting(Settings.Field.CppStandard, this.onSettingsChanged.bind(this));
 
@@ -100,23 +100,26 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         this.generator.dispose();
     }
 
-    private async generateConfigs() {
+    private async generateConfigs(): Promise<boolean> {
         const workbench = UI.getInstance().workbench.model.selected;
         const compiler = UI.getInstance().compiler.model.selected;
         const config = UI.getInstance().config.model.selected;
         const project = UI.getInstance().project.model.selected;
         if (!workbench || !compiler || !config || !project) {
-            return;
+            return false;
         }
         try {
             await this.generator.generateConfiguration(workbench, project, compiler, config);
+            return true;
         } catch (err) {
-            Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err);
+            if (err) { Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err); }
+            return false;
         }
     }
 
     private async onSettingsChanged() {
-        await this.generateConfigs();
-        this.api.didChangeCustomConfiguration(this);
+        await this.generator.cancelCurrentOperation();
+        const changed = await this.generateConfigs();
+        if (changed) { this.api.didChangeCustomConfiguration(this); }
     }
 }

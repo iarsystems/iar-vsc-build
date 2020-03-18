@@ -26,14 +26,20 @@ export class IarConfigurationGenerator {
     private readonly validExtensions = [".c", ".h", ".cpp", ".hpp", ".cxx", ".hxx", ".cc", ".hh"]; // extensions we can generate configs for
 
     private runningPromise: Promise<void> | null = null;
-    private cache: ConfigurationCache = new SimpleConfigurationCache();
-    private output: Vscode.OutputChannel = Vscode.window.createOutputChannel("Iar Config Generator");
+    private shouldCancel = false;
+    private readonly cache: ConfigurationCache = new SimpleConfigurationCache();
+    private readonly output: Vscode.OutputChannel = Vscode.window.createOutputChannel("Iar Config Generator");
 
 
+    /**
+     * Generates configuration data for an entire project, using the supplied values,
+     * and caches the results
+     */
     public generateConfiguration(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<void> {
         // make sure we only run once at a time
         // this is probably safe since Node isnt multithreaded
         if (!this.runningPromise) {
+            this.shouldCancel = false;
             const resetPromise = () => { this.runningPromise = null; };
             this.runningPromise = this.generateConfigurationImpl(workbench, project, compiler, config).then(
                 resetPromise,
@@ -43,6 +49,18 @@ export class IarConfigurationGenerator {
                 });
         }
         return this.runningPromise;
+    }
+
+    /**
+     * Cancels any ongoing data generation.
+     */
+    public async cancelCurrentOperation(): Promise<void> {
+        if (this.runningPromise) {
+            this.shouldCancel = true;
+            try {
+                await this.runningPromise;
+            } catch { } // we don't care if this crashes, since it's canceled and we don't need the result
+        }
     }
 
     public dispose() {
@@ -55,25 +73,33 @@ export class IarConfigurationGenerator {
             const builderPath = join(workbench.path.toString(), "common/bin/IarBuild.exe");
             const builderProc = spawn(builderPath, [project.path.toString(), "-dryrun", config.name, "-log", "all"]);
             builderProc.on("error", (err) => {
+                this.output.appendLine("Canceled.");
                 reject(err);
             });
             const compilerInvocations = await this.findCompilerInvocations(builderProc.stdout);
 
             let hasIncorrectCompiler = false;
             const fileConfigs: Array<{includes: IncludePath[], defines: Define[]}> = [];
-            compilerInvocations.forEach(compInv => {
+            for (let i = 0; i < compilerInvocations.length; i++) {
+                const compInv = compilerInvocations[i];
                 const extension = Path.extname(compInv[1]);
                 if (!this.validExtensions.includes(extension)) {
                     this.output.appendLine("Skipping file of unsupported type: " + compInv[1]);
-                    return;
+                    continue;
                 }
                 if (Path.parse(compInv[0]).name !== compiler.name) {
                     this.output.appendLine(`WARN: Compiler name for ${compInv[1]} (${compInv[0]}) does not seem to match the selected compiler.`);
                     hasIncorrectCompiler = true;
-                    return;
+                    continue;
                 }
                 fileConfigs.push(this.generateConfigurationForFile(compiler, compInv.slice(1)));
-            });
+
+                if (this.shouldCancel) {
+                    reject();
+                    return;
+                }
+            }
+
             fileConfigs.forEach((fileConfig, index) => {
                 const uri = Vscode.Uri.file(compilerInvocations[index][1]);
                 this.putIncludes(uri, fileConfig.includes);
@@ -154,16 +180,16 @@ export class IarConfigurationGenerator {
      * by invoking the compiler with specific flags
      */
     private generateConfigurationForFile(compiler: Compiler, compilerArgs: string[]): {includes: IncludePath[], defines: Define[]} {
+        // TODO: make this async
         const macrosOutFile = join(tmpdir(), "iarvsc.predef_macros");
         const args = ["--IDE3", "--NCG", "--predef-macros", macrosOutFile].concat(compilerArgs);
-        const compilerProc = spawnSync(compiler.path.toString() + "A", args);
+        const compilerProc = spawnSync(compiler.path.toString(), args);
         if (compilerProc.error) {
             this.output.appendLine("WARN: Compiler gave error: " + compilerProc.error.message);
             return {includes: [], defines: []};
         }
         if (compilerProc.status && compilerProc.status !== 0) {
             this.output.appendLine("WARN: Compiler gave non-zero exit code: " + compilerProc.status);
-            return {includes: [], defines: []};
         }
 
         const includePaths = IncludePath.fromCompilerOutput(compilerProc.stdout);
