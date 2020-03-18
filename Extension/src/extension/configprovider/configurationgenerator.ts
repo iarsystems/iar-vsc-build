@@ -16,6 +16,7 @@ import { Readable } from "stream";
 import { Compiler } from "../../iar/tools/compiler";
 import { tmpdir } from "os";
 import * as Path from "path";
+import { OsUtils } from "../../utils/utils";
 
 /**
  * Generates/detects per-file configuration data (include paths/defines) for an entire project,
@@ -69,13 +70,16 @@ export class IarConfigurationGenerator {
 
     private generateConfigurationImpl(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<void> {
         return new Promise(async (resolve, reject) => {
-            // TODO: cross-platformify the path
-            const builderPath = join(workbench.path.toString(), "common/bin/IarBuild.exe");
+            let builderPath = join(workbench.path.toString(), "common/bin/IarBuild");
+            if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
+                builderPath += ".exe";
+            }
             const builderProc = spawn(builderPath, [project.path.toString(), "-dryrun", config.name, "-log", "all"]);
             builderProc.on("error", (err) => {
                 this.output.appendLine("Canceled.");
                 reject(err);
             });
+
             const compilerInvocations = await this.findCompilerInvocations(builderProc.stdout);
 
             let hasIncorrectCompiler = false;
