@@ -114,6 +114,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         this.fallbackConfigurationCpp = this.fallbackGenerator.generateConfiguration("cpp", UI.getInstance().config.model.selected!, UI.getInstance().compiler.model.selected!);
     }
 
+    // returns true if configs changed
     private async generateAccurateConfigs(): Promise<boolean> {
         await this.generator.cancelCurrentOperation();
 
@@ -125,8 +126,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             return false;
         }
         try {
-            await this.generator.generateConfiguration(workbench, project, compiler, config);
-            return true;
+            return await this.generator.generateConfiguration(workbench, project, compiler, config);
         } catch (err) {
             if (err) { Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err); }
             return false;

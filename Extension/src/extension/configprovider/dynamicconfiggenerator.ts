@@ -25,7 +25,7 @@ import { OsUtils, LanguageUtils } from "../../utils/utils";
  * Because of this, it is somewhat slow, but should be completely correct.
  */
 export class DynamicConfigGenerator {
-    private runningPromise: Promise<void> | null = null;
+    private runningPromise: Promise<boolean> | null = null;
     private shouldCancel = false;
     private readonly cache: ConfigurationCache = new SimpleConfigurationCache();
     private readonly output: Vscode.OutputChannel = Vscode.window.createOutputChannel("Iar Config Generator");
@@ -34,17 +34,20 @@ export class DynamicConfigGenerator {
     /**
      * Generates configuration data for an entire project, using the supplied values,
      * and caches the results
+     * @returns true if the operation succeded (i.e. was not canceled and did not crash)
      */
-    public generateConfiguration(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<void> {
+    public generateConfiguration(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<boolean> {
         // make sure we only run once at a time
         // this is probably safe since Node isnt multithreaded
         if (!this.runningPromise) {
             this.shouldCancel = false;
-            const resetPromise = () => { this.runningPromise = null; };
             this.runningPromise = this.generateConfigurationImpl(workbench, project, compiler, config).then(
-                resetPromise,
+                (result: boolean) => {
+                    this.runningPromise = null;
+                    return result;
+                },
                 (err) => {
-                    resetPromise();
+                    this.runningPromise = null;
                     return Promise.reject(err);
                 });
         }
@@ -67,8 +70,7 @@ export class DynamicConfigGenerator {
         this.output.dispose();
     }
 
-    // TODO: should return a bool
-    private generateConfigurationImpl(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<void> {
+    private generateConfigurationImpl(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<boolean> {
         return new Promise(async (resolve, reject) => {
             let builderPath = join(workbench.path.toString(), "common/bin/IarBuild");
             if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
@@ -100,7 +102,7 @@ export class DynamicConfigGenerator {
                 } catch {}
 
                 if (this.shouldCancel) {
-                    reject();
+                    resolve(false);
                     return;
                 }
             }
@@ -113,7 +115,7 @@ export class DynamicConfigGenerator {
             if (hasIncorrectCompiler) {
                 Vscode.window.showWarningMessage("IAR: The selected compiler does not appear to match the one used by the project.");
             }
-            resolve();
+            resolve(true);
         });
     }
 
