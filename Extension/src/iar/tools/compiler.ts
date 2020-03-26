@@ -9,7 +9,7 @@ import * as Fs from "fs";
 import * as Path from "path";
 import * as Process from "child_process";
 import { FsUtils } from "../../utils/fs";
-import { ListUtils, OsUtils } from "../../utils/utils";
+import { ListUtils, OsUtils, LanguageUtils } from "../../utils/utils";
 import { Define } from "../project/define";
 import { IncludePath } from "../project/includepath";
 import { Logging } from "../../utils/logging";
@@ -118,14 +118,15 @@ class IarCompiler implements Compiler {
         }
     }
 
-    protected computeCompilerSpecifics(language: "c" | "cpp"): CompilerOutput {
+    // TODO: maybe reuse code from configurationgenerator.ts
+    protected computeCompilerSpecifics(language: LanguageUtils.Language): CompilerOutput {
         let cmd = this.path.toString();
         let tmpFile = Path.join(Os.tmpdir(), "iarvsc.c");
         let tmpOutFile = Path.join(Os.tmpdir(), "iarvsc.predef_macros");
-        let args = ["--IDE3", tmpFile, "--predef_macros", tmpOutFile];
+        let args = ["--IDE3", "--NCG", tmpFile, "--predef_macros", tmpOutFile];
 
         if (language === "cpp") {
-            args.push("--c++")
+            args.push("--c++");
         }
 
         try {

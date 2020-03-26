@@ -8,30 +8,22 @@ import * as Vscode from "vscode";
 import { CommandBase } from "./command";
 import { CompilerListModel } from "../model/selectcompiler";
 import { ConfigurationListModel } from "../model/selectconfiguration";
-import { CppToolsConfigGenerator } from "../../vsc/CppToolsConfigGenerator";
 
 class GenerateCppToolsConfCommand extends CommandBase {
-    private compilerModel: CompilerListModel;
-    private configModel: ConfigurationListModel;
 
-    constructor(compilerModel: CompilerListModel, configModel: ConfigurationListModel) {
+    constructor(_compilerModel: CompilerListModel, _configModel: ConfigurationListModel) {
         super("iar.generateCppToolsConfig");
 
-        this.compilerModel = compilerModel;
-        this.configModel = configModel;
-
-        this.compilerModel.addOnSelectedHandler(this.executeImpl, this);
-        this.configModel.addOnSelectedHandler(this.executeImpl, this);
     }
 
     executeImpl(): void {
         Vscode.window.showInformationMessage("Generating cpptools config file");
 
-        CppToolsConfigGenerator.generate("c", this.configModel.selected, this.compilerModel.selected).then((result) => {
-            if (result) {
-                Vscode.window.showErrorMessage(result.message);
-            }
-        });
+        // CppToolsConfigGenerator.generate("c", this.configModel.selected, this.compilerModel.selected).then((result) => {
+        //     if (result) {
+        //         Vscode.window.showErrorMessage(result.message);
+        //     }
+        // });
     }
 }
 

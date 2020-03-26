@@ -3,10 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Assert from "assert";
-import { CppToolsConfigGenerator } from "../../src/vsc/CppToolsConfigGenerator";
-import * as Sinon from "ts-sinon";
-import * as Fs from "fs";
-import * as Jsonc from "jsonc-parser";
+import { StaticConfigGenerator } from "../../src/extension/configprovider/staticconfiggenerator";
 import { Config } from "../../src/iar/project/config";
 import { Define } from "../../src/iar/project/define";
 import { IncludePath } from "../../src/iar/project/includepath";
@@ -15,19 +12,12 @@ import { Compiler } from "../../src/iar/tools/compiler";
 
 suite("CppToolsConfigGenerator", () => {
     test("Verify fixed path", () => {
-        const outPath = "cpptools.json";
         let config = createDefaultConfig();
         let compiler = createDefaultCompiler();
-        let jsonString: string = "";
 
-        Sinon.default.stub(Fs, "writeFileSync").callsFake((...args: any[]) => {
-            jsonString = args[1];
-        });
+        const generatedConfig = new StaticConfigGenerator().generateConfiguration("c", config, compiler);
 
-        CppToolsConfigGenerator.generate("c", config, compiler, outPath);
-
-        let json = Jsonc.parse(jsonString);
-        verifyConfig(json, config, compiler);
+        verifyConfig(generatedConfig, config, compiler);
     });
 
     function verifyConfig(cpptoolsConfig: any, config: Config, compiler: Compiler): void {

@@ -21,9 +21,10 @@ import { OsUtils, LanguageUtils } from "../../utils/utils";
 /**
  * Generates/detects per-file configuration data (include paths/defines) for an entire project,
  * and caches them (in memory) for later retrieval.
- * This implementation is somewhat slow, but should be completely correct.
+ * This implementation relies on running mock builds of the entire project, and analyzing the compiler output.
+ * Because of this, it is somewhat slow, but should be completely correct.
  */
-export class IarConfigurationGenerator {
+export class DynamicConfigGenerator {
     private runningPromise: Promise<void> | null = null;
     private shouldCancel = false;
     private readonly cache: ConfigurationCache = new SimpleConfigurationCache();
@@ -66,6 +67,7 @@ export class IarConfigurationGenerator {
         this.output.dispose();
     }
 
+    // TODO: should return a bool
     private generateConfigurationImpl(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<void> {
         return new Promise(async (resolve, reject) => {
             let builderPath = join(workbench.path.toString(), "common/bin/IarBuild");

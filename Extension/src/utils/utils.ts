@@ -128,7 +128,10 @@ export namespace LanguageUtils {
     const cExtensions = [".c", ".h"];
     const cppExtensions = [".cpp", ".hpp", ".cxx", ".hxx", ".cc", ".hh"];
 
-    export function determineLanguage(filePath: PathLike): "c" | "cpp" | undefined {
+
+    export type Language = "c" | "cpp";
+
+    export function determineLanguage(filePath: PathLike): Language | undefined {
         const extension = Path.extname(filePath.toString());
 
         if (cExtensions.includes(extension)) {
