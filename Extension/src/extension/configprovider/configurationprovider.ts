@@ -59,7 +59,9 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         // and let the configs be updated when accurate configs are available
         this.generateFallbackConfigs();
         this.api.notifyReady(this);
-        this.generateAccurateConfigs();
+        this.generateAccurateConfigs().then((didChange: boolean) => {
+            if (didChange) { this.api.didChangeCustomConfiguration(this); }
+        });
     }
 
     // cpptools api methods
@@ -128,7 +130,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         try {
             return await this.generator.generateConfiguration(workbench, project, compiler, config);
         } catch (err) {
-            if (err) { Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err); }
+            Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err);
             return false;
         }
     }
