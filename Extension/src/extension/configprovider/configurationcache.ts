@@ -19,13 +19,10 @@ export interface ConfigurationCache {
 /**
  * Maps file paths to their config data using a regular javascript object indexed by file path
  */
-export class SimpleConfigurationCache {
+export class SimpleConfigurationCache implements ConfigurationCache {
     private includes: Record<string, IncludePath[]> = {};
     private defines: Record<string, Define[]> = {};
 
-    // implementation idea:
-    // have old provider supply a base set of config values, only files that deviate from this need special
-    // storage. However, this might not work well for mixed c/c++ projects
     getIncludes(file: Uri): IncludePath[] {
         const cached = this.includes[file.path.toLowerCase()];
         return cached ? cached : [];

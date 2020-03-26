@@ -9,7 +9,9 @@ import { UI } from "../ui/app";
 import { Settings } from "../settings";
 import { CancellationToken } from "vscode-jsonrpc";
 import { LanguageUtils } from "../../utils/utils";
-import { StaticConfigGenerator } from "./staticconfiggenerator";
+import { StaticConfigGenerator, PartialSourceFileConfiguration } from "./staticconfiggenerator";
+import { IncludePath } from "../../iar/project/includepath";
+import { Define } from "../../iar/project/define";
 
 /**
  * Provides source file configurations for an IAR project to cpptools via the cpptools typescript api.
@@ -30,7 +32,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
                 IarConfigurationProvider._instance.dispose();
             }
 
-            const instance = new IarConfigurationProvider(api, new DynamicConfigGenerator(), new StaticConfigGenerator());
+            const instance = new IarConfigurationProvider(api, new DynamicConfigGenerator());
             IarConfigurationProvider._instance = instance;
             return true;
         } else {
@@ -39,14 +41,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         return false;
     }
 
-    private readonly nullConfiguration: SourceFileConfiguration = {defines: [], includePath: [], standard: "c89", intelliSenseMode: "msvc-x64"};
-    private fallbackConfigurationC: SourceFileConfiguration = this.nullConfiguration;
-    private fallbackConfigurationCpp: SourceFileConfiguration = this.nullConfiguration;
+    private fallbackConfigurationC: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
+    private fallbackConfigurationCpp: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
 
     readonly name = "IAR-cpptools-API";
     readonly extensionId = "pluyckx.iar-vsc";
 
-    private constructor(private api: CppToolsApi, private generator: DynamicConfigGenerator, private fallbackGenerator: StaticConfigGenerator) {
+    private constructor(private api: CppToolsApi, private generator: DynamicConfigGenerator) {
         UI.getInstance().compiler.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
         UI.getInstance().config.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
         UI.getInstance().project.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
@@ -70,22 +71,27 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         return Promise.resolve(lang !== undefined);
     }
     provideConfigurations(uris: Vscode.Uri[], _token?: CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
+        const cStandard = Settings.getCStandard();
+        const cppStandard = Settings.getCppStandard();
+
         return Promise.resolve(uris.map(uri => {
             const lang = LanguageUtils.determineLanguage(uri.fsPath);
             const baseConfiguration = lang === "c" ? this.fallbackConfigurationC : this.fallbackConfigurationCpp;
-            let includes = this.generator.getIncludes(uri).map(i => i.absolutePath.toString());
-            includes = includes.concat(baseConfiguration.includePath.filter(inc => !includes.includes(inc)));
-            let defines = this.generator.getDefines(uri).map(d => `${d.identifier}=${d.value}`);
-            defines = defines.concat(baseConfiguration.defines.filter(def => !defines.includes(def)));
-            defines = defines.concat(Settings.getDefines()); // user-defined extra macros
 
-            const config = {
-                compilerPath: baseConfiguration.compilerPath,
-                defines: defines,
-                includePath: includes,
-                forcedInclude: baseConfiguration.forcedInclude,
-                intelliSenseMode: baseConfiguration.intelliSenseMode,
-                standard: baseConfiguration.standard,
+            const includes = this.mergeIncludeArrays(this.generator.getIncludes(uri), baseConfiguration.includes);
+            const stringIncludes = includes.map(i => i.absolutePath.toString());
+
+            const defines = this.mergeDefineArrays(this.generator.getDefines(uri), baseConfiguration.defines);
+            let stringDefines = defines.map(d => `${d.identifier}=${d.value}`);
+            stringDefines = stringDefines.concat(Settings.getDefines()); // user-defined extra macros
+
+            const config: SourceFileConfiguration = {
+                compilerPath: "",
+                defines: stringDefines,
+                includePath: stringIncludes,
+                forcedInclude: baseConfiguration.preIncludes.map(i => i.absolutePath.toString()),
+                intelliSenseMode: "msvc-x64",
+                standard: lang === "c" ? cStandard : cppStandard,
             };
             return {
                 uri: uri,
@@ -112,8 +118,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     }
 
     private generateFallbackConfigs() {
-        this.fallbackConfigurationC = this.fallbackGenerator.generateConfiguration("c", UI.getInstance().config.model.selected!, UI.getInstance().compiler.model.selected!);
-        this.fallbackConfigurationCpp = this.fallbackGenerator.generateConfiguration("cpp", UI.getInstance().config.model.selected!, UI.getInstance().compiler.model.selected!);
+        this.fallbackConfigurationC = StaticConfigGenerator.generateConfiguration("c", UI.getInstance().config.model.selected!, UI.getInstance().compiler.model.selected!);
+        this.fallbackConfigurationCpp = StaticConfigGenerator.generateConfiguration("cpp", UI.getInstance().config.model.selected!, UI.getInstance().compiler.model.selected!);
     }
 
     // returns true if configs changed
@@ -139,5 +145,16 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         this.generateFallbackConfigs();
         const changed = await this.generateAccurateConfigs();
         if (changed) { this.api.didChangeCustomConfiguration(this); }
+    }
+
+    // merges two include path arrays, removing duplicates
+    private mergeIncludeArrays(arr1: IncludePath[], arr2: IncludePath[]) {
+        const arr1Uniques = arr1.filter(path1 => !arr2.some(path2 => path1.absolutePath === path2.absolutePath));
+        return arr1Uniques.concat(arr2);
+    }
+    // merges two defines arrays, removing duplicates
+    private mergeDefineArrays(arr1: Define[], arr2: Define[]) {
+        const arr1Uniques = arr1.filter(path1 => !arr2.some(path2 => path1.identifier === path2.identifier));
+        return arr1Uniques.concat(arr2);
     }
 }

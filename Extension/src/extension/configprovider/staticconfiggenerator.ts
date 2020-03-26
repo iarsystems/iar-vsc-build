@@ -9,9 +9,9 @@ import { IncludePath } from "../../iar/project/includepath";
 import { PreIncludePath } from "../../iar/project/preincludepath";
 import { Define } from "../../iar/project/define";
 import { Compiler } from "../../iar/tools/compiler";
-import { Settings } from "../settings";
-import { SourceFileConfiguration } from "vscode-cpptools";
 import { LanguageUtils } from "../../utils/utils";
+
+export type PartialSourceFileConfiguration = { includes: IncludePath[], preIncludes: PreIncludePath[], defines: Define[] };
 
 /**
  * Detects source file configuration for an IAR project.
@@ -19,84 +19,43 @@ import { LanguageUtils } from "../../utils/utils";
  * It is fast but sometimes inaccurate, and only generates on a project-level,
  * i.e. does not detect config changes between individual files.
  */
-export class StaticConfigGenerator {
+export namespace StaticConfigGenerator {
 
-    public generateConfiguration(language: LanguageUtils.Language, config?: Config, compiler?: Compiler): SourceFileConfiguration {
+    export function generateConfiguration(language: LanguageUtils.Language, config?: Config, compiler?: Compiler): PartialSourceFileConfiguration {
         if (compiler !== undefined) {
             compiler.prepare();
         }
 
-        let defines: string[] = [];
-        let includepaths: string[] = [];
-        let preincludes: string[] = [];
+        let defines: Define[] = [];
+        let includepaths: IncludePath[] = [];
+        let preincludes: PreIncludePath[] = [];
 
         if (config) {
             if (language === "c") {
-                defines = defines.concat(this.toDefineArray(config.cDefines));
-                includepaths = includepaths.concat(this.toIncludePathArray(config.cIncludes));
+                defines = defines.concat(config.cDefines);
+                includepaths = includepaths.concat(config.cIncludes);
             } else {
-                defines = defines.concat(this.toDefineArray(config.cppDefines));
-                includepaths = includepaths.concat(this.toIncludePathArray(config.cppIncludes));
+                defines = defines.concat(config.cppDefines);
+                includepaths = includepaths.concat(config.cppIncludes);
             }
 
-            preincludes = preincludes.concat(this.toPreIncludePathArray(config.preIncludes));
+            preincludes = preincludes.concat(config.preIncludes);
         }
 
         if (compiler) {
             if (language === "c") {
-                defines = defines.concat(this.toDefineArray(compiler.cDefines));
-                includepaths = includepaths.concat(this.toIncludePathArray(compiler.cIncludePaths, true));
+                defines = defines.concat(compiler.cDefines);
+                includepaths = includepaths.concat(compiler.cIncludePaths);
             } else {
-                defines = defines.concat(this.toDefineArray(compiler.cppDefines));
-                includepaths = includepaths.concat(this.toIncludePathArray(compiler.cppIncludePaths, true));
+                defines = defines.concat(compiler.cppDefines);
+                includepaths = includepaths.concat(compiler.cppIncludePaths);
             }
         }
 
         return {
+            includes: includepaths,
+            preIncludes: preincludes,
             defines: defines,
-            includePath: includepaths,
-            forcedInclude: preincludes,
-            standard: (language === "cpp") ? Settings.getCppStandard() : Settings.getCStandard(),
-            intelliSenseMode: "msvc-x64",
-            compilerPath: "",
         };
-    }
-
-    toDefineArray(defines: Define[]): string[] {
-        let array: string[] = [];
-
-        defines.forEach(item => {
-            if (item.value) {
-                array.push(item.identifier + "=" + item.value);
-            } else {
-                array.push(item.identifier);
-            }
-        });
-
-        return array;
-    }
-
-    toIncludePathArray(includes: IncludePath[], absolutePath: boolean = false): string[] {
-        let array: string[] = [];
-
-        includes.forEach(item => {
-            if (absolutePath) {
-                array.push(item.absolutePath.toString());
-            } else {
-                array.push(item.workspacePath.toString());
-            }
-        });
-
-        return array;
-    }
-
-    toPreIncludePathArray(includes: PreIncludePath[]): string[] {
-        let array: string[] = [];
-
-        includes.forEach(item => {
-            array.push(item.workspaceRelativePath.toString());
-        });
-
-        return array;
     }
 }

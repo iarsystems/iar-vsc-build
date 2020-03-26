@@ -15,7 +15,7 @@ suite("CppToolsConfigGenerator", () => {
         let config = createDefaultConfig();
         let compiler = createDefaultCompiler();
 
-        const generatedConfig = new StaticConfigGenerator().generateConfiguration("c", config, compiler);
+        const generatedConfig = StaticConfigGenerator.generateConfiguration("c", config, compiler);
 
         verifyConfig(generatedConfig, config, compiler);
     });
