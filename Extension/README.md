@@ -77,7 +77,10 @@ Improvements are welcome through *pull requests* or *issue reports*.
 
 ### C-STAT
 
-You can run C-STAT on your project with the `iar: Run C-STAT Analysis` command, and clear the warnings with `iar: Clear C-STAT Diagnostics`. You can filter the warnings by setting `iarvsc.cstatFilterLevel` in your user settings.
+You can run C-STAT on your project with the `iar-cstat: Run C-STAT Analysis` task, and clear the warnings with `iar-cstat: Clear C-STAT Diagnostics`.
+When running these tasks, VS Code might prompt you about scanning the task output, and it is recommended to select `Never scan the task output for iar-cstat tasks`,
+since these tasks do not use a regular problem matcher.
+You can filter the C-STAT warnings by setting `iarvsc.cstatFilterLevel` in your user settings.
 
 ### Debugging
 
