@@ -24,7 +24,8 @@ abstract class BaseDefine implements Define {
     abstract identifier: string;
     abstract value: string | undefined;
     makeString(): string {
-        return `${this.identifier}=${this.value}`;
+        const val = this.value ? this.value : "";
+        return `${this.identifier}=${val}`;
     }
 }
 
