@@ -44,7 +44,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     private fallbackConfigurationC: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
     private fallbackConfigurationCpp: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
 
-    readonly name = "IAR-cpptools-API";
+    readonly name = "IAR-cpptools-API"; //TODO: rename
     readonly extensionId = "pluyckx.iar-vsc";
 
     private constructor(private api: CppToolsApi, private generator: DynamicConfigGenerator) {
@@ -118,8 +118,11 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     }
 
     private generateFallbackConfigs() {
-        this.fallbackConfigurationC = StaticConfigGenerator.generateConfiguration("c", UI.getInstance().config.model.selected!, UI.getInstance().compiler.model.selected!);
-        this.fallbackConfigurationCpp = StaticConfigGenerator.generateConfiguration("cpp", UI.getInstance().config.model.selected!, UI.getInstance().compiler.model.selected!);
+        const compiler = UI.getInstance().compiler.model.selected;
+        const config = UI.getInstance().config.model.selected;
+        const project = UI.getInstance().project.model.selected;
+        this.fallbackConfigurationC   = StaticConfigGenerator.generateConfiguration("c", config, project, compiler);
+        this.fallbackConfigurationCpp = StaticConfigGenerator.generateConfiguration("cpp", config, project, compiler);
     }
 
     // returns true if configs changed

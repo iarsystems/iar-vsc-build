@@ -4,59 +4,26 @@
 
 'use strict';
 
-import * as Fs from "fs";
-import * as Path from "path";
-
 import { XmlNode } from '../../utils/XmlNode';
-import { Define } from './define';
-import { IncludePath } from './includepath';
-import { PreIncludePath } from './preincludepath';
 import { IarXml } from "../../utils/xml";
 
 export interface Config {
     readonly name: string;
-    readonly cppDefines: Define[];
-    readonly cDefines: Define[];
-    readonly cppIncludes: IncludePath[];
-    readonly cIncludes: IncludePath[];
-    readonly preIncludes: PreIncludePath[];
 }
 
-class XmlConfig implements Config {
+export class XmlConfig implements Config {
     private xml: XmlNode;
 
-    readonly defines: Define[];
-    readonly includes: IncludePath[];
-    readonly preIncludes: PreIncludePath[];
-
-    constructor(xmlConfigElement: XmlNode, ewpPath: Fs.PathLike) {
+    constructor(xmlConfigElement: XmlNode) {
         this.xml = xmlConfigElement;
 
         if (this.xml.tagName !== 'configuration') {
             throw new Error("Expected an xml element 'configuration' instead of '" + this.xml.tagName + "'");
         }
-
-        const projectRoot = Path.parse(ewpPath.toString()).dir;
-
-        this.defines = Define.fromXml(xmlConfigElement);
-        this.includes = IncludePath.fromXmlData(xmlConfigElement, projectRoot);
-        this.preIncludes = PreIncludePath.fromXml(xmlConfigElement, projectRoot);
     }
 
-    get cDefines(): Define[] {
-        return this.defines;
-    }
-
-    get cppDefines(): Define[] {
-        return this.defines;
-    }
-
-    get cIncludes(): IncludePath[] {
-        return this.includes;
-    }
-
-    get cppIncludes(): IncludePath[] {
-        return this.includes;
+    public getXml() {
+        return this.xml;
     }
 
     get name(): string {
@@ -71,14 +38,14 @@ class XmlConfig implements Config {
 }
 
 export namespace Config {
-    export function fromXml(projectXml: XmlNode, ewpPath: Fs.PathLike): Config[] {
+    export function fromXml(projectXml: XmlNode): Config[] {
         let configs: Config[] = [];
 
         let xmlConfigs = projectXml.getAllChildsByName("configuration");
 
         xmlConfigs.forEach(config => {
             try {
-                configs.push(new XmlConfig(config, ewpPath));
+                configs.push(new XmlConfig(config));
             } catch (e) {
             }
         });
