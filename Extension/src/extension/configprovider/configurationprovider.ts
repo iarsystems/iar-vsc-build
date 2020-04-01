@@ -12,6 +12,7 @@ import { LanguageUtils } from "../../utils/utils";
 import { StaticConfigGenerator, PartialSourceFileConfiguration } from "./staticconfiggenerator";
 import { IncludePath } from "./data/includepath";
 import { Define } from "./data/define";
+import { JsonConfigurationWriter } from "./jsonconfigurationwriter";
 
 /**
  * Provides source file configurations for an IAR project to cpptools via the cpptools typescript api.
@@ -89,7 +90,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             const stringIncludes = includes.map(i => i.absolutePath.toString());
 
             const defines = this.mergeDefineArrays(this.generator.getDefines(uri), baseConfiguration.defines);
-            let stringDefines = defines.map(d => `${d.identifier}=${d.value}`);
+            let stringDefines = defines.map(d => d.makeString());
             stringDefines = stringDefines.concat(Settings.getDefines()); // user-defined extra macros
 
             const config: SourceFileConfiguration = {
@@ -130,6 +131,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         const project = UI.getInstance().project.model.selected;
         this.fallbackConfigurationC   = StaticConfigGenerator.generateConfiguration("c", config, project, compiler);
         this.fallbackConfigurationCpp = StaticConfigGenerator.generateConfiguration("cpp", config, project, compiler);
+        JsonConfigurationWriter.writeJsonConfiguration(this.fallbackConfigurationC, this.name);
     }
 
     // returns true if configs changed

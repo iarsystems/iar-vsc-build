@@ -11,6 +11,8 @@ import { IarXml } from "../../../utils/xml";
 export interface Define {
     readonly identifier: string;
     readonly value: string | undefined;
+    /** Creates a string that cpptools can understand (e.g. 'MYMACRO=2') */
+    makeString(): string;
 }
 
 enum DefinePart {
@@ -18,10 +20,19 @@ enum DefinePart {
     Value
 }
 
-class XmlDefine implements Define {
+abstract class BaseDefine implements Define {
+    abstract identifier: string;
+    abstract value: string | undefined;
+    makeString(): string {
+        return `${this.identifier}=${this.value}`;
+    }
+}
+
+class XmlDefine extends BaseDefine {
     private xmlData: XmlNode;
 
     constructor(xml: XmlNode) {
+        super();
         this.xmlData = xml;
 
         if (xml.tagName !== "state") {
@@ -65,11 +76,12 @@ class XmlDefine implements Define {
     }
 }
 
-class StringDefine implements Define {
+class StringDefine extends BaseDefine {
     readonly identifier: string;
     readonly value: string | undefined;
 
     constructor(identifier: string, value: string | undefined) {
+        super();
         this.identifier = identifier;
         this.value = value;
     }
