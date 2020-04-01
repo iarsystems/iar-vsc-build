@@ -9,7 +9,7 @@ import * as Path from "path";
 import * as equal from "fast-deep-equal";
 import { FsUtils } from "../../utils/fs";
 import { Settings } from "../settings";
-import { PartialSourceFileConfiguration } from "./staticconfiggenerator";
+import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
 
 /**
  * Writes a source file configuration to the 'c_cpp_properties.json' file.

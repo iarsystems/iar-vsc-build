@@ -15,8 +15,7 @@ import * as Os from "os";
 import * as Fs from "fs";
 import * as Process from "child_process";
 import { Project } from "../../iar/project/project";
-
-export type PartialSourceFileConfiguration = { includes: IncludePath[], preIncludes: PreIncludePath[], defines: Define[] };
+import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
 
 /**
  * Detects source file configuration for an IAR project.

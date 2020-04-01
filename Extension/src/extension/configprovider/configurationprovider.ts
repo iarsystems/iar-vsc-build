@@ -9,10 +9,9 @@ import { UI } from "../ui/app";
 import { Settings } from "../settings";
 import { CancellationToken } from "vscode-jsonrpc";
 import { LanguageUtils } from "../../utils/utils";
-import { StaticConfigGenerator, PartialSourceFileConfiguration } from "./staticconfiggenerator";
-import { IncludePath } from "./data/includepath";
-import { Define } from "./data/define";
+import { StaticConfigGenerator } from "./staticconfiggenerator";
 import { JsonConfigurationWriter } from "./jsonconfigurationwriter";
+import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
 
 /**
  * Provides source file configurations for an IAR project to cpptools via the cpptools typescript api.
@@ -85,19 +84,17 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         return Promise.resolve(uris.map(uri => {
             const lang = LanguageUtils.determineLanguage(uri.fsPath);
             const baseConfiguration = lang === "c" ? this.fallbackConfigurationC : this.fallbackConfigurationCpp;
+            const fileConfiguration = { includes: this.generator.getIncludes(uri), preIncludes: [], defines: this.generator.getDefines(uri) };
+            const mergedConfiguration = PartialSourceFileConfiguration.merge(baseConfiguration, fileConfiguration);
 
-            const includes = this.mergeIncludeArrays(this.generator.getIncludes(uri), baseConfiguration.includes);
-            const stringIncludes = includes.map(i => i.absolutePath.toString());
-
-            const defines = this.mergeDefineArrays(this.generator.getDefines(uri), baseConfiguration.defines);
-            let stringDefines = defines.map(d => d.makeString());
+            let stringDefines = mergedConfiguration.defines.map(d => d.makeString());
             stringDefines = stringDefines.concat(Settings.getDefines()); // user-defined extra macros
 
             const config: SourceFileConfiguration = {
                 compilerPath: "",
                 defines: stringDefines,
-                includePath: stringIncludes,
-                forcedInclude: baseConfiguration.preIncludes.map(i => i.absolutePath.toString()),
+                includePath: mergedConfiguration.includes.map(i => i.absolutePath.toString()),
+                forcedInclude: mergedConfiguration.preIncludes.map(i => i.absolutePath.toString()),
                 intelliSenseMode: "msvc-x64",
                 standard: lang === "c" ? cStandard : cppStandard,
             };
@@ -108,10 +105,18 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         }));
     }
     canProvideBrowseConfiguration(_token?: CancellationToken | undefined): Thenable<boolean> {
-        return Promise.resolve(false);
+        return Promise.resolve(true);
     }
     provideBrowseConfiguration(_token?: CancellationToken | undefined): Thenable<WorkspaceBrowseConfiguration> {
-        return Promise.reject();
+        const mergedConfig = PartialSourceFileConfiguration.merge(this.fallbackConfigurationC, this.fallbackConfigurationCpp);
+        const result: WorkspaceBrowseConfiguration = {
+            browsePath: mergedConfig.includes.map(i => i.absolutePath.toString()),
+            compilerPath: "",
+            compilerArgs: [],
+            standard: Settings.getCStandard(),
+            windowsSdkVersion: ""
+        }
+        return Promise.resolve(result);
     }
     canProvideBrowseConfigurationsPerFolder(_token?: CancellationToken | undefined): Thenable<boolean> {
         return Promise.resolve(false);
@@ -131,7 +136,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         const project = UI.getInstance().project.model.selected;
         this.fallbackConfigurationC   = StaticConfigGenerator.generateConfiguration("c", config, project, compiler);
         this.fallbackConfigurationCpp = StaticConfigGenerator.generateConfiguration("cpp", config, project, compiler);
-        JsonConfigurationWriter.writeJsonConfiguration(this.fallbackConfigurationC, this.name);
+        const mergedConfig = PartialSourceFileConfiguration.merge(this.fallbackConfigurationC, this.fallbackConfigurationCpp);
+        JsonConfigurationWriter.writeJsonConfiguration(mergedConfig, this.name);
     }
 
     // returns true if configs changed
@@ -157,16 +163,5 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         this.generateFallbackConfigs();
         const changed = await this.generateAccurateConfigs();
         if (changed) { this.api.didChangeCustomConfiguration(this); }
-    }
-
-    // merges two include path arrays, removing duplicates
-    private mergeIncludeArrays(arr1: IncludePath[], arr2: IncludePath[]) {
-        const arr1Uniques = arr1.filter(path1 => !arr2.some(path2 => path1.absolutePath === path2.absolutePath));
-        return arr1Uniques.concat(arr2);
-    }
-    // merges two defines arrays, removing duplicates
-    private mergeDefineArrays(arr1: Define[], arr2: Define[]) {
-        const arr1Uniques = arr1.filter(path1 => !arr2.some(path2 => path1.identifier === path2.identifier));
-        return arr1Uniques.concat(arr2);
     }
 }
