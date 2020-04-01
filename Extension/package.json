@@ -28,7 +28,7 @@
     "onCommand:iar.selectCompiler",
     "onCommand:iar.selectProject",
     "onCommand:iar.selectConfiguration",
-    "onCommand:iar.generateCppToolsConfig",
+    "onCommand:iar.regenerateCppToolsConfig",
     "onCommand:iar.selectIarWorkspace",
     "workspaceContains:**/*.ewp"
   ],
@@ -56,8 +56,8 @@
         "category": "IAR"
       },
       {
-        "command": "iar.generateCppToolsConfig",
-        "title": "Generate CppTools Config File",
+        "command": "iar.regenerateCppToolsConfig",
+        "title": "Reload project configuration",
         "category": "IAR"
       },
       {

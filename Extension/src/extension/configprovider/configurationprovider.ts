@@ -41,6 +41,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         return false;
     }
 
+    /**
+     * Forces the provider to regenerate configurations for all source files
+     */
+    public forceUpdate(): Promise<void> {
+        return this.onSettingsChanged();
+    }
+
     private fallbackConfigurationC: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
     private fallbackConfigurationCpp: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
 
