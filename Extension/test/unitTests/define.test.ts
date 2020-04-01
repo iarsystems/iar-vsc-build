@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Assert from "assert";
-import { Define } from "../../src/iar/project/define";
+import { Define } from "../../src/extension/configprovider/define";
 
 suite("Test define parsers", () => {
     suite("Test source file parser", () => {

@@ -3,8 +3,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { Uri } from "vscode";
-import { IncludePath } from "../../iar/project/includepath";
-import { Define } from "../../iar/project/define";
+import { IncludePath } from "./includepath";
+import { Define } from "./define";
 
 /**
  * Caches project configuration data (include paths/defines).
