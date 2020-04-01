@@ -39,7 +39,7 @@ class EwpFile implements Project {
         this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString());
 
         this.fileWatcher.onDidChange(() => {
-            this.reload(); //TODO: add an event here?
+            this.reload();
         });
     }
 
