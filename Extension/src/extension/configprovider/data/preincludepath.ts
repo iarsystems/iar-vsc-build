@@ -8,8 +8,8 @@ import * as Vscode from "vscode";
 import * as Fs from "fs";
 import * as Path from "path";
 
-import { XmlNode } from "../../utils/XmlNode";
-import { IarXml } from "../../utils/xml";
+import { XmlNode } from "../../../utils/XmlNode";
+import { IarXml } from "../../../utils/xml";
 
 export interface PreIncludePath {
     readonly path: Fs.PathLike;

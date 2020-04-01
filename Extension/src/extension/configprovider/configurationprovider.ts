@@ -10,8 +10,8 @@ import { Settings } from "../settings";
 import { CancellationToken } from "vscode-jsonrpc";
 import { LanguageUtils } from "../../utils/utils";
 import { StaticConfigGenerator, PartialSourceFileConfiguration } from "./staticconfiggenerator";
-import { IncludePath } from "../../iar/project/includepath";
-import { Define } from "../../iar/project/define";
+import { IncludePath } from "./data/includepath";
+import { Define } from "./data/define";
 
 /**
  * Provides source file configurations for an IAR project to cpptools via the cpptools typescript api.

@@ -5,9 +5,9 @@
 'use strict';
 
 import { Config, XmlConfig } from "../../iar/project/config";
-import { IncludePath } from "./includepath";
-import { PreIncludePath } from "./preincludepath";
-import { Define } from "./define";
+import { IncludePath } from "./data/includepath";
+import { PreIncludePath } from "./data/preincludepath";
+import { Define } from "./data/define";
 import { Compiler } from "../../iar/tools/compiler";
 import { LanguageUtils } from "../../utils/utils";
 import * as Path from "path";

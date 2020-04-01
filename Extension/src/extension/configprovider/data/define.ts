@@ -5,8 +5,8 @@
 'use strict';
 
 import * as Fs from "fs";
-import { XmlNode } from "../../utils/XmlNode";
-import { IarXml } from "../../utils/xml";
+import { XmlNode } from "../../../utils/XmlNode";
+import { IarXml } from "../../../utils/xml";
 
 export interface Define {
     readonly identifier: string;
