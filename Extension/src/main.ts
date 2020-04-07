@@ -12,6 +12,7 @@ import { Settings } from './extension/settings';
 import { SettingsMonitor } from './extension/settingsmonitor';
 import { IarTaskProvider } from './extension/task/provider';
 import { GetSettingsCommand } from "./extension/command/getsettings";
+import { CStatTaskProvider } from './extension/task/cstat/cstattaskprovider';
 
 export function activate(context: vscode.ExtensionContext) {
     GetSettingsCommand.initCommands(context);
@@ -33,10 +34,12 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     IarTaskProvider.register();
+    CStatTaskProvider.register(context);
 }
 
 export function deactivate() {
     IarTaskProvider.unregister();
+    CStatTaskProvider.unRegister();
 }
 
 namespace IarVsc {

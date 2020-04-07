@@ -9,15 +9,17 @@ import * as Fs from "fs";
 import * as Path from "path";
 import * as Process from "child_process";
 import { FsUtils } from "../../utils/fs";
-import { ListUtils } from "../../utils/utils";
+import { ListUtils, OsUtils } from "../../utils/utils";
 import { Define } from "../project/define";
 import { IncludePath } from "../project/includepath";
+import { Keyword } from "../project/keyword";
 
 export interface Compiler {
     readonly name: string;
     readonly path: Fs.PathLike;
     readonly defines: Define[];
     readonly includePaths: IncludePath[];
+    readonly supportedKeywords: Keyword[];
 
     prepare(): void;
 }
@@ -28,6 +30,7 @@ class IarCompiler implements Compiler {
     readonly path: Fs.PathLike;
     private _defines: Define[] | undefined;
     private _includePaths: IncludePath[] | undefined;
+    private _supportedKeywords: Keyword[] | undefined;
 
     /**
      * Create a new Compiler object.
@@ -43,6 +46,7 @@ class IarCompiler implements Compiler {
 
         this._defines = undefined;
         this._includePaths = undefined;
+        this._supportedKeywords = undefined;
     }
 
     public prepare(): void {
@@ -51,6 +55,9 @@ class IarCompiler implements Compiler {
 
             this._defines = defines;
             this._includePaths = includePaths;
+        }
+        if (this._supportedKeywords === undefined) {
+            this._supportedKeywords = this.computeSupportedKeywords();
         }
     }
 
@@ -71,6 +78,14 @@ class IarCompiler implements Compiler {
             return [];
         } else {
             return this._includePaths;
+        }
+    }
+
+    get supportedKeywords(): Keyword[] {
+        if (this._supportedKeywords === undefined) {
+            return [];
+        } else {
+            return this._supportedKeywords;
         }
     }
 
@@ -136,6 +151,18 @@ class IarCompiler implements Compiler {
     private parseIncludePathsFrom(compilerOutput: string): IncludePath[] {
         return IncludePath.fromCompilerOutput(compilerOutput);
     }
+
+    private computeSupportedKeywords(): Keyword[] {
+        // C syntax files are named <platform dir>/config/syntax_icc.cfg
+        const platformBasePath = Path.dirname(this.path.toString()) + "/.."
+        const filePath         = platformBasePath + "/config/syntax_icc.cfg"
+        if (Fs.existsSync(filePath)) {
+            return Keyword.fromSyntaxFile(filePath);
+        } else {
+            return [];
+        }
+    }
+
 }
 
 export namespace Compiler {
@@ -146,7 +173,11 @@ export namespace Compiler {
      */
     export function collectCompilersFrom(root: Fs.PathLike): Compiler[] {
         let compilers: Compiler[] = [];
-        let filter = FsUtils.createFilteredListDirectoryFilenameRegex(/icc.*\.exe/);
+        let regex = "icc.*";
+        if (OsUtils.detectOsType() === OsUtils.OsType.Windows) {
+            regex += "\.exe";
+        }
+        let filter = FsUtils.createFilteredListDirectoryFilenameRegex(new RegExp(regex));
         let compilerPaths = FsUtils.filteredListDirectory(root, filter);
 
         compilerPaths.forEach(compilerPath => {

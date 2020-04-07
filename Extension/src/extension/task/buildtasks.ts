@@ -8,7 +8,7 @@ import * as Vscode from "vscode";
 import { isArray } from "util";
 import { Settings } from "../settings";
 import { IarExecution } from "./iarexecution";
-import { Logging } from "../../utils/logging";
+import { OsUtils } from "../../utils/utils";
 
 export interface BuildTaskDefinition {
     readonly label: string;
@@ -100,8 +100,6 @@ export namespace BuildTasks {
             task.problemMatchers = definition["problemMatcher"];
         }
 
-        Logging.getInstance().debug("Generate task from definition: {0}", task.name);
-
         return task;
     }
 
@@ -116,13 +114,12 @@ export namespace BuildTasks {
         }
 
         tasksAsArray.forEach(taskDefinition => {
-            let task = generateFromDefinition(taskDefinition);
+            if (taskDefinition["type"] === "iar") {
+                let task = generateFromDefinition(taskDefinition);
 
-            if (task) {
-                Logging.getInstance().debug("Task generated from json: {0}", taskDefinition["label"]);
-                dst.set(taskDefinition["label"], task);
-            } else {
-                Logging.getInstance().debug("Could not parse task from json: {0}", taskDefinition["label"]);
+                if (task) {
+                    dst.set(taskDefinition["label"], task);
+                }
             }
         });
     }
@@ -135,17 +132,14 @@ export namespace BuildTasks {
                 label: label,
                 type: "iar",
                 command: command,
-                builder: "${command:iar-settings.workbench}\\\\common\\\\bin\\\\IarBuild.exe",
+                builder: "${command:iar-settings.workbench}/common/bin/IarBuild" + (OsUtils.detectOsType() == OsUtils.OsType.Windows ? ".exe" : ""),
                 project: "${command:iar-settings.project-file}",
                 config: "${command:iar-settings.project-configuration}",
                 problemMatcher: ["$iar-cc", "$iar-linker"]
             };
 
-            Logging.getInstance().debug("Generate task: {0}", definition["label"]);
-
             return generateFromDefinition(definition);
         } else {
-            Logging.getInstance().debug("Could not generate task '{0}' for command '{1}'", label, command);
             return undefined;
         }
     }
