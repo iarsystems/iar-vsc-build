@@ -10,7 +10,7 @@ import { CompilerListModel } from "../model/selectcompiler";
 import { ConfigurationListModel } from "../model/selectconfiguration";
 import { CppToolsConfigGenerator } from "../../vsc/CppToolsConfigGenerator";
 
-export class GenerateCppToolsConfCommand extends CommandBase {
+class GenerateCppToolsConfCommand extends CommandBase {
     private compilerModel: CompilerListModel;
     private configModel: ConfigurationListModel;
 
@@ -19,13 +19,23 @@ export class GenerateCppToolsConfCommand extends CommandBase {
 
         this.compilerModel = compilerModel;
         this.configModel = configModel;
+
+        this.compilerModel.addOnSelectedHandler(this.executeOnModelChange, this);
+        this.configModel.addOnSelectedHandler(this.executeOnModelChange, this);
     }
 
-    executeImpl(): void {
+    executeOnModelChange(): void {
+        this.executeImpl(true);
+    }
+
+    executeImpl(autoTriggered?: boolean): void {
         if (!this.canExecute()) {
-            Vscode.window.showErrorMessage("You need to select a compiler and configuration to generate the cpptools config file");
+            if (!autoTriggered) {
+                Vscode.window.showErrorMessage("You need to select a compiler and configuration to generate the cpptools config file");
+            }
             return;
         }
+
         Vscode.window.showInformationMessage("Generating cpptools config file");
 
         CppToolsConfigGenerator.generate(this.configModel.selected, this.compilerModel.selected).then((result) => {

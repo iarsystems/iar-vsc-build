@@ -8,6 +8,7 @@ import * as Vscode from "vscode";
 import { isArray } from "util";
 import { Settings } from "../settings";
 import { IarExecution } from "./iarexecution";
+import { Logging } from "../../utils/logging";
 
 export interface BuildTaskDefinition {
     readonly label: string;
@@ -53,6 +54,7 @@ export namespace BuildTasks {
             showErrorMissingField("command", label);
             return undefined;
         } else if (iarCommand === undefined) {
+            showErrorInvalidField("command", label, command);
             return undefined;
         }
 
@@ -87,22 +89,20 @@ export namespace BuildTasks {
             args = args.concat(extraArgs);
         }
 
-        if (iarCommand) {
-            let process = new IarExecution(
-                builder,
-                args
-            );
+        let process = new IarExecution(
+            builder,
+            args
+        );
 
-            let task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);
+        let task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);
 
-            if (definition["problemMatcher"] !== undefined) {
-                task.problemMatchers = definition["problemMatcher"];
-            }
-
-            return task;
-        } else {
-            return undefined;
+        if (definition["problemMatcher"] !== undefined) {
+            task.problemMatchers = definition["problemMatcher"];
         }
+
+        Logging.getInstance().debug("Generate task from definition: {0}", task.name);
+
+        return task;
     }
 
     export function generateFromTasksJson(json: any, dst: Map<string, Vscode.Task>): void {
@@ -119,7 +119,10 @@ export namespace BuildTasks {
             let task = generateFromDefinition(taskDefinition);
 
             if (task) {
+                Logging.getInstance().debug("Task generated from json: {0}", taskDefinition["label"]);
                 dst.set(taskDefinition["label"], task);
+            } else {
+                Logging.getInstance().debug("Could not parse task from json: {0}", taskDefinition["label"]);
             }
         });
     }
@@ -138,8 +141,11 @@ export namespace BuildTasks {
                 problemMatcher: ["$iar-cc", "$iar-linker"]
             };
 
+            Logging.getInstance().debug("Generate task: {0}", definition["label"]);
+
             return generateFromDefinition(definition);
         } else {
+            Logging.getInstance().debug("Could not generate task '{0}' for command '{1}'", label, command);
             return undefined;
         }
     }
@@ -156,6 +162,10 @@ export namespace BuildTasks {
 
     function showErrorMissingField(field: string, label: string): void {
         Vscode.window.showErrorMessage(`'${field}' is missing for task with label '${label}'.`);
+    }
+
+    function showErrorInvalidField(field: string, label: string, value: string): void {
+        Vscode.window.showErrorMessage(`'${field}' has an invalid value ('${value}') for task with label '${label}'.`);
     }
 
     function showErrorFailedToCreateDefaultTask(label: string, command: string): void {

@@ -10,7 +10,7 @@ import { WorkbenchListModel } from "../model/selectworkbench";
 import { SelectionView } from "./selectionview";
 import { Settings } from "../settings";
 import { Command } from "../command/command";
-import { Command as GenerateCommand, GenerateCppToolsConfCommand } from "../command/generatecpptoolsconf";
+import { Command as GenerateCommand } from "../command/generatecpptoolsconf";
 import { Workbench } from "../../iar/tools/workbench";
 import { CompilerListModel } from "../model/selectcompiler";
 import { ListInputModel } from "../model/model";
@@ -37,7 +37,7 @@ class Application {
     readonly project: UI<Project>;
     readonly config: UI<Config>;
 
-    readonly generator: GenerateCppToolsConfCommand;
+    readonly generator: Command;
     readonly selectIarWorkspace: Command;
 
     constructor(context: Vscode.ExtensionContext, toolManager: ToolManager) {
@@ -176,8 +176,8 @@ class Application {
     }
 
     private generateOutput(): void {
-        if (this.generator.enabled && this.generator.canExecute()) {
-            this.generator.execute();
+        if ((this.generator.enabled) && (this.generator.canExecute())) {
+            this.generator.execute(true);
         }
     }
 
@@ -197,9 +197,8 @@ class Application {
 
             if (!model.selectWhen(workbench => workbench.path === currentWorkbenchPath) && model.amount > 0) {
                 Vscode.window.showWarningMessage(`IAR: Can't find the workbench '${currentWorkbench}' (defined in iar-vsc.json).`);
+                this.workbench.model.select(0)
             }
-        } else {
-            this.workbench.model.select(0)
         }
     }
 
@@ -212,9 +211,8 @@ class Application {
 
             if (!model.selectWhen(compiler => compiler.path === currentCompilerPath) && model.amount > 0) {
                 Vscode.window.showWarningMessage(`IAR: Can't find the compiler '${currentCompiler}' (defined in iar-vsc.json).`);
+                this.compiler.model.select(0)
             }
-        } else {
-            this.compiler.model.select(0)
         }
 
     }
@@ -228,8 +226,9 @@ class Application {
 
             if (!model.selectWhen(proj => proj.path === currentProjPath) && model.amount > 0) {
                 Vscode.window.showWarningMessage(`IAR: Can't find the project '${currentProject}' (defined in iar-vsc.json).`);
+                this.project.model.select(0)
             }
-        }else {
+        } else {
             this.project.model.select(0)
         }
 
@@ -243,6 +242,7 @@ class Application {
 
             if (!model.selectWhen(config => config.name === currentConfiguration) && model.amount > 0) {
                 Vscode.window.showWarningMessage(`IAR: Can't find the configuration '${currentConfiguration}' (defined in iar-vsc.json).`);
+                this.config.model.select(0)
             }
         } else {
             this.config.model.select(0)
