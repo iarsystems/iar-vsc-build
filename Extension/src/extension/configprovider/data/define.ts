@@ -89,6 +89,10 @@ class StringDefine extends BaseDefine {
 }
 
 export namespace Define {
+    export function fromIdentifierValuePair(identifier: string, value: string): Define {
+        return new StringDefine(identifier, value);
+    }
+
     export function fromXml(configNode: XmlNode): Define[] {
         let settings = IarXml.findSettingsFromConfig(configNode, '/ICC.*/');
 

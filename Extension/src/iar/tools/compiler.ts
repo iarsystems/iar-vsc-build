@@ -8,14 +8,19 @@ import * as Fs from "fs";
 import * as Path from "path";
 import { FsUtils } from "../../utils/fs";
 import { ListUtils, OsUtils } from "../../utils/utils";
+import { Keyword } from "../project/keyword";
 
 export interface Compiler {
     readonly name: string;
     readonly path: Fs.PathLike;
+    readonly supportedKeywords: Keyword[];
+
+    prepare(): void;
 }
 
 class IarCompiler implements Compiler {
     readonly path: Fs.PathLike;
+    private _supportedKeywords: Keyword[] | undefined;
 
     /**
      * Create a new Compiler object.
@@ -28,10 +33,26 @@ class IarCompiler implements Compiler {
         if (!this.isValidCompiler()) {
             throw new Error("path does not point to a valid compiler.");
         }
+
+        this._supportedKeywords = undefined;
+    }
+
+    public prepare(): void {
+        if (this._supportedKeywords === undefined) {
+            this._supportedKeywords = this.computeSupportedKeywords();
+        }
     }
 
     get name(): string {
         return Path.parse(this.path.toString()).name;
+    }
+
+    get supportedKeywords(): Keyword[] {
+        if (this._supportedKeywords === undefined) {
+            return [];
+        } else {
+            return this._supportedKeywords;
+        }
     }
 
     /**
@@ -46,6 +67,18 @@ class IarCompiler implements Compiler {
             return false;
         }
     }
+
+    private computeSupportedKeywords(): Keyword[] {
+        // C syntax files are named <platform dir>/config/syntax_icc.cfg
+        const platformBasePath = Path.dirname(this.path.toString()) + "/..";
+        const filePath         = platformBasePath + "/config/syntax_icc.cfg";
+        if (Fs.existsSync(filePath)) {
+            return Keyword.fromSyntaxFile(filePath);
+        } else {
+            return [];
+        }
+    }
+
 }
 
 export namespace Compiler {

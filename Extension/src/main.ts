@@ -14,6 +14,7 @@ import { IarTaskProvider } from './extension/task/provider';
 import { GetSettingsCommand } from "./extension/command/getsettings";
 import { Logging } from './utils/logging';
 import { IarConfigurationProvider } from './extension/configprovider/configurationprovider';
+import { CStatTaskProvider } from './extension/task/cstat/cstattaskprovider';
 
 export async function activate(context: vscode.ExtensionContext) {
     Logging.setup(context);
@@ -35,6 +36,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     IarConfigurationProvider.init();
     IarTaskProvider.register();
+    CStatTaskProvider.register(context);
 }
 
 export function deactivate() {
@@ -42,6 +44,7 @@ export function deactivate() {
         IarConfigurationProvider.instance.dispose();
     }
     IarTaskProvider.unregister();
+    CStatTaskProvider.unRegister();
 }
 
 namespace IarVsc {

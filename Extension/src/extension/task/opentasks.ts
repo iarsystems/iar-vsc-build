@@ -88,10 +88,12 @@ export namespace OpenTasks {
         }
 
         tasksAsArray.forEach(taskDefinition => {
-            let task = generateFromDefinition(taskDefinition);
+            if (taskDefinition["type"] === "iar") {
+                let task = generateFromDefinition(taskDefinition);
 
-            if (task) {
-                dst.set(taskDefinition["label"], task);
+                if (task) {
+                    dst.set(taskDefinition["label"], task);
+                }
             }
         });
     }

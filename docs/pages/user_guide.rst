@@ -40,6 +40,10 @@ It is adviced to use the extension UI to configure the extension. The UI are sta
 .. image:: https://raw.githubusercontent.com/pluyckx/iar-vsc/master/Extension/images/readme/statusbar.png
 
 You can also call the commands behind those buttons, see the ``contribution`` tab in the extension section of VS Code.
+There is also a view in the explorer tab for changing these settings. The explorer view and status bar view are functionally equivalent,
+so if you want you can hide one of them by right clicking on it.
+
+.. image:: https://raw.githubusercontent.com/pluyckx/iar-vsc/master/Extension/images/readme/treeview.png
 
 To configure your project, configure the following options:
 
@@ -102,6 +106,16 @@ In previous plugins there was a build command. However, from now on you can crea
             }
         ]
     }
+
+C-STAT
+------
+
+You can run C-STAT on your project with the ``iar-cstat: Run C-STAT Analysis`` task,
+and clear the warnings with ``iar-cstat: Clear C-STAT Diagnostics``. 
+When running these tasks, VS Code might prompt you about scanning the task output, and it is recommended to select ``Never scan the task output for iar-cstat tasks``,
+since these tasks do not use a regular problem matcher.
+C-STAT will run the checks selected in your project settings in Embedded Workbench, but you can filter the messages in VS Code
+by setting ``iarvsc.cstatFilterLevel`` in your user settings.
 
 Debugging
 ---------
@@ -185,7 +199,9 @@ This extension contributes the following settings:
 * ``iarvsc.compiler``: The last selected compiler.
 * ``iarvsc.ewp``: The last selected project file.
 * ``iarvsc.configuration``: The last selected configuration.
-* ``iarvsc.defines``: Some custom defines you can add to the define list. They folow the ``identifier=value`` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
+* ``iarvsc.defines``: Some custom defines you can add to the define list. They follow the ``identifier=value`` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
+* ``iarvsc.cstatFilterLevel``: Sets the lowest severity of C-STAT warnings to display.
+* ``iarvsc.cstatDisplayLowSeverityWarningsAsHints``: When the filter level is set to low, this option will display low severity warnings as 'hints' instead of warnings. This is helpful if you have lots of low severity warnings and want to hide them from the problems list (but still see them in the editor).
 
 An important note for the settings ``iarvsc.workbench``, ``iarvsc.compiler``, ``iarvsc.ewp``, ``iarvsc.configuration``:
 Those values get overwritten by the extension when invalid values are defined or you select different values using the extension UI (the status bar items) or commands.

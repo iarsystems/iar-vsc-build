@@ -6,6 +6,7 @@ import * as Assert from "assert";
 import { StaticConfigGenerator } from "../../src/extension/configprovider/staticconfiggenerator";
 import { Config } from "../../src/iar/project/config";
 import { Compiler } from "../../src/iar/tools/compiler";
+import { Keyword } from "../../src/iar/project/keyword";
 
 // TODO: rewrite this
 suite("CppToolsConfigGenerator", () => {
@@ -86,10 +87,15 @@ suite("CppToolsConfigGenerator", () => {
         // let includePaths: IncludePath[] = [
         //     { path: "C:\\MyCompiler\\inc", absolutePath: "C:\\MyCompiler\\inc", workspacePath: "..\\MyCompiler\\inc" },
         // ];
+        let keywords: Keyword[] = [
+            { identifier: "MyKeyword" }
+        ];
 
         return {
             name: "cc",
             path: path,
+            supportedKeywords: keywords,
+            prepare: function () { }
         };
     }
 
