@@ -7,12 +7,19 @@ Release Notes
 
 1.2.0
 -----
+* Change extension name and icon
 * Set license to MPL 2.0
-* Updated documentation and use readthedocs as host
-* Pull #48: Add extra build argument
-* Add dependency on ``ms-vscode.cpptools`` so it is easier to install it
+* Pull #61: Integrate C-STAT
+* Pull #60: Support IAR extended keywords
+* Pull #59: Autoselect options for new projects
+* Pull #59: Add explorer view for project options
 * #51: Use a separate config file to store IAR project related configs which can differ between developers
-* #47: Speed up startup time by only calling the compiler when selecting it and not go through all compilers at startup
+* Update documentation and use readthedocs as host
+* Pull #48: Add extra build argument setting
+* Add dependency on ``ms-vscode.cpptools`` so it is easier to install it
+* #47: Speed up startup time by only calling the compiler when selecting it and not going through all compilers at startup
+* Pull #58: Allow extension to run on non-windows OSs
+* Clean up readme
 
 1.1.0
 -----
