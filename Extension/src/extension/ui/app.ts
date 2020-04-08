@@ -199,6 +199,8 @@ class Application {
                 Vscode.window.showWarningMessage(`IAR: Can't find the workbench '${currentWorkbench}' (defined in iar-vsc.json).`);
                 this.workbench.model.select(0);
             }
+        } else {
+            this.project.model.select(0);
         }
     }
 
@@ -213,6 +215,8 @@ class Application {
                 Vscode.window.showWarningMessage(`IAR: Can't find the compiler '${currentCompiler}' (defined in iar-vsc.json).`);
                 this.compiler.model.select(0);
             }
+        } else {
+            this.project.model.select(0);
         }
 
     }
