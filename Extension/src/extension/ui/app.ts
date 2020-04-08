@@ -197,7 +197,7 @@ class Application {
 
             if (!model.selectWhen(workbench => workbench.path === currentWorkbenchPath) && model.amount > 0) {
                 Vscode.window.showWarningMessage(`IAR: Can't find the workbench '${currentWorkbench}' (defined in iar-vsc.json).`);
-                this.workbench.model.select(0)
+                this.workbench.model.select(0);
             }
         }
     }
@@ -211,7 +211,7 @@ class Application {
 
             if (!model.selectWhen(compiler => compiler.path === currentCompilerPath) && model.amount > 0) {
                 Vscode.window.showWarningMessage(`IAR: Can't find the compiler '${currentCompiler}' (defined in iar-vsc.json).`);
-                this.compiler.model.select(0)
+                this.compiler.model.select(0);
             }
         }
 
@@ -226,10 +226,10 @@ class Application {
 
             if (!model.selectWhen(proj => proj.path === currentProjPath) && model.amount > 0) {
                 Vscode.window.showWarningMessage(`IAR: Can't find the project '${currentProject}' (defined in iar-vsc.json).`);
-                this.project.model.select(0)
+                this.project.model.select(0);
             }
         } else {
-            this.project.model.select(0)
+            this.project.model.select(0);
         }
 
     }
@@ -242,10 +242,10 @@ class Application {
 
             if (!model.selectWhen(config => config.name === currentConfiguration) && model.amount > 0) {
                 Vscode.window.showWarningMessage(`IAR: Can't find the configuration '${currentConfiguration}' (defined in iar-vsc.json).`);
-                this.config.model.select(0)
+                this.config.model.select(0);
             }
         } else {
-            this.config.model.select(0)
+            this.config.model.select(0);
         }
 
     }
