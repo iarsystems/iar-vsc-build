@@ -200,7 +200,7 @@ class Application {
                 this.workbench.model.select(0);
             }
         } else {
-            this.project.model.select(0);
+            this.workbench.model.select(0);
         }
     }
 
@@ -216,7 +216,7 @@ class Application {
                 this.compiler.model.select(0);
             }
         } else {
-            this.project.model.select(0);
+            this.compiler.model.select(0);
         }
 
     }
