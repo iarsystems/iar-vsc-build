@@ -27,13 +27,13 @@ export namespace Keyword {
     export function fromSyntaxFile(path: Fs.PathLike): Keyword[] {
         const buf = Fs.readFileSync(path.toString());
         const contents = buf.toString();
-        return fromSyntaxFileContents(contents)
+        return fromSyntaxFileContents(contents);
     }
 
     export function fromSyntaxFileContents(contents: string): Keyword[] {
         let lines = contents.split(/\n|\r\n/);
         lines = lines.filter(line => line && line.trim()); // remove empty lines
-        lines = lines.map(line => line.trim()) // some older workbenches have keywords with surrounding spaces
+        lines = lines.map(line => line.trim()); // some older workbenches have keywords with surrounding spaces
         return lines.map(line => new StringKeyword(line));
     }
 

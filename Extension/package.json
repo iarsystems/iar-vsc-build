@@ -104,7 +104,7 @@
     "menus": {
       "view/title": [
         {
-          "command": "iar.generateCppToolsConfig",
+          "command": "iar.regenerateCppToolsConfig",
           "when": "view == iar-settings"
         }
       ]

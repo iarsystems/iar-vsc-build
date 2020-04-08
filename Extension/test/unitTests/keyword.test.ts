@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Assert from "assert";
-import { Keyword } from "../../src/iar/project/keyword";
+import { Keyword } from "../../src/extension/configprovider/data/keyword";
 
 suite("Test keyword parsers", () => {
     suite("Test .cfg file parser", () => {

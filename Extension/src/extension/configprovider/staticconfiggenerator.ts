@@ -8,6 +8,7 @@ import { Config, XmlConfig } from "../../iar/project/config";
 import { IncludePath } from "./data/includepath";
 import { PreIncludePath } from "./data/preincludepath";
 import { Define } from "./data/define";
+import { Keyword } from "./data/keyword";
 import { Compiler } from "../../iar/tools/compiler";
 import { LanguageUtils } from "../../utils/utils";
 import * as Path from "path";
@@ -92,6 +93,15 @@ export namespace StaticConfigGenerator {
             defines = Define.fromSourceFile(tmpOutFile);
         }
         let includePaths = IncludePath.fromCompilerOutput(process.stdout);
+
+        // To force cpptools to recognize extended keywords we pretend they're compiler-defined macros
+        // C syntax files are named <platform dir>/config/syntax_icc.cfg
+        const platformBasePath = Path.join(Path.dirname(compiler.path.toString()), "..");
+        const filePath         = platformBasePath + "/config/syntax_icc.cfg";
+        if (Fs.existsSync(filePath)) {
+            const keywords = Keyword.fromSyntaxFile(filePath);
+            defines = defines.concat(keywords.map(kw => Keyword.toDefine(kw)));
+        }
 
         return { defines: defines, includes: includePaths, preIncludes: [] };
     }
