@@ -19,7 +19,7 @@ Release Notes
 * #47: Speed up startup time by only calling the compiler when selecting it and not going through all compilers at startup
 * Pull #58: Allow extension to run on non-windows OSs
 * Update documentation and use readthedocs as host
-* Add dependency on `ms-vscode.cpptools` so it is easier to install it
+* Add dependency on ``ms-vscode.cpptools`` so it is easier to install it
 * Clean up readme
 
 1.1.0
