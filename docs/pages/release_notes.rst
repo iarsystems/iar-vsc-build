@@ -14,11 +14,12 @@ Release Notes
 * Pull #59: Autoselect options for new projects
 * Pull #59: Add explorer view for project options
 * #51: Use a separate config file to store IAR project related configs which can differ between developers
-* Update documentation and use readthedocs as host
+* Pull #63: Add clearer error and warning messages
 * Pull #48: Add extra build argument setting
-* Add dependency on ``ms-vscode.cpptools`` so it is easier to install it
 * #47: Speed up startup time by only calling the compiler when selecting it and not going through all compilers at startup
 * Pull #58: Allow extension to run on non-windows OSs
+* Update documentation and use readthedocs as host
+* Add dependency on `ms-vscode.cpptools` so it is easier to install it
 * Clean up readme
 
 1.1.0
