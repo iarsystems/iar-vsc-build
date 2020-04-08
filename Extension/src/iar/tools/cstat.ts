@@ -38,7 +38,7 @@ export namespace CStat {
         MSG = "msg",
         SEVERITY = "severity",
         CHECKID = "property_alias",
-        TRACE = "encoded_trace",
+        // TRACE = "encoded_trace",
     }
     const fieldsToLoad: string[] = Object.values(CStatWarningField);
 
@@ -61,20 +61,23 @@ export namespace CStat {
             sqlProc.stdout.once('data', data => {
                 const expectedRows = Number(data.toString());
 
-                let warnings: CStatWarning[] = [];
                 if (expectedRows > 0) {
                     const query = "SELECT " + fieldsToLoad.join(",") + " FROM warnings;\n";
                     sqlProc.stdin.write(query);
+                    let output = "";
                     sqlProc.stdout.on('data', data => {
-                        const warnsRaw: string[][] = CsvParser(data.toString());
-                        warnings = warnings.concat(warnsRaw.map(row => parseWarning(row)));
-                        if (warnings.length === expectedRows) {
-                            resolve(warnings);  // We are done
-                            sqlProc.kill();
-                        }
+                        output += data.toString();
+                        try {
+                            const warnsRaw: string[][] = CsvParser(output);
+                            const warnings = warnsRaw.map(row => parseWarning(row));
+                            if (warnings.length === expectedRows) {
+                                resolve(warnings);  // We are done
+                                sqlProc.kill();
+                            }
+                        } catch (e) { } // CsvParser will throw if we havent recieved all output yet
                     });
                 } else {
-                    resolve(warnings);
+                    resolve([]);
                     sqlProc.kill();
                 }
 
