@@ -123,6 +123,7 @@ Example for a custom install location:
 ```json
 "iarvsc.iarInstallDirectories": ["C:\\Custom\\Install\\Path"],
 ```
+Note that you may need to reload VSCode after changing this.
 
 * `iarvsc.defines`: Some custom defines you can add to the define list. They follow the `identifier=value` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
 * `iarvsc.cstatFilterLevel`: Sets the lowest severity of C-STAT warnings to display.
