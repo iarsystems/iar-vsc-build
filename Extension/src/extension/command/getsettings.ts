@@ -28,7 +28,11 @@ class GetSettings implements Command {
         this.settingsCallback = getSettingsCallback;
     }
 
-    execute(): any {
+    canExecute(): boolean {
+        return true;
+    }
+
+    execute(_autoTriggered: boolean): any {
         let value = this.settingsCallback();
 
         if (value !== undefined) {
@@ -40,7 +44,7 @@ class GetSettings implements Command {
 
     register(context: Vscode.ExtensionContext): void {
         let cmd = Vscode.commands.registerCommand(this.command, (): any => {
-            return this.execute();
+            return this.execute(false);
         }, this);
 
         context.subscriptions.push(cmd);

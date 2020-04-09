@@ -10,4 +10,4 @@ holds diagrams and other documentation files about the extension.
 
 ## Documentation
 
-* [IAR-VSC documentation](https://pluyckx.github.io/iar-vsc/)
+* [IAR-VSC documentation](https://iar-vsc.readthedocs.io/en/latest/)

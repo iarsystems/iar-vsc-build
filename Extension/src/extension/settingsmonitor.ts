@@ -14,15 +14,19 @@ import { Config } from "../iar/project/config";
 export namespace SettingsMonitor {
     export function monitorWorkbench(model: ListInputModel<Workbench>): void {
         model.addOnSelectedHandler(onWorkbenchChanged);
+        onWorkbenchChanged(model);
     }
     export function monitorCompiler(model: ListInputModel<Compiler>): void {
         model.addOnSelectedHandler(onCompilerChanged);
+        onCompilerChanged(model);
     }
     export function monitorProject(model: ListInputModel<Project>): void {
         model.addOnSelectedHandler(onProjectChanged);
+        onProjectChanged(model);
     }
     export function monitorConfiguration(model: ListInputModel<Config>): void {
         model.addOnSelectedHandler(onConfigurationChanged);
+        onConfigurationChanged(model);
     }
 
     function onWorkbenchChanged(model: ListInputModel<Workbench>): void {
