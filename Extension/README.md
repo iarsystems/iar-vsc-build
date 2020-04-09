@@ -1,11 +1,9 @@
 # iar-vsc README
 
-This plugin make it possible to combine the IAR compiler solutions with Visual Studio Code. The goal is that this plugin supports all compiler
-variants. So not only ARM or AVR, but also STM8 and other compilers of IAR. The author of this extension only uses ARM, AVR and STM8, but when
-users find issues for other IAR compilers, open an issue on Github. In case you open an issue, please report the used compiler with its version and if possible the ewp file. This plugin works on any operating system supported by VS Code and IAR.
+This plugin makes it possible to combine the IAR Systems compiler solutions with Visual Studio Code. The goal is to support all IAR Systems compiler variants like for example Arm, RISC-V, MSP430, AVR, STM8, 8051, Renesas RX, RL78 and RH850. If you find any problems with this plugin, please open an issue on GitHub and include the compiler and version used. If possible, include also the project file (.ewp). This plugin works on any operating system supported by VS Code and IAR Systems.
 
 The plugin can parse *ewp* files and convert them to a valid `c_cpp_properties.json` configuration which is used by the *cpptools* extension made by *Microsoft*.
-In the `Features` section you can find more information how to use this extension.
+In the `Features` section you can find more information on how to use this extension.
 
 Improvements are welcome through *pull requests* or *issue reports*.
 
@@ -29,7 +27,7 @@ When you execute the VSCode command `Tasks: Configure Task` two items are added 
 1. `iar: IAR Build - template using selected workbench, project and config`
 2. `iar: IAR Rebuild - template using selected workbench, project and config`
 
-When selecting one of the two, a default task is generated which uses the workbench, project and configuration selected using the UI. When you select a different configuration, project or workbench, this script will use the newly selected items.
+When selecting one of the two, a default task is generated which uses the workbench, project and configuration selected using the UI. When you select a different configuration, project or workbench, this task will use the newly selected items.
 
 ### C-STAT
 
@@ -42,8 +40,8 @@ You can filter the C-STAT warnings by setting `iarvsc.cstatFilterLevel` in your 
 
 In v1.1.0 settings are added to configure a gdbserver and a gdb executable. The following data for
 the `launch.json` file will use this configuration to start debugging. Currently this is only for
-testing and is work in progress. The settings are nog yet automatically updated when selecting
-different projects or confiugrations (even though the description of the settings mention this).
+testing and is a work in progress. The settings are not yet automatically updated when selecting
+different projects or configurations (even though the description of the settings mention this).
 
 Open or create the `launch.json` file and place your cursor at the beginning of the configurations
 array. Now press `Ctrl + Space` to activate autocompletion. You should see an item like
