@@ -16,6 +16,7 @@ import { Define } from "../iar/project/define";
 import { Compiler } from "../iar/tools/compiler";
 import { FsUtils } from "../utils/fs";
 import { Settings } from "../extension/settings";
+import { Keyword } from "../iar/project/keyword";
 
 export namespace CppToolsConfigGenerator {
     type loadConfigReturn = {
@@ -23,7 +24,11 @@ export namespace CppToolsConfigGenerator {
         error: Error | undefined;
     };
 
-    export function generate(config?: Config, compiler?: Compiler, outPath?: Fs.PathLike): Error | undefined {
+    export async function generate(config?: Config, compiler?: Compiler, outPath?: Fs.PathLike): Promise<Error | undefined> {
+        if (compiler !== undefined) {
+            compiler.prepare();
+        }
+
         if (!outPath) {
             let workspaceFolder = Vscode.workspace.rootPath;
 
@@ -53,7 +58,7 @@ export namespace CppToolsConfigGenerator {
         let array: string[] = [];
 
         defines.forEach(item => {
-            if (item.value) {
+            if (item.value != null) {
                 array.push(item.identifier + "=" + item.value);
             } else {
                 array.push(item.identifier);
@@ -152,6 +157,10 @@ export namespace CppToolsConfigGenerator {
 
         if (compiler) {
             defines = defines.concat(toDefineArray(compiler.defines));
+            // To force cpptools to recognize extended keywords we pretend they're compiler-defined macros
+            const keywordDefines = compiler.supportedKeywords.map(Keyword.toDefine);
+            defines = defines.concat(toDefineArray(keywordDefines));
+
             includepaths = includepaths.concat(toIncludePathArray(compiler.includePaths, true));
         }
 
@@ -162,6 +171,8 @@ export namespace CppToolsConfigGenerator {
 
         obj["cStandard"] = Settings.getCStandard();
         obj["cppStandard"] = Settings.getCppStandard();
+
+        obj["compilerPath"] = "";
 
         return obj;
     }

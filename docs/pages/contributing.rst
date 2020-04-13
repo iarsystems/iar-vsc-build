@@ -15,6 +15,30 @@ Developing
 
 The ``IAR-vsc`` plugin is written in *TypeScript*. It's not necessary to be an expert in this language to contribute (the author is also not an expert). Again, the `gitter room`_ is the place to be to ask questions and discuss things.
 
+Before starting implementing things, please create first an ``issue`` or ``feature request`` on the `github issue page`_. This way I have an overview what is going on and we can start a discussion when necessary.
+
+.. _github issue page: https://github.com/pluyckx/iar-vsc/issues
+
+Branches
+--------
+
+There are *two* important branches when contributing:
+
+#. ``master``
+#. ``dev``
+
+You should start from one of those two branches. The difference is that the ``master`` branch is more *stable*, but I also expect when receiving a pull request on the ``master`` branch that everything is done by the contributor. The following list of items is a start of requirements your pull request should satisfy:
+
+* Feature fully tested
+* Style is ok
+* Documentation is up-to-date (including this sphinx documentation)
+
+If one of these items are not satisfied, then I will try to merge on the ``dev`` branch. If this is not possible, I will ask to either fix the pull request to meet the above items or rebase to the ``dev`` branch.
+
+On the ``dev`` branch, I tolerate that some of the above items are missing. It is a dev branch, so it is still under development. However, this branch is less stable than the master branch. Not only the features on this branch, but also the history. It is possible that from time to time I will cleanup the history. I will try to keep this to a minimum, but keep in mind this could happen.
+
+There is also a third branch, ``pluyckx``. This is my personal ``dev`` branch. I advise to not contribute on this branch. The history will change a lot, and it will contain experiments. At home I am not really using ``IAR``, so I have to test things at the office. This branch is used to share changes.
+
 Testing
 -------
 

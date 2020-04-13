@@ -35,11 +35,16 @@ This extensions presumes that you installed the ``cpptools`` plugin by  *Microso
 Configuring
 -----------
 
-It is adviced to use the extension UI to configure the extension. The UI are statusbar items which will execute a command when clicking on them.
+The extension will automatically detect Embedded Workbench installations on your systems, as well as IAR projects in your VS Code workspace.
+You may select which workbench to use, which configuration to build, and other settings using buttons in the statusbar.
 
 .. image:: https://raw.githubusercontent.com/pluyckx/iar-vsc/master/Extension/images/readme/statusbar.png
 
 You can also call the commands behind those buttons, see the ``contribution`` tab in the extension section of VS Code.
+There is also a view in the explorer tab for changing these settings. The explorer view and status bar view are functionally equivalent,
+so if you want you can hide one of them by right clicking on it.
+
+.. image:: https://raw.githubusercontent.com/pluyckx/iar-vsc/master/Extension/images/readme/treeview.png
 
 To configure your project, configure the following options:
 
@@ -47,6 +52,9 @@ To configure your project, configure the following options:
 * Compiler
 * Project (ewp file)
 * Configuration
+
+Note that if your Embedded Workbench is installed in a non-standard location, the plugin might not autodetect it.
+In that case you will need to set `iarvsc.iarInstallDirectories` in your `settings.json` file, see :ref:`settings-label`.
 
 Building
 --------
@@ -58,50 +66,15 @@ When you execute the VSCode command ``Tasks: Configure Task`` two items are adde
 
 When selecting one of the two, a default task is generated which uses the workbench, project and configuration selected using the UI. When you select a different configuration, project or workbench, this script will use the newly selected items.
 
-Deprecated Method: Create manually
-__________________________________
+C-STAT
+------
 
-In previous plugins there was a build command. However, from now on you can create a task because all necessary information is available through settings. You can use the following snippets to create a ``build`` and ``rebuild`` command. In alpha2 or beta1 will contain a ``problem matcher``. Use the following template as a starting point:
-
-.. code-block:: json
-
-    {
-        "version": "2.0.0",
-        "tasks": [
-            {
-                "label": "IAR Build",
-                "type": "process",
-                "command": "${config:iarvsc.workbench}\\common\\bin\\IarBuild.exe",
-                "args": [
-                    "${config:iarvsc.ewp}",
-                    "-make",
-                    "${config:iarvsc.configuration}"
-                ],
-                "problemMatcher": [
-                    "$iar-cc",
-                    "$iar-linker"
-                ],
-                "group": {
-                    "kind": "build",
-                    "isDefault": true
-                }
-            },
-            {
-                "label": "IAR Rebuild",
-                "type": "process",
-                "command": "${config:iarvsc.workbench}\\common\\bin\\IarBuild.exe",
-                "args": [
-                    "${config:iarvsc.ewp}",
-                    "-build",
-                    "${config:iarvsc.configuration}"
-                ],
-                "problemMatcher": [
-                    "$iar-cc",
-                    "$iar-linker"
-                ]
-            }
-        ]
-    }
+You can run C-STAT on your project with the ``iar-cstat: Run C-STAT Analysis`` task,
+and clear the warnings with ``iar-cstat: Clear C-STAT Diagnostics``. 
+When running these tasks, VS Code might prompt you about scanning the task output, and it is recommended to select ``Never scan the task output for iar-cstat tasks``,
+since these tasks do not use a regular problem matcher.
+C-STAT will run the checks selected in your project settings in Embedded Workbench, but you can filter the messages in VS Code
+by setting ``iarvsc.cstatFilterLevel`` in your user settings.
 
 Debugging
 ---------
@@ -175,20 +148,23 @@ Some information about the used config parameters:
         ]
     }
 
+.. _settings-label:
+
 Extension Settings
 ------------------
 
 This extension contributes the following settings:
 
-* ``iarvsc.iarInstallDirectories``: The rootfolders where all IAR workbenches are installed. By default this is ``C:\Program Files (x86)\Iar Systems``. The default settings contain also the non-x86 folder in case IAR will move to 64-bit installations.
-* ``iarvsc.workbench``: The last selected workbench in this workspace.
-* ``iarvsc.compiler``: The last selected compiler.
-* ``iarvsc.ewp``: The last selected project file.
-* ``iarvsc.configuration``: The last selected configuration.
-* ``iarvsc.defines``: Some custom defines you can add to the define list. They folow the ``identifier=value`` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
+* ``iarvsc.iarInstallDirectories``: The rootfolder where all IAR workbenches are installed. By default this is ``C:\Program Files (x86)\Iar Systems``. The default settings contain also the non-x86 folder in case IAR will move to 64-bit installations. Example for a custom install location:
 
-An important note for the settings ``iarvsc.workbench``, ``iarvsc.compiler``, ``iarvsc.ewp``, ``iarvsc.configuration``:
-Those values get overwritten by the extension when invalid values are defined or you select different values using the extension UI (the status bar items) or commands.
+.. code-block:: json
+
+    "iarvsc.iarInstallDirectories": ["C:\\Custom\\Install\\Path"],
+Note that you may need to reload VSCode after changing this.
+
+* ``iarvsc.defines``: Some custom defines you can add to the define list. They follow the ``identifier=value`` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
+* ``iarvsc.cstatFilterLevel``: Sets the lowest severity of C-STAT warnings to display.
+* ``iarvsc.cstatDisplayLowSeverityWarningsAsHints``: When the filter level is set to low, this option will display low severity warnings as 'hints' instead of warnings. This is helpful if you have lots of low severity warnings and want to hide them from the problems list (but still see them in the editor).
 
 Advanced usage
 ______________

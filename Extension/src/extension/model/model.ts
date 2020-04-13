@@ -27,6 +27,9 @@ export interface ListInputModel<T> extends InputModel<T> {
     detail(index: number): string | undefined;
 
     select(index: number): boolean;
+
+    /** Selects the first item the shouldSelect item returns true for */
+    selectWhen(shouldSelect: (item: T) => boolean): boolean;
 }
 
 export abstract class ListInputModelBase<T> implements ListInputModel<T> {
@@ -78,6 +81,17 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
         } else {
             return false;
         }
+    }
+
+    selectWhen(shouldSelect: (item: T) => boolean): boolean {
+        return this.data.some((modelItem, index): boolean => {
+            if (shouldSelect(modelItem)) {
+                this.select(index);
+                return true;
+            } else {
+                return false;
+            }
+        });
     }
 
     addOnSelectedHandler(fn: selectHandler<T>, thisArg?: any): void {

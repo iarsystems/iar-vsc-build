@@ -1,8 +1,8 @@
 {
   "name": "iar-vsc",
   "displayName": "IAR For Visual Studio Code",
-  "description": "An extension to uses IAR project files to config and debug projects",
-  "version": "1.1.0",
+  "description": "Develop IAR projects with intellisense, C-STAT and build support.",
+  "version": "1.2.0",
   "publisher": "pluyckx",
   "icon": "images/logo.png",
   "preview": true,
@@ -11,7 +11,7 @@
     "url": "https://github.com/pluyckx/iar-vsc.git"
   },
   "engines": {
-    "vscode": "^1.27.0"
+    "vscode": "^1.33.0"
   },
   "categories": [
     "Other"
@@ -30,6 +30,8 @@
     "onCommand:iar.selectConfiguration",
     "onCommand:iar.generateCppToolsConfig",
     "onCommand:iar.selectIarWorkspace",
+    "oncommand:iar.runCStat",
+    "oncommand:iar.clearCStat",
     "workspaceContains:**/*.ewp"
   ],
   "main": "./out/src/main",
@@ -59,6 +61,62 @@
         "command": "iar.generateCppToolsConfig",
         "title": "Generate CppTools Config File",
         "category": "IAR"
+      },
+      {
+        "command": "iar-settings.workbench",
+        "title": "Get the selected workbench location",
+        "category": "IAR Settings"
+      },
+      {
+        "command": "iar-settings.compiler",
+        "title": "Get the selected compiler location",
+        "category": "IAR Settings"
+      },
+      {
+        "command": "iar-settings.project-file",
+        "title": "Get the selected project file",
+        "category": "IAR Settings"
+      },
+      {
+        "command": "iar-settings.project-configuration",
+        "title": "Get the selected project configuration",
+        "category": "IAR Settings"
+      },
+      {
+        "command": "iar.runCStat",
+        "title": "Run C-STAT Analysis",
+        "category": "IAR"
+      },
+      {
+        "command": "iar.clearCStat",
+        "title": "Clear C-STAT Diagnostics",
+        "category": "IAR"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "iar-settings",
+          "name": "IAR Settings"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "iar.generateCppToolsConfig",
+          "when": "view == iar-settings"
+        }
+      ]
+    },
+    "grammars": [
+      {
+        "scopeName": "iar-keywords.injection",
+        "path": "./syntaxes/iar-c-cpp.tmLanguage.json",
+        "injectTo": [
+          "source.c",
+          "source.cpp"
+        ]
       }
     ],
     "configuration": {
@@ -71,26 +129,6 @@
             "C:\\Program Files\\IAR Systems",
             "C:\\Program Files (x86)\\IAR Systems"
           ]
-        },
-        "iarvsc.workbench": {
-          "type": "string",
-          "description": "Path the the workbench to use.",
-          "default": ""
-        },
-        "iarvsc.compiler": {
-          "type": "string",
-          "description": "Path to the compiler to use.",
-          "default": ""
-        },
-        "iarvsc.ewp": {
-          "type": "string",
-          "description": "Path to the currently selected ewp file.",
-          "default": ""
-        },
-        "iarvsc.configuration": {
-          "type": "string",
-          "description": "The selected configuration from the selected ewp file",
-          "default": ""
         },
         "iarvsc.defines": {
           "type": "array",
@@ -126,6 +164,21 @@
           "description": "The c++ standard to use in the config tool configuration.",
           "default": "${default}"
         },
+        "iarvsc.cstatFilterLevel": {
+          "description": "C-STAT warnings with a lower severity than this are filtered out.",
+          "default": "Medium",
+          "type": "string",
+          "enum": [
+            "Low",
+            "Medium",
+            "High"
+          ]
+        },
+        "iarvsc.cstatDisplayLowSeverityWarningsAsHints": {
+          "description": "If the filter level is set to Low, displays low severity C-STAT warnings as hints rather than warnings. This hides them from the problem list, but still shows them in the editor.",
+          "type": "boolean",
+          "default": false
+        },
         "iarvsc.outFile": {
           "type": "string",
           "description": "Currently not used, but will be used in the future to generate launch configurations.",
@@ -145,6 +198,11 @@
           "type": "string",
           "markdownDescription": "The name of the target microcontroller",
           "default": "undefined"
+        },
+        "iarvsc.extraBuildArguments": {
+          "type": "array",
+          "markdownDescription": "Extra command line arguments to supply to IarBuild.exe.",
+          "default": []
         }
       }
     },
@@ -215,6 +273,39 @@
         "required": [
           "command"
         ]
+      },
+      {
+        "type": "iar-cstat",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "The name for the task that is shown when executing the built-in command `Run Tasks` of VS Code."
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "run",
+              "clear"
+            ],
+            "description": "What to do when running the task (generate warnings or clear them)"
+          },
+          "project": {
+            "type": "string",
+            "description": "The path to the project file"
+          },
+          "config": {
+            "type": "string",
+            "description": "The configuration in the project file to use"
+          },
+          "builder": {
+            "type": "string",
+            "description": "Path to the builder to use"
+          }
+        },
+        "required": [
+          "label",
+          "action"
+        ]
       }
     ],
     "debuggers": [
@@ -266,22 +357,26 @@
       }
     ]
   },
+  "extensionDependencies": [
+    "ms-vscode.cpptools"
+  ],
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run compile && node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
     "typescript": "^2.6.1",
-    "vscode": "^1.1.21",
+    "@types/vscode": "^1.33.0",
+    "vscode-test": "^1.3.0",
     "tslint": "^5.8.0",
     "@types/node": "^8.10.25",
     "@types/mocha": "^2.2.42",
     "ts-sinon": "1.0.12"
   },
   "dependencies": {
+    "csv-parse": "4.4.3",
     "xml-js": "1.6.8",
     "jsonc-parser": "1.0.0",
     "child-exec": "1.0.0",

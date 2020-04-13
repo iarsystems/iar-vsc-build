@@ -6,6 +6,9 @@
 
 import * as Vscode from "vscode";
 import { isArray } from "util";
+import { Settings } from "../settings";
+import { IarExecution } from "./iarexecution";
+import { OsUtils } from "../../utils/utils";
 
 export interface BuildTaskDefinition {
     readonly label: string;
@@ -51,6 +54,7 @@ export namespace BuildTasks {
             showErrorMissingField("command", label);
             return undefined;
         } else if (iarCommand === undefined) {
+            showErrorInvalidField("command", label, command);
             return undefined;
         }
 
@@ -74,26 +78,29 @@ export namespace BuildTasks {
             return undefined;
         }
 
-        if (iarCommand) {
-            let process = new Vscode.ProcessExecution(
-                builder,
-                [
-                    project,
-                    iarCommand,
-                    config
-                ]
-            );
+        let args = [
+            project,
+            iarCommand,
+            config
+        ];
 
-            let task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);
-
-            if (definition["problemMatcher"] !== undefined) {
-                task.problemMatchers = definition["problemMatcher"];
-            }
-
-            return task;
-        } else {
-            return undefined;
+        let extraArgs = Settings.getExtraBuildArguments();
+        if (extraArgs.length !== 0) {
+            args = args.concat(extraArgs);
         }
+
+        let process = new IarExecution(
+            builder,
+            args
+        );
+
+        let task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);
+
+        if (definition["problemMatcher"] !== undefined) {
+            task.problemMatchers = definition["problemMatcher"];
+        }
+
+        return task;
     }
 
     export function generateFromTasksJson(json: any, dst: Map<string, Vscode.Task>): void {
@@ -107,10 +114,12 @@ export namespace BuildTasks {
         }
 
         tasksAsArray.forEach(taskDefinition => {
-            let task = generateFromDefinition(taskDefinition);
+            if (taskDefinition["type"] === "iar") {
+                let task = generateFromDefinition(taskDefinition);
 
-            if (task) {
-                dst.set(taskDefinition["label"], task);
+                if (task) {
+                    dst.set(taskDefinition["label"], task);
+                }
             }
         });
     }
@@ -123,9 +132,9 @@ export namespace BuildTasks {
                 label: label,
                 type: "iar",
                 command: command,
-                builder: "${config:iarvsc.workbench}\\\\common\\\\bin\\\\IarBuild.exe",
-                project: "${config:iarvsc.ewp}",
-                config: "${config:iarvsc.configuration}",
+                builder: "${command:iar-settings.workbench}/common/bin/IarBuild" + (OsUtils.detectOsType() == OsUtils.OsType.Windows ? ".exe" : ""),
+                project: "${command:iar-settings.project-file}",
+                config: "${command:iar-settings.project-configuration}",
                 problemMatcher: ["$iar-cc", "$iar-linker"]
             };
 
@@ -147,6 +156,10 @@ export namespace BuildTasks {
 
     function showErrorMissingField(field: string, label: string): void {
         Vscode.window.showErrorMessage(`'${field}' is missing for task with label '${label}'.`);
+    }
+
+    function showErrorInvalidField(field: string, label: string, value: string): void {
+        Vscode.window.showErrorMessage(`'${field}' has an invalid value ('${value}') for task with label '${label}'.`);
     }
 
     function showErrorFailedToCreateDefaultTask(label: string, command: string): void {

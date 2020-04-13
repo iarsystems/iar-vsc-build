@@ -11,8 +11,11 @@ import { ToolManager } from './iar/tools/manager';
 import { Settings } from './extension/settings';
 import { SettingsMonitor } from './extension/settingsmonitor';
 import { IarTaskProvider } from './extension/task/provider';
+import { GetSettingsCommand } from "./extension/command/getsettings";
+import { CStatTaskProvider } from './extension/task/cstat/cstattaskprovider';
 
 export function activate(context: vscode.ExtensionContext) {
+    GetSettingsCommand.initCommands(context);
     UI.init(context, IarVsc.toolManager);
 
     SettingsMonitor.monitorWorkbench(UI.getInstance().workbench.model);
@@ -26,12 +29,17 @@ export function activate(context: vscode.ExtensionContext) {
     roots.forEach(path => {
         IarVsc.toolManager.collectFrom(path);
     });
+    if (IarVsc.toolManager.workbenches.length === 0) {
+        vscode.window.showErrorMessage("IAR: Unable to find any IAR workbenches to use, you will need to configure this to use the extension (see [the documentation](https://iar-vsc.readthedocs.io/en/latest/pages/user_guide.html#extension-settings))");
+    }
 
     IarTaskProvider.register();
+    CStatTaskProvider.register(context);
 }
 
 export function deactivate() {
     IarTaskProvider.unregister();
+    CStatTaskProvider.unRegister();
 }
 
 namespace IarVsc {

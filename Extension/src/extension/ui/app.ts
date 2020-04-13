@@ -20,6 +20,7 @@ import { ProjectListModel } from "../model/selectproject";
 import { Config } from "../../iar/project/config";
 import { ConfigurationListModel } from "../model/selectconfiguration";
 import { SelectIarWorkspace } from "../command/selectIarWorkspace";
+import { TreeSelectionView } from "./treeselectionview";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -48,6 +49,11 @@ class Application {
         this.compiler = this.createCompilerUi();
         this.project = this.createProjectUi();
         this.config = this.createConfigurationUi();
+        Vscode.window.registerTreeDataProvider('iar-settings', new TreeSelectionView(context,
+                                                                                        this.workbench.model,
+                                                                                        this.compiler.model,
+                                                                                        this.project.model,
+                                                                                        this.config.model));
 
         // Create commands without UI
         this.generator = GenerateCommand.createGenerateCppToolsConfig(this.compiler.model as CompilerListModel,
@@ -170,8 +176,8 @@ class Application {
     }
 
     private generateOutput(): void {
-        if (this.generator.enabled) {
-            this.generator.execute();
+        if ((this.generator.enabled) && (this.generator.canExecute())) {
+            this.generator.execute(true);
         }
     }
 
@@ -179,27 +185,22 @@ class Application {
         this.selectCurrentWorkbench();
         this.selectCurrentCompiler();
         this.selectCurrentProject();
-        this.selectCurrenConfiguration();
+        this.selectCurrentConfiguration();
     }
 
     private selectCurrentWorkbench(): void {
         let currentWorkbench = Settings.getWorkbench();
 
         if (currentWorkbench) {
+            const currentWorkbenchPath = currentWorkbench.toString();
             let model = this.workbench.model as WorkbenchListModel;
 
-            model.workbenches.some((workbench, index): boolean => {
-                if (!currentWorkbench) {
-                    return true;
-                }
-
-                if (workbench.path === currentWorkbench.toString()) {
-                    model.select(index);
-                    return true;
-                } else {
-                    return false;
-                }
-            });
+            if (!model.selectWhen(workbench => workbench.path === currentWorkbenchPath) && model.amount > 0) {
+                Vscode.window.showWarningMessage(`IAR: Can't find the workbench '${currentWorkbench}' (defined in iar-vsc.json).`);
+                this.workbench.model.select(0);
+            }
+        } else {
+            this.workbench.model.select(0);
         }
     }
 
@@ -207,63 +208,50 @@ class Application {
         let currentCompiler = Settings.getCompiler();
 
         if (currentCompiler) {
+            const currentCompilerPath = currentCompiler.toString();
             let model = this.compiler.model as CompilerListModel;
 
-            model.compilers.some((compiler, index): boolean => {
-                if (!currentCompiler) {
-                    return true;
-                }
-
-                if (compiler.path === currentCompiler.toString()) {
-                    model.select(index);
-                    return true;
-                } else {
-                    return false;
-                }
-            });
+            if (!model.selectWhen(compiler => compiler.path === currentCompilerPath) && model.amount > 0) {
+                Vscode.window.showWarningMessage(`IAR: Can't find the compiler '${currentCompiler}' (defined in iar-vsc.json).`);
+                this.compiler.model.select(0);
+            }
+        } else {
+            this.compiler.model.select(0);
         }
+
     }
 
     private selectCurrentProject(): void {
         let currentProject = Settings.getEwpFile();
 
         if (currentProject) {
+            const currentProjPath = currentProject.toString();
             let model = this.project.model as ProjectListModel;
 
-            model.projects.some((project, index): boolean => {
-                if (!currentProject) {
-                    return true;
-                }
-
-                if (project.path === currentProject.toString()) {
-                    model.select(index);
-                    return true;
-                } else {
-                    return false;
-                }
-            });
+            if (!model.selectWhen(proj => proj.path === currentProjPath) && model.amount > 0) {
+                Vscode.window.showWarningMessage(`IAR: Can't find the project '${currentProject}' (defined in iar-vsc.json).`);
+                this.project.model.select(0);
+            }
+        } else {
+            this.project.model.select(0);
         }
+
     }
 
-    private selectCurrenConfiguration(): void {
+    private selectCurrentConfiguration(): void {
         let currentConfiguration = Settings.getConfiguration();
 
         if (currentConfiguration) {
             let model = this.config.model as ConfigurationListModel;
 
-            model.configurations.some((config, index): boolean => {
-                if (!currentConfiguration) {
-                    return true;
-                }
-
-                if (config.name === currentConfiguration) {
-                    model.select(index);
-                    return true;
-                } else {
-                    return false;
-                }
-            });
+            if (!model.selectWhen(config => config.name === currentConfiguration) && model.amount > 0) {
+                Vscode.window.showWarningMessage(`IAR: Can't find the configuration '${currentConfiguration}' (defined in iar-vsc.json).`);
+                this.config.model.select(0);
+            }
+        } else {
+            this.config.model.select(0);
         }
+
     }
 
     private addListeners(): void {
@@ -356,7 +344,7 @@ class Application {
         let model = this.config.model as ConfigurationListModel;
 
         model.addOnInvalidateHandler(() => {
-            this.selectCurrenConfiguration();
+            this.selectCurrentConfiguration();
         });
 
         model.addOnSelectedHandler(() => {

@@ -19,8 +19,11 @@ export class SelectIarWorkspace implements Command {
         this.enabled = true;
     }
 
-    /* FIXME: interface says, `void`, we say `any`: fix this! */
-    execute(): any {
+    canExecute(): boolean {
+        return true;
+    }
+
+    execute(_autoTriggered: boolean): any {
         if (Vscode.workspace.rootPath) {
             let workspaceFolder = Vscode.workspace.rootPath;
 
@@ -49,11 +52,9 @@ export class SelectIarWorkspace implements Command {
 
     register(context: Vscode.ExtensionContext): void {
         let cmd = Vscode.commands.registerCommand(this.command, (): any => {
-            return this.execute();
+            return this.execute(false);
         }, this);
 
         context.subscriptions.push(cmd);
     }
-
-
 }
