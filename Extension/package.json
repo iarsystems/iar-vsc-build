@@ -376,7 +376,7 @@
     "ts-sinon": "1.0.12"
   },
   "dependencies": {
-    "csv-parse": "4.4.3",
+    "csv-parse": "4.8.8",
     "xml-js": "1.6.8",
     "jsonc-parser": "1.0.0",
     "child-exec": "1.0.0",
