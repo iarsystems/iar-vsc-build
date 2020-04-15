@@ -134,6 +134,7 @@
           "type": "array",
           "description": "A list of defines to use which are not listed in the project xml or compiler output. You can for example define here compiler intrisics, like __max, __min, __eeprom, .... example __max: add `__max(a, b)=` to this list.",
           "default": [
+            "_Pragma(x)=",
             "__eeprom=",
             "__flash=",
             "__no_init=",
