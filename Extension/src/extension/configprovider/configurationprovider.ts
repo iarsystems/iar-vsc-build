@@ -115,7 +115,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             compilerArgs: [],
             standard: Settings.getCStandard(),
             windowsSdkVersion: ""
-        }
+        };
         return Promise.resolve(result);
     }
     canProvideBrowseConfigurationsPerFolder(_token?: CancellationToken | undefined): Thenable<boolean> {
