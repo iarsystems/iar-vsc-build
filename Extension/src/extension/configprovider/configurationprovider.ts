@@ -51,7 +51,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     private fallbackConfigurationC: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
     private fallbackConfigurationCpp: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
 
-    readonly name = "IAR-cpptools-API"; //TODO: rename
+    readonly name = "iar-vsc";
     readonly extensionId = "pluyckx.iar-vsc";
 
     private constructor(private api: CppToolsApi, private generator: DynamicConfigGenerator) {
