@@ -153,14 +153,16 @@ Some information about the used config parameters:
 Extension Settings
 ------------------
 
+To change extension settings, go to ``Ctrl+Shift+P->Preferences: Open Settings (JSON)`` to open your ``settings.json`` file and add the appropriate json entries.
 This extension contributes the following settings:
 
-* ``iarvsc.iarInstallDirectories``: The rootfolder where all IAR workbenches are installed. By default this is ``C:\Program Files (x86)\Iar Systems``. The default settings contain also the non-x86 folder in case IAR will move to 64-bit installations. Example for a custom install location:
+* ``iarvsc.iarInstallDirectories``: The rootfolder where all IAR workbenches are installed. By default this is ``C:\Program Files (x86)\Iar Systems``. The default settings contain also the non-x86 folder in case IAR will move to 64-bit installations. For example, if your Embedded Workbench installation is at ``D:\Iar Systems\Embedded Workbench 8.40``, add the following to your ``settings.json`` file:
 
 .. code-block:: json
 
-    "iarvsc.iarInstallDirectories": ["C:\\Custom\\Install\\Path"],
-Note that you may need to reload VSCode after changing this.
+    "iarvsc.iarInstallDirectories": ["D:\\Iar Systems"],
+
+This will also let the extension find any other workbench installations in that folder (e.g. ``D:\Iar Systems\My Second Workbench 7.20``).
 
 * ``iarvsc.defines``: Some custom defines you can add to the define list. They follow the ``identifier=value`` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
 * ``iarvsc.cstatFilterLevel``: Sets the lowest severity of C-STAT warnings to display.

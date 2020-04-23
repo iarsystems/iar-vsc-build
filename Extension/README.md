@@ -1,6 +1,6 @@
 # iar-vsc README
 
-This plugin makes it possible to combine the IAR Systems compiler solutions with Visual Studio Code. The goal is to support all IAR Systems compiler variants like for example Arm, RISC-V, MSP430, AVR, STM8, 8051, Renesas RX, RL78 and RH850. If you find any problems with this plugin, please open an issue on GitHub and include the compiler and version used. If possible, include also the project file (.ewp). This plugin works on any operating system supported by VS Code and IAR Systems.
+This plugin makes it possible to combine the IAR Systems compiler solutions with Visual Studio Code. The goal is to support all IAR Systems compiler variants like for example Arm, RISC-V, MSP430, AVR, STM8, 8051, Renesas RX, RL78 and RH850. If you find any problems with this plugin, please open an issue on GitHub and include the compiler and version used. If possible, include also the project file (.ewp). This plugin works on any operating system supported by VS Code and IAR Systems. IAR Systems has contributed to the development of this plugin.
 
 The plugin can parse *ewp* files and convert them to a valid `c_cpp_properties.json` configuration which is used by the *cpptools* extension made by *Microsoft*.
 In the `Features` section you can find more information on how to use this extension.
@@ -113,15 +113,17 @@ This extensions presumes that you have installed `cpptools` of `microsoft`.
 
 ## Extension Settings
 
+To change extension settings, go to `Ctrl+Shift+P->Preferences: Open Settings (JSON)` to open your `settings.json` file and add the appropriate json entries.
 This extension contributes the following settings:
 
 * `iarvsc.iarInstallDirectories`: The rootfolder where all IAR workbenches are installed. By default this is `C:\Program Files (x86)\Iar Systems`. The default settings contain also the non-x86 folder in case IAR will move to 64-bit installations.
-Example for a custom install location:
+For example, if your Embedded Workbench installation is at `D:\Iar Systems\Embedded Workbench 8.40`,
+add the following to your `settings.json` file:
 
 ```json
-"iarvsc.iarInstallDirectories": ["C:\\Custom\\Install\\Path"],
+"iarvsc.iarInstallDirectories": ["D:\\Iar Systems"],
 ```
-Note that you may need to reload VSCode after changing this.
+This will also let the extension find any other workbench installations in that folder (e.g. `D:\Iar Systems\My Second Workbench 7.20`).
 
 * `iarvsc.defines`: Some custom defines you can add to the define list. They follow the `identifier=value` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
 * `iarvsc.cstatFilterLevel`: Sets the lowest severity of C-STAT warnings to display.
