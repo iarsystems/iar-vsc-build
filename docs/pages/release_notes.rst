@@ -5,6 +5,14 @@
 Release Notes
 =============
 
+1.2.1
+-----
+
+* Remove 'Scan for task output' dialog when running C-STAT tasks
+* Automatically rescan for workspaces when changing ``iarInstallDirectories``
+* Change name of C-STAT settings
+* Update readme section on settings
+
 1.2.0
 -----
 * Change extension name and icon
