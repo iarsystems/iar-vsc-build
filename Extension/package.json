@@ -164,7 +164,7 @@
           "description": "The c++ standard to use in the config tool configuration.",
           "default": "${default}"
         },
-        "iarvsc.cstatFilterLevel": {
+        "iarvsc.c-StatFilterLevel": {
           "description": "C-STAT warnings with a lower severity than this are filtered out.",
           "default": "Medium",
           "type": "string",
@@ -174,7 +174,7 @@
             "High"
           ]
         },
-        "iarvsc.cstatDisplayLowSeverityWarningsAsHints": {
+        "iarvsc.c-StatDisplayLowSeverityWarningsAsHints": {
           "description": "If the filter level is set to Low, displays low severity C-STAT warnings as hints rather than warnings. This hides them from the problem list, but still shows them in the editor.",
           "type": "boolean",
           "default": false

@@ -165,8 +165,8 @@ This extension contributes the following settings:
 This will also let the extension find any other workbench installations in that folder (e.g. ``D:\Iar Systems\My Second Workbench 7.20``).
 
 * ``iarvsc.defines``: Some custom defines you can add to the define list. They follow the ``identifier=value`` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
-* ``iarvsc.cstatFilterLevel``: Sets the lowest severity of C-STAT warnings to display.
-* ``iarvsc.cstatDisplayLowSeverityWarningsAsHints``: When the filter level is set to low, this option will display low severity warnings as 'hints' instead of warnings. This is helpful if you have lots of low severity warnings and want to hide them from the problems list (but still see them in the editor).
+* ``iarvsc.c-StatFilterLevel``: Sets the lowest severity of C-STAT warnings to display.
+* ``iarvsc.c-StatDisplayLowSeverityWarningsAsHints``: When the filter level is set to low, this option will display low severity warnings as 'hints' instead of warnings. This is helpful if you have lots of low severity warnings and want to hide them from the problems list (but still see them in the editor).
 
 Advanced usage
 ______________
