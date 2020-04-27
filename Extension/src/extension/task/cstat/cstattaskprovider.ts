@@ -53,7 +53,7 @@ class CStatProvider implements Vscode.TaskProvider {
         for (const [label, action] of taskVariants) {
             const definition = this.getDefaultTaskDefinition(label, action);
             let execution = this.executionFromDefinition(definition);
-            let task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar-cstat", execution);
+            let task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar-cstat", execution, []);
             tasks.push(task);
         }
         return tasks;
@@ -84,7 +84,7 @@ class CStatProvider implements Vscode.TaskProvider {
         }
 
         let execution = this.executionFromDefinition(fullDefinition);
-        return new Vscode.Task(_task.definition, Vscode.TaskScope.Workspace, _task.definition.label, "iar-cstat", execution);
+        return new Vscode.Task(_task.definition, Vscode.TaskScope.Workspace, _task.definition.label, "iar-cstat", execution, []);
     }
 
     private getDefaultTaskDefinition(label: string, action: "run" | "clear"): CStatTaskDefinition {
@@ -92,7 +92,7 @@ class CStatProvider implements Vscode.TaskProvider {
             label: label,
             type: "iar-cstat",
             action: action,
-            builder: "${command:iar-settings.workbench}/common/bin/IarBuild" + (OsUtils.detectOsType() == OsUtils.OsType.Windows ? ".exe" : ""),
+            builder: "${command:iar-settings.workbench}/common/bin/IarBuild" + (OsUtils.detectOsType() === OsUtils.OsType.Windows ? ".exe" : ""),
             project: "${command:iar-settings.project-file}",
             config: "${command:iar-settings.project-configuration}",
         };
