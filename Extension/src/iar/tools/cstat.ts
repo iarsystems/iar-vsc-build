@@ -112,7 +112,7 @@ export namespace CStat {
         const dbPath = getCStatDBPath(projectPath, configurationName);
         if (Fs.existsSync(dbPath)) { Fs.unlinkSync(dbPath); }
 
-        const iarbuild = spawn(builderPath.toString(), [projectPath.toString(), "-cstat_analyze", configurationName.toString()]);
+        const iarbuild = spawn(builderPath.toString(), [projectPath.toString(), "-cstat_analyze", configurationName.toString(), "-log", "info"]);
         iarbuild.stdout.on("data", data => {
             if (onWrite) {
                 onWrite(data.toString());
