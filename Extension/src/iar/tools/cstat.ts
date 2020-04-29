@@ -59,7 +59,7 @@ export namespace CStat {
             sqlProc.stdin.write("SELECT sql FROM sqlite_master WHERE type IS 'table' AND name IS 'warnings';\n");
             sqlProc.stdout.once('data', tableData => {
                 // The name of the check is contained in property_alias if present, otherwise in property_id
-                const checkIdColumn = tableData.includes("property_alias") ? "property_alias" : "property_id";
+                const checkIdColumn = tableData.toString().includes("property_alias") ? "property_alias" : "property_id";
 
                 sqlProc.stdin.write("SELECT Count(*) FROM warnings;\n");
                 sqlProc.stdout.once('data', data => {
