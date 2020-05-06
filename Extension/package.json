@@ -30,8 +30,6 @@
     "onCommand:iar.selectConfiguration",
     "onCommand:iar.generateCppToolsConfig",
     "onCommand:iar.selectIarWorkspace",
-    "oncommand:iar.runCStat",
-    "oncommand:iar.clearCStat",
     "workspaceContains:**/*.ewp"
   ],
   "main": "./out/src/main",
@@ -81,16 +79,6 @@
         "command": "iar-settings.project-configuration",
         "title": "Get the selected project configuration",
         "category": "IAR Settings"
-      },
-      {
-        "command": "iar.runCStat",
-        "title": "Run C-STAT Analysis",
-        "category": "IAR"
-      },
-      {
-        "command": "iar.clearCStat",
-        "title": "Clear C-STAT Diagnostics",
-        "category": "IAR"
       }
     ],
     "views": {
