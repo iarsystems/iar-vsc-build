@@ -36,7 +36,6 @@ import ModuleLoadingOptions = ttypes.ModuleLoadingOptions
 import ResetStyles = ttypes.ResetStyles
 import DebugSettings = ttypes.DebugSettings
 import HeartbeatService = require('./HeartbeatService');
-type HeartbeatServiceClient = HeartbeatService.Client;
 
 /**
  * Handles contexts and call stack functionality.
