@@ -375,10 +375,12 @@
     "ts-sinon": "1.0.12"
   },
   "dependencies": {
-    "csv-parse": "4.4.3",
+    "@types/thrift": "^0.10.9",
     "child-exec": "1.0.0",
+    "csv-parse": "4.4.3",
     "fast-deep-equal": "2.0.1",
     "jsonc-parser": "1.0.0",
+    "thrift": "file:thrift-0.14.0.tgz",
     "vscode-cpptools": "^3.0.1",
     "vscode-jsonrpc": "^3.0.0",
     "xml-js": "1.6.8"
