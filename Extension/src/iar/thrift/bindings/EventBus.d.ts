@@ -80,11 +80,11 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  Fire(toBeFired: Event): void;
+  Fire(toBeFired: Event): Q.Promise<void>;
 
   Fire(toBeFired: Event, callback?: (error: void, response: void)=>void): void;
 
-  Register(clientLocation: ServiceRegistry_ttypes.ServiceLocation, myId: number): void;
+  Register(clientLocation: ServiceRegistry_ttypes.ServiceLocation, myId: number): Q.Promise<void>;
 
   Register(clientLocation: ServiceRegistry_ttypes.ServiceLocation, myId: number, callback?: (error: ttypes.EventBusRegistrationFailed, response: void)=>void): void;
 }

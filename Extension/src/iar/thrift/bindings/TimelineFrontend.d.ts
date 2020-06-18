@@ -32,23 +32,23 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  dataAvailable(note: DbuTimelineDataAvailableNotification, partnerNamespace: string): void;
+  dataAvailable(note: DbuTimelineDataAvailableNotification, partnerNamespace: string): Q.Promise<void>;
 
   dataAvailable(note: DbuTimelineDataAvailableNotification, partnerNamespace: string, callback?: (error: void, response: void)=>void): void;
 
-  channelAvailable(note: DbuTimelineChannelAvailableNotification, partnerNamespace: string): void;
+  channelAvailable(note: DbuTimelineChannelAvailableNotification, partnerNamespace: string): Q.Promise<void>;
 
   channelAvailable(note: DbuTimelineChannelAvailableNotification, partnerNamespace: string, callback?: (error: void, response: void)=>void): void;
 
-  channelRemoved(note: DbuTimelineChannelRemovedNotification, partnerNamespace: string): void;
+  channelRemoved(note: DbuTimelineChannelRemovedNotification, partnerNamespace: string): Q.Promise<void>;
 
   channelRemoved(note: DbuTimelineChannelRemovedNotification, partnerNamespace: string, callback?: (error: void, response: void)=>void): void;
 
-  cpuClockChanged(note: DbuTimelineCpuClockChangedNotification, partnerNamespace: string): void;
+  cpuClockChanged(note: DbuTimelineCpuClockChangedNotification, partnerNamespace: string): Q.Promise<void>;
 
   cpuClockChanged(note: DbuTimelineCpuClockChangedNotification, partnerNamespace: string, callback?: (error: void, response: void)=>void): void;
 
-  enablementChanged(note: DbuTimelineEnablementChangedNotification, partnerNamespace: string): void;
+  enablementChanged(note: DbuTimelineEnablementChangedNotification, partnerNamespace: string): Q.Promise<void>;
 
   enablementChanged(note: DbuTimelineEnablementChangedNotification, partnerNamespace: string, callback?: (error: void, response: void)=>void): void;
 }

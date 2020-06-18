@@ -26,6 +26,7 @@ declare class ServiceLocation {
   public transport: Transport;
 
     constructor(args?: { host: string; port: number; protocol: Protocol; transport: Transport; });
+    read(source: any): void;
 }
 
 declare class ServiceException extends Thrift.TException {

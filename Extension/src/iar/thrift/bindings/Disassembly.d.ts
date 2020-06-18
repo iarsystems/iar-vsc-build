@@ -24,11 +24,11 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  disassembleRange(_from: shared_ttypes.Location, _to: shared_ttypes.Location, context: shared_ttypes.ContextRef): DisassembledLocation[];
+  disassembleRange(_from: shared_ttypes.Location, _to: shared_ttypes.Location, context: shared_ttypes.ContextRef): Q.Promise<DisassembledLocation[]>;
 
   disassembleRange(_from: shared_ttypes.Location, _to: shared_ttypes.Location, context: shared_ttypes.ContextRef, callback?: (error: shared_ttypes.CSpyException, response: DisassembledLocation[])=>void): void;
 
-  disassembleLines(_from: shared_ttypes.Location, numLines: number, context: shared_ttypes.ContextRef): DisassembledLocation[];
+  disassembleLines(_from: shared_ttypes.Location, numLines: number, context: shared_ttypes.ContextRef): Q.Promise<DisassembledLocation[]>;
 
   disassembleLines(_from: shared_ttypes.Location, numLines: number, context: shared_ttypes.ContextRef, callback?: (error: shared_ttypes.CSpyException, response: DisassembledLocation[])=>void): void;
 }

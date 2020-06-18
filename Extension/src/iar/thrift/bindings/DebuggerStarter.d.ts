@@ -80,23 +80,23 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  Configure(stageDir: string, defaultTool: Tools): void;
+  Configure(stageDir: string, defaultTool: Tools): Q.Promise<void>;
 
   Configure(stageDir: string, defaultTool: Tools, callback?: (error: void, response: void)=>void): void;
 
-  StartServiceRegistry(): ServiceRegistry_ttypes.ServiceLocation;
+  StartServiceRegistry(): Q.Promise<ServiceRegistry_ttypes.ServiceLocation>;
 
   StartServiceRegistry(callback?: (error: void, response: ServiceRegistry_ttypes.ServiceLocation)=>void): void;
 
-  StartDebuggers(parentServiceRegistryLoc: ServiceRegistry_ttypes.ServiceLocation, sharedServiceRegistryLoc: ServiceRegistry_ttypes.ServiceLocation): ServiceRegistry_ttypes.ServiceLocation[];
+  StartDebuggers(parentServiceRegistryLoc: ServiceRegistry_ttypes.ServiceLocation, sharedServiceRegistryLoc: ServiceRegistry_ttypes.ServiceLocation): Q.Promise<ServiceRegistry_ttypes.ServiceLocation[]>;
 
   StartDebuggers(parentServiceRegistryLoc: ServiceRegistry_ttypes.ServiceLocation, sharedServiceRegistryLoc: ServiceRegistry_ttypes.ServiceLocation, callback?: (error: ttypes.FailedToStartPartner | ServiceRegistry_ttypes.ServiceException, response: ServiceRegistry_ttypes.ServiceLocation[])=>void): void;
 
-  TerminateDebuggers(): void;
+  TerminateDebuggers(): Q.Promise<void>;
 
   TerminateDebuggers(callback?: (error: ServiceRegistry_ttypes.ServiceException, response: void)=>void): void;
 
-  GetPartnerNamespace(partnerId: number, sharedServiceRegistryLoc: ServiceRegistry_ttypes.ServiceLocation): string;
+  GetPartnerNamespace(partnerId: number, sharedServiceRegistryLoc: ServiceRegistry_ttypes.ServiceLocation): Q.Promise<string>;
 
   GetPartnerNamespace(partnerId: number, sharedServiceRegistryLoc: ServiceRegistry_ttypes.ServiceLocation, callback?: (error: ttypes.UnknownPartner, response: string)=>void): void;
 }

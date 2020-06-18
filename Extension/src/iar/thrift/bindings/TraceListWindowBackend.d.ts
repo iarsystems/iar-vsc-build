@@ -55,87 +55,87 @@ declare class Client extends ListWindowBackend.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  isEnabled(): boolean;
+  isEnabled(): Q.Promise<boolean>;
 
   isEnabled(callback?: (error: void, response: boolean)=>void): void;
 
-  canEnable(): boolean;
+  canEnable(): Q.Promise<boolean>;
 
   canEnable(callback?: (error: void, response: boolean)=>void): void;
 
-  setEnabled(on: boolean): void;
+  setEnabled(on: boolean): Q.Promise<void>;
 
   setEnabled(on: boolean, callback?: (error: void, response: void)=>void): void;
 
-  canClear(): boolean;
+  canClear(): Q.Promise<boolean>;
 
   canClear(callback?: (error: void, response: boolean)=>void): void;
 
-  clear(): void;
+  clear(): Q.Promise<void>;
 
   clear(callback?: (error: void, response: void)=>void): void;
 
-  isMixedMode(): boolean;
+  isMixedMode(): Q.Promise<boolean>;
 
   isMixedMode(callback?: (error: void, response: boolean)=>void): void;
 
-  canUseMixedMode(): boolean;
+  canUseMixedMode(): Q.Promise<boolean>;
 
   canUseMixedMode(callback?: (error: void, response: boolean)=>void): void;
 
-  setMixedMode(on: boolean): void;
+  setMixedMode(on: boolean): Q.Promise<void>;
 
   setMixedMode(on: boolean, callback?: (error: void, response: void)=>void): void;
 
-  canSave(): boolean;
+  canSave(): Q.Promise<boolean>;
 
   canSave(callback?: (error: void, response: boolean)=>void): void;
 
-  save(filename: string): void;
+  save(filename: string): Q.Promise<void>;
 
   save(filename: string, callback?: (error: void, response: void)=>void): void;
 
-  getDefaultSaveFilename(): string;
+  getDefaultSaveFilename(): Q.Promise<string>;
 
   getDefaultSaveFilename(callback?: (error: void, response: string)=>void): void;
 
-  getDefaultSaveFilenameExt(): string;
+  getDefaultSaveFilenameExt(): Q.Promise<string>;
 
   getDefaultSaveFilenameExt(callback?: (error: void, response: string)=>void): void;
 
-  canFind(): boolean;
+  canFind(): Q.Promise<boolean>;
 
   canFind(callback?: (error: void, response: boolean)=>void): void;
 
-  getFindParams(): TraceFindParams;
+  getFindParams(): Q.Promise<TraceFindParams>;
 
   getFindParams(callback?: (error: void, response: TraceFindParams)=>void): void;
 
-  find(params: TraceFindParams): void;
+  find(params: TraceFindParams): Q.Promise<void>;
 
   find(params: TraceFindParams, callback?: (error: void, response: void)=>void): void;
 
-  findLocal(params: TraceFindParams): void;
+  findLocal(params: TraceFindParams): Q.Promise<void>;
 
   findLocal(params: TraceFindParams, callback?: (error: void, response: void)=>void): void;
 
-  canBrowse(): boolean;
+  canBrowse(): Q.Promise<boolean>;
 
   canBrowse(callback?: (error: void, response: boolean)=>void): void;
 
-  isBrowsing(): boolean;
+  isBrowsing(): Q.Promise<boolean>;
 
   isBrowsing(callback?: (error: void, response: boolean)=>void): void;
 
-  setBrowseMode(on: boolean): void;
+  setBrowseMode(on: boolean): Q.Promise<void>;
 
   setBrowseMode(on: boolean, callback?: (error: void, response: void)=>void): void;
 
-  getProgress(): TraceProgress;
+  getProgress(): Q.Promise<TraceProgress>;
 
   getProgress(callback?: (error: void, response: TraceProgress)=>void): void;
 
-  supportsTraceSettings(): boolean;
+  supportsTraceSettings(): Q.Promise<boolean>;
 
   supportsTraceSettings(callback?: (error: void, response: boolean)=>void): void;
 }

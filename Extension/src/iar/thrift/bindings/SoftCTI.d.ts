@@ -78,19 +78,19 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  SetSoftCTI(on: boolean): void;
+  SetSoftCTI(on: boolean): Q.Promise<void>;
 
   SetSoftCTI(on: boolean, callback?: (error: void, response: void)=>void): void;
 
-  GetSoftCTI(): boolean;
+  GetSoftCTI(): Q.Promise<boolean>;
 
   GetSoftCTI(callback?: (error: void, response: boolean)=>void): void;
 
-  CoreStarting(core: number): void;
+  CoreStarting(core: number): Q.Promise<void>;
 
   CoreStarting(core: number, callback?: (error: void, response: void)=>void): void;
 
-  CoreStopping(core: number): Int64;
+  CoreStopping(core: number): Q.Promise<Int64>;
 
   CoreStopping(core: number, callback?: (error: void, response: Int64)=>void): void;
 }

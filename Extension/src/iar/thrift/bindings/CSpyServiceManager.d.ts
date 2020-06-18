@@ -35,7 +35,7 @@ declare class Client {
    * An error during the service initialization will result in an exception
    * being thrown.
    */
-  startService(serviceConfig: ServiceConfig): void;
+  startService(serviceConfig: ServiceConfig): Q.Promise<void>;
 
   /**
    * Start the described service.
@@ -53,7 +53,7 @@ declare class Client {
    * An error during the service shutdown will result in an exception
    * being thrown.
    */
-  stopService(serviceConfig: ServiceConfig): void;
+  stopService(serviceConfig: ServiceConfig): Q.Promise<void>;
 
   /**
    * Stop the described service.
@@ -96,7 +96,7 @@ declare class Client {
    *    An error during the service initialization will result in an exception
    *    being thrown.
    */
-  startServicesFromJsonManifest(jsonFilePath: string): void;
+  startServicesFromJsonManifest(jsonFilePath: string): Q.Promise<void>;
 
   /**
    *    Start all the services described by the JSON manifest file at the provided path,
@@ -143,7 +143,7 @@ declare class Client {
    * An error during the service shutdown will result in an exception
    * being thrown.
    */
-  stopServicesFromJsonManifest(jsonFilePath: string): void;
+  stopServicesFromJsonManifest(jsonFilePath: string): Q.Promise<void>;
 
   /**
    * Stop the service described by the JSON manifest file at the provided path,
@@ -163,7 +163,7 @@ declare class Client {
    * Implementations might be asynchronous, so returning from this method will
    * not guarantee that the service manager is indeed shutdown.
    */
-  shutdown(): void;
+  shutdown(): Q.Promise<void>;
 
   /**
    * Shutdown the service manager, destroying all active services.

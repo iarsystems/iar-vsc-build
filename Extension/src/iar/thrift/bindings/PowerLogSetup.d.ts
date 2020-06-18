@@ -55,15 +55,15 @@ declare class Client extends ListWindowBackend.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  setRate(sampleRate: number): void;
+  setRate(sampleRate: number): Q.Promise<void>;
 
   setRate(sampleRate: number, callback?: (error: void, response: void)=>void): void;
 
-  getRateOfSample(): number;
+  getRateOfSample(): Q.Promise<number>;
 
   getRateOfSample(callback?: (error: void, response: number)=>void): void;
 
-  getMaxRate(): number;
+  getMaxRate(): Q.Promise<number>;
 
   getMaxRate(callback?: (error: void, response: number)=>void): void;
 }

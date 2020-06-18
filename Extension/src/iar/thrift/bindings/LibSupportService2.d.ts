@@ -22,35 +22,35 @@ declare class Client {
   /**
    * Request input from the terminal I/O console.
    */
-  requestInputBinary(len: number): string;
+  requestInputBinary(len: number): Q.Promise<string>;
 
   /**
    * Request input from the terminal I/O console.
    */
   requestInputBinary(len: number, callback?: (error: void, response: string)=>void): void;
 
-  requestInput(len: number): string;
+  requestInput(len: number): Q.Promise<string>;
 
   requestInput(len: number, callback?: (error: void, response: string)=>void): void;
 
   /**
    * Handle output from the target program.
    */
-  printOutputBinary(data: string): void;
+  printOutputBinary(data: string): Q.Promise<void>;
 
   /**
    * Handle output from the target program.
    */
   printOutputBinary(data: string, callback?: (error: void, response: void)=>void): void;
 
-  printOutput(data: string): void;
+  printOutput(data: string): Q.Promise<void>;
 
   printOutput(data: string, callback?: (error: void, response: void)=>void): void;
 
   /**
    * The target program has exited.
    */
-  exit(code: number): void;
+  exit(code: number): Q.Promise<void>;
 
   /**
    * The target program has exited.
@@ -60,7 +60,7 @@ declare class Client {
   /**
    * The target program has aborted (i.e. called abort()).
    */
-  reportAssert(file: string, line: string, message: string): void;
+  reportAssert(file: string, line: string, message: string): Q.Promise<void>;
 
   /**
    * The target program has aborted (i.e. called abort()).

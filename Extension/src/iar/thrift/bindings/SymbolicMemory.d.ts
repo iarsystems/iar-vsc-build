@@ -55,27 +55,27 @@ declare class Client extends ListWindowBackend.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  setZone(zone: string): void;
+  setZone(zone: string): Q.Promise<void>;
 
   setZone(zone: string, callback?: (error: void, response: void)=>void): void;
 
-  getZone(): string;
+  getZone(): Q.Promise<string>;
 
   getZone(callback?: (error: void, response: string)=>void): void;
 
-  getZoneList(): string[];
+  getZoneList(): Q.Promise<string[]>;
 
   getZoneList(callback?: (error: void, response: string[])=>void): void;
 
-  nextSymbol(): void;
+  nextSymbol(): Q.Promise<void>;
 
   nextSymbol(callback?: (error: void, response: void)=>void): void;
 
-  prevSymbol(): void;
+  prevSymbol(): Q.Promise<void>;
 
   prevSymbol(callback?: (error: void, response: void)=>void): void;
 
-  navigate(expr: string): void;
+  navigate(expr: string): Q.Promise<void>;
 
   navigate(expr: string, callback?: (error: void, response: void)=>void): void;
 }

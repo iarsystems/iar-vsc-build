@@ -34,27 +34,27 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  getChannels(): TimelineChannelInfo[];
+  getChannels(): Q.Promise<TimelineChannelInfo[]>;
 
   getChannels(callback?: (error: void, response: TimelineChannelInfo[])=>void): void;
 
-  getCPUClock(): Int64;
+  getCPUClock(): Q.Promise<Int64>;
 
   getCPUClock(callback?: (error: void, response: Int64)=>void): void;
 
-  readData(id: string, startTime: Int64, endTime: Int64): string;
+  readData(id: string, startTime: Int64, endTime: Int64): Q.Promise<string>;
 
   readData(id: string, startTime: Int64, endTime: Int64, callback?: (error: void, response: string)=>void): void;
 
-  readOverflows(id: string, startTime: Int64, endTime: Int64): string;
+  readOverflows(id: string, startTime: Int64, endTime: Int64): Q.Promise<string>;
 
   readOverflows(id: string, startTime: Int64, endTime: Int64, callback?: (error: void, response: string)=>void): void;
 
-  enable(id: string, enabled: boolean): void;
+  enable(id: string, enabled: boolean): Q.Promise<void>;
 
   enable(id: string, enabled: boolean, callback?: (error: void, response: void)=>void): void;
 
-  isEnabled(id: string): boolean;
+  isEnabled(id: string): Q.Promise<boolean>;
 
   isEnabled(id: string, callback?: (error: void, response: boolean)=>void): void;
 }

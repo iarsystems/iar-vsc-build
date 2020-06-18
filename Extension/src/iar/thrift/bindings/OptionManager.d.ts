@@ -49,7 +49,7 @@ declare class Client {
    * 
    * @throws OptionError if id is not known to the option manager
    */
-  getOptionDefinition(id: string): OptionDefinition;
+  getOptionDefinition(id: string): Q.Promise<OptionDefinition>;
 
   /**
    * Get the currently registered definition of an option.
@@ -63,7 +63,7 @@ declare class Client {
    * 
    * @param config
    */
-  addConfiguration(config: OptionConfiguration): void;
+  addConfiguration(config: OptionConfiguration): Q.Promise<void>;
 
   /**
    * Register a new option configuration
@@ -77,7 +77,7 @@ declare class Client {
    * 
    * @param configPresentation
    */
-  addConfigurationPresentation(configPresentation: ConfigurationPresentation): void;
+  addConfigurationPresentation(configPresentation: ConfigurationPresentation): Q.Promise<void>;
 
   /**
    * Define how a configuration and its options are presented to the user
@@ -94,7 +94,7 @@ declare class Client {
    * @return a (possiblt empty) list of ConfigurationPresentation.
    * 
    */
-  getConfigurationPresentation(configId: string): ConfigurationPresentation[];
+  getConfigurationPresentation(configId: string): Q.Promise<ConfigurationPresentation[]>;
 
   /**
    * Get the presentation information for the given configuration ID.
@@ -109,7 +109,7 @@ declare class Client {
   /**
    * Remove a previously-declared configuration presentation.
    */
-  removeConfigurationPresentation(id: string): void;
+  removeConfigurationPresentation(id: string): Q.Promise<void>;
 
   /**
    * Remove a previously-declared configuration presentation.
@@ -121,7 +121,7 @@ declare class Client {
    * 
    * @throws OptionError if id is not known to the option manager
    */
-  getOptionConfiguration(id: string): OptionConfiguration;
+  getOptionConfiguration(id: string): Q.Promise<OptionConfiguration>;
 
   /**
    * Get the currently registered option configuration for the provided id.
@@ -135,7 +135,7 @@ declare class Client {
    * 
    * @param configId
    */
-  removeOptionConfiguration(id: string): void;
+  removeOptionConfiguration(id: string): Q.Promise<void>;
 
   /**
    * Remove an option configuration
@@ -156,7 +156,7 @@ declare class Client {
    * * @param config
    * * @return
    */
-  verifyOptionConfiguration(config: OptionConfiguration): VerifierError[];
+  verifyOptionConfiguration(config: OptionConfiguration): Q.Promise<VerifierError[]>;
 
   /**
    * * Runs all registered configuration verifiers for the given configuration
@@ -180,7 +180,7 @@ declare class Client {
    *            unique id of the build tool, e.g. "iar.arm.compiler"
    * @return
    */
-  getTool(id: string): ToolDefinition;
+  getTool(id: string): Q.Promise<ToolDefinition>;
 
   /**
    * Get the build tool definition for the given id, or <code>null</code> if
@@ -203,7 +203,7 @@ declare class Client {
    * @return a list of command line arguments for the tool, excluding the tool
    *         executable name
    */
-  getToolCommandLine(configId: string, toolId: string): string[];
+  getToolCommandLine(configId: string, toolId: string): Q.Promise<string[]>;
 
   /**
    * Get a list of command line arguments for the specified tool
@@ -226,7 +226,7 @@ declare class Client {
    * @param optionId
    * @return
    */
-  getOptionValue(configId: string, optionId: string): string;
+  getOptionValue(configId: string, optionId: string): Q.Promise<string>;
 
   /**
    * Get the serialized value of an option (whether local or inherited) within an option
@@ -250,7 +250,7 @@ declare class Client {
    *            unique id of the option
    * @return the option value
    */
-  getOptionValueAsString(configId: string, id: string): string;
+  getOptionValueAsString(configId: string, id: string): Q.Promise<string>;
 
   /**
    * Get the value of a string option. Will throw if the option type is not
@@ -278,7 +278,7 @@ declare class Client {
    *            unique id of the option
    * @return the option value
    */
-  getOptionValueAsBoolean(configId: string, id: string): boolean;
+  getOptionValueAsBoolean(configId: string, id: string): Q.Promise<boolean>;
 
   /**
    * Get the value of a string option. Will throw if the option type is not
@@ -307,7 +307,7 @@ declare class Client {
    * @return the enumerated value id of the option, see
    *         {@link IIarEnumeratedOptionValue}
    */
-  getOptionValueAsEnumerated(configId: string, id: string): string;
+  getOptionValueAsEnumerated(configId: string, id: string): Q.Promise<string>;
 
   /**
    * Get the value of a string option. Will throw if the option type is not
@@ -337,7 +337,7 @@ declare class Client {
    *            unique id of the option
    * @return the option value
    */
-  getOptionValueAsStringList(configId: string, id: string): string[];
+  getOptionValueAsStringList(configId: string, id: string): Q.Promise<string[]>;
 
   /**
    * Get the value of a string option. Will throw if the option type is not
@@ -361,7 +361,7 @@ declare class Client {
    * @return an {@link EnumeratedOptionType}, or <code>null</code> if
    *         undefined
    */
-  getEnumeratedType(enumeratedTypeId: string): EnumeratedOptionType;
+  getEnumeratedType(enumeratedTypeId: string): Q.Promise<EnumeratedOptionType>;
 
   /**
    * Get the enumerated type definition for the given id
@@ -382,7 +382,7 @@ declare class Client {
    * @param conditionId unique id of the condition to evaluate
    * @param configurationId unique id of the configuration on which to evaluate the condition
    */
-  evaluateCondition(conditionId: string, configurationId: string): boolean;
+  evaluateCondition(conditionId: string, configurationId: string): Q.Promise<boolean>;
 
   /**
    * Evaluate a previously-registered condition on the provided configuration.
@@ -407,7 +407,7 @@ declare class Client {
    * @param configurationId unique id of the configuration on which the option to filter is present
    * @param optionId unique id of the enumerated option whose values should be filtered
    */
-  evaluateEnumeratedOptionFilter(filterId: string, configurationId: string, optionId: string): EnumeratedOptionValue[];
+  evaluateEnumeratedOptionFilter(filterId: string, configurationId: string, optionId: string): Q.Promise<EnumeratedOptionValue[]>;
 
   /**
    * Evaluate a previously-registered filter for an enumerated option in the provided configuration.
@@ -428,7 +428,7 @@ declare class Client {
    * @param optionDefinition
    *                          desrciption of the option being registered
    */
-  addOptionDefinition(optionDefinition: OptionDefinition): void;
+  addOptionDefinition(optionDefinition: OptionDefinition): Q.Promise<void>;
 
   /**
    * Define an option
@@ -443,7 +443,7 @@ declare class Client {
    * 
    * @param optionId the unique id of the option to remove
    */
-  removeOption(optionId: string): void;
+  removeOption(optionId: string): Q.Promise<void>;
 
   /**
    * Unregister an option
@@ -459,7 +459,7 @@ declare class Client {
    * @param tool
    *            description of the tool being registered
    */
-  addTool(tool: ToolDefinition): void;
+  addTool(tool: ToolDefinition): Q.Promise<void>;
 
   /**
    * Register a new build tool
@@ -476,7 +476,7 @@ declare class Client {
    * @param id
    *            unique id of the tool, e.g. "iar.arm.tool.compiler"
    */
-  removeTool(id: string): void;
+  removeTool(id: string): Q.Promise<void>;
 
   /**
    * Unregister a build tool
@@ -491,7 +491,7 @@ declare class Client {
    * 
    * @param type
    */
-  addEnumeratedType(type: EnumeratedOptionType): void;
+  addEnumeratedType(type: EnumeratedOptionType): Q.Promise<void>;
 
   /**
    * Register an enumerated type
@@ -505,7 +505,7 @@ declare class Client {
    * 
    * @param typeId the type to remove
    */
-  removeEnumeratedType(typeId: string): void;
+  removeEnumeratedType(typeId: string): Q.Promise<void>;
 
   /**
    * Unregister an enumerated type
@@ -519,7 +519,7 @@ declare class Client {
    * 
    * @param toolchain
    */
-  addToolchain(toolchain: Toolchain): void;
+  addToolchain(toolchain: Toolchain): Q.Promise<void>;
 
   /**
    * Registers a new toolchain and its default configurations
@@ -533,7 +533,7 @@ declare class Client {
    * 
    * @param toolchainId
    */
-  removeToolchain(toolchainId: string): void;
+  removeToolchain(toolchainId: string): Q.Promise<void>;
 
   /**
    * Unregisters a toolchain and its default configurations
@@ -547,7 +547,7 @@ declare class Client {
    * 
    * @param toolchainId
    */
-  getToolchain(toolchainId: string): Toolchain;
+  getToolchain(toolchainId: string): Q.Promise<Toolchain>;
 
   /**
    * Get a previously registered toolchain
@@ -560,7 +560,7 @@ declare class Client {
    * Get a list of all previously-registered toolchains
    * 
    */
-  getToolchains(): Toolchain[];
+  getToolchains(): Q.Promise<Toolchain[]>;
 
   /**
    * Get a list of all previously-registered toolchains

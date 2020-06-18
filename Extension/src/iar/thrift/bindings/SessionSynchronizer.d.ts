@@ -80,15 +80,15 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  SyncTo(who: number, destState: SessionState): SessionState;
+  SyncTo(who: number, destState: SessionState): Q.Promise<SessionState>;
 
   SyncTo(who: number, destState: SessionState, callback?: (error: void, response: SessionState)=>void): void;
 
-  CurrentState(who: number): SessionState;
+  CurrentState(who: number): Q.Promise<SessionState>;
 
   CurrentState(who: number, callback?: (error: void, response: SessionState)=>void): void;
 
-  AllStates(): SessionState[];
+  AllStates(): Q.Promise<SessionState[]>;
 
   AllStates(callback?: (error: void, response: SessionState[])=>void): void;
 }

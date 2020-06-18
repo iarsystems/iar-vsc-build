@@ -23,35 +23,35 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  getBreakpoints(): shared_ttypes.Breakpoint[];
+  getBreakpoints(): Q.Promise<shared_ttypes.Breakpoint[]>;
 
   getBreakpoints(callback?: (error: shared_ttypes.CSpyException, response: shared_ttypes.Breakpoint[])=>void): void;
 
-  getBreakpoint(id: number): shared_ttypes.Breakpoint;
+  getBreakpoint(id: number): Q.Promise<shared_ttypes.Breakpoint>;
 
   getBreakpoint(id: number, callback?: (error: shared_ttypes.CSpyException, response: shared_ttypes.Breakpoint)=>void): void;
 
-  setBreakpointFromDescriptor(descriptor: string): shared_ttypes.Breakpoint;
+  setBreakpointFromDescriptor(descriptor: string): Q.Promise<shared_ttypes.Breakpoint>;
 
   setBreakpointFromDescriptor(descriptor: string, callback?: (error: shared_ttypes.CSpyException, response: shared_ttypes.Breakpoint)=>void): void;
 
-  setBreakpointOnUle(ule: string, accessType: shared_ttypes.AccessType): shared_ttypes.Breakpoint;
+  setBreakpointOnUle(ule: string, accessType: shared_ttypes.AccessType): Q.Promise<shared_ttypes.Breakpoint>;
 
   setBreakpointOnUle(ule: string, accessType: shared_ttypes.AccessType, callback?: (error: shared_ttypes.CSpyException, response: shared_ttypes.Breakpoint)=>void): void;
 
-  setBreakpointOnUleWithCategory(ule: string, accessType: shared_ttypes.AccessType, categoryId: string): shared_ttypes.Breakpoint;
+  setBreakpointOnUleWithCategory(ule: string, accessType: shared_ttypes.AccessType, categoryId: string): Q.Promise<shared_ttypes.Breakpoint>;
 
   setBreakpointOnUleWithCategory(ule: string, accessType: shared_ttypes.AccessType, categoryId: string, callback?: (error: shared_ttypes.CSpyException, response: shared_ttypes.Breakpoint)=>void): void;
 
-  enableBreakpoint(id: number, enable: boolean): boolean;
+  enableBreakpoint(id: number, enable: boolean): Q.Promise<boolean>;
 
   enableBreakpoint(id: number, enable: boolean, callback?: (error: shared_ttypes.CSpyException, response: boolean)=>void): void;
 
-  removeBreakpoint(id: number): boolean;
+  removeBreakpoint(id: number): Q.Promise<boolean>;
 
   removeBreakpoint(id: number, callback?: (error: shared_ttypes.CSpyException, response: boolean)=>void): void;
 
-  getRecentlyHitBreakpoints(): shared_ttypes.Breakpoint[];
+  getRecentlyHitBreakpoints(): Q.Promise<shared_ttypes.Breakpoint[]>;
 
   getRecentlyHitBreakpoints(callback?: (error: shared_ttypes.CSpyException, response: shared_ttypes.Breakpoint[])=>void): void;
 }

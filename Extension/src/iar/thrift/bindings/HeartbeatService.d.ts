@@ -33,7 +33,7 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  isAlive(): void;
+  isAlive(): Q.Promise<void>;
 
   isAlive(callback?: (error: void, response: void)=>void): void;
 }

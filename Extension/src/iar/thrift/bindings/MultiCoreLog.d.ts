@@ -78,7 +78,7 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  Log(cores: CoreRange, color: number, timeStamp: string, text: string): void;
+  Log(cores: CoreRange, color: number, timeStamp: string, text: string): Q.Promise<void>;
 
   Log(cores: CoreRange, color: number, timeStamp: string, text: string, callback?: (error: void, response: void)=>void): void;
 }

@@ -55,7 +55,7 @@ declare class Client extends ListWindowBackend.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  evaluate(expr: string): void;
+  evaluate(expr: string): Q.Promise<void>;
 
   evaluate(expr: string, callback?: (error: void, response: void)=>void): void;
 }

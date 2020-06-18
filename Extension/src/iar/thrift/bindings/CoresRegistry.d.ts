@@ -80,35 +80,35 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  NumberOfCores(): number;
+  NumberOfCores(): Q.Promise<number>;
 
   NumberOfCores(callback?: (error: void, response: number)=>void): void;
 
-  AllCores(): CoreInfo[];
+  AllCores(): Q.Promise<CoreInfo[]>;
 
   AllCores(callback?: (error: void, response: CoreInfo[])=>void): void;
 
-  GetInfo(coreNumber: number): CoreInfo;
+  GetInfo(coreNumber: number): Q.Promise<CoreInfo>;
 
   GetInfo(coreNumber: number, callback?: (error: ttypes.UnknownPartner, response: CoreInfo)=>void): void;
 
-  SetInfo(updated: CoreInfo): void;
+  SetInfo(updated: CoreInfo): Q.Promise<void>;
 
   SetInfo(updated: CoreInfo, callback?: (error: void, response: void)=>void): void;
 
-  SetInfoPartial(updated: number, props: { [k: string]: string; }): void;
+  SetInfoPartial(updated: number, props: { [k: string]: string; }): Q.Promise<void>;
 
   SetInfoPartial(updated: number, props: { [k: string]: string; }, callback?: (error: void, response: void)=>void): void;
 
-  PartnerCores(partner: number): CoreRange;
+  PartnerCores(partner: number): Q.Promise<CoreRange>;
 
   PartnerCores(partner: number, callback?: (error: ttypes.UnknownPartner, response: CoreRange)=>void): void;
 
-  SetNumberOfCores(partner: number, numberOfCores: number): CoreRange;
+  SetNumberOfCores(partner: number, numberOfCores: number): Q.Promise<CoreRange>;
 
   SetNumberOfCores(partner: number, numberOfCores: number, callback?: (error: ttypes.UnknownPartner, response: CoreRange)=>void): void;
 
-  ResetAfterDebugSession(): void;
+  ResetAfterDebugSession(): Q.Promise<void>;
 
   ResetAfterDebugSession(callback?: (error: void, response: void)=>void): void;
 }

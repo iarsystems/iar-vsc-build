@@ -31,31 +31,31 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  optionStatesChanged(context: Context): void;
+  optionStatesChanged(context: Context): Q.Promise<void>;
 
   optionStatesChanged(context: Context, callback?: (error: void, response: void)=>void): void;
 
-  contentsAdded(context: Context): void;
+  contentsAdded(context: Context): Q.Promise<void>;
 
   contentsAdded(context: Context, callback?: (error: void, response: void)=>void): void;
 
-  contentsRemoved(context: Context): void;
+  contentsRemoved(context: Context): Q.Promise<void>;
 
   contentsRemoved(context: Context, callback?: (error: void, response: void)=>void): void;
 
-  logAddCategory(cat: string): void;
+  logAddCategory(cat: string): Q.Promise<void>;
 
   logAddCategory(cat: string, callback?: (error: void, response: void)=>void): void;
 
-  logRemoveCategory(cat: string): void;
+  logRemoveCategory(cat: string): Q.Promise<void>;
 
   logRemoveCategory(cat: string, callback?: (error: void, response: void)=>void): void;
 
-  logStartSession(cat: string): void;
+  logStartSession(cat: string): Q.Promise<void>;
 
   logStartSession(cat: string, callback?: (error: void, response: void)=>void): void;
 
-  logEntry(entry: LogEntry): void;
+  logEntry(entry: LogEntry): Q.Promise<void>;
 
   logEntry(entry: LogEntry, callback?: (error: void, response: void)=>void): void;
 }

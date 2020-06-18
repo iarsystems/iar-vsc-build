@@ -47,231 +47,231 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  getVersionString(): string;
+  getVersionString(): Q.Promise<string>;
 
   getVersionString(callback?: (error: void, response: string)=>void): void;
 
-  startSession(sessionConfig: SessionConfiguration): void;
+  startSession(sessionConfig: SessionConfiguration): Q.Promise<void>;
 
   startSession(sessionConfig: SessionConfiguration, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  stopSession(): void;
+  stopSession(): Q.Promise<void>;
 
   stopSession(callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  getDebugSettings(): DebugSettings;
+  getDebugSettings(): Q.Promise<DebugSettings>;
 
   getDebugSettings(callback?: (error: shared_ttypes.CSpyException, response: DebugSettings)=>void): void;
 
-  setDebugSettings(settings: DebugSettings): void;
+  setDebugSettings(settings: DebugSettings): Q.Promise<void>;
 
   setDebugSettings(settings: DebugSettings, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  exit(): void;
+  exit(): Q.Promise<void>;
 
   exit(callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  isOnline(): boolean;
+  isOnline(): Q.Promise<boolean>;
 
   isOnline(callback?: (error: shared_ttypes.CSpyException, response: boolean)=>void): void;
 
-  loadModule(filename: string): void;
+  loadModule(filename: string): Q.Promise<void>;
 
   loadModule(filename: string, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  loadModuleWithOptions(filename: string, options: ModuleLoadingOptions): void;
+  loadModuleWithOptions(filename: string, options: ModuleLoadingOptions): Q.Promise<void>;
 
   loadModuleWithOptions(filename: string, options: ModuleLoadingOptions, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  flashModule(boardFile: string, executable: string, arguments: string[], extraExecutables: string[]): void;
+  flashModule(boardFile: string, executable: string, arguments: string[], extraExecutables: string[]): Q.Promise<void>;
 
   flashModule(boardFile: string, executable: string, arguments: string[], extraExecutables: string[], callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  getFlashPasses(boardFile: string): string[][];
+  getFlashPasses(boardFile: string): Q.Promise<string[][]>;
 
   getFlashPasses(boardFile: string, callback?: (error: shared_ttypes.CSpyException, response: string[][])=>void): void;
 
-  eraseFlash(boardFile: string, nPasses: boolean[]): void;
+  eraseFlash(boardFile: string, nPasses: boolean[]): Q.Promise<void>;
 
   eraseFlash(boardFile: string, nPasses: boolean[], callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  getModules(): ModuleData[];
+  getModules(): Q.Promise<ModuleData[]>;
 
   getModules(callback?: (error: shared_ttypes.CSpyException, response: ModuleData[])=>void): void;
 
-  loadMacroFile(macro: string): void;
+  loadMacroFile(macro: string): Q.Promise<void>;
 
   loadMacroFile(macro: string, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  unloadMacroFile(macro: string): void;
+  unloadMacroFile(macro: string): Q.Promise<void>;
 
   unloadMacroFile(macro: string, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  runToULE(ule: string, allowSingleStep: boolean): void;
+  runToULE(ule: string, allowSingleStep: boolean): Q.Promise<void>;
 
   runToULE(ule: string, allowSingleStep: boolean, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  getMulticoreFlags(): Int64;
+  getMulticoreFlags(): Q.Promise<Int64>;
 
   getMulticoreFlags(callback?: (error: shared_ttypes.CSpyException, response: Int64)=>void): void;
 
-  getThreadList(): Thread[];
+  getThreadList(): Q.Promise<Thread[]>;
 
   getThreadList(callback?: (error: shared_ttypes.CSpyException, response: Thread[])=>void): void;
 
-  isActiveThread(t: Thread): boolean;
+  isActiveThread(t: Thread): Q.Promise<boolean>;
 
   isActiveThread(t: Thread, callback?: (error: shared_ttypes.CSpyException, response: boolean)=>void): void;
 
-  evalExpression(ref: shared_ttypes.ContextRef, expr: string, subExprIndex: number[], format: shared_ttypes.ExprFormat, prefix: boolean): ExprValue;
+  evalExpression(ref: shared_ttypes.ContextRef, expr: string, subExprIndex: number[], format: shared_ttypes.ExprFormat, prefix: boolean): Q.Promise<ExprValue>;
 
   evalExpression(ref: shared_ttypes.ContextRef, expr: string, subExprIndex: number[], format: shared_ttypes.ExprFormat, prefix: boolean, callback?: (error: shared_ttypes.CSpyException, response: ExprValue)=>void): void;
 
-  assignExpression(ref: shared_ttypes.ContextRef, expr: string, subExprIndex: number[], rvalue: ExprValue): void;
+  assignExpression(ref: shared_ttypes.ContextRef, expr: string, subExprIndex: number[], rvalue: ExprValue): Q.Promise<void>;
 
   assignExpression(ref: shared_ttypes.ContextRef, expr: string, subExprIndex: number[], rvalue: ExprValue, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  getSubExpressionLabels(ref: shared_ttypes.ContextRef, rootExpr: string, subExprIndex: number[], startIndex: number, length: number, treatPointerAsArray: boolean): string[];
+  getSubExpressionLabels(ref: shared_ttypes.ContextRef, rootExpr: string, subExprIndex: number[], startIndex: number, length: number, treatPointerAsArray: boolean): Q.Promise<string[]>;
 
   getSubExpressionLabels(ref: shared_ttypes.ContextRef, rootExpr: string, subExprIndex: number[], startIndex: number, length: number, treatPointerAsArray: boolean, callback?: (error: shared_ttypes.CSpyException, response: string[])=>void): void;
 
-  getLocationNames(): string[];
+  getLocationNames(): Q.Promise<string[]>;
 
   getLocationNames(callback?: (error: shared_ttypes.CSpyException, response: string[])=>void): void;
 
-  getLocationNamesInGroup(group: string): string[];
+  getLocationNamesInGroup(group: string): Q.Promise<string[]>;
 
   getLocationNamesInGroup(group: string, callback?: (error: shared_ttypes.CSpyException, response: string[])=>void): void;
 
-  getRegisterGroups(): string[];
+  getRegisterGroups(): Q.Promise<string[]>;
 
   getRegisterGroups(callback?: (error: shared_ttypes.CSpyException, response: string[])=>void): void;
 
-  getNamedLocation(name: string): NamedLocation;
+  getNamedLocation(name: string): Q.Promise<NamedLocation>;
 
   getNamedLocation(name: string, callback?: (error: shared_ttypes.CSpyException, response: NamedLocation)=>void): void;
 
-  getCoreState(core: number): DkCoreStatusConstants;
+  getCoreState(core: number): Q.Promise<DkCoreStatusConstants>;
 
   getCoreState(core: number, callback?: (error: shared_ttypes.CSpyException, response: DkCoreStatusConstants)=>void): void;
 
-  getNumberOfCores(): number;
+  getNumberOfCores(): Q.Promise<number>;
 
   getNumberOfCores(callback?: (error: shared_ttypes.CSpyException, response: number)=>void): void;
 
-  getCoreDescription(core: number): string;
+  getCoreDescription(core: number): Q.Promise<string>;
 
   getCoreDescription(core: number, callback?: (error: void, response: string)=>void): void;
 
-  getCycleCounter(core: number): Int64;
+  getCycleCounter(core: number): Q.Promise<Int64>;
 
   getCycleCounter(core: number, callback?: (error: shared_ttypes.CSpyException, response: Int64)=>void): void;
 
-  getCyclesPerSecond(): Int64;
+  getCyclesPerSecond(): Q.Promise<Int64>;
 
   getCyclesPerSecond(callback?: (error: shared_ttypes.CSpyException, response: Int64)=>void): void;
 
-  hasCoreStoppedDeliberately(core: number): boolean;
+  hasCoreStoppedDeliberately(core: number): Q.Promise<boolean>;
 
   hasCoreStoppedDeliberately(core: number, callback?: (error: shared_ttypes.CSpyException, response: boolean)=>void): void;
 
-  setResetStyles(id: number): void;
+  setResetStyles(id: number): Q.Promise<void>;
 
   setResetStyles(id: number, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  getResetStyles(): ResetStyles[];
+  getResetStyles(): Q.Promise<ResetStyles[]>;
 
   getResetStyles(callback?: (error: shared_ttypes.CSpyException, response: ResetStyles[])=>void): void;
 
-  reset(): void;
+  reset(): Q.Promise<void>;
 
   reset(callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  go(): void;
+  go(): Q.Promise<void>;
 
   go(callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  goCore(core: number): void;
+  goCore(core: number): Q.Promise<void>;
 
   goCore(core: number, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  stop(): void;
+  stop(): Q.Promise<void>;
 
   stop(callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  stopCore(core: number): void;
+  stopCore(core: number): Q.Promise<void>;
 
   stopCore(core: number, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  multiGo(core: number): void;
+  multiGo(core: number): Q.Promise<void>;
 
   multiGo(core: number, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  step(enterFunctionsWithoutSource: boolean): void;
+  step(enterFunctionsWithoutSource: boolean): Q.Promise<void>;
 
   step(enterFunctionsWithoutSource: boolean, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  stepOver(enterFunctionsWithoutSource: boolean): void;
+  stepOver(enterFunctionsWithoutSource: boolean): Q.Promise<void>;
 
   stepOver(enterFunctionsWithoutSource: boolean, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  nextStatement(enterFunctionsWithoutSource: boolean): void;
+  nextStatement(enterFunctionsWithoutSource: boolean): Q.Promise<void>;
 
   nextStatement(enterFunctionsWithoutSource: boolean, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  stepOut(): void;
+  stepOut(): Q.Promise<void>;
 
   stepOut(callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  instructionStep(): void;
+  instructionStep(): Q.Promise<void>;
 
   instructionStep(callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  instructionStepOver(): void;
+  instructionStepOver(): Q.Promise<void>;
 
   instructionStepOver(callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  goToLocation(location: shared_ttypes.Location): void;
+  goToLocation(location: shared_ttypes.Location): Q.Promise<void>;
 
   goToLocation(location: shared_ttypes.Location, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  goToLocations(locations: shared_ttypes.Location[]): void;
+  goToLocations(locations: shared_ttypes.Location[]): Q.Promise<void>;
 
   goToLocations(locations: shared_ttypes.Location[], callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  supportsExceptions(): boolean;
+  supportsExceptions(): Q.Promise<boolean>;
 
   supportsExceptions(callback?: (error: shared_ttypes.CSpyException, response: boolean)=>void): void;
 
-  getBreakOnThrow(): boolean;
+  getBreakOnThrow(): Q.Promise<boolean>;
 
   getBreakOnThrow(callback?: (error: shared_ttypes.CSpyException, response: boolean)=>void): void;
 
-  setBreakOnThrow(enable: boolean): void;
+  setBreakOnThrow(enable: boolean): Q.Promise<void>;
 
   setBreakOnThrow(enable: boolean, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  getBreakOnUncaughtException(): boolean;
+  getBreakOnUncaughtException(): Q.Promise<boolean>;
 
   getBreakOnUncaughtException(callback?: (error: shared_ttypes.CSpyException, response: boolean)=>void): void;
 
-  setBreakOnUncaughtException(enable: boolean): void;
+  setBreakOnUncaughtException(enable: boolean): Q.Promise<void>;
 
   setBreakOnUncaughtException(enable: boolean, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 
-  getZoneByName(name: string): shared_ttypes.ZoneInfo;
+  getZoneByName(name: string): Q.Promise<shared_ttypes.ZoneInfo>;
 
   getZoneByName(name: string, callback?: (error: shared_ttypes.CSpyException, response: shared_ttypes.ZoneInfo)=>void): void;
 
-  getZoneById(id: number): shared_ttypes.ZoneInfo;
+  getZoneById(id: number): Q.Promise<shared_ttypes.ZoneInfo>;
 
   getZoneById(id: number, callback?: (error: shared_ttypes.CSpyException, response: shared_ttypes.ZoneInfo)=>void): void;
 
-  getAllZones(): shared_ttypes.ZoneInfo[];
+  getAllZones(): Q.Promise<shared_ttypes.ZoneInfo[]>;
 
   getAllZones(callback?: (error: shared_ttypes.CSpyException, response: shared_ttypes.ZoneInfo[])=>void): void;
 
-  getTraceTime(): Int64;
+  getTraceTime(): Q.Promise<Int64>;
 
   getTraceTime(callback?: (error: void, response: Int64)=>void): void;
 }

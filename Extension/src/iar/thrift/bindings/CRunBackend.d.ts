@@ -28,31 +28,31 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  loadFilters(filename: string): void;
+  loadFilters(filename: string): Q.Promise<void>;
 
   loadFilters(filename: string, callback?: (error: void, response: void)=>void): void;
 
-  saveFilters(filename: string): void;
+  saveFilters(filename: string): Q.Promise<void>;
 
   saveFilters(filename: string, callback?: (error: void, response: void)=>void): void;
 
-  addRuleOnMessage(messageName: string): void;
+  addRuleOnMessage(messageName: string): Q.Promise<void>;
 
   addRuleOnMessage(messageName: string, callback?: (error: void, response: void)=>void): void;
 
-  addRuleOnMessageFile(messageName: string, file: string): void;
+  addRuleOnMessageFile(messageName: string, file: string): Q.Promise<void>;
 
   addRuleOnMessageFile(messageName: string, file: string, callback?: (error: void, response: void)=>void): void;
 
-  addRuleOnMessageRange(messageName: string, range: shared_ttypes.SourceRange): void;
+  addRuleOnMessageRange(messageName: string, range: shared_ttypes.SourceRange): Q.Promise<void>;
 
   addRuleOnMessageRange(messageName: string, range: shared_ttypes.SourceRange, callback?: (error: void, response: void)=>void): void;
 
-  setDefaultAction(action: CRunBreakAction): void;
+  setDefaultAction(action: CRunBreakAction): Q.Promise<void>;
 
   setDefaultAction(action: CRunBreakAction, callback?: (error: void, response: void)=>void): void;
 
-  getDefaultAction(): CRunBreakAction;
+  getDefaultAction(): Q.Promise<CRunBreakAction>;
 
   getDefaultAction(callback?: (error: void, response: CRunBreakAction)=>void): void;
 }

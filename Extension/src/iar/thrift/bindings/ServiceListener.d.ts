@@ -25,7 +25,7 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  servicesChanged(services: { [k: string]: ServiceLocation; }): void;
+  servicesChanged(services: { [k: string]: ServiceLocation; }): Q.Promise<void>;
 
   servicesChanged(services: { [k: string]: ServiceLocation; }, callback?: (error: void, response: void)=>void): void;
 }

@@ -23,7 +23,7 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  getSourceRanges(loc: shared_ttypes.Location): shared_ttypes.SourceRange[];
+  getSourceRanges(loc: shared_ttypes.Location): Q.Promise<shared_ttypes.SourceRange[]>;
 
   getSourceRanges(loc: shared_ttypes.Location, callback?: (error: shared_ttypes.CSpyException, response: shared_ttypes.SourceRange[])=>void): void;
 }

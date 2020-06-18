@@ -47,43 +47,43 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  setInspectionContext(context: shared_ttypes.ContextRef): void;
+  setInspectionContext(context: shared_ttypes.ContextRef): Q.Promise<void>;
 
   setInspectionContext(context: shared_ttypes.ContextRef, callback?: (error: void, response: void)=>void): void;
 
-  findContext(context: shared_ttypes.ContextRef): shared_ttypes.ContextRef;
+  findContext(context: shared_ttypes.ContextRef): Q.Promise<shared_ttypes.ContextRef>;
 
   findContext(context: shared_ttypes.ContextRef, callback?: (error: void, response: shared_ttypes.ContextRef)=>void): void;
 
-  getStack(context: shared_ttypes.ContextRef, low: number, high: number): shared_ttypes.ContextInfo[];
+  getStack(context: shared_ttypes.ContextRef, low: number, high: number): Q.Promise<shared_ttypes.ContextInfo[]>;
 
   getStack(context: shared_ttypes.ContextRef, low: number, high: number, callback?: (error: void, response: shared_ttypes.ContextInfo[])=>void): void;
 
-  getStackDepth(context: shared_ttypes.ContextRef, maxDepth: number): number;
+  getStackDepth(context: shared_ttypes.ContextRef, maxDepth: number): Q.Promise<number>;
 
   getStackDepth(context: shared_ttypes.ContextRef, maxDepth: number, callback?: (error: void, response: number)=>void): void;
 
-  getContextInfo(context: shared_ttypes.ContextRef): shared_ttypes.ContextInfo;
+  getContextInfo(context: shared_ttypes.ContextRef): Q.Promise<shared_ttypes.ContextInfo>;
 
   getContextInfo(context: shared_ttypes.ContextRef, callback?: (error: void, response: shared_ttypes.ContextInfo)=>void): void;
 
-  compareContexts(ctx1: shared_ttypes.ContextRef, ctx2: shared_ttypes.ContextRef): boolean;
+  compareContexts(ctx1: shared_ttypes.ContextRef, ctx2: shared_ttypes.ContextRef): Q.Promise<boolean>;
 
   compareContexts(ctx1: shared_ttypes.ContextRef, ctx2: shared_ttypes.ContextRef, callback?: (error: void, response: boolean)=>void): void;
 
-  getLocals(ctx: shared_ttypes.ContextRef): shared_ttypes.Symbol[];
+  getLocals(ctx: shared_ttypes.ContextRef): Q.Promise<shared_ttypes.Symbol[]>;
 
   getLocals(ctx: shared_ttypes.ContextRef, callback?: (error: void, response: shared_ttypes.Symbol[])=>void): void;
 
-  getParameters(ctx: shared_ttypes.ContextRef): shared_ttypes.Symbol[];
+  getParameters(ctx: shared_ttypes.ContextRef): Q.Promise<shared_ttypes.Symbol[]>;
 
   getParameters(ctx: shared_ttypes.ContextRef, callback?: (error: void, response: shared_ttypes.Symbol[])=>void): void;
 
-  isExecuting(ctx: shared_ttypes.ContextRef): boolean;
+  isExecuting(ctx: shared_ttypes.ContextRef): Q.Promise<boolean>;
 
   isExecuting(ctx: shared_ttypes.ContextRef, callback?: (error: void, response: boolean)=>void): void;
 
-  setExecLocation(ctx: shared_ttypes.ContextRef, ule: string): void;
+  setExecLocation(ctx: shared_ttypes.ContextRef, ule: string): Q.Promise<void>;
 
   setExecLocation(ctx: shared_ttypes.ContextRef, ule: string, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 }

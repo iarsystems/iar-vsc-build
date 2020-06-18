@@ -80,55 +80,55 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  SetRunAllCores(all: boolean): void;
+  SetRunAllCores(all: boolean): Q.Promise<void>;
 
   SetRunAllCores(all: boolean, callback?: (error: void, response: void)=>void): void;
 
-  SetStartOneStartsAll(on: boolean): void;
+  SetStartOneStartsAll(on: boolean): Q.Promise<void>;
 
   SetStartOneStartsAll(on: boolean, callback?: (error: void, response: void)=>void): void;
 
-  SetSoftCTI(on: boolean): void;
+  SetSoftCTI(on: boolean): Q.Promise<void>;
 
   SetSoftCTI(on: boolean, callback?: (error: void, response: void)=>void): void;
 
-  BeforeLowLevelGo(core: number, multi: boolean): LowLevelAction;
+  BeforeLowLevelGo(core: number, multi: boolean): Q.Promise<LowLevelAction>;
 
   BeforeLowLevelGo(core: number, multi: boolean, callback?: (error: void, response: LowLevelAction)=>void): void;
 
-  StartedCPU(core: number): void;
+  StartedCPU(core: number): Q.Promise<void>;
 
   StartedCPU(core: number, callback?: (error: void, response: void)=>void): void;
 
-  CPUStoped(core: number): void;
+  CPUStoped(core: number): Q.Promise<void>;
 
   CPUStoped(core: number, callback?: (error: void, response: void)=>void): void;
 
-  IsTargetStopped(): boolean;
+  IsTargetStopped(): Q.Promise<boolean>;
 
   IsTargetStopped(callback?: (error: void, response: boolean)=>void): void;
 
-  AfterLowLevelGo(core: number, code: CoreLowLevelResult): WhatNext;
+  AfterLowLevelGo(core: number, code: CoreLowLevelResult): Q.Promise<WhatNext>;
 
   AfterLowLevelGo(core: number, code: CoreLowLevelResult, callback?: (error: void, response: WhatNext)=>void): void;
 
-  Reset(): void;
+  Reset(): Q.Promise<void>;
 
   Reset(callback?: (error: void, response: void)=>void): void;
 
-  StopAll(): void;
+  StopAll(): Q.Promise<void>;
 
   StopAll(callback?: (error: void, response: void)=>void): void;
 
-  SpontaneousCoreStatusChange(core: number, status: CoreStatus): void;
+  SpontaneousCoreStatusChange(core: number, status: CoreStatus): Q.Promise<void>;
 
   SpontaneousCoreStatusChange(core: number, status: CoreStatus, callback?: (error: void, response: void)=>void): void;
 
-  GetCoreStatus(core: number): CoreStatus;
+  GetCoreStatus(core: number): Q.Promise<CoreStatus>;
 
   GetCoreStatus(core: number, callback?: (error: void, response: CoreStatus)=>void): void;
 
-  IsItOkToStopCore(core: number): boolean;
+  IsItOkToStopCore(core: number): Q.Promise<boolean>;
 
   IsItOkToStopCore(core: number, callback?: (error: void, response: boolean)=>void): void;
 }

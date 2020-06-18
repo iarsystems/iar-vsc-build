@@ -78,23 +78,23 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  Go(core: number): void;
+  Go(core: number): Q.Promise<void>;
 
   Go(core: number, callback?: (error: void, response: void)=>void): void;
 
-  Stop(core: number): void;
+  Stop(core: number): Q.Promise<void>;
 
   Stop(core: number, callback?: (error: void, response: void)=>void): void;
 
-  MultiStop(): void;
+  MultiStop(): Q.Promise<void>;
 
   MultiStop(callback?: (error: void, response: void)=>void): void;
 
-  MultiGo(): void;
+  MultiGo(): Q.Promise<void>;
 
   MultiGo(callback?: (error: void, response: void)=>void): void;
 
-  SetRunAll(all: boolean): void;
+  SetRunAll(all: boolean): Q.Promise<void>;
 
   SetRunAll(all: boolean, callback?: (error: void, response: void)=>void): void;
 }

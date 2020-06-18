@@ -28,23 +28,23 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  itemAdded(message: CRunMessage, partnerNamespace: string): void;
+  itemAdded(message: CRunMessage, partnerNamespace: string): Q.Promise<void>;
 
   itemAdded(message: CRunMessage, partnerNamespace: string, callback?: (error: void, response: void)=>void): void;
 
-  itemUpdated(message: CRunMessage, partnerNamespace: string): void;
+  itemUpdated(message: CRunMessage, partnerNamespace: string): Q.Promise<void>;
 
   itemUpdated(message: CRunMessage, partnerNamespace: string, callback?: (error: void, response: void)=>void): void;
 
-  itemRemoved(index: number, partnerNamespace: string): void;
+  itemRemoved(index: number, partnerNamespace: string): Q.Promise<void>;
 
   itemRemoved(index: number, partnerNamespace: string, callback?: (error: void, response: void)=>void): void;
 
-  updateAll(partnerNamespace: string): void;
+  updateAll(partnerNamespace: string): Q.Promise<void>;
 
   updateAll(partnerNamespace: string, callback?: (error: void, response: void)=>void): void;
 
-  filtersChanged(partnerNamespace: string): void;
+  filtersChanged(partnerNamespace: string): Q.Promise<void>;
 
   filtersChanged(partnerNamespace: string, callback?: (error: void, response: void)=>void): void;
 }

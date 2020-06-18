@@ -25,47 +25,47 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  waitForService(serviceName: string, timeout: number): ServiceLocation;
+  waitForService(serviceName: string, timeout: number): Q.Promise<ServiceLocation>;
 
   waitForService(serviceName: string, timeout: number, callback?: (error: ttypes.ServiceException, response: ServiceLocation)=>void): void;
 
-  registerService(serviceName: string, location: ServiceLocation): void;
+  registerService(serviceName: string, location: ServiceLocation): Q.Promise<void>;
 
   registerService(serviceName: string, location: ServiceLocation, callback?: (error: ttypes.ServiceException, response: void)=>void): void;
 
-  deregisterService(serviceName: string): void;
+  deregisterService(serviceName: string): Q.Promise<void>;
 
   deregisterService(serviceName: string, callback?: (error: void, response: void)=>void): void;
 
-  addServiceListener(filterRegex: string, serviceListenerId: string): void;
+  addServiceListener(filterRegex: string, serviceListenerId: string): Q.Promise<void>;
 
   addServiceListener(filterRegex: string, serviceListenerId: string, callback?: (error: ttypes.ServiceException, response: void)=>void): void;
 
-  removeServiceListener(serviceListenerId: string): void;
+  removeServiceListener(serviceListenerId: string): Q.Promise<void>;
 
   removeServiceListener(serviceListenerId: string, callback?: (error: void, response: void)=>void): void;
 
-  getServices(): { [k: string]: ServiceLocation; };
+  getServices(): Q.Promise<{ [k: string]: ServiceLocation; }>;
 
   getServices(callback?: (error: void, response: { [k: string]: ServiceLocation; })=>void): void;
 
-  isAlive(): void;
+  isAlive(): Q.Promise<void>;
 
   isAlive(callback?: (error: void, response: void)=>void): void;
 
-  getSupportedTransports(): Transport[];
+  getSupportedTransports(): Q.Promise<Transport[]>;
 
   getSupportedTransports(callback?: (error: void, response: Transport[])=>void): void;
 
-  createNamespace(name: string): ServiceLocation;
+  createNamespace(name: string): Q.Promise<ServiceLocation>;
 
   createNamespace(name: string, callback?: (error: void, response: ServiceLocation)=>void): void;
 
-  removeNamespace(name: string): void;
+  removeNamespace(name: string): Q.Promise<void>;
 
   removeNamespace(name: string, callback?: (error: void, response: void)=>void): void;
 
-  getNamespaces(): string[];
+  getNamespaces(): Q.Promise<string[]>;
 
   getNamespaces(callback?: (error: void, response: string[])=>void): void;
 }

@@ -35,7 +35,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Create new, empty project with the provided file path
    */
-  CreateEwpFile(file_path: string): ProjectContext;
+  CreateEwpFile(file_path: string): Q.Promise<ProjectContext>;
 
   /**
    * Create new, empty project with the provided file path
@@ -45,7 +45,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Load project from .ewp file
    */
-  LoadEwpFile(file_path: string): ProjectContext;
+  LoadEwpFile(file_path: string): Q.Promise<ProjectContext>;
 
   /**
    * Load project from .ewp file
@@ -55,7 +55,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Save project to file specified in the context
    */
-  SaveEwpFile(project: ProjectContext): void;
+  SaveEwpFile(project: ProjectContext): Q.Promise<void>;
 
   /**
    * Save project to file specified in the context
@@ -65,7 +65,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Get existing project context given file path
    */
-  GetProject(file_path: string): ProjectContext;
+  GetProject(file_path: string): Q.Promise<ProjectContext>;
 
   /**
    * Get existing project context given file path
@@ -75,7 +75,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Close loaded project, freeing the resources allocated for it by the project manager
    */
-  CloseProject(project: ProjectContext): void;
+  CloseProject(project: ProjectContext): Q.Promise<void>;
 
   /**
    * Close loaded project, freeing the resources allocated for it by the project manager
@@ -85,7 +85,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Add a Configuration to a project
    */
-  AddConfiguration(config: Configuration, project: ProjectContext, isDebug: boolean): void;
+  AddConfiguration(config: Configuration, project: ProjectContext, isDebug: boolean): Q.Promise<void>;
 
   /**
    * Add a Configuration to a project
@@ -95,7 +95,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Remove a Configuration from a project given its name
    */
-  RemoveConfiguration(configurationName: string, project: ProjectContext): void;
+  RemoveConfiguration(configurationName: string, project: ProjectContext): Q.Promise<void>;
 
   /**
    * Remove a Configuration from a project given its name
@@ -105,7 +105,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Get all Configurations in a project
    */
-  GetConfigurations(project: ProjectContext): Configuration[];
+  GetConfigurations(project: ProjectContext): Q.Promise<Configuration[]>;
 
   /**
    * Get all Configurations in a project
@@ -115,7 +115,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Get the root of a project's file and group hierarchy tree, including all children
    */
-  GetRootNode(ctx: ProjectContext): Node;
+  GetRootNode(ctx: ProjectContext): Q.Promise<Node>;
 
   /**
    * Get the root of a project's file and group hierarchy tree, including all children
@@ -125,7 +125,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Set a node in the project's hierarchy, possibly replacing an existing subtree if a node with the same name already exists (e.g. the project root).
    */
-  SetNode(ctx: ProjectContext, node: Node): void;
+  SetNode(ctx: ProjectContext, node: Node): Q.Promise<void>;
 
   /**
    * Set a node in the project's hierarchy, possibly replacing an existing subtree if a node with the same name already exists (e.g. the project root).
@@ -135,7 +135,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Get a list of available Toolchains.
    */
-  GetToolchains(): Toolchain[];
+  GetToolchains(): Q.Promise<Toolchain[]>;
 
   /**
    * Get a list of available Toolchains.
@@ -145,7 +145,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Register a toolchain with the project manager. Will fail if the toolchain is already registered.
    */
-  AddToolchain(toolchain: Toolchain): void;
+  AddToolchain(toolchain: Toolchain): Q.Promise<void>;
 
   /**
    * Register a toolchain with the project manager. Will fail if the toolchain is already registered.
@@ -155,7 +155,7 @@ declare class Client extends HeartbeatService.Client {
   /**
    * Build a project configuration asynchronously. Will notify the build result when done as an event.
    */
-  BuildProject(prj: ProjectContext, configurationName: string): void;
+  BuildProject(prj: ProjectContext, configurationName: string): Q.Promise<void>;
 
   /**
    * Build a project configuration asynchronously. Will notify the build result when done as an event.

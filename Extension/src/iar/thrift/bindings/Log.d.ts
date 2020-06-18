@@ -22,7 +22,7 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  log(message: string): void;
+  log(message: string): Q.Promise<void>;
 
   log(message: string, callback?: (error: void, response: void)=>void): void;
 }

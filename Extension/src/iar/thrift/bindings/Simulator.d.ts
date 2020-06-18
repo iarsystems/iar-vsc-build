@@ -21,11 +21,11 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  getFrequency(): Int64;
+  getFrequency(): Q.Promise<Int64>;
 
   getFrequency(callback?: (error: void, response: Int64)=>void): void;
 
-  setFrequency(freq: Int64): void;
+  setFrequency(freq: Int64): Q.Promise<void>;
 
   setFrequency(freq: Int64, callback?: (error: void, response: void)=>void): void;
 }

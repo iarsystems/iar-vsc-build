@@ -55,27 +55,27 @@ declare class Client extends ListWindowBackend.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  setStack(name: string): void;
+  setStack(name: string): Q.Promise<void>;
 
   setStack(name: string, callback?: (error: void, response: void)=>void): void;
 
-  getStack(): string;
+  getStack(): Q.Promise<string>;
 
   getStack(callback?: (error: void, response: string)=>void): void;
 
-  getStacks(): string[];
+  getStacks(): Q.Promise<string[]>;
 
   getStacks(callback?: (error: void, response: string[])=>void): void;
 
-  getBarTooltip(): string;
+  getBarTooltip(): Q.Promise<string>;
 
   getBarTooltip(callback?: (error: void, response: string)=>void): void;
 
-  getBarInfo(): StackBarInfo;
+  getBarInfo(): Q.Promise<StackBarInfo>;
 
   getBarInfo(callback?: (error: void, response: StackBarInfo)=>void): void;
 
-  getStackSettings(): shared_ttypes.StackSettings;
+  getStackSettings(): Q.Promise<shared_ttypes.StackSettings>;
 
   getStackSettings(callback?: (error: void, response: shared_ttypes.StackSettings)=>void): void;
 }

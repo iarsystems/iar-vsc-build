@@ -31,47 +31,47 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  build(config: string, rebuild: boolean): BuildResult;
+  build(config: string, rebuild: boolean): Q.Promise<BuildResult>;
 
   build(config: string, rebuild: boolean, callback?: (error: void, response: BuildResult)=>void): void;
 
-  clean(config: string): BuildResult;
+  clean(config: string): Q.Promise<BuildResult>;
 
   clean(config: string, callback?: (error: void, response: BuildResult)=>void): void;
 
-  getRootNode(): Node;
+  getRootNode(): Q.Promise<Node>;
 
   getRootNode(callback?: (error: void, response: Node)=>void): void;
 
-  getConfigurations(): string[];
+  getConfigurations(): Q.Promise<string[]>;
 
   getConfigurations(callback?: (error: void, response: string[])=>void): void;
 
-  getCategories(configName: string, path: string): string[];
+  getCategories(configName: string, path: string): Q.Promise<string[]>;
 
   getCategories(configName: string, path: string, callback?: (error: void, response: string[])=>void): void;
 
-  getAllOptions(configName: string): string[];
+  getAllOptions(configName: string): Q.Promise<string[]>;
 
   getAllOptions(configName: string, callback?: (error: void, response: string[])=>void): void;
 
-  getOptionState(configName: string, context: Context, optionName: string): string[];
+  getOptionState(configName: string, context: Context, optionName: string): Q.Promise<string[]>;
 
   getOptionState(configName: string, context: Context, optionName: string, callback?: (error: void, response: string[])=>void): void;
 
-  setOptionState(configName: string, context: Context, optionName: string, state: string[]): void;
+  setOptionState(configName: string, context: Context, optionName: string, state: string[]): Q.Promise<void>;
 
   setOptionState(configName: string, context: Context, optionName: string, state: string[], callback?: (error: void, response: void)=>void): void;
 
-  getScannerInfo(configName: string, nodePath: string[]): ScannerInfo;
+  getScannerInfo(configName: string, nodePath: string[]): Q.Promise<ScannerInfo>;
 
   getScannerInfo(configName: string, nodePath: string[], callback?: (error: void, response: ScannerInfo)=>void): void;
 
-  shutdown(): void;
+  shutdown(): Q.Promise<void>;
 
   shutdown(callback?: (error: void, response: void)=>void): void;
 
-  abort(): void;
+  abort(): Q.Promise<void>;
 
   abort(callback?: (error: void, response: void)=>void): void;
 }

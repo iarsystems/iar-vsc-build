@@ -80,27 +80,27 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  GetAllPartners(): PartnerInformation[];
+  GetAllPartners(): Q.Promise<PartnerInformation[]>;
 
   GetAllPartners(callback?: (error: void, response: PartnerInformation[])=>void): void;
 
-  GetPartnerInfo(who: number): PartnerInformation;
+  GetPartnerInfo(who: number): Q.Promise<PartnerInformation>;
 
   GetPartnerInfo(who: number, callback?: (error: ttypes.UnknownPartner, response: PartnerInformation)=>void): void;
 
-  AcknowledgePartnerIsAlive(myId: number): void;
+  AcknowledgePartnerIsAlive(myId: number): Q.Promise<void>;
 
   AcknowledgePartnerIsAlive(myId: number, callback?: (error: ttypes.UnknownPartner, response: void)=>void): void;
 
-  IsPartnerAlive(who: number): boolean;
+  IsPartnerAlive(who: number): Q.Promise<boolean>;
 
   IsPartnerAlive(who: number, callback?: (error: ttypes.UnknownPartner, response: boolean)=>void): void;
 
-  SetPartnerInfo(information: PartnerInformation): void;
+  SetPartnerInfo(information: PartnerInformation): Q.Promise<void>;
 
   SetPartnerInfo(information: PartnerInformation, callback?: (error: void, response: void)=>void): void;
 
-  SetAllPartners(allPartners: PartnerInformation[]): void;
+  SetAllPartners(allPartners: PartnerInformation[]): Q.Promise<void>;
 
   SetAllPartners(allPartners: PartnerInformation[], callback?: (error: void, response: void)=>void): void;
 }

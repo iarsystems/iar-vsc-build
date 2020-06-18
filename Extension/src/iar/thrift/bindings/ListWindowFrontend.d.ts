@@ -53,7 +53,7 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  notify(note: Note): void;
+  notify(note: Note): Q.Promise<void>;
 
   notify(note: Note, callback?: (error: void, response: void)=>void): void;
 }

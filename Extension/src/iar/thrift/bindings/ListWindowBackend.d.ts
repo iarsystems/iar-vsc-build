@@ -55,163 +55,163 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  connect(listener: ServiceRegistry_ttypes.ServiceLocation): void;
+  connect(listener: ServiceRegistry_ttypes.ServiceLocation): Q.Promise<void>;
 
   connect(listener: ServiceRegistry_ttypes.ServiceLocation, callback?: (error: void, response: void)=>void): void;
 
-  disconnect(): void;
+  disconnect(): Q.Promise<void>;
 
   disconnect(callback?: (error: void, response: void)=>void): void;
 
-  setContentStorageFile(filename: string): void;
+  setContentStorageFile(filename: string): Q.Promise<void>;
 
   setContentStorageFile(filename: string, callback?: (error: void, response: void)=>void): void;
 
-  getNumberOfRows(): Int64;
+  getNumberOfRows(): Q.Promise<Int64>;
 
   getNumberOfRows(callback?: (error: void, response: Int64)=>void): void;
 
-  getRow(index: Int64): Row;
+  getRow(index: Int64): Q.Promise<Row>;
 
   getRow(index: Int64, callback?: (error: void, response: Row)=>void): void;
 
-  setVisibleRows(first: Int64, last: Int64): void;
+  setVisibleRows(first: Int64, last: Int64): Q.Promise<void>;
 
   setVisibleRows(first: Int64, last: Int64, callback?: (error: void, response: void)=>void): void;
 
-  show(on: boolean): void;
+  show(on: boolean): Q.Promise<void>;
 
   show(on: boolean, callback?: (error: void, response: void)=>void): void;
 
-  getColumnInfo(): Column[];
+  getColumnInfo(): Q.Promise<Column[]>;
 
   getColumnInfo(callback?: (error: void, response: Column[])=>void): void;
 
-  getListSpec(): ListSpec;
+  getListSpec(): Q.Promise<ListSpec>;
 
   getListSpec(callback?: (error: void, response: ListSpec)=>void): void;
 
-  toggleExpansion(index: Int64): number;
+  toggleExpansion(index: Int64): Q.Promise<number>;
 
   toggleExpansion(index: Int64, callback?: (error: void, response: number)=>void): void;
 
-  toggleCheckmark(index: Int64): void;
+  toggleCheckmark(index: Int64): Q.Promise<void>;
 
   toggleCheckmark(index: Int64, callback?: (error: void, response: void)=>void): void;
 
-  getContextMenu(row: Int64, col: number): MenuItem[];
+  getContextMenu(row: Int64, col: number): Q.Promise<MenuItem[]>;
 
   getContextMenu(row: Int64, col: number, callback?: (error: void, response: MenuItem[])=>void): void;
 
-  handleContextMenu(command: number): void;
+  handleContextMenu(command: number): Q.Promise<void>;
 
   handleContextMenu(command: number, callback?: (error: void, response: void)=>void): void;
 
-  getDisplayName(): string;
+  getDisplayName(): Q.Promise<string>;
 
   getDisplayName(callback?: (error: void, response: string)=>void): void;
 
-  scroll(op: ScrollOperation, first: Int64, last: Int64): Int64;
+  scroll(op: ScrollOperation, first: Int64, last: Int64): Q.Promise<Int64>;
 
   scroll(op: ScrollOperation, first: Int64, last: Int64, callback?: (error: void, response: Int64)=>void): void;
 
-  click(row: Int64, col: number, flag: SelectionFlags): void;
+  click(row: Int64, col: number, flag: SelectionFlags): Q.Promise<void>;
 
   click(row: Int64, col: number, flag: SelectionFlags, callback?: (error: void, response: void)=>void): void;
 
-  doubleClick(row: Int64, col: number): void;
+  doubleClick(row: Int64, col: number): Q.Promise<void>;
 
   doubleClick(row: Int64, col: number, callback?: (error: void, response: void)=>void): void;
 
-  getEditableString(row: Int64, col: number): EditInfo;
+  getEditableString(row: Int64, col: number): Q.Promise<EditInfo>;
 
   getEditableString(row: Int64, col: number, callback?: (error: void, response: EditInfo)=>void): void;
 
-  setValue(row: Int64, col: number, value: string): boolean;
+  setValue(row: Int64, col: number, value: string): Q.Promise<boolean>;
 
   setValue(row: Int64, col: number, value: string, callback?: (error: void, response: boolean)=>void): void;
 
-  getSelection(): SelRange[];
+  getSelection(): Q.Promise<SelRange[]>;
 
   getSelection(callback?: (error: void, response: SelRange[])=>void): void;
 
-  getToolTip(row: Int64, col: number, pos: number): Tooltip;
+  getToolTip(row: Int64, col: number, pos: number): Q.Promise<Tooltip>;
 
   getToolTip(row: Int64, col: number, pos: number, callback?: (error: void, response: Tooltip)=>void): void;
 
-  drop(row: Int64, col: number, text: string): boolean;
+  drop(row: Int64, col: number, text: string): Q.Promise<boolean>;
 
   drop(row: Int64, col: number, text: string, callback?: (error: void, response: boolean)=>void): void;
 
-  dropLocal(row: Int64, col: number, text: string, srcRow: Int64, srcCol: number): boolean;
+  dropLocal(row: Int64, col: number, text: string, srcRow: Int64, srcCol: number): Q.Promise<boolean>;
 
   dropLocal(row: Int64, col: number, text: string, srcRow: Int64, srcCol: number, callback?: (error: void, response: boolean)=>void): void;
 
-  getDrag(row: Int64, col: number): Drag;
+  getDrag(row: Int64, col: number): Q.Promise<Drag>;
 
   getDrag(row: Int64, col: number, callback?: (error: void, response: Drag)=>void): void;
 
-  getHelpTag(): HelpTag;
+  getHelpTag(): Q.Promise<HelpTag>;
 
   getHelpTag(callback?: (error: void, response: HelpTag)=>void): void;
 
-  columnClick(col: number): void;
+  columnClick(col: number): Q.Promise<void>;
 
   columnClick(col: number, callback?: (error: void, response: void)=>void): void;
 
-  handleChar(c: number, repeat: number): void;
+  handleChar(c: number, repeat: number): Q.Promise<void>;
 
   handleChar(c: number, repeat: number, callback?: (error: void, response: void)=>void): void;
 
-  handleKeyDown(c: number, repeat: number, shift: boolean, ctrl: boolean): void;
+  handleKeyDown(c: number, repeat: number, shift: boolean, ctrl: boolean): Q.Promise<void>;
 
   handleKeyDown(c: number, repeat: number, shift: boolean, ctrl: boolean, callback?: (error: void, response: void)=>void): void;
 
-  keyNavigate(op: KeyNavOperation, repeat: number, flags: number, rowsInPage: number): void;
+  keyNavigate(op: KeyNavOperation, repeat: number, flags: number, rowsInPage: number): Q.Promise<void>;
 
   keyNavigate(op: KeyNavOperation, repeat: number, flags: number, rowsInPage: number, callback?: (error: void, response: void)=>void): void;
 
-  toggleMoreOrLess(row: Int64): void;
+  toggleMoreOrLess(row: Int64): Q.Promise<void>;
 
   toggleMoreOrLess(row: Int64, callback?: (error: void, response: void)=>void): void;
 
-  dropOutsideContent(): Target;
+  dropOutsideContent(): Q.Promise<Target>;
 
   dropOutsideContent(callback?: (error: void, response: Target)=>void): void;
 
-  isSliding(): boolean;
+  isSliding(): Q.Promise<boolean>;
 
   isSliding(callback?: (error: void, response: boolean)=>void): void;
 
-  getChunkInfo(): ChunkInfo;
+  getChunkInfo(): Q.Promise<ChunkInfo>;
 
   getChunkInfo(callback?: (error: void, response: ChunkInfo)=>void): void;
 
-  addAfter(minToAdd: number, maxToTrim: number): AddRowsResult;
+  addAfter(minToAdd: number, maxToTrim: number): Q.Promise<AddRowsResult>;
 
   addAfter(minToAdd: number, maxToTrim: number, callback?: (error: void, response: AddRowsResult)=>void): void;
 
-  addBefore(minToAdd: number, maxToTrim: number): AddRowsResult;
+  addBefore(minToAdd: number, maxToTrim: number): Q.Promise<AddRowsResult>;
 
   addBefore(minToAdd: number, maxToTrim: number, callback?: (error: void, response: AddRowsResult)=>void): void;
 
-  navigateToFraction(fraction: number, chunkPos: number, minLines: number): NavigateResult;
+  navigateToFraction(fraction: number, chunkPos: number, minLines: number): Q.Promise<NavigateResult>;
 
   navigateToFraction(fraction: number, chunkPos: number, minLines: number, callback?: (error: void, response: NavigateResult)=>void): void;
 
-  navigateTo(toWhat: string, chunkPos: number, minLines: number): NavigateResult;
+  navigateTo(toWhat: string, chunkPos: number, minLines: number): Q.Promise<NavigateResult>;
 
   navigateTo(toWhat: string, chunkPos: number, minLines: number, callback?: (error: void, response: NavigateResult)=>void): void;
 
-  getSel(): SelectionResult;
+  getSel(): Q.Promise<SelectionResult>;
 
   getSel(callback?: (error: void, response: SelectionResult)=>void): void;
 
-  setSel(row: number): SelectionResult;
+  setSel(row: number): Q.Promise<SelectionResult>;
 
   setSel(row: number, callback?: (error: void, response: SelectionResult)=>void): void;
 
-  keyNav(op: KeyNavOperation, repeat: number, rowsInPage: number): number;
+  keyNav(op: KeyNavOperation, repeat: number, rowsInPage: number): Q.Promise<number>;
 
   keyNav(op: KeyNavOperation, repeat: number, rowsInPage: number, callback?: (error: void, response: number)=>void): void;
 }

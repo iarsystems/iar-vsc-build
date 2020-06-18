@@ -23,43 +23,43 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  getSessionId(): Int64;
+  getSessionId(): Q.Promise<Int64>;
 
   getSessionId(callback?: (error: void, response: Int64)=>void): void;
 
-  enable(enable: boolean): boolean;
+  enable(enable: boolean): Q.Promise<boolean>;
 
   enable(enable: boolean, callback?: (error: void, response: boolean)=>void): void;
 
-  isEnabled(): boolean;
+  isEnabled(): Q.Promise<boolean>;
 
   isEnabled(callback?: (error: void, response: boolean)=>void): void;
 
-  hasMetaDataSupport(): boolean;
+  hasMetaDataSupport(): Q.Promise<boolean>;
 
   hasMetaDataSupport(callback?: (error: void, response: boolean)=>void): void;
 
-  clearCachedData(): void;
+  clearCachedData(): Q.Promise<void>;
 
   clearCachedData(callback?: (error: void, response: void)=>void): void;
 
-  isInitialized(): boolean;
+  isInitialized(): Q.Promise<boolean>;
 
   isInitialized(callback?: (error: void, response: boolean)=>void): void;
 
-  initializeMetaData(): void;
+  initializeMetaData(): Q.Promise<void>;
 
   initializeMetaData(callback?: (error: void, response: void)=>void): void;
 
-  reinitMetaData(): boolean;
+  reinitMetaData(): Q.Promise<boolean>;
 
   reinitMetaData(callback?: (error: void, response: boolean)=>void): void;
 
-  refreshMetaData(): void;
+  refreshMetaData(): Q.Promise<void>;
 
   refreshMetaData(callback?: (error: void, response: void)=>void): void;
 
-  getXMLData(): string;
+  getXMLData(): Q.Promise<string>;
 
   getXMLData(callback?: (error: void, response: string)=>void): void;
 }

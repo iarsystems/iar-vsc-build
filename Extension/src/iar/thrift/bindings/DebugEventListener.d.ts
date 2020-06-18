@@ -48,7 +48,7 @@ declare class Client {
   /**
    * Called whenever a debug event happens. See DkNotifySubscriber#Notify.
    */
-  postDebugEvent(event: DebugEvent): void;
+  postDebugEvent(event: DebugEvent): Q.Promise<void>;
 
   /**
    * Called whenever a debug event happens. See DkNotifySubscriber#Notify.
@@ -60,7 +60,7 @@ declare class Client {
    * client has actually recevied the message before proceeding. This will
    * otherwise prevent e.g. fatal error messages from being seen.
    */
-  postLogEvent(event: LogEvent): void;
+  postLogEvent(event: LogEvent): Q.Promise<void>;
 
   /**
    * This one should not be oneway, since we need to make sure that the
@@ -72,7 +72,7 @@ declare class Client {
   /**
    * Triggered on kDkInspectionContextChanged.
    */
-  postInspectionContextChangedEvent(event: InspectionContextChangedEvent): void;
+  postInspectionContextChangedEvent(event: InspectionContextChangedEvent): Q.Promise<void>;
 
   /**
    * Triggered on kDkInspectionContextChanged.
@@ -82,7 +82,7 @@ declare class Client {
   /**
    * Triggered on kDkBaseContextChanged.
    */
-  postBaseContextChangedEvent(event: BaseContextChangedEvent): void;
+  postBaseContextChangedEvent(event: BaseContextChangedEvent): Q.Promise<void>;
 
   /**
    * Triggered on kDkBaseContextChanged.

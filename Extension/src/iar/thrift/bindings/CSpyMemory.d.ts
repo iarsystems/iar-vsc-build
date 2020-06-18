@@ -21,15 +21,15 @@ declare class Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
-  readMemory(location: shared_ttypes.Location, wordsize: number, bitsize: number, count: number): string;
+  readMemory(location: shared_ttypes.Location, wordsize: number, bitsize: number, count: number): Q.Promise<string>;
 
   readMemory(location: shared_ttypes.Location, wordsize: number, bitsize: number, count: number, callback?: (error: shared_ttypes.CSpyException, response: string)=>void): void;
 
-  readMemoryBlock(location: shared_ttypes.Location, wordsize: number, bitsize: number, count: number): CSpyMemoryBlock;
+  readMemoryBlock(location: shared_ttypes.Location, wordsize: number, bitsize: number, count: number): Q.Promise<CSpyMemoryBlock>;
 
   readMemoryBlock(location: shared_ttypes.Location, wordsize: number, bitsize: number, count: number, callback?: (error: shared_ttypes.CSpyException, response: CSpyMemoryBlock)=>void): void;
 
-  writeMemory(location: shared_ttypes.Location, wordsize: number, bitsize: number, count: number, buf: string): void;
+  writeMemory(location: shared_ttypes.Location, wordsize: number, bitsize: number, count: number, buf: string): Q.Promise<void>;
 
   writeMemory(location: shared_ttypes.Location, wordsize: number, bitsize: number, count: number, buf: string, callback?: (error: shared_ttypes.CSpyException, response: void)=>void): void;
 }
