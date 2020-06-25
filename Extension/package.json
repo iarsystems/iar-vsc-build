@@ -262,6 +262,22 @@
         ]
       },
       {
+        "type": "iar-thrift",
+        "properties": {
+          "config": {
+            "type": "string",
+            "description": "The configuration in the project file to use"
+          },
+          "label": {
+            "type": "string",
+            "description": "The name for the task that is shown when executing the built-in command `Run Tasks` of VS Code."
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      {
         "type": "iar-cstat",
         "properties": {
           "label": {
@@ -354,7 +370,7 @@
     "test": "npm run compile && node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
-    "typescript": "^2.6.1",
+    "typescript": "^3.8.0",
     "@types/vscode": "^1.33.0",
     "vscode-test": "^1.3.0",
     "tslint": "^5.8.0",
@@ -368,7 +384,7 @@
     "fast-deep-equal": "2.0.1",
     "csv-parse": "4.8.8",
     "jsonc-parser": "1.0.0",
-    "thrift": "file:thrift-0.14.0.tgz",
+    "thrift": "^0.12.0",
     "vscode-cpptools": "^3.0.1",
     "vscode-jsonrpc": "^3.0.0",
     "xml-js": "1.6.8"

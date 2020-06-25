@@ -4,10 +4,12 @@
         "target": "es2017",
         "outDir": "out",
         "lib": [
-            "es2017"
+            "es2017",
+            "DOM" // needed because @types/thrift includes browser types even when on nodejs
         ],
         "sourceMap": true,
         "rootDir": ".",
+        // "allowJs": true,
         /* Strict Type-Checking Option */
         "strict": true, /* enable all strict type-checking options */
         /* Additional Checks */

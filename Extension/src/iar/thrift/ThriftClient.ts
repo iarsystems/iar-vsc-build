@@ -14,7 +14,7 @@ import { EventEmitter } from "events";
 export class ThriftClient<T> extends EventEmitter {
     private closed = false;
 
-    constructor(private connection: Thrift.Connection, private _service: T) {
+    constructor(private readonly connection: Thrift.Connection, private readonly _service: T) {
         super();
         this.connection.on("close", () => {
             this.closed = true;

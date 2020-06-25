@@ -17,23 +17,31 @@ import { ThriftClient } from "./ThriftClient";
 import * as CSpyServiceRegistry from "./bindings/CSpyServiceRegistry";
 import * as CSpyServiceManager from "./bindings/CSpyServiceManager";
 import { SERVICE_MANAGER_SERVICE } from "./bindings/ServiceManager_types";
+import { createHash } from "crypto";
+import { tmpdir } from "os";
 
 /**
- * Provides and manages a set of services for a workbench (TODO: and project?).
+ * Provides and manages a set of services for a workbench.
+ * TODO: Make this singleton-ish, since there can and should only be one per workspace
  */
 export class ThriftServiceManager {
     private static output: Vscode.OutputChannel;
     private serviceRegistryProcess: ChildProcess;
 
-    constructor(private workbench: Workbench) {
+    constructor(private readonly workbench: Workbench) {
         if (!ThriftServiceManager.output) { ThriftServiceManager.output = Vscode.window.createOutputChannel("IarServiceManager"); }
         // TODO: figure out what to do if one already exists, and we did not create it.
         let registryPath = path.join(this.workbench.path.toString(), "common/bin/IarServiceLauncher");
         if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
             registryPath += ".exe";
         }
-        this.serviceRegistryProcess = spawn(registryPath, ["-standalone", "-sockets"]);
-        this.serviceRegistryProcess.stdout.on("data", ThriftServiceManager.output.append);
+        // for now needs to load projectmanager at launch, otherwise it seems to behave strangely
+        const projectManagerManifestPath = path.join(this.workbench.path.toString(), "common/bin/projectmanager.json");
+        this.serviceRegistryProcess = spawn(registryPath, ["-standalone", "-sockets", projectManagerManifestPath],
+                                                { cwd: this.getTmpDir() }); 
+        this.serviceRegistryProcess.stdout.on("data", data => {
+            ThriftServiceManager.output.append(data.toString());
+        });
     }
 
     /**
@@ -53,6 +61,7 @@ export class ThriftServiceManager {
      * (or in the process of starting), otherwise this method will never return.
      */
     public async findService<T>(serviceId: string, serviceType: Thrift.TClientConstructor<T>): Promise<ThriftClient<T>> {
+        await new Promise((r, _e) => setTimeout(r, 100)); // temp hack to make sure service launcher is ready
         const registry = await this.getServiceAt(this.getRegistryLocation(), CSpyServiceRegistry);
 
         console.log("Waiting for service to appear: ", serviceId);
@@ -66,7 +75,8 @@ export class ThriftServiceManager {
     }
 
     private getRegistryLocation(): ServiceLocation {
-        const locPath = path.join(this.workbench.path.toString(), "common/bin/CSpyServer2-ServiceRegistry.txt");
+        // TODO: wait for a bit if it doesn't exist?
+        const locPath = path.join(this.getTmpDir(), "CSpyServer2-ServiceRegistry.txt");
 
         console.log("Reading port...");
         const locSerialized = fs.readFileSync(locPath);
@@ -98,6 +108,23 @@ export class ThriftServiceManager {
                     resolve(new ThriftClient(conn, client));
                 }).on("close", () => console.log("Connection closed for", location.port));
         });
+    }
+
+    // Creates and returns a temporary directory unique to the currently opened folder/workspace.
+    // This is used to store the bootstrap files created by IarServiceLauncher, to avoid conflicts if
+    // several service launcher processes are run at the same time.
+    private getTmpDir(): string {
+        const folders = Vscode.workspace.workspaceFolders;
+        let openedFolder = "";
+        if (folders && folders.length > 0) {
+            openedFolder = folders[0].uri.fsPath;
+        }
+        const hashed = createHash("md5").update(openedFolder).digest("hex");
+        const tmpPath = path.join(tmpdir(), hashed);
+        if (!fs.existsSync(tmpPath)) {
+            fs.mkdirSync(tmpPath);
+        }
+        return tmpPath;
     }
 
 }

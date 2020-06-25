@@ -21,6 +21,11 @@ import { Config } from "../../iar/project/config";
 import { ConfigurationListModel } from "../model/selectconfiguration";
 import { SelectIarWorkspace } from "../command/selectIarWorkspace";
 import { TreeSelectionView } from "./treeselectionview";
+import * as ProjectManager from "../../iar/thrift/bindings/ProjectManager";
+import { ThriftServiceManager } from "../../iar/thrift/ThriftServiceManager";
+import { ThriftClient } from "../../iar/thrift/ThriftClient";
+import { PROJECTMANAGER_ID, ProjectContext } from "../../iar/thrift/bindings/projectmanager_types";
+import { IarConfigurationProvider } from "../configprovider/configurationprovider";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -34,8 +39,15 @@ class Application {
 
     readonly workbench: UI<Workbench>;
     readonly compiler: UI<Compiler>;
+
+
+    // TODO: Possibly replace with/add Model<ProjectContext>.
     readonly project: UI<Project>;
     readonly config: UI<Config>;
+
+    private serviceManager: ThriftServiceManager | null = null;
+    projectManager: ThriftClient<ProjectManager.Client> | null = null;
+    projectContext: ProjectContext | null = null;
 
     readonly generator: Command;
     readonly selectIarWorkspace: Command;
@@ -70,6 +82,41 @@ class Application {
 
         // update UIs with current selected settings
         this.selectCurrentSettings();
+
+
+        // experimental project manager handling
+        // TODO: close managers when closing extension
+        // TODO: is this called when selecting the same workbench?
+        this.workbench.model.addOnSelectedHandler(async workbench => {
+            this.projectManager?.close();
+            this.serviceManager?.stop();
+            const selected = workbench.selected;
+            if (selected) {
+                console.log("Creating new ServiceManager...");
+                this.serviceManager = new ThriftServiceManager(selected);
+                this.projectManager = await this.serviceManager.findService(PROJECTMANAGER_ID, ProjectManager);
+                if (this.project.model.selected) {
+                    this.projectContext = await this.projectManager.service.LoadEwpFile(this.project.model.selected!!.path.toString());
+                    IarConfigurationProvider.instance?.forceUpdate();
+                }
+            } else {
+                this.serviceManager = null;
+                this.projectManager = null;
+            }
+        });
+        this.project.model.addOnSelectedHandler(async project => {
+            const selected = project.selected;
+            if (selected && this.projectManager) {
+                console.log("Creating new ProjectContext...");
+                if (this.projectContext) {
+                    await this.projectManager.service.CloseProject(this.projectContext);
+                }
+                this.projectContext = await this.projectManager.service.LoadEwpFile(selected.path.toString());
+                IarConfigurationProvider.instance?.forceUpdate();
+            } else {
+                this.projectContext = null;
+            }
+        });
     }
 
     public show(): void {

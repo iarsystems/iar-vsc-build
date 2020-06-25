@@ -15,6 +15,7 @@ import { GetSettingsCommand } from "./extension/command/getsettings";
 import { Logging } from './utils/logging';
 import { IarConfigurationProvider } from './extension/configprovider/configurationprovider';
 import { CStatTaskProvider } from './extension/task/cstat/cstattaskprovider';
+import { BuildTaskProvider } from './extension/task/thriftbuild/buildtaskprovider';
 
 export async function activate(context: vscode.ExtensionContext) {
     Logging.setup(context);
@@ -33,6 +34,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     IarConfigurationProvider.init();
     IarTaskProvider.register();
+    BuildTaskProvider.register();
     CStatTaskProvider.register(context);
 }
 
