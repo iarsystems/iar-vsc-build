@@ -2,7 +2,7 @@
   "name": "iar-vsc",
   "displayName": "IAR For Visual Studio Code",
   "description": "Develop IAR projects with intellisense, C-STAT and build support.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "publisher": "pluyckx",
   "icon": "images/logo.png",
   "preview": true,
@@ -30,8 +30,6 @@
     "onCommand:iar.selectConfiguration",
     "onCommand:iar.regenerateCppToolsConfig",
     "onCommand:iar.selectIarWorkspace",
-    "oncommand:iar.runCStat",
-    "oncommand:iar.clearCStat",
     "workspaceContains:**/*.ewp"
   ],
   "main": "./out/src/main",
@@ -81,16 +79,6 @@
         "command": "iar-settings.project-configuration",
         "title": "Get the selected project configuration",
         "category": "IAR Settings"
-      },
-      {
-        "command": "iar.runCStat",
-        "title": "Run C-STAT Analysis",
-        "category": "IAR"
-      },
-      {
-        "command": "iar.clearCStat",
-        "title": "Clear C-STAT Diagnostics",
-        "category": "IAR"
       }
     ],
     "views": {
@@ -163,7 +151,7 @@
           "description": "The c++ standard to use in the config tool configuration.",
           "default": "c++14"
         },
-        "iarvsc.cstatFilterLevel": {
+        "iarvsc.c-StatFilterLevel": {
           "description": "C-STAT warnings with a lower severity than this are filtered out.",
           "default": "Medium",
           "type": "string",
@@ -173,7 +161,7 @@
             "High"
           ]
         },
-        "iarvsc.cstatDisplayLowSeverityWarningsAsHints": {
+        "iarvsc.c-StatDisplayLowSeverityWarningsAsHints": {
           "description": "If the filter level is set to Low, displays low severity C-STAT warnings as hints rather than warnings. This hides them from the problem list, but still shows them in the editor.",
           "type": "boolean",
           "default": false
@@ -377,8 +365,8 @@
   "dependencies": {
     "@types/thrift": "^0.10.9",
     "child-exec": "1.0.0",
-    "csv-parse": "4.4.3",
     "fast-deep-equal": "2.0.1",
+    "csv-parse": "4.8.8",
     "jsonc-parser": "1.0.0",
     "thrift": "file:thrift-0.14.0.tgz",
     "vscode-cpptools": "^3.0.1",

@@ -1,11 +1,9 @@
 # iar-vsc README
 
-This plugin make it possible to combine the IAR compiler solutions with Visual Studio Code. The goal is that this plugin supports all compiler
-variants. So not only ARM or AVR, but also STM8 and other compilers of IAR. The author of this extension only uses ARM, AVR and STM8, but when
-users find issues for other IAR compilers, open an issue on Github. In case you open an issue, please report the used compiler with its version and if possible the ewp file. This plugin works on any operating system supported by VS Code and IAR.
+This plugin makes it possible to combine the IAR Systems compiler solutions with Visual Studio Code. The goal is to support all IAR Systems compiler variants like for example Arm, RISC-V, MSP430, AVR, STM8, 8051, Renesas RX, RL78 and RH850. If you find any problems with this plugin, please open an issue on GitHub and include the compiler and version used. If possible, include also the project file (.ewp). This plugin works on any operating system supported by VS Code and IAR Systems. IAR Systems has contributed to the development of this plugin.
 
 The plugin can parse *ewp* files and convert them to a valid `c_cpp_properties.json` configuration which is used by the *cpptools* extension made by *Microsoft*.
-In the `Features` section you can find more information how to use this extension.
+In the `Features` section you can find more information on how to use this extension.
 
 Improvements are welcome through *pull requests* or *issue reports*.
 
@@ -29,7 +27,7 @@ When you execute the VSCode command `Tasks: Configure Task` two items are added 
 1. `iar: IAR Build - template using selected workbench, project and config`
 2. `iar: IAR Rebuild - template using selected workbench, project and config`
 
-When selecting one of the two, a default task is generated which uses the workbench, project and configuration selected using the UI. When you select a different configuration, project or workbench, this script will use the newly selected items.
+When selecting one of the two, a default task is generated which uses the workbench, project and configuration selected using the UI. When you select a different configuration, project or workbench, this task will use the newly selected items.
 
 ### C-STAT
 
@@ -42,8 +40,8 @@ You can filter the C-STAT warnings by setting `iarvsc.cstatFilterLevel` in your 
 
 In v1.1.0 settings are added to configure a gdbserver and a gdb executable. The following data for
 the `launch.json` file will use this configuration to start debugging. Currently this is only for
-testing and is work in progress. The settings are nog yet automatically updated when selecting
-different projects or confiugrations (even though the description of the settings mention this).
+testing and is a work in progress. The settings are not yet automatically updated when selecting
+different projects or configurations (even though the description of the settings mention this).
 
 Open or create the `launch.json` file and place your cursor at the beginning of the configurations
 array. Now press `Ctrl + Space` to activate autocompletion. You should see an item like
@@ -115,31 +113,49 @@ This extensions presumes that you have installed `cpptools` of `microsoft`.
 
 ## Extension Settings
 
+To change extension settings, go to `Ctrl+Shift+P->Preferences: Open Settings (JSON)` to open your `settings.json` file and add the appropriate json entries.
 This extension contributes the following settings:
 
 * `iarvsc.iarInstallDirectories`: The rootfolder where all IAR workbenches are installed. By default this is `C:\Program Files (x86)\Iar Systems`. The default settings contain also the non-x86 folder in case IAR will move to 64-bit installations.
-Example for a custom install location:
+For example, if your Embedded Workbench installation is at `D:\Iar Systems\Embedded Workbench 8.40`,
+add the following to your `settings.json` file:
 
 ```json
-"iarvsc.iarInstallDirectories": ["C:\\Custom\\Install\\Path"],
+"iarvsc.iarInstallDirectories": ["D:\\Iar Systems"],
 ```
+This will also let the extension find any other workbench installations in that folder (e.g. `D:\Iar Systems\My Second Workbench 7.20`).
 
 * `iarvsc.defines`: Some custom defines you can add to the define list. They follow the `identifier=value` structure. This list will contain all intrinsic compiler functions that are known by the author of this extension. If some are missing, create a GitHub issue.
-* `iarvsc.cstatFilterLevel`: Sets the lowest severity of C-STAT warnings to display.
-* `iarvsc.cstatDisplayLowSeverityWarningsAsHints`: When the filter level is set to low, this option will display low severity warnings as 'hints' instead of warnings. This is helpful if you have lots of low severity warnings and want to hide them from the problems list (but still see them in the editor).
+* `iarvsc.c-StatFilterLevel`: Sets the lowest severity of C-STAT warnings to display.
+* `iarvsc.c-StatDisplayLowSeverityWarningsAsHints`: When the filter level is set to low, this option will display low severity warnings as 'hints' instead of warnings. This is helpful if you have lots of low severity warnings and want to hide them from the problems list (but still see them in the editor).
 
 ## Known Issues
 
 ## Release Notes
 
+### 1.2.1
+
+* Remove 'Scan for task output' dialog when running C-STAT tasks
+* Rescan for workspaces when changing `iarInstallDirectories`
+* Change name of C-STAT settings
+* Update readme section on settings
+
 ### 1.2.0
 
+* Change extension name and icon
 * Set license to MPL 2.0
-* Updated documentation and use readthedocs as host
-* Pull #48: Add extra build argument
-* Add dependency on `ms-vscode.cpptools` so it is easier to install it
+* Pull #61: Integrate C-STAT
+* Pull #60: Support IAR extended keywords
+* Pull #59: Autoselect options for new projects
+* Pull #59: Add explorer view for project options
 * #51: Use a separate config file to store IAR project related configs which can differ between developers
-* #47: Speed up startup time by only calling the compiler when selecting it and not go through all compilers at startup
+* Pull #63: Add clearer error and warning messages
+* Pull #48: Add extra build argument setting
+* #47: Speed up startup time by only calling the compiler when selecting it and not going through all compilers at startup
+* Pull #58: Allow extension to run on non-windows OSs
+* Update documentation and use readthedocs as host
+* Add dependency on `ms-vscode.cpptools` so it is easier to install it
+* Clean up readme
 
 ### 1.1.0
 

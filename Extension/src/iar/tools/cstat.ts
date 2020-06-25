@@ -37,8 +37,7 @@ export namespace CStat {
         COLUMN = "column_num",
         MSG = "msg",
         SEVERITY = "severity",
-        CHECKID = "property_alias",
-        TRACE = "encoded_trace",
+        // TRACE = "encoded_trace",
     }
     const fieldsToLoad: string[] = Object.values(CStatWarningField);
 
@@ -52,32 +51,41 @@ export namespace CStat {
         if (sqliteBin === null) { return Promise.reject("Couldn't find sqlite binaries for cstat. Your OS likely isn't supported."); }
         const sqliteBinPath = join(extensionPath.toString(), "sqlite-bin", sqliteBin);
         const cstatDBPath = getCStatDBPath(projectPath, configurationName);
-        if (!Fs.existsSync(cstatDBPath)) { Promise.reject("Couldn't find cstat DB: " + cstatDBPath); }
+        if (!Fs.existsSync(cstatDBPath)) { return Promise.reject("Couldn't find cstat DB: " + cstatDBPath); }
 
         return new Promise((resolve, reject) => {
             const sqlProc = spawn(sqliteBinPath, [cstatDBPath, "-csv"]); // we want csv output for easier parsing
 
-            sqlProc.stdin.write("SELECT Count(*) FROM warnings;\n");
-            sqlProc.stdout.once('data', data => {
-                const expectedRows = Number(data.toString());
+            sqlProc.stdin.write("SELECT sql FROM sqlite_master WHERE type IS 'table' AND name IS 'warnings';\n");
+            sqlProc.stdout.once('data', tableData => {
+                // The name of the check is contained in property_alias if present, otherwise in property_id
+                const checkIdColumn = tableData.toString().includes("property_alias") ? "property_alias" : "property_id";
 
-                let warnings: CStatWarning[] = [];
-                if (expectedRows > 0) {
-                    const query = "SELECT " + fieldsToLoad.join(",") + " FROM warnings;\n";
-                    sqlProc.stdin.write(query);
-                    sqlProc.stdout.on('data', data => {
-                        const warnsRaw: string[][] = CsvParser(data.toString());
-                        warnings = warnings.concat(warnsRaw.map(row => parseWarning(row)));
-                        if (warnings.length === expectedRows) {
-                            resolve(warnings);  // We are done
-                            sqlProc.kill();
-                        }
-                    });
-                } else {
-                    resolve(warnings);
-                    sqlProc.kill();
-                }
+                sqlProc.stdin.write("SELECT Count(*) FROM warnings;\n");
+                sqlProc.stdout.once('data', data => {
+                    const expectedRows = Number(data.toString());
 
+                    if (expectedRows > 0) {
+                        const query = `SELECT ${fieldsToLoad.join(",")},${checkIdColumn} FROM warnings;\n`;
+                        sqlProc.stdin.write(query);
+                        let output = "";
+                        sqlProc.stdout.on('data', data => {
+                            output += data.toString();
+                            try {
+                                const warnsRaw: string[][] = CsvParser(output);
+                                const warnings = warnsRaw.map(row => parseWarning(row));
+                                if (warnings.length === expectedRows) {
+                                    resolve(warnings);  // We are done
+                                    sqlProc.kill();
+                                }
+                            } catch (e) { } // CsvParser will throw if we havent recieved all output yet
+                        });
+                    } else {
+                        resolve([]);
+                        sqlProc.kill();
+                    }
+
+                }); /* stdout.once() */
             }); /* stdout.once() */
 
             sqlProc.stderr.on('data', data => {
@@ -104,7 +112,7 @@ export namespace CStat {
         const dbPath = getCStatDBPath(projectPath, configurationName);
         if (Fs.existsSync(dbPath)) { Fs.unlinkSync(dbPath); }
 
-        const iarbuild = spawn(builderPath.toString(), [projectPath.toString(), "-cstat_analyze", configurationName.toString()]);
+        const iarbuild = spawn(builderPath.toString(), [projectPath.toString(), "-cstat_analyze", configurationName.toString(), "-log", "info"]);
         iarbuild.stdout.on("data", data => {
             if (onWrite) {
                 onWrite(data.toString());
@@ -143,7 +151,7 @@ export namespace CStat {
         const col      = warnRow[fieldsToLoad.indexOf(CStatWarningField.COLUMN)];
         const message  = warnRow[fieldsToLoad.indexOf(CStatWarningField.MSG)];
         const severity = warnRow[fieldsToLoad.indexOf(CStatWarningField.SEVERITY)];
-        const checkId  = warnRow[fieldsToLoad.indexOf(CStatWarningField.CHECKID)];
+        const checkId  = warnRow[warnRow.length - 1];
         return {
             file: file,
             line: Number(line),

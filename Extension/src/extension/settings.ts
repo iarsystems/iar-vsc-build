@@ -14,7 +14,7 @@ type cppStandards = "c++98" | "c++03" | "c++11" | "c++14" | "c++17";
 
 class SettingsFile {
     private path_: Fs.PathLike;
-    private json_: any
+    private json_: any;
 
     constructor(path: Fs.PathLike) {
         this.path_ = path;
@@ -81,11 +81,11 @@ export namespace Settings {
         Defines = "defines",
         CStandard = "cStandard",
         CppStandard = "cppStandard",
-        ExtraBuildArguments = "extraBuildArguments"
+        ExtraBuildArguments = "extraBuildArguments",
+        IarInstallDirectories = "iarInstallDirectories",
     }
 
     const section = "iarvsc";
-    const iarInstallDirectories = "iarInstallDirectories";
 
     let settingsFile: SettingsFile | undefined = undefined;
     let observers: Map<Field, Handler<ChangeHandler>[]> = new Map();
@@ -111,7 +111,7 @@ export namespace Settings {
     }
 
     export function getIarInstallDirectories(): Fs.PathLike[] {
-        let directories = Vscode.workspace.getConfiguration(section).get(iarInstallDirectories);
+        let directories = Vscode.workspace.getConfiguration(section).get(Field.IarInstallDirectories);
 
         if (directories) {
             return directories as string[];

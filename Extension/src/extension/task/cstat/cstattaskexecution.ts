@@ -70,7 +70,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
                 this.writeEmitter.fire("Analyzing output...\r\n");
                 this.diagnostics.clear();
 
-                const filterString = Vscode.workspace.getConfiguration("iarvsc").get<string>("cstatFilterLevel");
+                const filterString = Vscode.workspace.getConfiguration("iarvsc").get<string>("c-StatFilterLevel");
                 const filterLevel = filterString ? 
                                         CStat.SeverityStringToSeverityEnum(filterString)
                                         : CStat.CStatWarningSeverity.LOW;
@@ -115,7 +115,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         const range = new Vscode.Range(pos, pos);
 
         let severity = Vscode.DiagnosticSeverity.Warning;
-        if (Vscode.workspace.getConfiguration("iarvsc").get<boolean>("cstatDisplayLowSeverityWarningsAsHints")) {
+        if (Vscode.workspace.getConfiguration("iarvsc").get<boolean>("c-StatDisplayLowSeverityWarningsAsHints")) {
             if (warning.severity === CStat.CStatWarningSeverity.LOW) { severity = Vscode.DiagnosticSeverity.Hint; }
         }
 

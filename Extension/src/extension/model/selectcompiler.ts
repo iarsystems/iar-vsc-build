@@ -7,6 +7,7 @@
 import { ListInputModelBase } from "./model";
 import { Compiler } from "../../iar/tools/compiler";
 import { Workbench } from "../../iar/tools/workbench";
+import { Settings } from "../settings";
 
 export class CompilerListModel extends ListInputModelBase<Compiler> {
     constructor(...compilers: Compiler[]) {
@@ -44,8 +45,23 @@ export class CompilerListModel extends ListInputModelBase<Compiler> {
             });
         }
 
+        // If there is already a selected compiler, we want to try to use the same one from the new workbench
+        if (this.selected) {
+            const i = compilers.findIndex(comp => {
+                if (!this.selected) return false;
+                return comp.name === this.selected.name
+            });
+            if (i >= 0) {
+                this.selectedIndex_ = i;
+            } else {
+                // If there's no matching compiler, we clear the setting so that it doesn't point to a compiler in the old workbench
+                Settings.setCompiler("");
+                this.selectedIndex_ = undefined;
+            }
+        } else {
+            this.selectedIndex_ = undefined;
+        }
         this.data = compilers;
-        this.selectedIndex_ = undefined;
 
         this.fireInvalidateEvent();
         this.fireSelectionChanged();

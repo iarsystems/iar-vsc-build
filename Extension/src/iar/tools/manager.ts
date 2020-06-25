@@ -43,9 +43,11 @@ class IarToolManager implements ToolManager {
     }
 
     add(...workbenches: Workbench[]): void {
-        this.workbenches_ = Workbench.mergeUnique(this.workbenches_, workbenches);
+        if (workbenches.length > 0) {
+            this.workbenches_ = Workbench.mergeUnique(this.workbenches_, workbenches);
 
-        this.fireInvalidateEvent();
+            this.fireInvalidateEvent();
+        }
     }
 
     collectFrom(directory: Fs.PathLike): void {

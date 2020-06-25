@@ -28,11 +28,8 @@ export async function activate(context: vscode.ExtensionContext) {
     SettingsMonitor.monitorConfiguration(UI.getInstance().config.model);
     UI.getInstance().show();
 
-    let roots = Settings.getIarInstallDirectories();
-
-    roots.forEach(path => {
-        IarVsc.toolManager.collectFrom(path);
-    });
+    loadTools();
+    Settings.observeSetting(Settings.Field.IarInstallDirectories, loadTools);
 
     IarConfigurationProvider.init();
     IarTaskProvider.register();
@@ -45,6 +42,19 @@ export function deactivate() {
     }
     IarTaskProvider.unregister();
     CStatTaskProvider.unRegister();
+}
+
+function loadTools() {
+    let roots = Settings.getIarInstallDirectories();
+
+    roots.forEach(path => {
+        IarVsc.toolManager.collectFrom(path);
+    });
+
+    if (IarVsc.toolManager.workbenches.length === 0) {
+        vscode.window.showErrorMessage("IAR: Unable to find any IAR workbenches to use, you will need to configure this to use the extension (see [the documentation](https://iar-vsc.readthedocs.io/en/latest/pages/user_guide.html#extension-settings))");
+    }
+
 }
 
 namespace IarVsc {

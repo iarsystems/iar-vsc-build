@@ -16,7 +16,8 @@ export interface Command {
     readonly command: string;
     enabled: boolean;
 
-    execute(): any;
+    canExecute(): boolean;
+    execute(autoTriggered?: boolean): any;
     register(context: Vscode.ExtensionContext): void;
 }
 
@@ -37,10 +38,14 @@ export abstract class CommandBase implements Command {
         this.enabled_ = value;
     }
 
-    execute(): any {
+    canExecute(): boolean {
+        return true;
+    }
+
+    execute(autoTriggered?: boolean): any {
         if (this.enabled) {
-            this.executeImpl();
-        } else {
+            this.executeImpl(autoTriggered);
+        } else if(!autoTriggered) {
             Vscode.window.showErrorMessage("Extension is not yet ready, cannot execute this command. Try again later.");
         }
     }
@@ -50,7 +55,7 @@ export abstract class CommandBase implements Command {
         context.subscriptions.push(cmd);
     }
 
-    protected abstract executeImpl(): void;
+    protected abstract executeImpl(autoTriggered?: boolean): void;
 }
 
 class CommandWithInput<T> extends CommandBase {
@@ -62,7 +67,7 @@ class CommandWithInput<T> extends CommandBase {
         this.input = Input.createListInput(model);
     }
 
-    executeImpl(): void {
+    executeImpl(_autoTriggered?: boolean): void {
         this.input.show();
     }
 }
