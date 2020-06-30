@@ -26,6 +26,7 @@ import { ThriftServiceManager } from "../../iar/thrift/ThriftServiceManager";
 import { ThriftClient } from "../../iar/thrift/ThriftClient";
 import { PROJECTMANAGER_ID, ProjectContext } from "../../iar/thrift/bindings/projectmanager_types";
 import { IarConfigurationProvider } from "../configprovider/configurationprovider";
+import { TreeProjectView } from "./treeprojectview";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -44,6 +45,8 @@ class Application {
     // TODO: Possibly replace with/add Model<ProjectContext>.
     readonly project: UI<Project>;
     readonly config: UI<Config>;
+
+    readonly projectTree: TreeProjectView;
 
     private serviceManager: ThriftServiceManager | null = null;
     projectManager: ThriftClient<ProjectManager.Client> | null = null;
@@ -68,6 +71,8 @@ class Application {
                                                                                         this.compiler.model,
                                                                                         this.project.model,
                                                                                         this.config.model));
+        this.projectTree = new TreeProjectView();                                                                                        
+        Vscode.window.registerTreeDataProvider("iar-project", this.projectTree);
 
         // Create commands without UI
         this.generator = RegenerateCommand.createRegenerateCppToolsConfig(this.compiler.model as CompilerListModel,
@@ -98,6 +103,8 @@ class Application {
                 if (this.project.model.selected) {
                     this.projectContext = await this.projectManager.service.LoadEwpFile(this.project.model.selected!!.path.toString());
                     IarConfigurationProvider.instance?.forceUpdate();
+                    const rootNode = await this.projectManager.service.GetRootNode(this.projectContext);
+                    this.projectTree.setRootNode(rootNode);
                 }
             } else {
                 this.serviceManager = null;

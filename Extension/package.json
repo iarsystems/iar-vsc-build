@@ -79,6 +79,22 @@
         "command": "iar-settings.project-configuration",
         "title": "Get the selected project configuration",
         "category": "IAR Settings"
+      },
+      {
+        "command": "iar.addNode",
+        "title": "Add file/group to project",
+        "icon": {
+          "dark": "images/logo.png",
+          "light": "images/logo.png"
+        }
+      },
+      {
+        "command": "iar.removeNode",
+        "title": "Remove file/group from project",
+        "icon": {
+          "dark": "images/logo.png",
+          "light": "images/logo.png"
+        }
       }
     ],
     "views": {
@@ -86,6 +102,10 @@
         {
           "id": "iar-settings",
           "name": "IAR Settings"
+        },
+        {
+          "id": "iar-project",
+          "name": "IAR Project"
         }
       ]
     },
@@ -94,6 +114,18 @@
         {
           "command": "iar.regenerateCppToolsConfig",
           "when": "view == iar-settings"
+        },
+        {
+          "command": "iar.addNode",
+          "when": "view == iar-project",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "iar.removeNode",
+          "when": "view == iar-project",
+          "group": "inline"
         }
       ]
     },
