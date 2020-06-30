@@ -3,7 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Vscode from "vscode";
-import { OsUtils } from "../../../utils/utils";
 import { BuildTaskExecution } from "./buildtaskexecution";
 
 // TODO: make this generic enough to work with any task execution (i.e. "regular" or custom/thrift).
