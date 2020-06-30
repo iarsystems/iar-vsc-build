@@ -62,8 +62,8 @@ export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
             new TreeTopNode("Configuration", Vscode.TreeItemCollapsibleState.Expanded, "setConfig", configModel, "Select build configuration"),
         ];
         this.topNodes.forEach(node => {
-            node.model.addOnSelectedHandler(() => { this._onDidChangeTreeData.fire() });
-            node.model.addOnInvalidateHandler(() => { this._onDidChangeTreeData.fire() });
+            node.model.addOnSelectedHandler(() => { this._onDidChangeTreeData.fire(node); });
+            node.model.addOnInvalidateHandler(() => { this._onDidChangeTreeData.fire(node); });
             context.subscriptions.push(Vscode.commands.registerCommand(node.commandToSet, (indexToSet: number) => {
                 node.model.select(indexToSet);
             }));

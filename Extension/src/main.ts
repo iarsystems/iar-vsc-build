@@ -32,6 +32,18 @@ export async function activate(context: vscode.ExtensionContext) {
     loadTools();
     Settings.observeSetting(Settings.Field.IarInstallDirectories, loadTools);
 
+    vscode.commands.registerCommand("iar.addNode", () => vscode.window.showInformationMessage(":)"));
+    vscode.commands.registerCommand("iar.removeNode", async (node: Node) => {
+        console.log(node)
+        // TODO: make sure terminology is consistent with EW
+        const res = await vscode.window.showInputBox({ prompt: "Really delete src.c? Type 'yes' to confirm." });
+        // const res = await vscode.window.showQuickPick(["Cancel", "Remove (irreversible!)"]);
+        if (res === "yes") {
+            vscode.window.showInformationMessage("The node has been removed from the project.");
+        }
+    });
+    vscode.commands.registerCommand("iar.createProject", () => vscode.window.showInputBox({ prompt: "Enter a name for the new project.", placeHolder: "my_project.ewp" }));
+
     IarConfigurationProvider.init();
     IarTaskProvider.register();
     BuildTaskProvider.register();

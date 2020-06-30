@@ -10,16 +10,21 @@ import { Node, NodeType } from "../../iar/thrift/bindings/projectmanager_types";
 class TreeNode extends Vscode.TreeItem {
     constructor(
         public iarNode: Node,
-        collapsibleState: Vscode.TreeItemCollapsibleState = Vscode.TreeItemCollapsibleState.None,
-        command?: Vscode.Command) {
+        collapsibleState: Vscode.TreeItemCollapsibleState = Vscode.TreeItemCollapsibleState.None) {
             super(iarNode.name, collapsibleState);
-            this.tooltip = "Click to open";
-            this.command = command;
-            this.iconPath = iarNode.type == NodeType.File ? new Vscode.ThemeIcon("file-code") : undefined;
+            this.description = iarNode.path;
+
+            if (iarNode.type == NodeType.File) {
+                this.iconPath = new Vscode.ThemeIcon("file-code");
+                this.tooltip = iarNode.name + " - Click to open";
+                this.command =  { title: "Open in editor", command: "vscode.open", arguments: [Vscode.Uri.file(iarNode.path)] };
+            }
+            if (iarNode.type == NodeType.Group) {
+                this.contextValue = "group";
+            }
         }
 }
 
-// TODO: make sure to open a file when clicked
 export class TreeProjectView implements Vscode.TreeDataProvider<TreeNode> {
     private _onDidChangeTreeData = new Vscode.EventEmitter<TreeNode | undefined>();
     readonly onDidChangeTreeData: Vscode.Event<TreeNode | undefined> = this._onDidChangeTreeData.event;
@@ -41,8 +46,7 @@ export class TreeProjectView implements Vscode.TreeDataProvider<TreeNode> {
         if (!node) { return []; }
         return node.children.map(n => {
             const collapsibleState = n.type === NodeType.Group ? Vscode.TreeItemCollapsibleState.Expanded : Vscode.TreeItemCollapsibleState.None;
-            const command = n.type === NodeType.File ? { title: "Open in editor", command: "vscode.open", arguments: [Vscode.Uri.file(n.path)] } : undefined;
-            return new TreeNode(n, collapsibleState, command);
+            return new TreeNode(n, collapsibleState);
         });
     }
 }

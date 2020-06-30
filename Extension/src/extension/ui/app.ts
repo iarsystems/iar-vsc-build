@@ -46,7 +46,8 @@ class Application {
     readonly project: UI<Project>;
     readonly config: UI<Config>;
 
-    readonly projectTree: TreeProjectView;
+    readonly projectTreeProvider: TreeProjectView;
+    readonly projectTreeView: Vscode.TreeView<any>;
 
     private serviceManager: ThriftServiceManager | null = null;
     projectManager: ThriftClient<ProjectManager.Client> | null = null;
@@ -71,8 +72,9 @@ class Application {
                                                                                         this.compiler.model,
                                                                                         this.project.model,
                                                                                         this.config.model));
-        this.projectTree = new TreeProjectView();                                                                                        
-        Vscode.window.registerTreeDataProvider("iar-project", this.projectTree);
+        this.projectTreeProvider = new TreeProjectView();                                                                                        
+        // Vscode.window.registerTreeDataProvider("iar-project", this.projectTree);
+        this.projectTreeView = Vscode.window.createTreeView("iar-project", { treeDataProvider: this.projectTreeProvider });
 
         // Create commands without UI
         this.generator = RegenerateCommand.createRegenerateCppToolsConfig(this.compiler.model as CompilerListModel,
@@ -104,7 +106,7 @@ class Application {
                     this.projectContext = await this.projectManager.service.LoadEwpFile(this.project.model.selected!!.path.toString());
                     IarConfigurationProvider.instance?.forceUpdate();
                     const rootNode = await this.projectManager.service.GetRootNode(this.projectContext);
-                    this.projectTree.setRootNode(rootNode);
+                    // this.projectTreeProvider.setRootNode(rootNode);
                 }
             } else {
                 this.serviceManager = null;
@@ -369,6 +371,10 @@ class Application {
             let configModel = this.config.model as ConfigurationListModel;
 
             configModel.useConfigurationsFromProject(model.selected);
+        });
+
+        model.addOnSelectedHandler(() => {
+            this.projectTreeView.title = model.selected ? model.selected.name : "IAR Project";
         });
     }
 

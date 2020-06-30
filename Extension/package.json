@@ -83,18 +83,25 @@
       {
         "command": "iar.addNode",
         "title": "Add file/group to project",
+        "category": "IAR",
         "icon": {
-          "dark": "images/logo.png",
-          "light": "images/logo.png"
+          "dark": "images/icons/add.png",
+          "light": "images/icons/add.png"
         }
       },
       {
         "command": "iar.removeNode",
         "title": "Remove file/group from project",
+        "category": "IAR",
         "icon": {
-          "dark": "images/logo.png",
-          "light": "images/logo.png"
+          "dark": "images/icons/remove.png",
+          "light": "images/icons/remove.png"
         }
+      },
+      {
+        "command": "iar.createProject",
+        "title": "Create a new IAR project",
+        "category": "IAR"
       }
     ],
     "views": {
@@ -126,9 +133,30 @@
           "command": "iar.removeNode",
           "when": "view == iar-project",
           "group": "inline"
+        },
+        {
+          "command": "iar.addNode",
+          "when": "view == iar-project && viewItem == group",
+          "group": "inline"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "iar.addNode",
+          "when": "false"
+        },
+        {
+          "command": "iar.removeNode",
+          "when": "false"
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "iar-project",
+        "contents": "When an IAR project is loaded, you can see and manage its contents here.\n[Create new project](command:iar.createProject)"
+      }
+    ],
     "grammars": [
       {
         "scopeName": "iar-keywords.injection",
