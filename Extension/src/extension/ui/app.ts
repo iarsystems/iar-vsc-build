@@ -27,6 +27,7 @@ import { ThriftClient } from "../../iar/thrift/ThriftClient";
 import { PROJECTMANAGER_ID, ProjectContext } from "../../iar/thrift/bindings/projectmanager_types";
 import { IarConfigurationProvider } from "../configprovider/configurationprovider";
 import { TreeProjectView } from "./treeprojectview";
+import { CreateProjectCommand } from "../command/project/createproject";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -84,6 +85,8 @@ class Application {
 
         this.selectIarWorkspace = new SelectIarWorkspace();
         this.selectIarWorkspace.register(context);
+
+        new CreateProjectCommand().register(context);
 
         // add listeners
         this.addListeners();

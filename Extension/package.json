@@ -30,6 +30,7 @@
     "onCommand:iar.selectConfiguration",
     "onCommand:iar.regenerateCppToolsConfig",
     "onCommand:iar.selectIarWorkspace",
+    "onCommand:iar.createProject",
     "workspaceContains:**/*.ewp"
   ],
   "main": "./out/src/main",
