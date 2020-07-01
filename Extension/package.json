@@ -82,7 +82,7 @@
       },
       {
         "command": "iar.addNode",
-        "title": "Add file/group to project",
+        "title": "Add file/group here",
         "category": "IAR",
         "icon": {
           "dark": "images/icons/add.png",
@@ -99,16 +99,43 @@
         }
       },
       {
+        "command": "iar.addConfig",
+        "title": "Add configuration",
+        "category": "IAR",
+        "icon": {
+          "dark": "images/icons/add.png",
+          "light": "images/icons/add.png"
+        }
+      },
+      {
+        "command": "iar.removeConfig",
+        "title": "Remove configuration from project",
+        "category": "IAR",
+        "icon": {
+          "dark": "images/icons/remove.png",
+          "light": "images/icons/remove.png"
+        }
+      },
+      {
         "command": "iar.createProject",
         "title": "Create a new IAR project",
         "category": "IAR"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "iar-vsc",
+          "title": "IAR for Visual Studio Code",
+          "icon": "images/logo.png"
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "iar-vsc": [
         {
           "id": "iar-settings",
-          "name": "IAR Settings"
+          "name": "IAR Extension Configuration"
         },
         {
           "id": "iar-project",
@@ -121,22 +148,27 @@
         {
           "command": "iar.regenerateCppToolsConfig",
           "when": "view == iar-settings"
-        },
-        {
-          "command": "iar.addNode",
-          "when": "view == iar-project",
-          "group": "navigation"
         }
       ],
       "view/item/context": [
         {
           "command": "iar.removeNode",
-          "when": "view == iar-project",
+          "when": "view == iar-project && viewItem == group || viewItem == file",
           "group": "inline"
         },
         {
           "command": "iar.addNode",
-          "when": "view == iar-project && viewItem == group",
+          "when": "view == iar-project && viewItem == group || viewItem == filesroot",
+          "group": "inline"
+        },
+        {
+          "command": "iar.removeConfig",
+          "when": "view == iar-project && viewItem == configuration",
+          "group": "inline"
+        },
+        {
+          "command": "iar.addConfig",
+          "when": "view == iar-project && viewItem == configsroot",
           "group": "inline"
         }
       ],
@@ -147,6 +179,14 @@
         },
         {
           "command": "iar.removeNode",
+          "when": "false"
+        },
+        {
+          "command": "iar.addConfig",
+          "when": "false"
+        },
+        {
+          "command": "iar.removeConfig",
           "when": "false"
         }
       ]

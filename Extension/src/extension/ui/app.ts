@@ -65,6 +65,7 @@ class Application {
         // create different UIs
         this.workbench = this.createWorkbenchUi();
         this.compiler = this.createCompilerUi();
+        this.hideHelper(this.compiler); // Should not be needed when using thrift PM
         this.project = this.createProjectUi();
         this.config = this.createConfigurationUi();
         Vscode.window.registerTreeDataProvider('iar-settings', new TreeSelectionView(context,
@@ -106,7 +107,9 @@ class Application {
                     this.projectContext = await this.projectManager.service.LoadEwpFile(this.project.model.selected!!.path.toString());
                     IarConfigurationProvider.instance?.forceUpdate();
                     const rootNode = await this.projectManager.service.GetRootNode(this.projectContext);
-                    // this.projectTreeProvider.setRootNode(rootNode);
+                    this.projectTreeProvider.setRootNode(rootNode);
+                    if (this.projectManager && this.projectContext)
+                    this.projectTreeProvider.setConfigs(await this.projectManager.service.GetConfigurations(this.projectContext));
                 }
             } else {
                 this.serviceManager = null;
