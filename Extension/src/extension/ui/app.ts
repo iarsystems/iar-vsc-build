@@ -28,6 +28,8 @@ import { PROJECTMANAGER_ID, ProjectContext } from "../../iar/thrift/bindings/pro
 import { IarConfigurationProvider } from "../configprovider/configurationprovider";
 import { TreeProjectView } from "./treeprojectview";
 import { CreateProjectCommand } from "../command/project/createproject";
+import { AddConfigCommand } from "../command/project/addconfig";
+import { RemoveConfigCommand } from "../command/project/removeconfig";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -50,6 +52,7 @@ class Application {
     readonly projectTreeProvider: TreeProjectView;
     readonly projectTreeView: Vscode.TreeView<any>;
 
+    // TODO: manage this better. Also, only expose a ProjectManager.Client, not the entire ThriftClient
     private serviceManager: ThriftServiceManager | null = null;
     projectManager: ThriftClient<ProjectManager.Client> | null = null;
     projectContext: ProjectContext | null = null;
@@ -87,6 +90,8 @@ class Application {
         this.selectIarWorkspace.register(context);
 
         new CreateProjectCommand().register(context);
+        new AddConfigCommand().register(context);
+        new RemoveConfigCommand().register(context);
 
         // add listeners
         this.addListeners();

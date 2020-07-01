@@ -7,12 +7,14 @@
 import * as Vscode from "vscode";
 import { Node, NodeType, Configuration } from "../../iar/thrift/bindings/projectmanager_types";
 
-interface ProjectNode {
+// A generic node in this tree
+export interface ProjectNode {
     name: string;
     context: string;
 }
 
-class FilesNode implements ProjectNode {
+// A node showing a file or file group i.e. a {@link Node}
+export class FilesNode implements ProjectNode {
     public name: string;
     public context: string;
     constructor(public iarNode: Node) {
@@ -25,7 +27,8 @@ class FilesNode implements ProjectNode {
     }
 }
 
-class ConfigurationNode implements ProjectNode {
+// A node showing a project {@link Configuration}
+export class ConfigurationNode implements ProjectNode {
     public name: string;
     public context: string;
     constructor(public config: Configuration) {
@@ -34,6 +37,13 @@ class ConfigurationNode implements ProjectNode {
     }
 }
 
+/**
+ * Shows a view to the left of all files/groups in the project, and all configurations in the project.
+ * The data shown is updated via the {@link setRootNode} and {@link setConfigs} functions.
+ * Uses three top-level nodes: filesNode, under which all files are shown, an empty separatorNode,
+ * and configsNode under which all configurations are shown.
+ * // TODO: maybe use some Model<...> instances to update the data
+ */
 export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
     private _onDidChangeTreeData = new Vscode.EventEmitter<ProjectNode | undefined>();
     readonly onDidChangeTreeData: Vscode.Event<ProjectNode | undefined> = this._onDidChangeTreeData.event;
@@ -62,6 +72,8 @@ export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
         this._onDidChangeTreeData.fire(undefined);
     }
 
+    /// overriden functions, create the actual tree
+
     getTreeItem(element: ProjectNode): Vscode.TreeItem | Thenable<Vscode.TreeItem> {
         const item = new Vscode.TreeItem(element.name);
         item.contextValue = element.context;
@@ -69,7 +81,7 @@ export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
             item.collapsibleState = Vscode.TreeItemCollapsibleState.Expanded
         } else if (element === this.separatorNode) {
             item.collapsibleState = Vscode.TreeItemCollapsibleState.None;
-        } else if (element instanceof FilesNode){
+        } else if (element instanceof FilesNode) {
 
             item.collapsibleState = element.iarNode.children.length > 0 ? Vscode.TreeItemCollapsibleState.Expanded : Vscode.TreeItemCollapsibleState.None;
             item.description = element.iarNode.path;

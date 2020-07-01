@@ -41,14 +41,6 @@ export async function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage("The node has been removed from the project.");
         }
     });
-    vscode.commands.registerCommand("iar.addConfig", () => vscode.window.showInputBox({ prompt: "Enter a name for the new configuration.", placeHolder: "MyConfiguration" }));
-    vscode.commands.registerCommand("iar.removeConfig", async (node: Node) => {
-        console.log(node)
-        const res = await vscode.window.showInputBox({ prompt: "Really remove the configuration 'Debug'? Type 'yes' to confirm." });
-        if (res === "yes") {
-            vscode.window.showInformationMessage("The configuration has been removed from the project.");
-        }
-    });
 
     IarConfigurationProvider.init();
     IarTaskProvider.register();
