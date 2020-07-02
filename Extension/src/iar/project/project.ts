@@ -8,7 +8,7 @@ import * as Fs from "fs";
 import * as Path from "path";
 import { FsUtils } from "../../utils/fs";
 import { Config } from "./config";
-import { EwpFile } from "../parsing/ewpfile";
+import { EwpFile } from "./parsing/ewpfile";
 
 export interface Project {
     readonly path: Fs.PathLike;

@@ -6,8 +6,8 @@
 
 import * as Vscode from "vscode";
 import { ProjectNode } from "../../ui/treeprojectview";
-import * as ProjectManager from "../../../iar/thrift/bindings/ProjectManager";
-import { ProjectContext } from "../../../iar/thrift/bindings/projectmanager_types";
+import * as ProjectManager from "../../../iar/project/thrift/bindings/ProjectManager";
+import { ProjectContext } from "../../../iar/project/thrift/bindings/projectmanager_types";
 import { UI } from "../../ui/app";
 
 /**

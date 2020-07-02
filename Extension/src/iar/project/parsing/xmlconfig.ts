@@ -4,9 +4,9 @@
 
 'use strict';
 
-import { IarXml } from "../../utils/xml";
-import { XmlNode } from "../../utils/XmlNode";
-import { Config } from "../interfaces/config";
+import { IarXml } from "../../../utils/xml";
+import { XmlNode } from "../../../utils/XmlNode";
+import { Config } from "../config";
 
 export class XmlConfig implements Config {
     private xml: XmlNode;

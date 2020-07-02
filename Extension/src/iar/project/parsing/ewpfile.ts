@@ -7,10 +7,11 @@
 import * as Vscode from "vscode";
 import * as Fs from "fs";
 import * as Path from "path";
-import { Project } from "../interfaces/project";
-import { XmlNode } from "../../utils/XmlNode";
-import { Config } from "../interfaces/config";
-import { Handler } from "../../utils/handler";
+import { Project } from "../project";
+import { XmlNode } from "../../../utils/XmlNode";
+import { Config } from "../config";
+import { Handler } from "../../../utils/handler";
+import { XmlConfig } from "./xmlconfig";
 
 export class EwpFile implements Project {
     private fileWatcher: Vscode.FileSystemWatcher;
@@ -121,7 +122,7 @@ export class EwpFile implements Project {
     }
 
     private loadConfigurations(): Config[] {
-        return Config.fromXml(this.xml);
+        return XmlConfig.fromXml(this.xml);
     }
 
     private fireChanged() {

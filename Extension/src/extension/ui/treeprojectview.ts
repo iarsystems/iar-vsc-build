@@ -5,7 +5,7 @@
 'use strict';
 
 import * as Vscode from "vscode";
-import { Node, NodeType } from "../../iar/thrift/bindings/projectmanager_types";
+import { Node, NodeType } from "../../iar/project/thrift/bindings/projectmanager_types";
 import { Config } from "../../iar/project/config";
 
 // A generic node in this tree
@@ -79,7 +79,7 @@ export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
         const item = new Vscode.TreeItem(element.name);
         item.contextValue = element.context;
         if (element === this.filesNode || element === this.configsNode) {
-            item.collapsibleState = Vscode.TreeItemCollapsibleState.Expanded
+            item.collapsibleState = Vscode.TreeItemCollapsibleState.Expanded;
         } else if (element === this.separatorNode) {
             item.collapsibleState = Vscode.TreeItemCollapsibleState.None;
         } else if (element instanceof FilesNode) {
@@ -87,12 +87,12 @@ export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
             item.collapsibleState = element.iarNode.children.length > 0 ? Vscode.TreeItemCollapsibleState.Expanded : Vscode.TreeItemCollapsibleState.None;
             item.description = element.iarNode.path;
 
-            if (element.iarNode.type == NodeType.File) {
+            if (element.iarNode.type === NodeType.File) {
                 item.iconPath = new Vscode.ThemeIcon("file-code");
                 item.tooltip = element.iarNode.name + " - Click to open";
                 item.command = { title: "Open in editor", command: "vscode.open", arguments: [Vscode.Uri.file(element.iarNode.path)] };
             }
-            if (element.iarNode.type == NodeType.Group) {
+            if (element.iarNode.type === NodeType.Group) {
                 item.contextValue = "group";
             }
 

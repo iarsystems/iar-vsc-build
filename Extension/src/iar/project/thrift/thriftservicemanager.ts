@@ -6,11 +6,11 @@
 
 import * as Vscode from "vscode";
 import * as Thrift from "thrift";
-import { Workbench } from "../tools/workbench";
+import { Workbench } from "../../tools/workbench";
 import { spawn, ChildProcess } from "child_process";
 import * as path from "path";
 import * as fs from "fs";
-import { OsUtils } from "../../utils/utils";
+import { OsUtils } from "../../../utils/utils";
 import { ServiceLocation } from "./bindings/ServiceRegistry_types";
 import { ThriftClient } from "./ThriftClient";
 

@@ -8,8 +8,8 @@ import * as Vscode from "vscode";
 import { ConfirmationDialog } from "../../ui/confirmationdialog";
 import { ConfigurationNode } from "../../ui/treeprojectview";
 import { ProjectCommand } from "./projectcommand";
-import { ProjectContext } from "../../../iar/thrift/bindings/projectmanager_types";
-import * as ProjectManager from "../../../iar/thrift/bindings/ProjectManager";
+import { ProjectContext } from "../../../iar/project/thrift/bindings/projectmanager_types";
+import * as ProjectManager from "../../../iar/project/thrift/bindings/ProjectManager";
 
 /**
  * This command removes a configuration from a project (using a thrift ProjectManager)

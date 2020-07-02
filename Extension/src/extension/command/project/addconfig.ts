@@ -6,10 +6,10 @@
 
 import * as Vscode from "vscode";
 import { ProjectCommand } from "./projectcommand";
-import { Toolchain } from "../../../iar/thrift/bindings/projectmanager_types";
+import { Toolchain } from "../../../iar/project/thrift/bindings/projectmanager_types";
 import { ConfigurationNode } from "../../ui/treeprojectview";
-import { ProjectContext } from "../../../iar/thrift/bindings/projectmanager_types";
-import * as ProjectManager from "../../../iar/thrift/bindings/ProjectManager";
+import { ProjectContext } from "../../../iar/project/thrift/bindings/projectmanager_types";
+import * as ProjectManager from "../../../iar/project/thrift/bindings/ProjectManager";
 import { ConfirmationDialog } from "../../ui/confirmationdialog";
 
 /**

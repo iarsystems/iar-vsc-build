@@ -8,12 +8,12 @@ import * as Vscode from "vscode";
 import * as Fs from "fs";
 import * as Path from "path";
 import * as ProjectManager from "./bindings/ProjectManager";
-import { Project } from "../interfaces/project";
-import { Workbench } from "../tools/workbench";
-import { ThriftServiceManager } from "./ThriftServiceManager";
+import { Project } from "../project";
+import { Workbench } from "../../tools/workbench";
+import { ThriftServiceManager } from "./thriftservicemanager";
 import { PROJECTMANAGER_ID, Configuration, ProjectContext } from "./bindings/projectmanager_types";
 import { ThriftClient } from "./ThriftClient";
-import { Handler } from "../../utils/handler";
+import { Handler } from "../../../utils/handler";
 
 export class ThriftProject implements Project {
     private fileWatcher: Vscode.FileSystemWatcher;
