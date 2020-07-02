@@ -4,13 +4,9 @@
 
 'use strict';
 
-import { XmlNode } from '../../utils/XmlNode';
 import { IarXml } from "../../utils/xml";
-
-export interface Config {
-    readonly name: string;
-    readonly toolchainId: string;
-}
+import { XmlNode } from "../../utils/XmlNode";
+import { Config } from "../interfaces/config";
 
 export class XmlConfig implements Config {
     private xml: XmlNode;
@@ -49,7 +45,7 @@ export class XmlConfig implements Config {
     }
 }
 
-export namespace Config {
+export namespace XmlConfig {
     export function fromXml(projectXml: XmlNode): Config[] {
         let configs: Config[] = [];
 
