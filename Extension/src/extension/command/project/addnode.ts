@@ -46,7 +46,7 @@ export class AddNodeCommand extends ProjectCommand {
                 Fs.writeFileSync(fullPath, "");
             }
 
-            newParent.children.push(new Node({ children: [], name, type: selectedType.type, path: "$PROJ_DIR$/" + name }));
+            newParent.children.push(new Node({ children: [], name, type: selectedType.type, path: fullPath }));
             await pm.SetNode(context, newParent);
 
             // TODO: find a more elegant way to do this
