@@ -30,6 +30,8 @@ import { TreeProjectView } from "./treeprojectview";
 import { CreateProjectCommand } from "../command/project/createproject";
 import { AddConfigCommand } from "../command/project/addconfig";
 import { RemoveConfigCommand } from "../command/project/removeconfig";
+import { RemoveNodeCommand } from "../command/project/removenode";
+import { AddNodeCommand } from "../command/project/addnode";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -92,6 +94,8 @@ class Application {
         new CreateProjectCommand().register(context);
         new AddConfigCommand().register(context);
         new RemoveConfigCommand().register(context);
+        new RemoveNodeCommand().register(context);
+        new AddNodeCommand().register(context);
 
         // add listeners
         this.addListeners();

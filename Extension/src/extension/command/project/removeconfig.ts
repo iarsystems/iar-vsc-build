@@ -5,33 +5,22 @@
 'use strict';
 
 import * as Vscode from "vscode";
-import { UI } from "../../ui/app";
 import { ConfirmationDialog } from "../../ui/confirmationdialog";
 import { ConfigurationNode } from "../../ui/treeprojectview";
 import { ProjectCommand } from "./projectcommand";
+import { ProjectContext } from "../../../iar/thrift/bindings/projectmanager_types";
+import * as ProjectManager from "../../../iar/thrift/bindings/ProjectManager";
 
 /**
- * This commands removes a configuration from a project (using a thrift ProjectManager)
+ * This command removes a configuration from a project (using a thrift ProjectManager)
  */
 export class RemoveConfigCommand extends ProjectCommand {
     constructor() {
-        super("iar.removeConfig")
+        super("iar.removeConfig");
     }
 
-    async execute(source: ConfigurationNode) {
+    async execute(source: ConfigurationNode, pm: ProjectManager.Client, context: ProjectContext) {
         try {
-            const workbench = UI.getInstance().workbench.model.selected;
-            if (!workbench) {
-                return;
-            }
-            const pm = UI.getInstance().projectManager;
-            if (!pm) {
-                return;
-            }
-            const context = UI.getInstance().projectContext;
-            if (!context) {
-                return;
-            }
             const toRemove = source.config;
 
             const shouldRemove = await ConfirmationDialog.show(`Really remove "${toRemove.name}"?`);
@@ -39,7 +28,7 @@ export class RemoveConfigCommand extends ProjectCommand {
                 return;
             }
 
-            await pm.service.RemoveConfiguration(toRemove.name, context);
+            await pm.RemoveConfiguration(toRemove.name, context);
 
             // TODO: notify Model<Config> of this change?
 

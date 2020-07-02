@@ -6,6 +6,9 @@
 
 import * as Vscode from "vscode";
 import { ProjectNode } from "../../ui/treeprojectview";
+import * as ProjectManager from "../../../iar/thrift/bindings/ProjectManager";
+import { ProjectContext } from "../../../iar/thrift/bindings/projectmanager_types";
+import { UI } from "../../ui/app";
 
 /**
  * Base class for commands that are called as context buttons from the {@link TreeProjectView} (where files and configs are managed).
@@ -22,7 +25,16 @@ export abstract class ProjectCommand {
 
     register(context: Vscode.ExtensionContext): void {
         let cmd = Vscode.commands.registerCommand(this.command, (source): any => {
-            return this.execute(source);
+            const pm = UI.getInstance().projectManager;
+            if (!pm) {
+                return;
+            }
+            const context = UI.getInstance().projectContext;
+            if (!context) {
+                return;
+            }
+
+            return this.execute(source, pm.service, context);
         }, this);
 
         context.subscriptions.push(cmd);
@@ -32,5 +44,5 @@ export abstract class ProjectCommand {
      * Called to run the command
      * @param source The item in the tree view that was clicked to spawn this command
      */
-    abstract execute(source: ProjectNode): any;
+    abstract execute(source: ProjectNode, pm: ProjectManager.Client, context: ProjectContext): any;
 }
