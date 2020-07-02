@@ -74,6 +74,7 @@ suite("CppToolsConfigGenerator", () => {
 
         return {
             name: name,
+            toolchainId: ""
         };
     }
 

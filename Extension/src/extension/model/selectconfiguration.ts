@@ -28,8 +28,8 @@ export class ConfigurationListModel extends ListInputModelBase<Config> {
     label(index: number): string {
         return this.data[index].name;
     }
-    description(): string | undefined {
-        return undefined;
+    description(index: number): string | undefined {
+        return this.data[index].toolchainId;
     }
     detail(): string | undefined {
         return undefined;

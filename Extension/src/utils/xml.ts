@@ -64,15 +64,4 @@ export namespace IarXml {
             return content === validate;
         }
     }
-
-    export function findToolchainFromConfig(xml: XmlNode): XmlNode | undefined {
-        let settings = xml.getAllChildsByName('toolchain');
-
-        for (let idx = 0; idx < settings.length; idx += 1) {
-            let setting = settings[idx];
-            return setting;
-        }
-
-        return undefined;
-    }
 }

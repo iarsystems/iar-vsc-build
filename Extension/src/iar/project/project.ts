@@ -7,10 +7,15 @@
 import * as Vscode from "vscode";
 import * as Fs from "fs";
 import * as Path from "path";
-import { Config } from "./config";
+import * as ProjectManager from "../thrift/bindings/ProjectManager";
 import { XmlNode } from "../../utils/XmlNode";
 import { FsUtils } from "../../utils/fs";
 import { Handler } from "../../utils/handler";
+import { Configuration, ProjectContext, PROJECTMANAGER_ID } from "../thrift/bindings/projectmanager_types";
+import { ThriftClient } from "../thrift/ThriftClient";
+import { ThriftServiceManager } from "../thrift/ThriftServiceManager";
+import { Workbench } from "../tools/workbench";
+import { Config } from "./config";
 
 export interface Project {
     readonly path: Fs.PathLike;
@@ -19,7 +24,7 @@ export interface Project {
 
     onChanged(callback: (project: Project) => void, thisArg?: any): void;
     reload(): any;
-    findConfiguration(name: string): Config | undefined;
+    unload(): void | Promise<void>;
 }
 
 class EwpFile implements Project {
@@ -40,6 +45,7 @@ class EwpFile implements Project {
 
         this.fileWatcher.onDidChange(() => {
             this.reload();
+            this.onChangedHandlers.forEach(handler => handler.call(this));
         });
     }
 
@@ -100,6 +106,9 @@ class EwpFile implements Project {
         return result;
     }
 
+    public unload() {
+    }
+
     /**
      * Load the xml file. The `path` property should already be initialized!
      * 
@@ -126,7 +135,7 @@ class EwpFile implements Project {
         return node;
     }
 
-    private loadConfigurations(): Config[] {
+    private loadConfigurations(): Configuration[] {
         return Config.fromXml(this.xml);
     }
 
@@ -134,6 +143,54 @@ class EwpFile implements Project {
         this.onChangedHandlers.forEach(handler => {
             handler.call(this);
         });
+    }
+}
+
+export class ThriftProject implements Project {
+    static async load(path: Fs.PathLike, workbench: Workbench): Promise<ThriftProject> {
+        const serviceManager = new ThriftServiceManager(workbench);
+        const projectManager = await serviceManager.findService(PROJECTMANAGER_ID, ProjectManager);
+        const projectContext = await projectManager.service.LoadEwpFile(path.toString());
+        const configs        = await projectManager.service.GetConfigurations(projectContext);
+
+        return new ThriftProject(path, configs, serviceManager, projectManager, projectContext);
+    }
+
+    private fileWatcher: Vscode.FileSystemWatcher;
+    private onChangedHandlers: Handler<(project: Project) => void>[] = [];
+
+    constructor(public path:           Fs.PathLike,
+                public configurations: ReadonlyArray<Configuration>,
+                private serviceMgr:    ThriftServiceManager,
+                private projectMgr:    ThriftClient<ProjectManager.Client>,
+                private context:       ProjectContext) {
+        this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString());
+
+        this.fileWatcher.onDidChange(() => {
+            this.reload();
+            this.onChangedHandlers.forEach(handler => handler.call(this));
+        });
+    }
+
+    get name(): string {
+        return Path.parse(this.path.toString()).name;
+    }
+
+    // TODO: fix interface signature
+    public async reload() {
+        this.projectMgr.service.CloseProject(this.context);
+        this.context = await this.projectMgr.service.LoadEwpFile(this.path.toString());
+        this.configurations = await this.projectMgr.service.GetConfigurations(this.context);
+    }
+
+    public async unload() {
+        this.projectMgr.service.CloseProject(this.context);
+        this.projectMgr.close();
+        await this.serviceMgr.stop();
+    }
+
+    public onChanged(callback: (project: Project) => void, thisArg?: any): void {
+        this.onChangedHandlers.push(new Handler(callback, thisArg));
     }
 }
 

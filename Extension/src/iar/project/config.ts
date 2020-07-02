@@ -9,6 +9,7 @@ import { IarXml } from "../../utils/xml";
 
 export interface Config {
     readonly name: string;
+    readonly toolchainId: string;
 }
 
 export class XmlConfig implements Config {
@@ -34,6 +35,17 @@ export class XmlConfig implements Config {
         } else {
             return name;
         }
+    }
+
+    get toolchainId(): string {
+        const toolchainXml = this.xml.getFirstChildByName("toolchain");
+        if (toolchainXml) {
+            const toolchain = IarXml.getNameTextFromElement(toolchainXml);
+            if (toolchain) {
+                return toolchain;
+            }
+        }
+        return "";
     }
 }
 

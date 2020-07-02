@@ -5,7 +5,8 @@
 'use strict';
 
 import * as Vscode from "vscode";
-import { Node, NodeType, Configuration } from "../../iar/thrift/bindings/projectmanager_types";
+import { Node, NodeType } from "../../iar/thrift/bindings/projectmanager_types";
+import { Config } from "../../iar/project/config";
 
 // A generic node in this tree
 export interface ProjectNode {
@@ -31,7 +32,7 @@ export class FilesNode implements ProjectNode {
 export class ConfigurationNode implements ProjectNode {
     public name: string;
     public context: string;
-    constructor(public config: Configuration) {
+    constructor(public config: Config) {
         this.name = config.name;
         this.context = "configuration";
     }
@@ -49,7 +50,7 @@ export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
     readonly onDidChangeTreeData: Vscode.Event<ProjectNode | undefined> = this._onDidChangeTreeData.event;
 
     private rootNode: Node | undefined;
-    private configs: Configuration[] | undefined;
+    private configs: Config[] | undefined;
 
     private filesNode: ProjectNode;
     private separatorNode: ProjectNode;
@@ -67,7 +68,7 @@ export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
         this._onDidChangeTreeData.fire(undefined);
     }
 
-    public setConfigs(configs: Configuration[]) {
+    public setConfigs(configs: Config[]) {
         this.configs = configs;
         this._onDidChangeTreeData.fire(undefined);
     }
