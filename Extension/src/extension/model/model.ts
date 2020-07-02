@@ -6,19 +6,19 @@
 
 import { Handler } from "../../utils/handler";
 
-type selectHandler<T> = (model: ListInputModel<T>, selected?: T) => void;
-type invalidateHandler<T> = (model: ListInputModel<T>) => void;
+export type selectHandler<T> = (model: InputModel<T>, selected?: T) => void;
+export type invalidateHandler<T> = (model: ListInputModel<T>) => void;
 
 export interface InputModel<T> {
     readonly selected: T | undefined;
     readonly selectedText: string | undefined;
-    readonly selectedIndex: number | undefined;
 
     addOnSelectedHandler(fn: selectHandler<T>, thisArg?: any): void;
 }
 
 export interface ListInputModel<T> extends InputModel<T> {
     readonly amount: number;
+    readonly selectedIndex: number | undefined;
 
     addOnInvalidateHandler(fn: invalidateHandler<T>, thisArg?: any): void;
 

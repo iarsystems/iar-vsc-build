@@ -34,7 +34,8 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
 	}
 
     open(_initialDimensions: Vscode.TerminalDimensions | undefined): void {
-        const projectMgr = UI.getInstance().projectManager;
+        // TODO: add a workbench.build or project.build or something, these services are no longer exposed
+/*         const projectMgr = UI.getInstance().projectManager;
         const projectContext = UI.getInstance().projectContext;
         if (!projectMgr || !projectContext || !this.definition.config) {
             this.onError("Error: Make sure you select a workbench, project and configuration before running this task.");
@@ -45,7 +46,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
         projectMgr.service.BuildProject(projectContext, this.definition.config).then(() => {
             this.writeEmitter.fire("Done!\r\n");
             this.closeEmitter.fire(undefined);
-        });
+        }); */
     }
 
     close(): void {

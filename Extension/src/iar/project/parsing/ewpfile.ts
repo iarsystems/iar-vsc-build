@@ -7,18 +7,18 @@
 import * as Vscode from "vscode";
 import * as Fs from "fs";
 import * as Path from "path";
-import { Project } from "../project";
+import { LoadedProject } from "../project";
 import { XmlNode } from "../../../utils/XmlNode";
 import { Config } from "../config";
 import { Handler } from "../../../utils/handler";
 import { XmlConfig } from "./xmlconfig";
 
-export class EwpFile implements Project {
+export class EwpFile implements LoadedProject {
     private fileWatcher: Vscode.FileSystemWatcher;
     private xml: XmlNode;
     private configurations_: Config[];
 
-    private onChangedHandlers: Handler<(project: Project) => void>[] = [];
+    private onChangedHandlers: Handler<(project: LoadedProject) => void>[] = [];
 
     readonly path: Fs.PathLike;
 
@@ -43,7 +43,7 @@ export class EwpFile implements Project {
         return this.configurations_;
     }
 
-    public onChanged(callback: (project: Project) => void, thisArg?: any): void {
+    public onChanged(callback: (project: LoadedProject) => void, thisArg?: any): void {
         this.onChangedHandlers.push(new Handler(callback, thisArg));
     }
 

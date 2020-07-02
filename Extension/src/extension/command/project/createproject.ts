@@ -57,7 +57,7 @@ export class CreateProjectCommand implements Command {
 
             const path = Path.join(workspace.uri.fsPath, name);
             if (Fs.existsSync(path)) {
-                throw "The file already exists."
+                throw "The file already exists.";
             }
 
             await pm.service.CreateEwpFile(path); // TODO: does the PM auto-load the project? In that case it should be unloaded here

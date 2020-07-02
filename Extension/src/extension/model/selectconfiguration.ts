@@ -6,7 +6,7 @@
 
 import { ListInputModelBase } from "./model";
 import { Config } from "../../iar/project/config";
-import { Project } from "../../iar/project/project";
+import { LoadedProject } from "../../iar/project/project";
 
 export class ConfigurationListModel extends ListInputModelBase<Config> {
     constructor(...configs: Config[]) {
@@ -35,7 +35,7 @@ export class ConfigurationListModel extends ListInputModelBase<Config> {
         return undefined;
     }
 
-    useConfigurationsFromProject(project?: Project): void {
+    useConfigurationsFromProject(project?: LoadedProject): void {
         let configs: ReadonlyArray<Config> = [];
 
         if (project) {

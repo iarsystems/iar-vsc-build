@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { Config, XmlConfig } from "../../iar/project/config";
+import { Config } from "../../iar/project/config";
 import { IncludePath } from "./data/includepath";
 import { PreIncludePath } from "./data/preincludepath";
 import { Define } from "./data/define";
@@ -17,6 +17,7 @@ import * as Fs from "fs";
 import * as Process from "child_process";
 import { Project } from "../../iar/project/project";
 import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
+import { XmlConfig } from "../../iar/project/parsing/xmlconfig";
 
 /**
  * Detects source file configuration for an IAR project.

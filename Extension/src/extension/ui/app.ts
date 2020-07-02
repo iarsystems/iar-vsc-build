@@ -15,16 +15,12 @@ import { Workbench } from "../../iar/tools/workbench";
 import { CompilerListModel } from "../model/selectcompiler";
 import { ListInputModel } from "../model/model";
 import { Compiler } from "../../iar/tools/compiler";
-import { Project } from "../../iar/project/project";
+import { Project, LoadedProject } from "../../iar/project/project";
 import { ProjectListModel } from "../model/selectproject";
 import { Config } from "../../iar/project/config";
 import { ConfigurationListModel } from "../model/selectconfiguration";
 import { SelectIarWorkspace } from "../command/selectIarWorkspace";
 import { TreeSelectionView } from "./treeselectionview";
-import * as ProjectManager from "../../iar/project/thrift/bindings/ProjectManager";
-import { ThriftServiceManager } from "../../iar/project/thrift/thriftservicemanager";
-import { ThriftClient } from "../../iar/project/thrift/ThriftClient";
-import { PROJECTMANAGER_ID, ProjectContext } from "../../iar/project/thrift/bindings/projectmanager_types";
 import { IarConfigurationProvider } from "../configprovider/configurationprovider";
 import { TreeProjectView } from "./treeprojectview";
 import { CreateProjectCommand } from "../command/project/createproject";
@@ -32,6 +28,9 @@ import { AddConfigCommand } from "../command/project/addconfig";
 import { RemoveConfigCommand } from "../command/project/removeconfig";
 import { RemoveNodeCommand } from "../command/project/removenode";
 import { AddNodeCommand } from "../command/project/addnode";
+import { SingletonModel } from "../model/singletonmodel";
+import { ThriftProject } from "../../iar/project/thrift/thriftproject";
+import { EwpFile } from "../../iar/project/parsing/ewpfile";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -50,14 +49,10 @@ class Application {
     // TODO: Possibly replace with/add Model<ProjectContext>.
     readonly project: UI<Project>;
     readonly config: UI<Config>;
+    readonly loadedProject: SingletonModel<LoadedProject>;
 
     readonly projectTreeProvider: TreeProjectView;
     readonly projectTreeView: Vscode.TreeView<any>;
-
-    // TODO: manage this better. Also, only expose a ProjectManager.Client, not the entire ThriftClient
-    private serviceManager: ThriftServiceManager | null = null;
-    projectManager: ThriftClient<ProjectManager.Client> | null = null;
-    projectContext: ProjectContext | null = null;
 
     readonly generator: Command;
     readonly selectIarWorkspace: Command;
@@ -72,8 +67,12 @@ class Application {
         this.workbench = this.createWorkbenchUi();
         this.compiler = this.createCompilerUi();
         this.hideHelper(this.compiler); // Should not be needed when using thrift PM
+
         this.project = this.createProjectUi();
         this.config = this.createConfigurationUi();
+        this.loadedProject = new SingletonModel<LoadedProject>();
+
+
         Vscode.window.registerTreeDataProvider('iar-settings', new TreeSelectionView(context,
                                                                                         this.workbench.model,
                                                                                         this.compiler.model,
@@ -104,43 +103,6 @@ class Application {
         this.selectCurrentSettings();
 
 
-        // experimental project manager handling
-        // TODO: close managers when closing extension
-        // TODO: is this called when selecting the same workbench?
-        this.workbench.model.addOnSelectedHandler(async workbench => {
-            this.projectManager?.close();
-            this.serviceManager?.stop();
-            const selected = workbench.selected;
-            if (selected) {
-                console.log("Creating new ServiceManager...");
-                this.serviceManager = new ThriftServiceManager(selected);
-                this.projectManager = await this.serviceManager.findService(PROJECTMANAGER_ID, ProjectManager);
-                if (this.project.model.selected) {
-                    this.projectContext = await this.projectManager.service.LoadEwpFile(this.project.model.selected!!.path.toString());
-                    IarConfigurationProvider.instance?.forceUpdate();
-                    const rootNode = await this.projectManager.service.GetRootNode(this.projectContext);
-                    this.projectTreeProvider.setRootNode(rootNode);
-                    if (this.projectManager && this.projectContext)
-                    this.projectTreeProvider.setConfigs(await this.projectManager.service.GetConfigurations(this.projectContext));
-                }
-            } else {
-                this.serviceManager = null;
-                this.projectManager = null;
-            }
-        });
-        this.project.model.addOnSelectedHandler(async project => {
-            const selected = project.selected;
-            if (selected && this.projectManager) {
-                console.log("Creating new ProjectContext...");
-                if (this.projectContext) {
-                    await this.projectManager.service.CloseProject(this.projectContext);
-                }
-                this.projectContext = await this.projectManager.service.LoadEwpFile(selected.path.toString());
-                IarConfigurationProvider.instance?.forceUpdate();
-            } else {
-                this.projectContext = null;
-            }
-        });
     }
 
     public show(): void {
@@ -206,7 +168,7 @@ class Application {
     private createProjectUi(): UI<Project> {
         let projects: Project[] = [];
         if (Vscode.workspace.rootPath) {
-            projects = Project.createProjectsFrom(Vscode.workspace.rootPath, true);
+            projects = Project.findProjectsIn(Vscode.workspace.rootPath, true);
         }
 
         let model = new ProjectListModel(...projects);
@@ -227,7 +189,7 @@ class Application {
     private createConfigurationUi(): UI<Config> {
         let configs: ReadonlyArray<Config> = [];
 
-        let project = this.project.model.selected;
+        let project = this.loadedProject.selected;
 
         if (project) {
             configs = project.configurations;
@@ -341,15 +303,13 @@ class Application {
     }
 
     private addProjectContentListeners(): void {
-        let model = this.project.model as ProjectListModel;
+        let model = this.loadedProject;
 
-        model.projects.forEach(project => {
-            project.onChanged(() => {
-                if (project === model.selected) {
-                    let configModel = this.config.model as ConfigurationListModel;
+        model.addOnSelectedHandler((_model, project) => {
+            project?.onChanged(() => {
+                let configModel = this.config.model as ConfigurationListModel;
 
-                    configModel.set(...project.configurations);
-                }
+                configModel.set(...project.configurations);
             });
         });
     }
@@ -365,6 +325,25 @@ class Application {
             let compilerModel = this.compiler.model as CompilerListModel;
 
             compilerModel.useCompilersFromWorkbench(model.selected);
+        });
+        // experimental project manager handling
+        // TODO: close managers when closing extension
+        // TODO: handle potential race when selecting project and workbench at the same time
+        model.addOnSelectedHandler(async workbench => {
+            const selectedWb = workbench.selected;
+            if (selectedWb) {
+                if (this.project.model.selected) {
+                    if (this.loadedProject.selected) {
+                        // TODO: find a way to reuse the same serviceMgr and projectMgr
+                        const prevProject = this.loadedProject.selected;
+                        // TODO: avoid doing this when the todo above is fixed
+                        this.loadedProject.selected = undefined;
+                        prevProject.unload();
+                    }
+                    this.loadedProject.selected = await ThriftProject.load(this.project.model.selected.path, selectedWb);
+                    IarConfigurationProvider.instance?.forceUpdate();
+                }
+            }
         });
     }
 
@@ -390,6 +369,25 @@ class Application {
 
         model.addOnSelectedHandler(() => {
             this.projectTreeView.title = model.selected ? model.selected.name : "IAR Project";
+        });
+        model.addOnSelectedHandler(async project => {
+            const selected = project.selected;
+            if (selected) {
+                if (this.loadedProject.selected) {
+                    // TODO: reuse the same serviceMgr and projectMgr
+                    const prevProject = this.loadedProject.selected;
+                    // TODO: avoid doing this when the todo above is fixed
+                    this.loadedProject.selected = undefined;
+                    prevProject.unload();
+                }
+                if (this.workbench.model.selected) {
+                    // TODO: handle rejection
+                    this.loadedProject.selected = await ThriftProject.load(selected.path, this.workbench.model.selected);
+                } else {
+                    this.loadedProject.selected = new EwpFile(selected.path);
+                }
+                IarConfigurationProvider.instance?.forceUpdate();
+            }
         });
     }
 

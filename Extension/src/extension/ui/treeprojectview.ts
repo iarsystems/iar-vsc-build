@@ -7,6 +7,8 @@
 import * as Vscode from "vscode";
 import { Node, NodeType } from "../../iar/project/thrift/bindings/projectmanager_types";
 import { Config } from "../../iar/project/config";
+import { UI } from "./app";
+import { LoadedProject } from "../../iar/project/project";
 
 // A generic node in this tree
 export interface ProjectNode {
@@ -40,10 +42,8 @@ export class ConfigurationNode implements ProjectNode {
 
 /**
  * Shows a view to the left of all files/groups in the project, and all configurations in the project.
- * The data shown is updated via the {@link setRootNode} and {@link setConfigs} functions.
  * Uses three top-level nodes: filesNode, under which all files are shown, an empty separatorNode,
  * and configsNode under which all configurations are shown.
- * // TODO: maybe use some Model<...> instances to update the data
  */
 export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
     private _onDidChangeTreeData = new Vscode.EventEmitter<ProjectNode | undefined>();
@@ -60,6 +60,10 @@ export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
         this.filesNode = { name: "Files", context: "filesroot" };
         this.separatorNode = { name: "", context: "" };
         this.configsNode = { name: "Configurations", context: "configsroot" };
+
+        const projectModel = UI.getInstance().loadedProject;
+        projectModel.addOnSelectedHandler((_model, project) => this.onProjectLoaded(project) );
+        this.onProjectLoaded(projectModel.selected);
     }
 
 
@@ -124,5 +128,18 @@ export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
             return [];
         }
         return [];
+    }
+
+    private updateData(_project: LoadedProject) {
+        // TODO: implement
+    }
+
+    private onProjectLoaded(project: LoadedProject | undefined) {
+        if (project) {
+            this.updateData(project);
+        } else {
+            this.rootNode = undefined;
+            this.configs = undefined;
+        }
     }
 }

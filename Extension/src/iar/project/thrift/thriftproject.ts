@@ -8,24 +8,24 @@ import * as Vscode from "vscode";
 import * as Fs from "fs";
 import * as Path from "path";
 import * as ProjectManager from "./bindings/ProjectManager";
-import { Project } from "../project";
+import { LoadedProject } from "../project";
 import { Workbench } from "../../tools/workbench";
 import { ThriftServiceManager } from "./thriftservicemanager";
 import { PROJECTMANAGER_ID, Configuration, ProjectContext } from "./bindings/projectmanager_types";
 import { ThriftClient } from "./ThriftClient";
 import { Handler } from "../../../utils/handler";
 
-export class ThriftProject implements Project {
+export class ThriftProject implements LoadedProject {
     private fileWatcher: Vscode.FileSystemWatcher;
-    private onChangedHandlers: Handler<(project: Project) => void>[] = [];
+    private onChangedHandlers: Handler<(project: LoadedProject) => void>[] = [];
 
     constructor(public path:           Fs.PathLike,
                 public configurations: ReadonlyArray<Configuration>,
                 private serviceMgr:    ThriftServiceManager,
                 private projectMgr:    ThriftClient<ProjectManager.Client>,
                 private context:       ProjectContext) {
+        // TODO: this should probably be changed to some thrift-based listener
         this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString());
-
         this.fileWatcher.onDidChange(() => {
             this.reload();
             this.onChangedHandlers.forEach(handler => handler.call(this));
@@ -49,7 +49,7 @@ export class ThriftProject implements Project {
         await this.serviceMgr.stop();
     }
 
-    public onChanged(callback: (project: Project) => void, thisArg?: any): void {
+    public onChanged(callback: (project: LoadedProject) => void, thisArg?: any): void {
         this.onChangedHandlers.push(new Handler(callback, thisArg));
     }
 }
