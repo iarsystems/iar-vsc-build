@@ -6,7 +6,7 @@
 
 import * as Vscode from "vscode";
 import { ProjectCommand } from "./projectcommand";
-import { Toolchain } from "../../../iar/project/thrift/bindings/projectmanager_types";
+import { Toolchain, Configuration } from "../../../iar/project/thrift/bindings/projectmanager_types";
 import { ConfigurationNode } from "../../ui/treeprojectview";
 import { ConfirmationDialog } from "../../ui/confirmationdialog";
 import { ExtendedProject } from "../../../iar/project/project";
@@ -49,7 +49,7 @@ export class AddConfigCommand extends ProjectCommand {
             const isDebug = await ConfirmationDialog.show("Is this a debug configuration?");
             if (isDebug === undefined) { return; }
 
-            const newConfig = { name, toolchainId: selectedTc.label };
+            const newConfig: Configuration = { name, toolchainId: selectedTc.tc.id };
             await project.addConfiguration(newConfig, isDebug);
 
             // TODO: notify Model<Config> of this change?

@@ -12,10 +12,13 @@ import { LoadedProject, ExtendedProject } from "../project";
 import { Configuration, ProjectContext, Node } from "./bindings/projectmanager_types";
 import { Handler } from "../../../utils/handler";
 import { Config } from "../config";
-import { QtoPromise } from "../../../utils/promise";
 
+/**
+ * A project using a thrift-capable backend to fetch and manage data.
+ */
 export class ThriftProject implements ExtendedProject {
     private fileWatcher: Vscode.FileSystemWatcher;
+    // TODO: should maybe provide separate handlers for changes to specific data
     private onChangedHandlers: Handler<(project: LoadedProject) => void>[] = [];
 
     constructor(public path:           Fs.PathLike,
@@ -25,8 +28,8 @@ export class ThriftProject implements ExtendedProject {
         // TODO: this should probably be changed to some thrift-based listener
         this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString());
         this.fileWatcher.onDidChange(() => {
-            this.reload();
-            this.onChangedHandlers.forEach(handler => handler.call(this));
+            // this.reload();
+            // this.fireChangedEvent();
         });
     }
 
@@ -34,21 +37,23 @@ export class ThriftProject implements ExtendedProject {
         return Path.parse(this.path.toString()).name;
     }
 
-    public async removeConfiguration(config: Config) {
+    public async removeConfiguration(config: Config): Promise<void> {
         await this.projectMgr.RemoveConfiguration(config.name, this.context);
         this.configurations = await this.projectMgr.GetConfigurations(this.context);
-        this.onChangedHandlers.forEach(handler => handler.call(this)); // TODO: maybe break out this line
-        return Promise.resolve();
+        this.fireChangedEvent();
     }
 
-    public addConfiguration(config: Config, isDebug: boolean): Promise<void> {
-        return QtoPromise(this.projectMgr.AddConfiguration(config, this.context, isDebug));
+    public async addConfiguration(config: Config, isDebug: boolean): Promise<void> {
+        await this.projectMgr.AddConfiguration(config, this.context, isDebug)
+        this.configurations = await this.projectMgr.GetConfigurations(this.context);
+        this.fireChangedEvent();
     }
-    public getRootNode(): Promise<Node> {
-        return QtoPromise(this.projectMgr.GetRootNode(this.context));
+    public async getRootNode(): Promise<Node> {
+        return this.projectMgr.GetRootNode(this.context);
     }
-    public setNode(node: Node): Promise<void> {
-        return QtoPromise(this.projectMgr.SetNode(this.context, node));
+    public async setNode(node: Node): Promise<void> {
+        await this.projectMgr.SetNode(this.context, node);
+        this.fireChangedEvent();
     }
 
     // TODO: fix interface signature
@@ -64,6 +69,10 @@ export class ThriftProject implements ExtendedProject {
 
     public onChanged(callback: (project: LoadedProject) => void, thisArg?: any): void {
         this.onChangedHandlers.push(new Handler(callback, thisArg));
+    }
+
+    private fireChangedEvent() {
+        this.onChangedHandlers.forEach(handler => handler.call(this));
     }
 }
 
