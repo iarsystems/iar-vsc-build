@@ -28,7 +28,7 @@ export class SingletonModel<T> implements InputModel<T> {
     public set selected(newSelected: T | undefined) {
         this._selected = newSelected;
         this.handlers.forEach(handler => {
-            handler.call(this._selected);
+            handler.call(this, this._selected);
         });
     }
 }

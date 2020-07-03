@@ -8,21 +8,19 @@ import * as Vscode from "vscode";
 import * as Fs from "fs";
 import * as Path from "path";
 import * as ProjectManager from "./bindings/ProjectManager";
-import { LoadedProject } from "../project";
-import { Workbench } from "../../tools/workbench";
-import { ThriftServiceManager } from "./thriftservicemanager";
-import { PROJECTMANAGER_ID, Configuration, ProjectContext } from "./bindings/projectmanager_types";
-import { ThriftClient } from "./ThriftClient";
+import { LoadedProject, ExtendedProject } from "../project";
+import { Configuration, ProjectContext, Node } from "./bindings/projectmanager_types";
 import { Handler } from "../../../utils/handler";
+import { Config } from "../config";
+import { QtoPromise } from "../../../utils/promise";
 
-export class ThriftProject implements LoadedProject {
+export class ThriftProject implements ExtendedProject {
     private fileWatcher: Vscode.FileSystemWatcher;
     private onChangedHandlers: Handler<(project: LoadedProject) => void>[] = [];
 
     constructor(public path:           Fs.PathLike,
                 public configurations: ReadonlyArray<Configuration>,
-                private serviceMgr:    ThriftServiceManager,
-                private projectMgr:    ThriftClient<ProjectManager.Client>,
+                private projectMgr:    ProjectManager.Client,
                 private context:       ProjectContext) {
         // TODO: this should probably be changed to some thrift-based listener
         this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString());
@@ -36,17 +34,32 @@ export class ThriftProject implements LoadedProject {
         return Path.parse(this.path.toString()).name;
     }
 
+    public async removeConfiguration(config: Config) {
+        await this.projectMgr.RemoveConfiguration(config.name, this.context);
+        this.configurations = await this.projectMgr.GetConfigurations(this.context);
+        this.onChangedHandlers.forEach(handler => handler.call(this)); // TODO: maybe break out this line
+        return Promise.resolve();
+    }
+
+    public addConfiguration(config: Config, isDebug: boolean): Promise<void> {
+        return QtoPromise(this.projectMgr.AddConfiguration(config, this.context, isDebug));
+    }
+    public getRootNode(): Promise<Node> {
+        return QtoPromise(this.projectMgr.GetRootNode(this.context));
+    }
+    public setNode(node: Node): Promise<void> {
+        return QtoPromise(this.projectMgr.SetNode(this.context, node));
+    }
+
     // TODO: fix interface signature
     public async reload() {
-        this.projectMgr.service.CloseProject(this.context);
-        this.context = await this.projectMgr.service.LoadEwpFile(this.path.toString());
-        this.configurations = await this.projectMgr.service.GetConfigurations(this.context);
+        this.projectMgr.CloseProject(this.context);
+        this.context = await this.projectMgr.LoadEwpFile(this.path.toString());
+        this.configurations = await this.projectMgr.GetConfigurations(this.context);
     }
 
     public async unload() {
-        this.projectMgr.service.CloseProject(this.context);
-        this.projectMgr.close();
-        await this.serviceMgr.stop();
+        this.projectMgr.CloseProject(this.context);
     }
 
     public onChanged(callback: (project: LoadedProject) => void, thisArg?: any): void {
@@ -56,12 +69,10 @@ export class ThriftProject implements LoadedProject {
 
 export namespace ThriftProject {
     // since constructors can't be async, we load the project async statically
-    export async function load(path: Fs.PathLike, workbench: Workbench): Promise<ThriftProject> {
-        const serviceManager = new ThriftServiceManager(workbench);
-        const projectManager = await serviceManager.findService(PROJECTMANAGER_ID, ProjectManager);
-        const projectContext = await projectManager.service.LoadEwpFile(path.toString());
-        const configs        = await projectManager.service.GetConfigurations(projectContext);
+    export async function load(path: Fs.PathLike, pm: ProjectManager.Client): Promise<ThriftProject> {
+        const projectContext = await pm.LoadEwpFile(path.toString());
+        const configs        = await pm.GetConfigurations(projectContext);
 
-        return new ThriftProject(path, configs, serviceManager, projectManager, projectContext);
+        return new ThriftProject(path, configs, pm, projectContext);
     }
 }

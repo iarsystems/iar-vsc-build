@@ -52,7 +52,7 @@ export class ThriftServiceManager {
      */
     public async stop() {
         const serviceMgr = await this.findService(SERVICE_MANAGER_SERVICE, CSpyServiceManager);
-        serviceMgr.service.shutdown();
+        await serviceMgr.service.shutdown();
         serviceMgr.close();
     }
 

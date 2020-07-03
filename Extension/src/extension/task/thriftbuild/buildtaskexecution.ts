@@ -5,7 +5,6 @@
 import * as Vscode from "vscode";
 import { BuildTaskDefinition } from "./buildtaskprovider";
 import { CommandUtils } from "../../../utils/utils";
-import { UI } from "../../ui/app";
 
 /**
  * Executes a build task using a thrift service.
@@ -20,7 +19,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
 
     onDidOverrideDimensions?: Vscode.Event<Vscode.TerminalDimensions | undefined> | undefined;
 
-    private definition: BuildTaskDefinition;
+    // private definition: BuildTaskDefinition;
 
     constructor(definition: BuildTaskDefinition) {
         // substitute command variables
@@ -30,7 +29,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
                 resolvedDef[property] = CommandUtils.parseSettingCommands(resolvedDef[property]);
             }
         }
-        this.definition = resolvedDef;
+        // this.definition = resolvedDef;
 	}
 
     open(_initialDimensions: Vscode.TerminalDimensions | undefined): void {
@@ -52,8 +51,8 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
     close(): void {
     }
 
-    private onError(reason: any) {
+/*     private onError(reason: any) {
         this.writeEmitter.fire(reason + "\r\n");
         this.closeEmitter.fire();
-    }
+    } */
 }

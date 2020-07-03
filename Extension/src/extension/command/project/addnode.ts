@@ -7,11 +7,10 @@
 import * as Fs from "fs";
 import * as Path from "path";
 import * as Vscode from "vscode";
-import * as ProjectManager from "../../../iar/project/thrift/bindings/ProjectManager";
-import { Node, NodeType, ProjectContext } from "../../../iar/project/thrift/bindings/projectmanager_types";
-import { UI } from "../../ui/app";
+import { Node, NodeType } from "../../../iar/project/thrift/bindings/projectmanager_types";
 import { FilesNode, ProjectNode } from "../../ui/treeprojectview";
 import { ProjectCommand } from "./projectcommand";
+import { ExtendedProject } from "../../../iar/project/project";
 
 /**
  * This command adds a file or group to a project (using a thrift ProjectManager)
@@ -21,9 +20,9 @@ export class AddNodeCommand extends ProjectCommand {
         super("iar.addNode");
     }
 
-    async execute(source: ProjectNode, pm: ProjectManager.Client, context: ProjectContext) {
+    async execute(source: ProjectNode, project: ExtendedProject) {
         try {
-            const rootNode = await pm.GetRootNode(context);
+            const rootNode = await project.getRootNode();
             // The source is either a FilesNode corresponding to a group, or the user clicked the top-level "Files"
             // item, in which case we should add to the root node
             const newParent = source instanceof FilesNode ? source.iarNode : rootNode;
@@ -41,16 +40,17 @@ export class AddNodeCommand extends ProjectCommand {
             const name = await Vscode.window.showInputBox({ prompt: "Enter a name for the " + typeString, placeHolder });
             if (!name) { return; }
 
-            const fullPath = Path.join(Path.dirname(context.filename), name);
+            const fullPath = Path.join(Path.dirname(project.path.toString()), name);
             if (selectedType.type === NodeType.File && !Fs.existsSync(fullPath)) {
                 Fs.writeFileSync(fullPath, "");
             }
 
             newParent.children.push(new Node({ children: [], name, type: selectedType.type, path: fullPath }));
-            await pm.SetNode(context, newParent);
+            await project.setNode(newParent);
 
             // TODO: find a more elegant way to do this
-            UI.getInstance().projectTreeProvider.setRootNode(await pm.GetRootNode(context));
+            // should already work, with the onChanged callback on LoadedProject
+            // UI.getInstance().projectTreeProvider.setRootNode(await project.getRootNode());
 
             Vscode.window.showInformationMessage(`The ${typeString} "${name}" has been added to the project.`);
         } catch(e) {

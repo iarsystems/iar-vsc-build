@@ -8,6 +8,7 @@ import * as Fs from "fs";
 import * as Path from "path";
 import { FsUtils } from "../../utils/fs";
 import { Config } from "./config";
+import { Node } from "./thrift/bindings/projectmanager_types";
 
 export class Project {
     constructor(public path: Fs.PathLike) {}
@@ -23,6 +24,13 @@ export interface LoadedProject extends Project {
     onChanged(callback: (project: LoadedProject) => void, thisArg?: any): void;
     reload(): any;
     unload(): void | Promise<void>;
+}
+
+export interface ExtendedProject extends LoadedProject {
+    removeConfiguration(config: Config): Promise<void>;
+    addConfiguration(config: Config, isDebug: boolean): Promise<void>;
+    getRootNode(): Promise<Node>;
+    setNode(node: Node): Promise<void>;
 }
 
 

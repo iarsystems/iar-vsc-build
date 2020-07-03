@@ -47,6 +47,7 @@ export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
     readonly onDidChangeTreeData: Vscode.Event<TreeNode | undefined> = this._onDidChangeTreeData.event;
 
     private readonly topNodes: TreeTopNode[] = [];
+    private compilerVisible: boolean = false;
 
     constructor (
         context: Vscode.ExtensionContext,
@@ -70,6 +71,13 @@ export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
         });
     }
 
+    setCompilerVisible(visible: boolean) {
+        if (visible != this.compilerVisible) {
+            this.compilerVisible = visible;
+            this._onDidChangeTreeData.fire(undefined);
+        }
+    }
+
     getTreeItem(element: TreeNode): Vscode.TreeItem | Thenable<Vscode.TreeItem> {
         return element;
     }
@@ -90,7 +98,13 @@ export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
             } else {
                 return [];
             }
+        } else {
+            if (this.compilerVisible) {
+                return this.topNodes;
+            } else {
+                // TODO: refactor
+                return [this.topNodes[0], this.topNodes[2], this.topNodes[3]];
+            }
         }
-        return this.topNodes;
     }
 }

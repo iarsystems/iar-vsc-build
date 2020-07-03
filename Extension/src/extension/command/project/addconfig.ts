@@ -8,9 +8,9 @@ import * as Vscode from "vscode";
 import { ProjectCommand } from "./projectcommand";
 import { Toolchain } from "../../../iar/project/thrift/bindings/projectmanager_types";
 import { ConfigurationNode } from "../../ui/treeprojectview";
-import { ProjectContext } from "../../../iar/project/thrift/bindings/projectmanager_types";
-import * as ProjectManager from "../../../iar/project/thrift/bindings/ProjectManager";
 import { ConfirmationDialog } from "../../ui/confirmationdialog";
+import { ExtendedProject } from "../../../iar/project/project";
+import { UI } from "../../ui/app";
 
 /**
  * This command adds a configuration to a project (using a thrift ProjectManager)
@@ -20,19 +20,23 @@ export class AddConfigCommand extends ProjectCommand {
         super("iar.addConfig");
     }
 
-    async execute(_source: ConfigurationNode, pm: ProjectManager.Client, context: ProjectContext) {
+    async execute(_source: ConfigurationNode, project: ExtendedProject) {
         try {
+            const exWorkbench = UI.getInstance().extendedWorkbench.selected;
+            if (!exWorkbench) {
+                return;
+            }
             let name = await Vscode.window.showInputBox({
                                                             prompt: "Enter a name for the new configuration",
                                                             placeHolder: "MyConfiguration" });
             if (!name) { return; }
 
-            const existingConfigs = await pm.GetConfigurations(context);
+            const existingConfigs = project.configurations;
             if (existingConfigs.some(conf => conf.name === name)) {
-                throw `There is already a configuration called "${name}".`;
+                throw new Error(`There is already a configuration called "${name}".`);
             }
 
-            const toolchains = await pm.GetToolchains();
+            const toolchains = await exWorkbench.getToolchains();
             const qpItems: Array<Vscode.QuickPickItem & { tc: Toolchain }> = toolchains.map(tc => {
                 return {
                     label: tc.name,
@@ -45,8 +49,8 @@ export class AddConfigCommand extends ProjectCommand {
             const isDebug = await ConfirmationDialog.show("Is this a debug configuration?");
             if (isDebug === undefined) { return; }
 
-            const newConfig = { name, toolchainId: selectedTc.tc.id };
-            await pm.AddConfiguration(newConfig, context, isDebug);
+            const newConfig = { name, toolchainId: selectedTc.label };
+            await project.addConfiguration(newConfig, isDebug);
 
             // TODO: notify Model<Config> of this change?
 

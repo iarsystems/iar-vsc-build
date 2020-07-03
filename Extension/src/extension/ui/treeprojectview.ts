@@ -7,8 +7,8 @@
 import * as Vscode from "vscode";
 import { Node, NodeType } from "../../iar/project/thrift/bindings/projectmanager_types";
 import { Config } from "../../iar/project/config";
-import { UI } from "./app";
-import { LoadedProject } from "../../iar/project/project";
+import { ExtendedProject } from "../../iar/project/project";
+import { InputModel } from "../model/model";
 
 // A generic node in this tree
 export interface ProjectNode {
@@ -50,31 +50,19 @@ export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
     readonly onDidChangeTreeData: Vscode.Event<ProjectNode | undefined> = this._onDidChangeTreeData.event;
 
     private rootNode: Node | undefined;
-    private configs: Config[] | undefined;
+    private configs: ReadonlyArray<Config> | undefined;
 
     private filesNode: ProjectNode;
     private separatorNode: ProjectNode;
     private configsNode: ProjectNode;
 
-    constructor() {
+    constructor(projectModel: InputModel<ExtendedProject>) {
         this.filesNode = { name: "Files", context: "filesroot" };
         this.separatorNode = { name: "", context: "" };
         this.configsNode = { name: "Configurations", context: "configsroot" };
 
-        const projectModel = UI.getInstance().loadedProject;
         projectModel.addOnSelectedHandler((_model, project) => this.onProjectLoaded(project) );
         this.onProjectLoaded(projectModel.selected);
-    }
-
-
-    public setRootNode(rootNode: Node) {
-        this.rootNode = rootNode;
-        this._onDidChangeTreeData.fire(undefined);
-    }
-
-    public setConfigs(configs: Config[]) {
-        this.configs = configs;
-        this._onDidChangeTreeData.fire(undefined);
     }
 
     /// overriden functions, create the actual tree
@@ -130,13 +118,16 @@ export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
         return [];
     }
 
-    private updateData(_project: LoadedProject) {
-        // TODO: implement
+    private async updateData(project: ExtendedProject) {
+        this.configs = project.configurations;
+        this.rootNode = await project.getRootNode();
+        this._onDidChangeTreeData.fire(undefined);
     }
 
-    private onProjectLoaded(project: LoadedProject | undefined) {
+    private onProjectLoaded(project: ExtendedProject | undefined) {
         if (project) {
             this.updateData(project);
+            project.onChanged(() => this.updateData(project));
         } else {
             this.rootNode = undefined;
             this.configs = undefined;

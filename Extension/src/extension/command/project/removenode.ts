@@ -8,8 +8,8 @@ import * as Vscode from "vscode";
 import { ConfirmationDialog } from "../../ui/confirmationdialog";
 import { FilesNode } from "../../ui/treeprojectview";
 import { ProjectCommand } from "./projectcommand";
-import { NodeType, Node, ProjectContext } from "../../../iar/project/thrift/bindings/projectmanager_types";
-import * as ProjectManager from "../../../iar/project/thrift/bindings/ProjectManager";
+import { NodeType, Node } from "../../../iar/project/thrift/bindings/projectmanager_types";
+import { ExtendedProject } from "../../../iar/project/project";
 
 /**
  * This command removes a file or group from a project (using a thrift ProjectManager)
@@ -19,16 +19,16 @@ export class RemoveNodeCommand extends ProjectCommand {
         super("iar.removeNode");
     }
 
-    async execute(source: FilesNode, pm: ProjectManager.Client, context: ProjectContext) {
+    async execute(source: FilesNode, project: ExtendedProject) {
         const typeString = source.iarNode.type === NodeType.File ? "file" : "group";
         try {
             const toRemove = source.iarNode;
             const shouldRemove = await ConfirmationDialog.show(`Really remove ${typeString} "${toRemove.name}"?`);
             if (!shouldRemove) { return; }
 
-            const rootNode = await pm.GetRootNode(context);
+            const rootNode = await project.getRootNode();
             this.removeNode(rootNode, toRemove);
-            pm.SetNode(context, rootNode);
+            project.setNode(rootNode);
 
             Vscode.window.showInformationMessage(`The ${typeString} "${toRemove.name}" has been removed from the project.`);
         } catch(e) {

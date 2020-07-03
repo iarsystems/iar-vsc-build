@@ -8,7 +8,6 @@ import * as Vscode from "vscode";
 import { Command } from "../manager";
 import { UI } from "../../ui/app";
 import * as Path from "path";
-import * as Fs from "fs";
 
 /**
  * Prompts the user for a name and creates a new project using the currently selected workbench
@@ -32,20 +31,17 @@ export class CreateProjectCommand implements Command {
 
     async execute(_autoTriggered?: boolean | undefined) {
         try {
-            const workbench = UI.getInstance().workbench.model.selected;
-            if (!workbench) {
-                Vscode.window.showErrorMessage("You must select a workbench before creating a project.");
-                return;
+            // TODO: check if the extended workbench is still starting (e.g. because the extension was just activated by this command).
+            const exWorkbench = UI.getInstance().extendedWorkbench.selected;
+            if (!exWorkbench) {
+                if (UI.getInstance().workbench.model.selected) {
+                    throw new Error("The selected workbench does not support the operation.");
+                } else {
+                    throw new Error("No workbench selected.");
+                }
             }
-            const pm = UI.getInstance().projectManager;
-            // TODO: check if the project manager is still starting (e.g. because the extension was just activated by this command).
-            if (!pm) {
-                Vscode.window.showErrorMessage("The selected workbench appears to old. Select a newer one or create the project inside the workbench.");
-                return;
-            }
-            let name = await Vscode.window.showInputBox({
-                                                            prompt: `Enter a name for the new project. The project will be created using '${workbench.name}'.`,
-                                                            placeHolder: "my_project" });
+            let name = await Vscode.window.showInputBox({ prompt: `Enter a name for the new project. The project will be created using '${exWorkbench.workbench.name}'.`,
+                                                          placeHolder: "my_project" });
             if (!name) { return; }
             if (!name.endsWith(".ewp")) {
                 name = name + ".ewp";
@@ -56,11 +52,8 @@ export class CreateProjectCommand implements Command {
             }
 
             const path = Path.join(workspace.uri.fsPath, name);
-            if (Fs.existsSync(path)) {
-                throw "The file already exists.";
-            }
+            exWorkbench.createProject(path);
 
-            await pm.service.CreateEwpFile(path); // TODO: does the PM auto-load the project? In that case it should be unloaded here
             // TODO: notify Model<Project> of this change?
 
             Vscode.window.showInformationMessage(`The project has been created as ${name}.`);

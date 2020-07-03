@@ -8,8 +8,7 @@ import * as Vscode from "vscode";
 import { ConfirmationDialog } from "../../ui/confirmationdialog";
 import { ConfigurationNode } from "../../ui/treeprojectview";
 import { ProjectCommand } from "./projectcommand";
-import { ProjectContext } from "../../../iar/project/thrift/bindings/projectmanager_types";
-import * as ProjectManager from "../../../iar/project/thrift/bindings/ProjectManager";
+import { ExtendedProject } from "../../../iar/project/project";
 
 /**
  * This command removes a configuration from a project (using a thrift ProjectManager)
@@ -19,7 +18,7 @@ export class RemoveConfigCommand extends ProjectCommand {
         super("iar.removeConfig");
     }
 
-    async execute(source: ConfigurationNode, pm: ProjectManager.Client, context: ProjectContext) {
+    async execute(source: ConfigurationNode, project: ExtendedProject) {
         try {
             const toRemove = source.config;
 
@@ -28,9 +27,7 @@ export class RemoveConfigCommand extends ProjectCommand {
                 return;
             }
 
-            await pm.RemoveConfiguration(toRemove.name, context);
-
-            // TODO: notify Model<Config> of this change?
+            await project.removeConfiguration(toRemove);
 
             Vscode.window.showInformationMessage(`The configuration "${toRemove.name}" has been removed from the project.`);
         } catch(e) {
