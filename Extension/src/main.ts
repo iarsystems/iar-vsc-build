@@ -44,6 +44,7 @@ export function deactivate() {
     }
     IarTaskProvider.unregister();
     CStatTaskProvider.unRegister();
+    UI.getInstance().dispose();
 }
 
 function loadTools() {

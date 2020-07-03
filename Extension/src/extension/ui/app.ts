@@ -141,6 +141,15 @@ class Application {
         this.hideHelper(this.config);
     }
 
+    public dispose(): void {
+        if (this.extendedProject.selected) {
+            this.extendedProject.selected.unload();
+        }
+        if (this.extendedWorkbench.selected) {
+            this.extendedWorkbench.selected.dispose();
+        }
+    }
+
     private showHelper<T>(element: UI<T>) {
         element.ui.show();
         element.cmd.enabled = true;
