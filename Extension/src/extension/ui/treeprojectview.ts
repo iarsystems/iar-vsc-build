@@ -5,133 +5,39 @@
 'use strict';
 
 import * as Vscode from "vscode";
-import { Node, NodeType } from "../../iar/project/thrift/bindings/projectmanager_types";
-import { Config } from "../../iar/project/config";
-import { ExtendedProject } from "../../iar/project/project";
+import { ExtendedProject, Project } from "../../iar/project/project";
 import { InputModel } from "../model/model";
-
-// A generic node in this tree
-export interface ProjectNode {
-    name: string;
-    context: string;
-}
-
-// A node showing a file or file group i.e. a {@link Node}
-export class FilesNode implements ProjectNode {
-    public name: string;
-    public context: string;
-    constructor(public iarNode: Node) {
-        this.name = iarNode.name;
-        this.context = iarNode.type === NodeType.File ? "file" : "group";
-    }
-
-    getChildren(): FilesNode[] {
-        return this.iarNode.children.map(child => new FilesNode(child));
-    }
-}
-
-// A node showing a project {@link Configuration}
-export class ConfigurationNode implements ProjectNode {
-    public name: string;
-    public context: string;
-    constructor(public config: Config) {
-        this.name = config.name;
-        this.context = "configuration";
-    }
-}
+import { TreeProjectProvider, ProjectNode } from "./treeprojectprovider";
+import { Workbench } from "../../iar/tools/workbench";
+import { ExtendedWorkbench } from "../../iar/extendedworkbench";
 
 /**
  * Shows a view to the left of all files/groups in the project, and all configurations in the project.
- * Uses three top-level nodes: filesNode, under which all files are shown, an empty separatorNode,
- * and configsNode under which all configurations are shown.
+ * This view requires an ExtendedProject, and will show an appropriate message when no such project is available.
  */
-export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
-    private _onDidChangeTreeData = new Vscode.EventEmitter<ProjectNode | undefined>();
-    readonly onDidChangeTreeData: Vscode.Event<ProjectNode | undefined> = this._onDidChangeTreeData.event;
+export class TreeProjectView {
+    private readonly provider: TreeProjectProvider = new TreeProjectProvider();
+    private readonly view: Vscode.TreeView<ProjectNode>;
 
-    private rootNode: Node | undefined;
-    private configs: ReadonlyArray<Config> | undefined;
-
-    private filesNode: ProjectNode;
-    private separatorNode: ProjectNode;
-    private configsNode: ProjectNode;
-
-    constructor(projectModel: InputModel<ExtendedProject>) {
-        this.filesNode = { name: "Files", context: "filesroot" };
-        this.separatorNode = { name: "", context: "" };
-        this.configsNode = { name: "Configurations", context: "configsroot" };
-
-        projectModel.addOnSelectedHandler((_model, project) => this.onProjectLoaded(project) );
-        this.onProjectLoaded(projectModel.selected);
-    }
-
-    /// overriden functions, create the actual tree
-
-    getTreeItem(element: ProjectNode): Vscode.TreeItem | Thenable<Vscode.TreeItem> {
-        const item = new Vscode.TreeItem(element.name);
-        item.contextValue = element.context;
-        if (element === this.filesNode || element === this.configsNode) {
-            item.collapsibleState = Vscode.TreeItemCollapsibleState.Expanded;
-        } else if (element === this.separatorNode) {
-            item.collapsibleState = Vscode.TreeItemCollapsibleState.None;
-        } else if (element instanceof FilesNode) {
-
-            item.collapsibleState = element.iarNode.children.length > 0 ? Vscode.TreeItemCollapsibleState.Expanded : Vscode.TreeItemCollapsibleState.None;
-            item.description = element.iarNode.path;
-
-            if (element.iarNode.type === NodeType.File) {
-                item.iconPath = new Vscode.ThemeIcon("file-code");
-                item.tooltip = element.iarNode.name + " - Click to open";
-                item.command = { title: "Open in editor", command: "vscode.open", arguments: [Vscode.Uri.file(element.iarNode.path)] };
-            }
-            if (element.iarNode.type === NodeType.Group) {
-                item.contextValue = "group";
-            }
-
-        } else if (element instanceof ConfigurationNode) {
-            item.collapsibleState = Vscode.TreeItemCollapsibleState.None;
-            item.description = element.config.toolchainId.toUpperCase();
-            // item.iconPath = new Vscode.ThemeIcon("database");
-        }
-        return item;
-    }
-
-    getChildren(element?: ProjectNode): Vscode.ProviderResult<ProjectNode[]> {
-        if (!element) {
-            if (this.rootNode || this.configs) {
-                return [this.filesNode, this.separatorNode, this.configsNode];
+    constructor(projectModel: InputModel<Project>,
+                extProjectModel: InputModel<ExtendedProject>,
+                workbenchModel: InputModel<Workbench>,
+                extWorkbenchModel: InputModel<ExtendedWorkbench>) {
+        this.view = Vscode.window.createTreeView("iar-project", { treeDataProvider: this.provider });
+        projectModel.addOnSelectedHandler((_model, project) => {
+            this.view.title = project ? project.name : "IAR Project";
+        });
+        extProjectModel.addOnSelectedHandler((_model, project) => {
+            this.provider.setProject(project);
+        });
+        extWorkbenchModel.addOnSelectedHandler((_model, extWorkbench) => {
+            if (extWorkbench || !workbenchModel.selected) {
+                // no message - show welcome content from package.json if no project is loaded
+                this.view.message = undefined;
             } else {
-                return [];
+                // Workbench loaded but no extended workbench means we can't manage/create projects, so tell the user that
+                this.view.message = "A newer workbench version is required to see and manage project contents.";
             }
-
-        } else if (element === this.filesNode) {
-            return this.rootNode ? new FilesNode(this.rootNode).getChildren() : [];
-        } else if (element === this.separatorNode) {
-            return [];
-        } else if (element === this.configsNode) {
-            return this.configs ? this.configs.map(conf => new ConfigurationNode(conf)) : [];
-        } else if (element instanceof FilesNode){
-            return element.getChildren();
-        } else if (element instanceof ConfigurationNode) {
-            return [];
-        }
-        return [];
-    }
-
-    private async updateData(project: ExtendedProject) {
-        this.configs = project.configurations;
-        this.rootNode = await project.getRootNode();
-        this._onDidChangeTreeData.fire(undefined);
-    }
-
-    private onProjectLoaded(project: ExtendedProject | undefined) {
-        if (project) {
-            this.updateData(project);
-            project.onChanged(() => this.updateData(project));
-        } else {
-            this.rootNode = undefined;
-            this.configs = undefined;
-            this._onDidChangeTreeData.fire(undefined);
-        }
+        });
     }
 }

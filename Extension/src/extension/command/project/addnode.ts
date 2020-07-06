@@ -8,7 +8,7 @@ import * as Fs from "fs";
 import * as Path from "path";
 import * as Vscode from "vscode";
 import { Node, NodeType } from "../../../iar/project/thrift/bindings/projectmanager_types";
-import { FilesNode, ProjectNode } from "../../ui/treeprojectview";
+import { FilesNode, ProjectNode } from "../../ui/treeprojectprovider";
 import { ProjectCommand } from "./projectcommand";
 import { ExtendedProject } from "../../../iar/project/project";
 

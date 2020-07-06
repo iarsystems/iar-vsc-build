@@ -6,7 +6,7 @@
 
 import * as Vscode from "vscode";
 import { ConfirmationDialog } from "../../ui/confirmationdialog";
-import { ConfigurationNode } from "../../ui/treeprojectview";
+import { ConfigurationNode } from "../../ui/treeprojectprovider";
 import { ProjectCommand } from "./projectcommand";
 import { ExtendedProject } from "../../../iar/project/project";
 

@@ -5,7 +5,7 @@
 'use strict';
 
 import * as Vscode from "vscode";
-import { ProjectNode } from "../../ui/treeprojectview";
+import { ProjectNode } from "../../ui/treeprojectprovider";
 import { UI } from "../../ui/app";
 import { ExtendedProject } from "../../../iar/project/project";
 

@@ -55,8 +55,7 @@ class Application {
     // if the selected workbench has extended capabilities, it will be provided here
     readonly extendedWorkbench: SingletonModel<ExtendedWorkbench>;
 
-    readonly projectTreeProvider: TreeProjectView;
-    readonly projectTreeView: Vscode.TreeView<any>;
+    readonly projectTreeView: TreeProjectView;
     readonly settingsTreeView: TreeSelectionView;
 
     readonly generator: Command;
@@ -86,9 +85,7 @@ class Application {
                                                         this.config.model);
         Vscode.window.registerTreeDataProvider('iar-settings', this.settingsTreeView);
 
-        this.projectTreeProvider = new TreeProjectView(this.extendedProject);                                                                                        
-        // Vscode.window.registerTreeDataProvider("iar-project", this.projectTree);
-        this.projectTreeView = Vscode.window.createTreeView("iar-project", { treeDataProvider: this.projectTreeProvider });
+        this.projectTreeView = new TreeProjectView(this.project.model, this.extendedProject, this.workbench.model, this.extendedWorkbench);
 
         // Create commands without UI
         this.generator = RegenerateCommand.createRegenerateCppToolsConfig(this.compiler.model as CompilerListModel,
@@ -357,6 +354,7 @@ class Application {
 
             if (selectedWb) {
                 if (ThriftWorkbench.hasThriftSupport(selectedWb)) {
+                    // TODO: handle rejection
                     this.extendedWorkbench.selected = await ThriftWorkbench.from(selectedWb);
                 } else {
                     this.extendedWorkbench.selected = undefined;
@@ -380,15 +378,12 @@ class Application {
 
         model.addOnInvalidateHandler(() => {
             this.selectCurrentProject();
-        });
-        model.addOnSelectedHandler(() => {
+            this.loadProject();
         });
 
         model.addOnSelectedHandler(() => {
-            this.projectTreeView.title = model.selected ? model.selected.name : "IAR Project";
         });
         model.addOnSelectedHandler(() => {
-            this.loadProject();
         });
 
         this.loadedProject.addOnSelectedHandler(() => {

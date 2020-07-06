@@ -7,7 +7,7 @@
 import * as Vscode from "vscode";
 import { ProjectCommand } from "./projectcommand";
 import { Toolchain, Configuration } from "../../../iar/project/thrift/bindings/projectmanager_types";
-import { ConfigurationNode } from "../../ui/treeprojectview";
+import { ConfigurationNode } from "../../ui/treeprojectprovider";
 import { ConfirmationDialog } from "../../ui/confirmationdialog";
 import { ExtendedProject } from "../../../iar/project/project";
 import { UI } from "../../ui/app";
