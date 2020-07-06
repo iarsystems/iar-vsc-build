@@ -22,7 +22,6 @@ import { tmpdir } from "os";
 
 /**
  * Provides and manages a set of services for a workbench.
- * TODO: Make this singleton-ish, since there can and should only be one per workspace
  */
 export class ThriftServiceManager {
     private static output: Vscode.OutputChannel;
@@ -30,7 +29,6 @@ export class ThriftServiceManager {
 
     constructor(private readonly workbench: Workbench) {
         if (!ThriftServiceManager.output) { ThriftServiceManager.output = Vscode.window.createOutputChannel("IarServiceManager"); }
-        // TODO: figure out what to do if one already exists, and we did not create it.
         // TODO: detect if startup fails, and throw/reject immediately
         let registryPath = path.join(this.workbench.path.toString(), "common/bin/IarServiceLauncher");
         if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {

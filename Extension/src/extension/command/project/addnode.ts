@@ -36,7 +36,7 @@ export class AddNodeCommand extends ProjectCommand {
 
             const typeString = selectedType.type === NodeType.File ? "file" : "group";
             const placeHolder = selectedType.type === NodeType.File ? "my_src.c" : "MyGroup";
-            // TODO: use showOpenDialog instead?
+
             const name = await Vscode.window.showInputBox({ prompt: "Enter a name for the " + typeString, placeHolder });
             if (!name) { return; }
 
@@ -47,10 +47,6 @@ export class AddNodeCommand extends ProjectCommand {
 
             newParent.children.push(new Node({ children: [], name, type: selectedType.type, path: fullPath }));
             await project.setNode(newParent);
-
-            // TODO: find a more elegant way to do this
-            // should already work, with the onChanged callback on LoadedProject
-            // UI.getInstance().projectTreeProvider.setRootNode(await project.getRootNode());
 
             Vscode.window.showInformationMessage(`The ${typeString} "${name}" has been added to the project.`);
         } catch(e) {
