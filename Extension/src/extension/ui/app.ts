@@ -347,30 +347,21 @@ class Application {
 
             compilerModel.useCompilersFromWorkbench(model.selected);
         });
-        // experimental project manager handling
-        // TODO: dispose extended workbench when closing extension
-        // TODO: handle potential race when selecting project and workbench at the same time
-        // TODO: break out parts of this into a function
-        model.addOnSelectedHandler(async workbench => {
-            this.extendedWorkbench.selected?.dispose();
 
+        // TODO: handle potential race when selecting project and workbench at the same time
+        model.addOnSelectedHandler(async workbench => {
+            const prevExtWb = this.extendedWorkbench.selected;
             const selectedWb = workbench.selected;
+
             if (selectedWb) {
-                if (this.project.model.selected) {
-                    // TODO: check if the workbench _can_ be extended
+                if (ThriftWorkbench.hasThriftSupport(selectedWb)) {
                     this.extendedWorkbench.selected = await ThriftWorkbench.from(selectedWb);
-                    if (this.loadedProject.selected) {
-                        // TODO: find a way to reuse the same serviceMgr and projectMgr
-                        const prevProject = this.loadedProject.selected;
-                        // TODO: avoid doing this when the todo above is fixed
-                        this.loadedProject.selected = undefined;
-                        prevProject.unload();
-                    }
-                    this.extendedProject.selected = await this.extendedWorkbench.selected.loadProject(this.project.model.selected);
-                    this.loadedProject.selected = this.extendedProject.selected;
-                    IarConfigurationProvider.instance?.forceUpdate();
+                } else {
+                    this.extendedWorkbench.selected = undefined;
                 }
             }
+            this.loadProject();
+            prevExtWb?.dispose();
         });
     }
 
@@ -394,21 +385,8 @@ class Application {
         model.addOnSelectedHandler(() => {
             this.projectTreeView.title = model.selected ? model.selected.name : "IAR Project";
         });
-        model.addOnSelectedHandler(async project => {
-            const selected = project.selected;
-            if (selected) {
-                const prevProject = this.loadedProject.selected;
-                if (this.workbench.model.selected && this.extendedWorkbench.selected) {
-                    // TODO: handle rejection
-                    this.extendedProject.selected = await this.extendedWorkbench.selected.loadProject(selected);
-                    this.loadedProject.selected = this.extendedProject.selected;
-                } else {
-                    this.loadedProject.selected = new EwpFile(selected.path);
-                    this.extendedProject.selected = undefined;
-                }
-                prevProject?.unload();
-                IarConfigurationProvider.instance?.forceUpdate();
-            }
+        model.addOnSelectedHandler(() => {
+            this.loadProject();
         });
 
         this.loadedProject.addOnSelectedHandler(() => {
@@ -424,6 +402,26 @@ class Application {
         model.addOnInvalidateHandler(() => {
             this.selectCurrentConfiguration();
         });
+    }
+
+    private async loadProject() {
+        const prevProject = this.loadedProject.selected;
+        const selectedProject = this.project.model.selected;
+        if (selectedProject) {
+            if (this.workbench.model.selected && this.extendedWorkbench.selected) {
+                // TODO: handle rejection
+                this.extendedProject.selected = await this.extendedWorkbench.selected.loadProject(selectedProject);
+                this.loadedProject.selected = this.extendedProject.selected;
+            } else {
+                this.loadedProject.selected = new EwpFile(selectedProject.path);
+                this.extendedProject.selected = undefined;
+            }
+            IarConfigurationProvider.instance?.forceUpdate();
+        } else {
+            this.loadedProject.selected = undefined;
+            this.extendedProject.selected = undefined;
+        }
+        prevProject?.unload();
     }
 }
 

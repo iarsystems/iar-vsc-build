@@ -131,6 +131,7 @@ export class TreeProjectView implements Vscode.TreeDataProvider<ProjectNode> {
         } else {
             this.rootNode = undefined;
             this.configs = undefined;
+            this._onDidChangeTreeData.fire(undefined);
         }
     }
 }

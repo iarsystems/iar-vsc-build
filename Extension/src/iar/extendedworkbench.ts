@@ -6,6 +6,7 @@
 
 import * as ProjectManager from "./project/thrift/bindings/ProjectManager";
 import * as Fs from "fs";
+import * as Path from "path";
 import { Workbench } from "./tools/workbench";
 import { Toolchain, PROJECTMANAGER_ID } from "./project/thrift/bindings/projectmanager_types";
 import { ExtendedProject, Project } from "./project/project";
@@ -35,10 +36,14 @@ export interface ExtendedWorkbench {
  */
 export class ThriftWorkbench implements ExtendedWorkbench {
     static async from(workbench: Workbench): Promise<ThriftWorkbench> {
-        console.log("Creating extended workbench for " + workbench.name);
         const serviceManager = new ThriftServiceManager(workbench);
         const projectManager = await serviceManager.findService(PROJECTMANAGER_ID, ProjectManager);
         return new ThriftWorkbench(workbench, serviceManager, projectManager);
+    }
+
+    static hasThriftSupport(workbench: Workbench): boolean {
+        // TODO: find a better way to do this
+        return Fs.existsSync(Path.join(workbench.path.toString(), "common/bin/projectmanager.json"));
     }
 
     constructor(public workbench:   Workbench,
@@ -51,7 +56,6 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     }
 
     public loadProject(project: Project) {
-        console.log("Loading project: " + project.name);
         return ThriftProject.load(project.path, this.projectMgr.service);
     }
 
