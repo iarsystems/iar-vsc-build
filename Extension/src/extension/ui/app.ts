@@ -341,19 +341,28 @@ class Application {
             const selectedWb = workbench.selected;
 
             if (selectedWb) {
-                if (ThriftWorkbench.hasThriftSupport(selectedWb)) {
-                    try {
-                        this.extendedWorkbench.selected = await ThriftWorkbench.from(selectedWb);
-                    } catch (e) {
-                        Vscode.window.showErrorMessage(`IAR: Error initiating workbench backend. Some functionality may be unavailable (${e.toString()}).`);
-                        this.extendedWorkbench.selected = undefined;
+                this.extendedWorkbench.selectedPromise = (async () => {
+                    if (ThriftWorkbench.hasThriftSupport(selectedWb)) {
+                        try {
+                            return await ThriftWorkbench.from(selectedWb);
+                        } catch (e) {
+                            Vscode.window.showErrorMessage(`IAR: Error initiating workbench backend. Some functionality may be unavailable (${e.toString()}).`);
+                            return undefined;
+                        }
+                    } else {
+                        return undefined;
                     }
-                } else {
-                    this.extendedWorkbench.selected = undefined;
-                }
+                })();
+                // Make sure the workbench has finished loading before we continue (and dispose of the previous workbench)
+                await this.extendedWorkbench.selectedPromise;
+            } else {
+                this.extendedWorkbench.selected = undefined;
             }
-            this.loadProject();
             prevExtWb?.dispose();
+        });
+
+        this.extendedWorkbench.addOnSelectedHandler((_model, _exWb) => {
+            this.loadProject();
         });
     }
 
@@ -404,17 +413,15 @@ class Application {
     private async loadProject() {
         const prevProject = this.loadedProject.selected;
         const selectedProject = this.project.model.selected;
+
         if (selectedProject) {
-            if (this.workbench.model.selected && this.extendedWorkbench.selected) {
-                try {
-                    this.extendedProject.selected = await this.extendedWorkbench.selected.loadProject(selectedProject);
-                    this.loadedProject.selected = this.extendedProject.selected;
-                } catch (e) {
-                    // TODO: consider displaying more error information when the project manager starts providing specific errors
-                    Vscode.window.showErrorMessage(`IAR: Error while loading the project. Some functionality may be unavailable (${e.toString()}).`);
-                    this.loadedProject.selected = new EwpFile(selectedProject.path);
-                    this.extendedProject.selected = undefined;
-                }
+            const extendedWorkbench = await this.extendedWorkbench.selectedPromise;
+            if (this.workbench.model.selected && extendedWorkbench) {
+                const exProject = this.loadExtendedProject(selectedProject, extendedWorkbench);
+
+                this.extendedProject.selectedPromise = exProject;
+                this.loadedProject.selectedPromise = exProject.catch(() => new EwpFile(selectedProject.path));
+                await this.loadedProject.selectedPromise;
             } else {
                 this.loadedProject.selected = new EwpFile(selectedProject.path);
                 this.extendedProject.selected = undefined;
@@ -425,6 +432,16 @@ class Application {
             this.extendedProject.selected = undefined;
         }
         prevProject?.unload();
+    }
+
+    private async loadExtendedProject(project: Project, exWorkbench: ExtendedWorkbench): Promise<ExtendedProject> {
+        try {
+            return await exWorkbench.loadProject(project);
+        } catch (e) {
+            // TODO: consider displaying more error information when the project manager starts providing specific errors
+            Vscode.window.showErrorMessage(`IAR: Error while loading the project. Some functionality may be unavailable (${e.toString()}).`);
+            return Promise.reject(e);
+        }
     }
 }
 
