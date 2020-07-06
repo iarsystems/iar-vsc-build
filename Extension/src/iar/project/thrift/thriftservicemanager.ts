@@ -29,7 +29,6 @@ export class ThriftServiceManager {
 
     constructor(private readonly workbench: Workbench) {
         if (!ThriftServiceManager.output) { ThriftServiceManager.output = Vscode.window.createOutputChannel("IarServiceManager"); }
-        // TODO: detect if startup fails, and throw/reject immediately
         let registryPath = path.join(this.workbench.path.toString(), "common/bin/IarServiceLauncher");
         if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
             registryPath += ".exe";
@@ -60,7 +59,6 @@ export class ThriftServiceManager {
      * (or in the process of starting), otherwise this method will never return.
      */
     public async findService<T>(serviceId: string, serviceType: Thrift.TClientConstructor<T>): Promise<ThriftClient<T>> {
-        await new Promise((r, _e) => setTimeout(r, 100)); // temp hack to make sure service launcher is ready
         const registry = await this.getServiceAt(this.getRegistryLocation(), CSpyServiceRegistry);
 
         console.log("Waiting for service to appear: ", serviceId);

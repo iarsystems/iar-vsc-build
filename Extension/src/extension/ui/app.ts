@@ -108,18 +108,6 @@ class Application {
         // update UIs with current selected settings
         this.selectCurrentSettings();
 
-        // TODO: load project if selected
-
-        // TODO: move somewhere else
-        this.extendedProject.addOnSelectedHandler((_model, project) => {
-            if (project) {
-                this.hideHelper(this.compiler);
-                this.settingsTreeView.setCompilerVisible(false);
-            } else {
-                this.showHelper(this.compiler);
-                this.settingsTreeView.setCompilerVisible(true);
-            }
-        })
     }
 
     public show(): void {
@@ -354,8 +342,12 @@ class Application {
 
             if (selectedWb) {
                 if (ThriftWorkbench.hasThriftSupport(selectedWb)) {
-                    // TODO: handle rejection
-                    this.extendedWorkbench.selected = await ThriftWorkbench.from(selectedWb);
+                    try {
+                        this.extendedWorkbench.selected = await ThriftWorkbench.from(selectedWb);
+                    } catch (e) {
+                        Vscode.window.showErrorMessage(`IAR: Error initiating workbench backend. Some functionality may be unavailable (${e.toString()}).`);
+                        this.extendedWorkbench.selected = undefined;
+                    }
                 } else {
                     this.extendedWorkbench.selected = undefined;
                 }
@@ -378,18 +370,26 @@ class Application {
 
         model.addOnInvalidateHandler(() => {
             this.selectCurrentProject();
-            this.loadProject();
         });
 
         model.addOnSelectedHandler(() => {
-        });
-        model.addOnSelectedHandler(() => {
+            this.loadProject();
         });
 
         this.loadedProject.addOnSelectedHandler(() => {
             let configModel = this.config.model as ConfigurationListModel;
 
             configModel.useConfigurationsFromProject(this.loadedProject.selected);
+        });
+
+        this.extendedProject.addOnSelectedHandler((_model, project) => {
+            if (project) {
+                this.hideHelper(this.compiler);
+                this.settingsTreeView.setCompilerVisible(false);
+            } else {
+                this.showHelper(this.compiler);
+                this.settingsTreeView.setCompilerVisible(true);
+            }
         });
     }
 
