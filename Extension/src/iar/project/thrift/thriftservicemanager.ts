@@ -12,7 +12,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { OsUtils } from "../../../utils/utils";
 import { ServiceLocation } from "./bindings/ServiceRegistry_types";
-import { ThriftClient } from "./ThriftClient";
+import { ThriftClient } from "./thriftclient";
 
 import * as CSpyServiceRegistry from "./bindings/CSpyServiceRegistry";
 import * as CSpyServiceManager from "./bindings/CSpyServiceManager";
@@ -31,6 +31,7 @@ export class ThriftServiceManager {
     constructor(private readonly workbench: Workbench) {
         if (!ThriftServiceManager.output) { ThriftServiceManager.output = Vscode.window.createOutputChannel("IarServiceManager"); }
         // TODO: figure out what to do if one already exists, and we did not create it.
+        // TODO: detect if startup fails, and throw/reject immediately
         let registryPath = path.join(this.workbench.path.toString(), "common/bin/IarServiceLauncher");
         if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
             registryPath += ".exe";

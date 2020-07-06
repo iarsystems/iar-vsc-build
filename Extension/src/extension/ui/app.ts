@@ -409,9 +409,15 @@ class Application {
         const selectedProject = this.project.model.selected;
         if (selectedProject) {
             if (this.workbench.model.selected && this.extendedWorkbench.selected) {
-                // TODO: handle rejection
-                this.extendedProject.selected = await this.extendedWorkbench.selected.loadProject(selectedProject);
-                this.loadedProject.selected = this.extendedProject.selected;
+                try {
+                    this.extendedProject.selected = await this.extendedWorkbench.selected.loadProject(selectedProject);
+                    this.loadedProject.selected = this.extendedProject.selected;
+                } catch (e) {
+                    // TODO: consider displaying more error information when the project manager starts providing specific errors
+                    Vscode.window.showErrorMessage(`IAR: Error while loading the project. Some functionality may be unavailable (${e.toString()}).`);
+                    this.loadedProject.selected = new EwpFile(selectedProject.path);
+                    this.extendedProject.selected = undefined;
+                }
             } else {
                 this.loadedProject.selected = new EwpFile(selectedProject.path);
                 this.extendedProject.selected = undefined;
