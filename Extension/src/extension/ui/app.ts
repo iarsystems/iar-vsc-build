@@ -31,6 +31,7 @@ import { AddNodeCommand } from "../command/project/addnode";
 import { SingletonModel } from "../model/singletonmodel";
 import { EwpFile } from "../../iar/project/parsing/ewpfile";
 import { ExtendedWorkbench, ThriftWorkbench } from "../../iar/extendedworkbench";
+import { ReloadProjectCommand } from "../command/project/reloadproject";
 
 type UI<T> = {
     model: ListInputModel<T>,
@@ -98,6 +99,7 @@ class Application {
         this.selectIarWorkspace.register(context);
 
         new CreateProjectCommand().register(context);
+        new ReloadProjectCommand().register(context);
         new AddConfigCommand().register(context);
         new RemoveConfigCommand().register(context);
         new RemoveNodeCommand().register(context);

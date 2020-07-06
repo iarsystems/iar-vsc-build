@@ -61,6 +61,7 @@ export class ThriftProject implements ExtendedProject {
         this.projectMgr.CloseProject(this.context);
         this.context = await this.projectMgr.LoadEwpFile(this.path.toString());
         this.configurations = await this.projectMgr.GetConfigurations(this.context);
+        this.fireChangedEvent();
     }
 
     public async unload() {

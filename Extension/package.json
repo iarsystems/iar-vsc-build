@@ -118,6 +118,15 @@
         }
       },
       {
+        "command": "iar.reloadProject",
+        "title": "Reload project",
+        "category": "IAR",
+        "icon": {
+          "dark": "images/icons/reload.png",
+          "light": "images/icons/reload.png"
+        }
+      },
+      {
         "command": "iar.createProject",
         "title": "Create a new IAR project",
         "category": "IAR"
@@ -149,6 +158,11 @@
         {
           "command": "iar.regenerateCppToolsConfig",
           "when": "view == iar-settings"
+        },
+        {
+          "command": "iar.reloadProject",
+          "when": "view == iar-project",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
