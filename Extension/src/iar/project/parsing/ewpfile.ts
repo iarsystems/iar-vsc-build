@@ -93,6 +93,7 @@ export class EwpFile implements LoadedProject {
     }
 
     public unload() {
+        this.fileWatcher.dispose();
     }
 
     /**

@@ -66,6 +66,7 @@ export class ThriftProject implements ExtendedProject {
 
     public async unload() {
         this.projectMgr.CloseProject(this.context);
+        this.fileWatcher.dispose();
     }
 
     public onChanged(callback: (project: LoadedProject) => void, thisArg?: any): void {
