@@ -36,7 +36,7 @@ export interface ExtendedWorkbench {
  */
 export class ThriftWorkbench implements ExtendedWorkbench {
     static async from(workbench: Workbench): Promise<ThriftWorkbench> {
-        const serviceManager = new ThriftServiceManager(workbench);
+        const serviceManager = await ThriftServiceManager.fromWorkbench(workbench);
         const projectManager = await serviceManager.findService(PROJECTMANAGER_ID, ProjectManager);
         return new ThriftWorkbench(workbench, serviceManager, projectManager);
     }
