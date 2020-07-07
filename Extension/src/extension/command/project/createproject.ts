@@ -8,7 +8,6 @@ import * as Vscode from "vscode";
 import { Command } from "../manager";
 import { UI } from "../../ui/app";
 import * as Path from "path";
-import { ExtendedWorkbench } from "../../../iar/extendedworkbench";
 import { ProjectListModel } from "../../model/selectproject";
 
 /**
@@ -33,7 +32,10 @@ export class CreateProjectCommand implements Command {
 
     async execute(_autoTriggered?: boolean | undefined) {
         try {
-            const exWorkbench = await this.getExtendedWorkbench();
+            const exWorkbench = await UI.getInstance().extendedWorkbench.selectedPromise;
+            if (!exWorkbench) {
+                throw new Error("The selected workbench does not support the operation.");
+            }
             let name = await Vscode.window.showInputBox({ prompt: `Enter a name for the new project. The project will be created using '${exWorkbench.workbench.name}'.`,
                                                           placeHolder: "my_project" });
             if (!name) { return; }
@@ -65,30 +67,5 @@ export class CreateProjectCommand implements Command {
         } else {
             return await Vscode.window.showWorkspaceFolderPick({ placeHolder: "Where to create the project?" });
         }
-    }
-
-    private async getExtendedWorkbench(): Promise<ExtendedWorkbench> {
-        // TODO: check if the extended workbench is still starting (e.g. because the extension was just activated by this command).
-        const exWorkbench = await UI.getInstance().extendedWorkbench.selectedPromise;
-        if (!exWorkbench) {
-            throw new Error("The selected workbench does not support the operation.");
-        }
-        // if (!exWorkbench) {
-        //     const workbench = UI.getInstance().workbench.model.selected;
-        //     if (workbench) {
-        //         if (ThriftWorkbench.hasThriftSupport(workbench)) {
-        //             await new Promise((res, _rej) => setTimeout(res, 3000));
-        //             exWorkbench = UI.getInstance().extendedWorkbench.selected;
-        //             if (!exWorkbench) {
-        //                 throw new Error("The workbench did not load in time.");
-        //             }
-        //         } else {
-        //             throw new Error("The selected workbench does not support the operation.");
-        //         }
-        //     } else {
-        //         throw new Error("No workbench selected.");
-        //     }
-        // }
-        return exWorkbench;
     }
 }
