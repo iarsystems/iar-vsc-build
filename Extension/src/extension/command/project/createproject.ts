@@ -9,6 +9,7 @@ import { Command } from "../manager";
 import { UI } from "../../ui/app";
 import * as Path from "path";
 import { ExtendedWorkbench } from "../../../iar/extendedworkbench";
+import { ProjectListModel } from "../../model/selectproject";
 
 /**
  * Prompts the user for a name and creates a new project using the currently selected workbench
@@ -45,9 +46,9 @@ export class CreateProjectCommand implements Command {
             }
 
             const path = Path.join(workspace.uri.fsPath, name);
-            exWorkbench.createProject(path);
+            const proj = await exWorkbench.createProject(path);
 
-            // TODO: notify Model<Project> of this change?
+            (UI.getInstance().project.model as ProjectListModel).addProject(proj);
 
             Vscode.window.showInformationMessage(`The project has been created as ${name}.`);
         } catch(e) {

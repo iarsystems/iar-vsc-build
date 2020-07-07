@@ -33,4 +33,9 @@ export class ProjectListModel extends ListInputModelBase<Project> {
     detail(index: number): string | undefined {
         return this.data[index].path.toString();
     }
+
+    addProject(project: Project) {
+        this.data = this.data.concat([project]);
+        this.fireInvalidateEvent();
+    }
 }
