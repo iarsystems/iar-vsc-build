@@ -56,7 +56,6 @@ export class ThriftProject implements ExtendedProject {
         this.fireChangedEvent();
     }
 
-    // TODO: fix interface signature
     public async reload() {
         this.projectMgr.CloseProject(this.context);
         this.context = await this.projectMgr.LoadEwpFile(this.path.toString());

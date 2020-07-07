@@ -335,7 +335,6 @@ class Application {
             compilerModel.useCompilersFromWorkbench(model.selected);
         });
 
-        // TODO: handle potential race when selecting project and workbench at the same time
         model.addOnSelectedHandler(async workbench => {
             const prevExtWb = this.extendedWorkbench.selected;
             const selectedWb = workbench.selected;

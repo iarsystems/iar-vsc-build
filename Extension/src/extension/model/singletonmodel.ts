@@ -22,7 +22,7 @@ export class SingletonModel<T> implements InputModel<T> {
 
     private handlers: Handler<selectHandler<T>>[] = [];
 
-    public readonly selectedText = ""; // TODO: change the interface instead of incorrectly adhering to it
+    public readonly selectedText = "";
 
     public addOnSelectedHandler(fn: selectHandler<T>, thisArg?: any): void {
         this.handlers.push(new Handler(fn, thisArg));
@@ -58,7 +58,6 @@ export class SingletonModel<T> implements InputModel<T> {
         });
     }
 
-    // TODO: needs some testing
     /**
      * Gets the currently selected value as a promise. This is guaranteed to return the latest value,
      * even if it is in the process of changing when the method is called.
