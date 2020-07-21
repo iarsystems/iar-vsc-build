@@ -67,13 +67,14 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
 
     public set(...data: T[]) {
         this.data = data;
-        this.selectedIndex_ = undefined;
 
+        this.selectedIndex_ = undefined;
+        this.fireSelectionChanged(undefined);
         this.fireInvalidateEvent();
     }
 
     select(index: number): boolean {
-        if (this.selectedIndex !== index) {
+        if (this.selectedIndex !== index && index < this.data.length) {
             this.selectedIndex_ = index;
             this.fireSelectionChanged(this.data[this.selectedIndex_]);
 
