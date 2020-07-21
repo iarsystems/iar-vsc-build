@@ -7,10 +7,11 @@
 import * as Fs from "fs";
 import * as Path from "path";
 import { FsUtils } from "../../utils/fs";
-import { ListUtils } from "../../utils/utils";
+import { ListUtils, OsUtils } from "../../utils/utils";
 import { Platform } from "./platform";
 
 const ideSubPath = "common/bin/IarIdePm.exe";
+const builderSubPath = "common/bin/IarBuild" + (OsUtils.OsType.Windows === OsUtils.detectOsType() ? ".exe" : "");
 
 export interface Workbench {
     readonly name: string;
@@ -116,7 +117,7 @@ export namespace Workbench {
     }
 
     export function isValid(workbenchPath: Fs.PathLike): boolean {
-        const idePath = Path.join(workbenchPath.toString(), ideSubPath);
+        const idePath = Path.join(workbenchPath.toString(), builderSubPath);
 
         try {
             const stat = Fs.statSync(idePath);
