@@ -50,9 +50,7 @@ export class ThriftServiceManager {
     public async findService<T>(serviceId: string, serviceType: Thrift.TClientConstructor<T>): Promise<ThriftClient<T>> {
         const registry = await this.getServiceAt(this.getRegistryLocation(), CSpyServiceRegistry);
 
-        console.log("Waiting for service to appear: ", serviceId);
         const location = await registry.service.waitForService(serviceId, 1000);
-        console.log("Service ", serviceId, " found at location ", location);
         const service = await this.getServiceAt(location, serviceType);
 
         registry.close();
@@ -61,9 +59,7 @@ export class ThriftServiceManager {
     }
 
     private getRegistryLocation(): ServiceLocation {
-        console.log("Reading port...");
         const locSerialized = fs.readFileSync(this.registryLocationPath);
-        console.log("Location is: " + locSerialized);
 
         // These concats are a hack to create a valid thrift message. The thrift library seems unable to deserialize just a struct (at least for the json protocol)
         // Once could also do JSON.parse and manually convert it to a ServiceLocation, but this is arguably more robust
@@ -73,7 +69,6 @@ export class ThriftServiceManager {
         const location = new ServiceLocation();
         location.read(prot);
         prot.readMessageEnd();
-        console.log("Port is: " + location.port);
 
         return location;
     }
@@ -89,7 +84,7 @@ export class ThriftServiceManager {
                 .on("connect", async () => {
                     const client = Thrift.createClient<T>(serviceType, conn);
                     resolve(new ThriftClient(conn, client));
-                }).on("close", () => console.log("Connection closed for", location.port));
+                });
         });
     }
 
@@ -133,7 +128,6 @@ export namespace ThriftServiceManager {
             const onData = (data: Buffer | string) => {
                 output += data;
                 if (output.includes("Entering main loop...")) {
-                    console.log("Service Launcher has launched.");
                     process.stdout.removeListener("data", onData);
                     resolve();
                 }
