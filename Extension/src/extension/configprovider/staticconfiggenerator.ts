@@ -117,7 +117,8 @@ export namespace StaticConfigGenerator {
             const preIncludes = PreIncludePath.fromXml(xml, projectRoot);
             return { defines: defines, includes: includes, preIncludes: preIncludes };
         } else {
-            throw new Error(`Unknown config type for ${config.name}, unable to generate includes/defines.`);
+            console.error(`Unknown config type for ${config.name}, unable to generate includes/defines.`);
+            return { defines: [], includes: [], preIncludes: [] };
         }
     }
 }
