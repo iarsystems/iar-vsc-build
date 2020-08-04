@@ -9,7 +9,7 @@ DEFINITIONS_FILENAME = "com.iar.services.ide-9.0.1-SNAPSHOT-thrift.zip"
 
 $options = {}
 OptionParser.new do |opts|
-  opts.banner = "Usage: compile_iar_vsc.rb [iar-vsc-path] [options]\n"
+  opts.banner = "Usage: build.rb [iar-vsc-path] [options]\n"
   opts.banner.concat "iar-vsc-path should point to the 'Extension' folder of the iar-vsc project. "
   opts.banner.concat "You may also run this script in that folder directly."
 
