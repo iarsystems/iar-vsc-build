@@ -47,6 +47,8 @@ declare class Node {
   public path: string;
 
     constructor(args?: { name: string; children: Node[]; type: NodeType; path: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Context {
@@ -54,6 +56,8 @@ declare class Context {
   public data: string;
 
     constructor(args?: { type: ContextType; data: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class LogEntry {
@@ -70,6 +74,8 @@ declare class LogEntry {
   public sourceRange: shared_ttypes.SourceRange;
 
     constructor(args?: { category: string; sender: string; text: string[]; severity: LogSeverity; path: string; srcRow: number; srcCol: number; timeStamp: Int64; entryId: Int64; sourceLocation: shared_ttypes.SourceLocation; sourceRange: shared_ttypes.SourceRange; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class PreprocessorMacro {
@@ -77,6 +83,8 @@ declare class PreprocessorMacro {
   public value: string;
 
     constructor(args?: { name: string; value: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class ScannerInfo {
@@ -85,6 +93,8 @@ declare class ScannerInfo {
   public defines: PreprocessorMacro[];
 
     constructor(args?: { filename: string; includePaths: string[]; defines: PreprocessorMacro[]; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare var IARBUILD_SERVICE_NAME: string;

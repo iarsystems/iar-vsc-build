@@ -26,7 +26,8 @@ declare class ServiceLocation {
   public transport: Transport;
 
     constructor(args?: { host: string; port: number; protocol: Protocol; transport: Transport; });
-    read(source: any): void;
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class ServiceException extends Thrift.TException {
@@ -35,6 +36,8 @@ declare class ServiceException extends Thrift.TException {
   public exceptionDescr: string;
 
     constructor(args?: { message: string; serviceName: string; exceptionDescr: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare var IAR_SERVICE_REGISTRY_ENVVAR: string;

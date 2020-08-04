@@ -37,6 +37,8 @@ declare class CRunMessage {
   public breakAction: CRunBreakAction;
 
     constructor(args?: { id: number; index: number; core: number; name: string; text: string; cycle: Int64; repeatCount: number; subMessages: CRunMessage[]; callStack: string[]; noStop: boolean; runTo: shared_ttypes.Location; userProgramCounter: shared_ttypes.Location; extraSourceRanges: shared_ttypes.SourceRange[]; pcSourceRange: shared_ttypes.SourceRange; tooltip: string; breakAction: CRunBreakAction; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare var CRUN_DISPLAY_SERVICE: string;

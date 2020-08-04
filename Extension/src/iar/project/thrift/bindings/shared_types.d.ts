@@ -71,12 +71,16 @@ declare class CSpyException extends Thrift.TException {
   public culprit: string;
 
     constructor(args?: { code: DcResultConstant; method: string; message: string; culprit: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Zone {
   public id: number;
 
     constructor(args?: { id: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class ZoneInfo {
@@ -91,6 +95,8 @@ declare class ZoneInfo {
   public bytesPerUnit: number;
 
     constructor(args?: { id: number; name: string; minAddress: Int64; maxAddress: Int64; isRegular: boolean; isVisible: boolean; isBigEndian: boolean; bitsPerUnit: number; bytesPerUnit: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Location {
@@ -98,6 +104,8 @@ declare class Location {
   public address: Int64;
 
     constructor(args?: { zone: Zone; address: Int64; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class SourceLocation {
@@ -107,6 +115,8 @@ declare class SourceLocation {
   public locations: Location[];
 
     constructor(args?: { filename: string; line: number; col: number; locations: Location[]; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class SourceRange {
@@ -116,12 +126,16 @@ declare class SourceRange {
   public text: string;
 
     constructor(args?: { filename: string; first: SourceLocation; last: SourceLocation; text: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Symbol {
   public name: string;
 
     constructor(args?: { name: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -137,6 +151,8 @@ declare class ContextRef {
   public task: number;
 
     constructor(args?: { type: ContextType; level: number; core: number; task: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class ContextInfo {
@@ -147,6 +163,8 @@ declare class ContextInfo {
   public functionName: string;
 
     constructor(args?: { context: ContextRef; aliases: ContextRef; sourceRanges: SourceRange[]; execLocation: Location; functionName: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -166,6 +184,8 @@ declare class StackSettings {
   public displayLimit: number;
 
     constructor(args?: { fillEnabled: boolean; overflowWarningsEnabled: boolean; spWarningsEnabled: boolean; warnLogOnly: boolean; warningThreshold: number; useTrigger: boolean; triggerName: string; limitDisplay: boolean; displayLimit: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -183,4 +203,6 @@ declare class Breakpoint {
   public valid: boolean;
 
     constructor(args?: { id: number; ule: string; category: string; descriptor: string; description: string; enabled: boolean; isUleBased: boolean; accessType: AccessType; valid: boolean; });
+  read(input: Object): void;
+  write(input: Object): void;
 }

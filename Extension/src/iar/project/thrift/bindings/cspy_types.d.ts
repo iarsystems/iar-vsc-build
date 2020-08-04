@@ -120,6 +120,8 @@ declare class SessionConfiguration {
   public leaveRunning: boolean;
 
     constructor(args?: { type: string; driverName: string; processorName: string; options: string[]; executable: string; toolkitDir: string; target: string; projectName: string; projectDir: string; stackSettings: shared_ttypes.StackSettings; setupMacros: string[]; plugins: string[]; configName: string; enableCRun: boolean; attachToTarget: boolean; leaveRunning: boolean; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -132,6 +134,8 @@ declare class DebugEvent {
   public params: string[];
 
     constructor(args?: { note: DkNotifyConstant; descr: string; params: string[]; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -143,6 +147,8 @@ declare class InspectionContextChangedEvent {
   public context: shared_ttypes.ContextRef;
 
     constructor(args?: { context: shared_ttypes.ContextRef; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -153,6 +159,8 @@ declare class BaseContextChangedEvent {
   public context: shared_ttypes.ContextRef;
 
     constructor(args?: { context: shared_ttypes.ContextRef; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -164,6 +172,8 @@ declare class LogEvent {
   public timestamp: Int64;
 
     constructor(args?: { cat: DkLoggingCategoryConstant; text: string; timestamp: Int64; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -174,6 +184,8 @@ declare class Thread {
   public name: string;
 
     constructor(args?: { id: number; name: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class ExprValue {
@@ -188,6 +200,8 @@ declare class ExprValue {
   public size: number;
 
     constructor(args?: { expression: string; value: string; type: string; isLValue: boolean; hasLocation: boolean; location: shared_ttypes.Location; subExprCount: number; basicType: BasicExprType; size: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -203,6 +217,8 @@ declare class ModuleData {
   public size: Int64;
 
     constructor(args?: { name: string; file: string; timestamp: Int64; baseAddress: string; toAddress: string; symbolsAreLoaded: boolean; size: Int64; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class NamedLocationMask {
@@ -211,6 +227,8 @@ declare class NamedLocationMask {
   public mask: Int64;
 
     constructor(args?: { used: boolean; shift: number; mask: Int64; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class NamedLocation {
@@ -228,6 +246,8 @@ declare class NamedLocation {
   public description: string;
 
     constructor(args?: { name: string; nameAlias: string; readonly: boolean; writeonly: boolean; location: shared_ttypes.Location; realLocation: shared_ttypes.Location; valueBitSize: number; fullBitSize: number; defaultBase: number; usesMask: boolean; masks: NamedLocationMask[]; description: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class ExtraDebugFile {
@@ -236,6 +256,8 @@ declare class ExtraDebugFile {
   public offset: Int64;
 
     constructor(args?: { doDownload: boolean; path: string; offset: Int64; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class ModuleLoadingOptions {
@@ -248,6 +270,8 @@ declare class ModuleLoadingOptions {
   public extraDebugFiles: ExtraDebugFile[];
 
     constructor(args?: { resetAfterLoad: boolean; callUserMacros: boolean; onlyPrefixNotation: boolean; suppressDownload: boolean; shouldAttach: boolean; shouldLeaveRunning: boolean; extraDebugFiles: ExtraDebugFile[]; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class ResetStyles {
@@ -257,6 +281,8 @@ declare class ResetStyles {
   public tooltip: string;
 
     constructor(args?: { name: string; id: number; selected: boolean; tooltip: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class DebugSettings {
@@ -268,6 +294,8 @@ declare class DebugSettings {
   public globalIntegerFormat: number;
 
     constructor(args?: { alwaysPickAllInstances: boolean; enterFunctionsWithoutSource: boolean; stlDepth: number; staticWatchUpdateInterval: number; memoryWindowUpdateInterval: number; globalIntegerFormat: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare var DEBUGGER_SERVICE: string;

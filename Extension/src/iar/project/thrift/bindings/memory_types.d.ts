@@ -16,4 +16,6 @@ declare class CSpyMemoryBlock {
   public status: string;
 
     constructor(args?: { data: string; status: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }

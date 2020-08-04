@@ -79,6 +79,8 @@ declare class Range {
   public last: Int64;
 
     constructor(args?: { first: Int64; last: Int64; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Color {
@@ -89,6 +91,8 @@ declare class Color {
   public isDefault: boolean;
 
     constructor(args?: { r: number; g: number; b: number; lowContrast: boolean; isDefault: boolean; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Format {
@@ -102,6 +106,8 @@ declare class Format {
   public barColor: Color;
 
     constructor(args?: { align: Alignment; style: TextStyle; editable: boolean; icons: string[]; transp: Color; textColor: Color; bgColor: Color; barColor: Color; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Cell {
@@ -110,6 +116,8 @@ declare class Cell {
   public drop: Target;
 
     constructor(args?: { text: string; format: Format; drop: Target; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Row {
@@ -118,6 +126,8 @@ declare class Row {
   public treeinfo: string;
 
     constructor(args?: { cells: Cell[]; isChecked: boolean; treeinfo: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Column {
@@ -128,6 +138,8 @@ declare class Column {
   public defaultFormat: Format;
 
     constructor(args?: { title: string; width: number; fixed: boolean; hideSelection: boolean; defaultFormat: Format; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class ListSpec {
@@ -138,6 +150,8 @@ declare class ListSpec {
   public showCheckBoxes: boolean;
 
     constructor(args?: { bgColor: Color; canClickColumns: boolean; showGrid: boolean; showHeader: boolean; showCheckBoxes: boolean; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class MenuItem {
@@ -147,6 +161,8 @@ declare class MenuItem {
   public checked: boolean;
 
     constructor(args?: { text: string; command: number; enabled: boolean; checked: boolean; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class SelRange {
@@ -154,6 +170,8 @@ declare class SelRange {
   public last: Int64;
 
     constructor(args?: { first: Int64; last: Int64; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class EditInfo {
@@ -162,6 +180,8 @@ declare class EditInfo {
   public range: SelRange;
 
     constructor(args?: { editString: string; column: number; range: SelRange; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Tooltip {
@@ -169,6 +189,8 @@ declare class Tooltip {
   public text: string;
 
     constructor(args?: { target: Target; text: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Drag {
@@ -178,6 +200,8 @@ declare class Drag {
   public col: number;
 
     constructor(args?: { result: boolean; text: string; row: Int64; col: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class HelpTag {
@@ -185,6 +209,8 @@ declare class HelpTag {
   public text: string;
 
     constructor(args?: { available: boolean; text: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Note {
@@ -195,6 +221,8 @@ declare class Note {
   public anonPos: string;
 
     constructor(args?: { what: What; seq: Int64; ensureVisible: Int64; row: Int64; anonPos: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class ChunkInfo {
@@ -205,6 +233,8 @@ declare class ChunkInfo {
   public atEnd: boolean;
 
     constructor(args?: { numberOfRows: number; fractionBefore: number; fractionAfter: number; atStart: boolean; atEnd: boolean; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class AddRowsResult {
@@ -212,6 +242,8 @@ declare class AddRowsResult {
   public rows: number;
 
     constructor(args?: { chunkInfo: ChunkInfo; rows: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class NavigateResult {
@@ -219,6 +251,8 @@ declare class NavigateResult {
   public chunkPos: number;
 
     constructor(args?: { chunkInfo: ChunkInfo; chunkPos: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class SelectionResult {
@@ -226,6 +260,8 @@ declare class SelectionResult {
   public pos: string;
 
     constructor(args?: { row: number; pos: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class StackBarInfo {
@@ -233,6 +269,8 @@ declare class StackBarInfo {
   public maxLevel: number;
 
     constructor(args?: { currentLevel: number; maxLevel: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class TraceCustomParameter {
@@ -240,6 +278,8 @@ declare class TraceCustomParameter {
   public value: string;
 
     constructor(args?: { name: string; value: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class TraceFindParams {
@@ -257,6 +297,8 @@ declare class TraceFindParams {
   public customParameters: TraceCustomParameter[];
 
     constructor(args?: { findWhat: string; useRange: boolean; rangeStart: Int64; rangeEnd: Int64; textSearch: boolean; searchColumn: number; columnName: string; matchCase: boolean; matchWord: boolean; columns: string[]; searchHistory: string[]; customParameters: TraceCustomParameter[]; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class TraceProgress {
@@ -264,6 +306,8 @@ declare class TraceProgress {
   public maxvalue: number;
 
     constructor(args?: { current: number; maxvalue: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class DragDropFeedback {
@@ -272,6 +316,8 @@ declare class DragDropFeedback {
   public colIdx: number;
 
     constructor(args?: { target: Target; rowIdx: number; colIdx: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class ListWindowRenderParameters {
@@ -284,6 +330,8 @@ declare class ListWindowRenderParameters {
   public hpos: number;
 
     constructor(args?: { listSpec: ListSpec; columns: Column[]; rows: Row[]; selection: SelRange[]; offset: Int64; dragDropFeedback: DragDropFeedback; hpos: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare var SLIDING_POS_NONE: string;

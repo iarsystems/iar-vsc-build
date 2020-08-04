@@ -18,6 +18,8 @@ declare class DisassembledLocation {
   public offset: Int64;
 
     constructor(args?: { location: shared_ttypes.Location; instructions: string[]; _function: string; offset: Int64; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare var DISASSEMBLY_SERVICE: string;

@@ -20,6 +20,8 @@ declare class ServiceConfig {
   public registerInLauncher: boolean;
 
     constructor(args?: { name: string; libraryName: string; spawnNewProcess: boolean; startupEntryPoint: string; shutdownEntryPoint: string; registerInLauncher: boolean; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class LauncherConfig {
@@ -28,6 +30,8 @@ declare class LauncherConfig {
   public preferredTransports: ServiceRegistry_ttypes.Transport[];
 
     constructor(args?: { useInternalRegistry: boolean; externalRegistryLocation: ServiceRegistry_ttypes.ServiceLocation; preferredTransports: ServiceRegistry_ttypes.Transport[]; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare var SERVICE_MANAGER_SERVICE: string;

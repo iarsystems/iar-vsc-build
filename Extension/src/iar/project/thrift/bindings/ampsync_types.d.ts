@@ -77,6 +77,8 @@ declare class PartnerInformation {
   public isAlive: boolean;
 
     constructor(args?: { id: number; cspyConfiguration: cspy_ttypes.SessionConfiguration; configuration: { [k: string]: string; }; isAlive: boolean; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class CoreInfo {
@@ -90,12 +92,16 @@ declare class CoreInfo {
   public localCoreId: number;
 
     constructor(args?: { id: number; name: string; status: cspy_ttypes.DkCoreStatusConstants; statusString: string; pc: string; cc: string; partner: number; localCoreId: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class UnknownPartner extends Thrift.TException {
   public id: number;
 
     constructor(args?: { id: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class CoreRange {
@@ -103,6 +109,8 @@ declare class CoreRange {
   public last: number;
 
     constructor(args?: { first: number; last: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class Event {
@@ -110,6 +118,8 @@ declare class Event {
   public properties: { [k: string]: string; };
 
     constructor(args?: { type: string; properties?: { [k: string]: string; }; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class EventBusRegistrationFailed extends Thrift.TException {
@@ -117,6 +127,8 @@ declare class EventBusRegistrationFailed extends Thrift.TException {
   public type: number;
 
     constructor(args?: { message: string; type: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class NumberOfCoresInfo {
@@ -125,6 +137,8 @@ declare class NumberOfCoresInfo {
   public localCoreOffset: number;
 
     constructor(args?: { numberOfCores: number; localCores: number; localCoreOffset: number; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class FailedToStartPartner extends Thrift.TException {
@@ -132,6 +146,8 @@ declare class FailedToStartPartner extends Thrift.TException {
   public message: string;
 
     constructor(args?: { partner: number; message: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare var CORES_REGISTRY_SERVICE: string;

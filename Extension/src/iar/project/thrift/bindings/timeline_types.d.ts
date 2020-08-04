@@ -22,6 +22,8 @@ declare class DbuTimelineDataAvailableNotification {
   public dummy: boolean;
 
     constructor(args?: { channelId: string; startCycles: Int64; endCycles: Int64; dummy: boolean; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -32,6 +34,8 @@ declare class DbuTimelineChannelAvailableNotification {
   public formatDescriptor: string;
 
     constructor(args?: { id: string; formatDescriptor: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -41,6 +45,8 @@ declare class DbuTimelineChannelRemovedNotification {
   public id: string;
 
     constructor(args?: { id: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -50,6 +56,8 @@ declare class DbuTimelineCpuClockChangedNotification {
   public cyclesPerSecond: Int64;
 
     constructor(args?: { cyclesPerSecond: Int64; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -60,6 +68,8 @@ declare class DbuTimelineEnablementChangedNotification {
   public enabled: boolean;
 
     constructor(args?: { channelId: string; enabled: boolean; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare class TimelineChannelInfo {
@@ -67,6 +77,8 @@ declare class TimelineChannelInfo {
   public formatDescriptor: string;
 
     constructor(args?: { id: string; formatDescriptor: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare var TIMELINE_FRONTEND_SERVICE: string;

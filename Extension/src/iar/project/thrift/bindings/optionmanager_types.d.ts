@@ -36,6 +36,8 @@ declare class OptionError extends Thrift.TException {
   public detailMessage: string;
 
     constructor(args?: { errorCode: OptionErrorCode; detailMessage: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -57,6 +59,8 @@ declare class OptionDefinition {
   public enumeratedOptionTypeId: string;
 
     constructor(args?: { id: string; name: string; type: OptionType; enumeratedOptionTypeId: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -67,6 +71,8 @@ declare class EnumeratedOptionValue {
   public label: string;
 
     constructor(args?: { id: string; label: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -77,6 +83,8 @@ declare class EnumeratedOptionType {
   public values: EnumeratedOptionValue[];
 
     constructor(args?: { id: string; values: EnumeratedOptionValue[]; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -97,6 +105,8 @@ declare class OptionConfiguration {
   public parentConfigurationIds: string[];
 
     constructor(args?: { id: string; name: string; optionValues: { [k: string]: string; }; parentConfigurationIds: string[]; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -109,6 +119,8 @@ declare class OptionPresentation {
   public enumeratedOptionFilter: string;
 
     constructor(args?: { optionId: string; enabledCondition: string; enumeratedOptionFilter: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -120,6 +132,8 @@ declare class OptionCategory {
   public optionIds: OptionPresentation[];
 
     constructor(args?: { name: string; optionIds: OptionPresentation[]; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -134,6 +148,8 @@ declare class ConfigurationPresentation {
   public categories: OptionCategory[];
 
     constructor(args?: { id: string; configurationId: string; categories: OptionCategory[]; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -152,6 +168,8 @@ declare class ToolDefinition {
   public isTargetTool: boolean;
 
     constructor(args?: { id: string; name: string; executableName: string; inputExtensions: string[]; outputExtensions: string[]; isTargetTool: boolean; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -170,6 +188,8 @@ declare class Toolchain {
   public tools: ToolDefinition[];
 
     constructor(args?: { id: string; name: string; rootConfigurations: OptionConfiguration[]; tools: ToolDefinition[]; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 /**
@@ -181,6 +201,8 @@ declare class VerifierError {
   public errorMessage: string;
 
     constructor(args?: { optionId: string; configurationId: string; errorMessage: string; });
+  read(input: Object): void;
+  write(input: Object): void;
 }
 
 declare var OPTION_SERVICE_NAME: string;
