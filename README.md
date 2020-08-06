@@ -2,11 +2,11 @@
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
-# IAR-VSC
+# IAR-VSC-thrift
 
-This repository holds the sources for the iar-vsc extension for Visual Studio
-Code. The source code itself is found in the Extension directory. Documentation
-holds diagrams and other documentation files about the extension.
+This is a modified version of `iar-vsc`, providing some thrift project integration.
+Note that is **not** the actual development repo for this project, I just put this here to make it easier for others to find it.
+The actual repo is on my (private) github for now.
 
 ## Documentation
 
