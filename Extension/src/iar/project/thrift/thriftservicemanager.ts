@@ -11,7 +11,7 @@ import { spawn, ChildProcess } from "child_process";
 import * as path from "path";
 import * as fs from "fs";
 import { OsUtils } from "../../../utils/utils";
-import { ServiceLocation } from "./bindings/ServiceRegistry_types";
+import { ServiceLocation, Transport, Protocol } from "./bindings/ServiceRegistry_types";
 import { ThriftClient } from "./thriftclient";
 
 import * as CSpyServiceRegistry from "./bindings/CSpyServiceRegistry";
@@ -28,7 +28,7 @@ export class ThriftServiceManager {
      * 
      * @param registryLocationPath Path to a file containing a valid {@link ServiceLocation} pointing to a service registry
      */
-    constructor(private registryLocationPath: fs.PathLike) {
+    constructor(private registryLocationPath: fs.PathLike, private process: ChildProcess) {
     }
 
     /**
@@ -41,6 +41,7 @@ export class ThriftServiceManager {
         const serviceMgr = await this.findService(SERVICE_MANAGER_SERVICE, CSpyServiceManager);
         await serviceMgr.service.shutdown();
         serviceMgr.close();
+        this.process.kill();
     }
 
     /**
@@ -74,9 +75,12 @@ export class ThriftServiceManager {
     }
 
     private getServiceAt<T>(location: ServiceLocation, serviceType: Thrift.TClientConstructor<T>): Promise<ThriftClient<T>> {
+        if (location.transport !== Transport.Socket) {
+            return Promise.reject(new Error("Trying to connect to service with unsupported transport."));
+        }
         const options: Thrift.ConnectOptions = {
-            transport: location.transport === 0 ? Thrift.TBufferedTransport : Thrift.TFramedTransport,
-            protocol: location.protocol === 0 ? Thrift.TBinaryProtocol : Thrift.TJSONProtocol,
+            transport: Thrift.TBufferedTransport,
+            protocol: location.protocol === Protocol.Binary ? Thrift.TBinaryProtocol : Thrift.TJSONProtocol,
         };
         return new Promise((resolve, reject) => {
             const conn = Thrift.createConnection(location.host, location.port, options)
@@ -98,6 +102,8 @@ export namespace ThriftServiceManager {
      * @param workbench The workbench to use
      */
     export async function fromWorkbench(workbench: Workbench): Promise<ThriftServiceManager> {
+        if (!output) { output = Vscode.window.createOutputChannel("IarServiceManager"); }
+
         let registryPath = path.join(workbench.path.toString(), "common/bin/IarServiceLauncher");
         if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
             registryPath += ".exe";
@@ -105,37 +111,28 @@ export namespace ThriftServiceManager {
         // for now needs to load projectmanager at launch, otherwise it seems to behave strangely
         const projectManagerManifestPath = path.join(workbench.path.toString(), "common/bin/projectmanager.json");
         const tmpDir = getTmpDir(workbench);
-        const serviceRegistryProcess = spawn(registryPath, ["-standalone", "-sockets", projectManagerManifestPath],
-                                                { cwd: tmpDir });
+        const locationFile = path.join(tmpDir, "CSpyServer2-ServiceRegistry.txt");
+        let serviceRegistryProcess: ChildProcess | undefined;
 
-        if (!output) { output = Vscode.window.createOutputChannel("IarServiceManager"); }
-        serviceRegistryProcess.stdout.on("data", data => {
-            output?.append(data.toString());
-        });
+        return new Promise<ThriftServiceManager>((resolve, reject) => {
+                // TODO: should reject immediately if process exits
+                fs.watch(tmpDir, undefined, (type: string) => {
+                    console.log(type);
+                    if (type === "change" && serviceRegistryProcess) {
+                        resolve(new ThriftServiceManager(locationFile, serviceRegistryProcess));
+                    }
+                });
 
-        try {
-            await waitUntilReady(serviceRegistryProcess);
-            return new ThriftServiceManager(path.join(tmpDir, "CSpyServer2-ServiceRegistry.txt"));
-        } catch(e) {
-            serviceRegistryProcess.kill();
-            throw e;
-        }
-    }
+                serviceRegistryProcess = spawn(registryPath, ["-standalone", "-sockets", projectManagerManifestPath],
+                                                        { cwd: tmpDir });
 
-    function waitUntilReady(process: ChildProcess): Promise<void> {
-        return new Promise(async (resolve, reject) => {
-            let output: string = "";
-            const onData = (data: Buffer | string) => {
-                output += data;
-                if (output.includes("Entering main loop...")) {
-                    process.stdout.removeListener("data", onData);
-                    resolve();
-                }
-            }
-            process.stdout.on("data", onData);
-            
-            setTimeout(() => reject("Service registry launch timed out"), 1000);
-        });
+                serviceRegistryProcess.stdout.on("data", data => {
+                    output?.append(data.toString());
+                });
+
+                setTimeout(() => reject("Service registry launch timed out"), 5000);
+        }).catch(e => { serviceRegistryProcess?.kill(); throw e; })
+          .finally(() => fs.unwatchFile(locationFile));
     }
 
     // Creates and returns a temporary directory unique to the currently opened folder & workbench.

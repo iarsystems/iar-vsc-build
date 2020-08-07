@@ -5,6 +5,7 @@
 import * as Vscode from "vscode";
 import { BuildTaskDefinition } from "./buildtaskprovider";
 import { CommandUtils } from "../../../utils/utils";
+import { UI } from "../../ui/app";
 
 /**
  * Executes a build task using a thrift service.
@@ -19,7 +20,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
 
     onDidOverrideDimensions?: Vscode.Event<Vscode.TerminalDimensions | undefined> | undefined;
 
-    // private definition: BuildTaskDefinition;
+    private definition: BuildTaskDefinition;
 
     constructor(definition: BuildTaskDefinition) {
         // substitute command variables
@@ -29,30 +30,37 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
                 resolvedDef[property] = CommandUtils.parseSettingCommands(resolvedDef[property]);
             }
         }
-        // this.definition = resolvedDef;
+        this.definition = resolvedDef;
 	}
 
-    open(_initialDimensions: Vscode.TerminalDimensions | undefined): void {
-        // TODO: add a workbench.build or project.build or something, these services are no longer exposed
-/*         const projectMgr = UI.getInstance().projectManager;
-        const projectContext = UI.getInstance().projectContext;
-        if (!projectMgr || !projectContext || !this.definition.config) {
-            this.onError("Error: Make sure you select a workbench, project and configuration before running this task.");
+    async open(_initialDimensions: Vscode.TerminalDimensions | undefined)  {
+        // TODO: there should be a standardized way of getting the reason e.g. an extended
+        //       project is not available (no workbench, workbench doesn't support thrift, no project selected etc.)
+        const project = await UI.getInstance().extendedProject.selectedPromise;
+        if (!project) {
+            this.onError("No project loaded or the workbench does not support the operation.");
             return;
         }
-
-        this.writeEmitter.fire("Building project...\r\n");
-        projectMgr.service.BuildProject(projectContext, this.definition.config).then(() => {
-            this.writeEmitter.fire("Done!\r\n");
-            this.closeEmitter.fire(undefined);
-        }); */
+        const configName = this.definition.config;
+        const config = project.configurations.find(conf => conf.name === configName);
+        if (!config) {
+            this.onError(`No configuration '${configName}' exists on the project '${project.name}'.`);
+            return;
+        }
+        try {
+            await project.build(config);
+            this.writeEmitter.fire("Build finished!\r\n");
+            this.closeEmitter.fire();
+        } catch(e) {
+            this.onError(e.toString());
+        }
     }
 
     close(): void {
     }
 
-/*     private onError(reason: any) {
-        this.writeEmitter.fire(reason + "\r\n");
+    private onError(reason: any) {
+        this.writeEmitter.fire("Failed building project: " + reason + "\r\n");
         this.closeEmitter.fire();
-    } */
+    }
 }

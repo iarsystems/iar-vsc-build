@@ -34,8 +34,12 @@ export class CreateProjectCommand implements Command {
         try {
             const exWorkbench = await UI.getInstance().extendedWorkbench.selectedPromise;
             if (!exWorkbench) {
-                throw new Error("The selected workbench does not support the operation.");
+                throw new Error(
+                                UI.getInstance().workbench.model.selected ?
+                                "The selected workbench does not support the operation." :
+                                "No workbench selected.");
             }
+
             let name = await Vscode.window.showInputBox({ prompt: `Enter a name for the new project. The project will be created using '${exWorkbench.workbench.name}'.`,
                                                           placeHolder: "my_project" });
             if (!name) { return; }
