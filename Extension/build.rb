@@ -105,3 +105,12 @@ else
 end
 
 do_puts "Done building"
+do_puts "Generating .vsix file..."
+
+do_puts `npm install -g vsce`
+raise "Failed to install vsce, which is needed to package the extension. Try running 'npm install -g vsce'." unless $?.exitstatus == 0
+
+do_puts `vsce package`
+raise "The previous command was unsuccessful" unless $?.exitstatus == 0
+
+do_puts "Generating .vsix file..."
