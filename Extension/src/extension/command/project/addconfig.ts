@@ -49,7 +49,7 @@ export class AddConfigCommand extends ProjectCommand {
             const isDebug = await ConfirmationDialog.show("Is this a debug configuration?");
             if (isDebug === undefined) { return; }
 
-            const newConfig: Configuration = { name, toolchainId: selectedTc.tc.id };
+            const newConfig: Configuration = new Configuration({ name, toolchainId: selectedTc.tc.id });
             await project.addConfiguration(newConfig, isDebug);
 
             Vscode.window.showInformationMessage(`The configuration "${name}" has been added.`);

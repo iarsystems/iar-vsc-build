@@ -44,7 +44,7 @@ export class ThriftProject implements ExtendedProject {
     }
 
     public async addConfiguration(config: Config, isDebug: boolean): Promise<void> {
-        await this.projectMgr.AddConfiguration(config, this.context, isDebug)
+        await this.projectMgr.AddConfiguration(new Configuration(config), this.context, isDebug);
         this.configurations = await this.projectMgr.GetConfigurations(this.context);
         this.fireChangedEvent();
     }
