@@ -38,6 +38,20 @@ ttypes.NodeType = {
   '2' : 'File',
   'File' : 2
 };
+ttypes.OptionType = {
+  '0' : 'Check',
+  'Check' : 0,
+  '1' : 'Edit',
+  'Edit' : 1,
+  '2' : 'EditB',
+  'EditB' : 2,
+  '3' : 'List',
+  'List' : 3,
+  '4' : 'Radio',
+  'Radio' : 4,
+  '5' : 'CheckList',
+  'CheckList' : 5
+};
 var ProjectManagerError = module.exports.ProjectManagerError = function(args) {
   Thrift.TException.call(this, "ProjectManagerError");
   this.name = "ProjectManagerError";
@@ -605,6 +619,338 @@ Node.prototype.write = function(output) {
   if (this.path !== null && this.path !== undefined) {
     output.writeFieldBegin('path', Thrift.Type.STRING, 4);
     output.writeString(this.path);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+var OptionElementDescription = module.exports.OptionElementDescription = function(args) {
+  this.id = null;
+  this.label = null;
+  this.enabled = null;
+  this.data = null;
+  if (args) {
+    if (args.id !== undefined && args.id !== null) {
+      this.id = args.id;
+    }
+    if (args.label !== undefined && args.label !== null) {
+      this.label = args.label;
+    }
+    if (args.enabled !== undefined && args.enabled !== null) {
+      this.enabled = args.enabled;
+    }
+    if (args.data !== undefined && args.data !== null) {
+      this.data = args.data;
+    }
+  }
+};
+OptionElementDescription.prototype = {};
+OptionElementDescription.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true) {
+    var ret = input.readFieldBegin();
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid) {
+      case 1:
+      if (ftype == Thrift.Type.STRING) {
+        this.id = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.STRING) {
+        this.label = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 3:
+      if (ftype == Thrift.Type.BOOL) {
+        this.enabled = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 4:
+      if (ftype == Thrift.Type.STRING) {
+        this.data = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+OptionElementDescription.prototype.write = function(output) {
+  output.writeStructBegin('OptionElementDescription');
+  if (this.id !== null && this.id !== undefined) {
+    output.writeFieldBegin('id', Thrift.Type.STRING, 1);
+    output.writeString(this.id);
+    output.writeFieldEnd();
+  }
+  if (this.label !== null && this.label !== undefined) {
+    output.writeFieldBegin('label', Thrift.Type.STRING, 2);
+    output.writeString(this.label);
+    output.writeFieldEnd();
+  }
+  if (this.enabled !== null && this.enabled !== undefined) {
+    output.writeFieldBegin('enabled', Thrift.Type.BOOL, 3);
+    output.writeBool(this.enabled);
+    output.writeFieldEnd();
+  }
+  if (this.data !== null && this.data !== undefined) {
+    output.writeFieldBegin('data', Thrift.Type.STRING, 4);
+    output.writeString(this.data);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+var OptionDescription = module.exports.OptionDescription = function(args) {
+  this.id = null;
+  this.value = null;
+  this.type = null;
+  this.elements = null;
+  this.enabled = null;
+  this.visible = null;
+  this.canBeLocal = null;
+  if (args) {
+    if (args.id !== undefined && args.id !== null) {
+      this.id = args.id;
+    }
+    if (args.value !== undefined && args.value !== null) {
+      this.value = args.value;
+    }
+    if (args.type !== undefined && args.type !== null) {
+      this.type = args.type;
+    }
+    if (args.elements !== undefined && args.elements !== null) {
+      this.elements = Thrift.copyList(args.elements, [ttypes.OptionElementDescription]);
+    }
+    if (args.enabled !== undefined && args.enabled !== null) {
+      this.enabled = args.enabled;
+    }
+    if (args.visible !== undefined && args.visible !== null) {
+      this.visible = args.visible;
+    }
+    if (args.canBeLocal !== undefined && args.canBeLocal !== null) {
+      this.canBeLocal = args.canBeLocal;
+    }
+  }
+};
+OptionDescription.prototype = {};
+OptionDescription.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true) {
+    var ret = input.readFieldBegin();
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid) {
+      case 1:
+      if (ftype == Thrift.Type.STRING) {
+        this.id = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.STRING) {
+        this.value = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 3:
+      if (ftype == Thrift.Type.I32) {
+        this.type = input.readI32();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 4:
+      if (ftype == Thrift.Type.LIST) {
+        this.elements = [];
+        var _rtmp326 = input.readListBegin();
+        var _size25 = _rtmp326.size || 0;
+        for (var _i27 = 0; _i27 < _size25; ++_i27) {
+          var elem28 = null;
+          elem28 = new ttypes.OptionElementDescription();
+          elem28.read(input);
+          this.elements.push(elem28);
+        }
+        input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 5:
+      if (ftype == Thrift.Type.BOOL) {
+        this.enabled = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 6:
+      if (ftype == Thrift.Type.BOOL) {
+        this.visible = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 7:
+      if (ftype == Thrift.Type.BOOL) {
+        this.canBeLocal = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+OptionDescription.prototype.write = function(output) {
+  output.writeStructBegin('OptionDescription');
+  if (this.id !== null && this.id !== undefined) {
+    output.writeFieldBegin('id', Thrift.Type.STRING, 1);
+    output.writeString(this.id);
+    output.writeFieldEnd();
+  }
+  if (this.value !== null && this.value !== undefined) {
+    output.writeFieldBegin('value', Thrift.Type.STRING, 2);
+    output.writeString(this.value);
+    output.writeFieldEnd();
+  }
+  if (this.type !== null && this.type !== undefined) {
+    output.writeFieldBegin('type', Thrift.Type.I32, 3);
+    output.writeI32(this.type);
+    output.writeFieldEnd();
+  }
+  if (this.elements !== null && this.elements !== undefined) {
+    output.writeFieldBegin('elements', Thrift.Type.LIST, 4);
+    output.writeListBegin(Thrift.Type.STRUCT, this.elements.length);
+    for (var iter29 in this.elements) {
+      if (this.elements.hasOwnProperty(iter29)) {
+        iter29 = this.elements[iter29];
+        iter29.write(output);
+      }
+    }
+    output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  if (this.enabled !== null && this.enabled !== undefined) {
+    output.writeFieldBegin('enabled', Thrift.Type.BOOL, 5);
+    output.writeBool(this.enabled);
+    output.writeFieldEnd();
+  }
+  if (this.visible !== null && this.visible !== undefined) {
+    output.writeFieldBegin('visible', Thrift.Type.BOOL, 6);
+    output.writeBool(this.visible);
+    output.writeFieldEnd();
+  }
+  if (this.canBeLocal !== null && this.canBeLocal !== undefined) {
+    output.writeFieldBegin('canBeLocal', Thrift.Type.BOOL, 7);
+    output.writeBool(this.canBeLocal);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+var OptionCategory = module.exports.OptionCategory = function(args) {
+  this.id = null;
+  this.optionIds = null;
+  if (args) {
+    if (args.id !== undefined && args.id !== null) {
+      this.id = args.id;
+    }
+    if (args.optionIds !== undefined && args.optionIds !== null) {
+      this.optionIds = Thrift.copyList(args.optionIds, [null]);
+    }
+  }
+};
+OptionCategory.prototype = {};
+OptionCategory.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true) {
+    var ret = input.readFieldBegin();
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid) {
+      case 1:
+      if (ftype == Thrift.Type.STRING) {
+        this.id = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.LIST) {
+        this.optionIds = [];
+        var _rtmp331 = input.readListBegin();
+        var _size30 = _rtmp331.size || 0;
+        for (var _i32 = 0; _i32 < _size30; ++_i32) {
+          var elem33 = null;
+          elem33 = input.readString();
+          this.optionIds.push(elem33);
+        }
+        input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+OptionCategory.prototype.write = function(output) {
+  output.writeStructBegin('OptionCategory');
+  if (this.id !== null && this.id !== undefined) {
+    output.writeFieldBegin('id', Thrift.Type.STRING, 1);
+    output.writeString(this.id);
+    output.writeFieldEnd();
+  }
+  if (this.optionIds !== null && this.optionIds !== undefined) {
+    output.writeFieldBegin('optionIds', Thrift.Type.LIST, 2);
+    output.writeListBegin(Thrift.Type.STRING, this.optionIds.length);
+    for (var iter34 in this.optionIds) {
+      if (this.optionIds.hasOwnProperty(iter34)) {
+        iter34 = this.optionIds[iter34];
+        output.writeString(iter34);
+      }
+    }
+    output.writeListEnd();
     output.writeFieldEnd();
   }
   output.writeFieldStop();

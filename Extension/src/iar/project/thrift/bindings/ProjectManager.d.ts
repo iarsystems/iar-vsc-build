@@ -16,6 +16,7 @@ import ttypes = require('./projectmanager_types');
 import ToolType = ttypes.ToolType
 import InvocationType = ttypes.InvocationType
 import NodeType = ttypes.NodeType
+import OptionType = ttypes.OptionType
 import PROJECTMANAGER_ID = ttypes.PROJECTMANAGER_ID
 import ProjectManagerError = ttypes.ProjectManagerError
 import ToolDefinition = ttypes.ToolDefinition
@@ -23,8 +24,21 @@ import Toolchain = ttypes.Toolchain
 import Configuration = ttypes.Configuration
 import ProjectContext = ttypes.ProjectContext
 import Node = ttypes.Node
+import OptionElementDescription = ttypes.OptionElementDescription
+import OptionDescription = ttypes.OptionDescription
+import OptionCategory = ttypes.OptionCategory
 import HeartbeatService = require('./HeartbeatService');
 
+/**
+ * A service which manages Embedded Workbench project files (.ewp)
+ * 
+ * It can manipulate the project nodes and build configurations, as well as reading/writing
+ * their respective settings.
+ * 
+ * There is also experimental to register new toolchains directly from the service, without
+ * requirind an swtd static library. This is however very limited as of now in that there is
+ * no option support for them.
+ */
 declare class Client extends HeartbeatService.Client {
   #output: thrift.TTransport;
   #pClass: thrift.TProtocol;
@@ -161,6 +175,116 @@ declare class Client extends HeartbeatService.Client {
    * Build a project configuration asynchronously. Will notify the build result when done as an event.
    */
   BuildProject(prj: ProjectContext, configurationName: string, callback?: (error: ttypes.ProjectManagerError, response: void)=>void): void;
+
+  /**
+   * Get a list of options for the given node (file, group) in a project, within the given configuration .
+   */
+  GetOptionsForNode(prj: ProjectContext, node: Node, configurationName: string): Q.Promise<OptionDescription[]>;
+
+  /**
+   * Get a list of options for the given node (file, group) in a project, within the given configuration .
+   */
+  GetOptionsForNode(prj: ProjectContext, node: Node, configurationName: string, callback?: (error: ttypes.ProjectManagerError, response: OptionDescription[])=>void): void;
+
+  /**
+   * Get a list of options for the given build configuration in a project.
+   */
+  GetOptionsForConfiguration(prj: ProjectContext, configurationName: string): Q.Promise<OptionDescription[]>;
+
+  /**
+   * Get a list of options for the given build configuration in a project.
+   */
+  GetOptionsForConfiguration(prj: ProjectContext, configurationName: string, callback?: (error: ttypes.ProjectManagerError, response: OptionDescription[])=>void): void;
+
+  /**
+   * Set a list of options for the given node (file, group) in a project. Return a list of updated options.
+   */
+  ApplyOptionsForNode(prj: ProjectContext, node: Node, configurationName: string, optionsToSet: OptionDescription[]): Q.Promise<OptionDescription[]>;
+
+  /**
+   * Set a list of options for the given node (file, group) in a project. Return a list of updated options.
+   */
+  ApplyOptionsForNode(prj: ProjectContext, node: Node, configurationName: string, optionsToSet: OptionDescription[], callback?: (error: ttypes.ProjectManagerError, response: OptionDescription[])=>void): void;
+
+  /**
+   * Set a list of options for the given node (file, group) in a project without saving to the EWP file. Return a list of updated options.
+   */
+  VerifyOptionsForNode(prj: ProjectContext, node: Node, configurationName: string, optionsToSet: OptionDescription[]): Q.Promise<OptionDescription[]>;
+
+  /**
+   * Set a list of options for the given node (file, group) in a project without saving to the EWP file. Return a list of updated options.
+   */
+  VerifyOptionsForNode(prj: ProjectContext, node: Node, configurationName: string, optionsToSet: OptionDescription[], callback?: (error: ttypes.ProjectManagerError, response: OptionDescription[])=>void): void;
+
+  /**
+   * Set a list of options for the given build configuration in a project. Return a list of updated options.
+   */
+  ApplyOptionsForConfiguration(prj: ProjectContext, configurationName: string, optionsToSet: OptionDescription[]): Q.Promise<OptionDescription[]>;
+
+  /**
+   * Set a list of options for the given build configuration in a project. Return a list of updated options.
+   */
+  ApplyOptionsForConfiguration(prj: ProjectContext, configurationName: string, optionsToSet: OptionDescription[], callback?: (error: ttypes.ProjectManagerError, response: OptionDescription[])=>void): void;
+
+  /**
+   * Set a list of options for the given build configuration in a project without saving to the EWP file. Return a list of updated options.
+   */
+  VerifyOptionsForConfiguration(prj: ProjectContext, configurationName: string, optionsToSet: OptionDescription[]): Q.Promise<OptionDescription[]>;
+
+  /**
+   * Set a list of options for the given build configuration in a project without saving to the EWP file. Return a list of updated options.
+   */
+  VerifyOptionsForConfiguration(prj: ProjectContext, configurationName: string, optionsToSet: OptionDescription[], callback?: (error: ttypes.ProjectManagerError, response: OptionDescription[])=>void): void;
+
+  /**
+   * Get a list of option categories for a given configuration
+   */
+  GetOptionCategories(prj: ProjectContext, configurationName: string): Q.Promise<OptionCategory[]>;
+
+  /**
+   * Get a list of option categories for a given configuration
+   */
+  GetOptionCategories(prj: ProjectContext, configurationName: string, callback?: (error: void, response: OptionCategory[])=>void): void;
+
+  /**
+   * Enable/disable multi-file compilation for the provided project, configuration and project node
+   */
+  EnableMultiFileCompilation(prj: ProjectContext, configurationName: string, node: Node, enabled: boolean): Q.Promise<void>;
+
+  /**
+   * Enable/disable multi-file compilation for the provided project, configuration and project node
+   */
+  EnableMultiFileCompilation(prj: ProjectContext, configurationName: string, node: Node, enabled: boolean, callback?: (error: void, response: void)=>void): void;
+
+  /**
+   * Enable/disable multi-file 'discard public symbols' for the provided project, configuration and project node
+   */
+  EnableMultiFileDiscardPublicSymbols(prj: ProjectContext, configurationName: string, node: Node, enabled: boolean): Q.Promise<void>;
+
+  /**
+   * Enable/disable multi-file 'discard public symbols' for the provided project, configuration and project node
+   */
+  EnableMultiFileDiscardPublicSymbols(prj: ProjectContext, configurationName: string, node: Node, enabled: boolean, callback?: (error: void, response: void)=>void): void;
+
+  /**
+   * Returns whether multi-file compilation is enabled for the provided project, configuration and project node
+   */
+  IsMultiFileCompilationEnabled(prj: ProjectContext, configurationName: string, node: Node): Q.Promise<boolean>;
+
+  /**
+   * Returns whether multi-file compilation is enabled for the provided project, configuration and project node
+   */
+  IsMultiFileCompilationEnabled(prj: ProjectContext, configurationName: string, node: Node, callback?: (error: void, response: boolean)=>void): void;
+
+  /**
+   * Enable/disable multi-file 'discard public symbols' for the provided project, configuration and project node
+   */
+  IsMultiFileDiscardPublicSymbolsEnabled(prj: ProjectContext, configurationName: string, node: Node): Q.Promise<boolean>;
+
+  /**
+   * Enable/disable multi-file 'discard public symbols' for the provided project, configuration and project node
+   */
+  IsMultiFileDiscardPublicSymbolsEnabled(prj: ProjectContext, configurationName: string, node: Node, callback?: (error: void, response: boolean)=>void): void;
 }
 
 declare class Processor extends HeartbeatService.Processor {
@@ -181,4 +305,15 @@ declare class Processor extends HeartbeatService.Processor {
   process_GetToolchains(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_AddToolchain(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_BuildProject(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_GetOptionsForNode(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_GetOptionsForConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_ApplyOptionsForNode(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_VerifyOptionsForNode(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_ApplyOptionsForConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_VerifyOptionsForConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_GetOptionCategories(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_EnableMultiFileCompilation(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_EnableMultiFileDiscardPublicSymbols(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_IsMultiFileCompilationEnabled(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_IsMultiFileDiscardPublicSymbolsEnabled(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
 }
