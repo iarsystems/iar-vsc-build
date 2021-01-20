@@ -27,6 +27,7 @@ import Node = ttypes.Node
 import OptionElementDescription = ttypes.OptionElementDescription
 import OptionDescription = ttypes.OptionDescription
 import OptionCategory = ttypes.OptionCategory
+import BuildResult = ttypes.BuildResult
 import HeartbeatService = require('./HeartbeatService');
 
 /**
@@ -35,9 +36,9 @@ import HeartbeatService = require('./HeartbeatService');
  * It can manipulate the project nodes and build configurations, as well as reading/writing
  * their respective settings.
  * 
- * There is also experimental to register new toolchains directly from the service, without
- * requirind an swtd static library. This is however very limited as of now in that there is
- * no option support for them.
+ * There is also experimental support to register new toolchains directly from the service, without
+ * requiring an swtd library. This is however very limited as of now in that there is
+ * no option support for the tools in the toolchain.
  */
 declare class Client extends HeartbeatService.Client {
   #output: thrift.TTransport;
@@ -167,14 +168,14 @@ declare class Client extends HeartbeatService.Client {
   AddToolchain(toolchain: Toolchain, callback?: (error: ttypes.ProjectManagerError, response: void)=>void): void;
 
   /**
-   * Build a project configuration asynchronously. Will notify the build result when done as an event.
+   * Build a project configuration synchronously, and return its result
    */
-  BuildProject(prj: ProjectContext, configurationName: string): Q.Promise<void>;
+  BuildProject(prj: ProjectContext, configurationName: string): Q.Promise<BuildResult>;
 
   /**
-   * Build a project configuration asynchronously. Will notify the build result when done as an event.
+   * Build a project configuration synchronously, and return its result
    */
-  BuildProject(prj: ProjectContext, configurationName: string, callback?: (error: ttypes.ProjectManagerError, response: void)=>void): void;
+  BuildProject(prj: ProjectContext, configurationName: string, callback?: (error: ttypes.ProjectManagerError, response: BuildResult)=>void): void;
 
   /**
    * Get a list of options for the given node (file, group) in a project, within the given configuration .

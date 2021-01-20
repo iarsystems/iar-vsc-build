@@ -76,10 +76,11 @@ declare class ToolDefinition {
   public executableName: string;
   public inputExtensions: string[];
   public outputExtensions: string[];
+  public hiddenOutputExtensions: string[];
   public toolType: ToolType;
   public invocationType: InvocationType;
 
-    constructor(args?: { id: string; name: string; executableName: string; inputExtensions: string[]; outputExtensions: string[]; toolType: ToolType; invocationType: InvocationType; });
+    constructor(args?: { id: string; name: string; executableName: string; inputExtensions: string[]; outputExtensions: string[]; hiddenOutputExtensions: string[]; toolType: ToolType; invocationType: InvocationType; });
   read(input: Object): void;
   write(input: Object): void;
 }
@@ -116,9 +117,8 @@ declare class Configuration {
  */
 declare class ProjectContext {
   public filename: string;
-  public configurations: Configuration[];
 
-    constructor(args?: { filename: string; configurations: Configuration[]; });
+    constructor(args?: { filename: string; });
   read(input: Object): void;
   write(input: Object): void;
 }
@@ -180,6 +180,19 @@ declare class OptionCategory {
   public optionIds: string[];
 
     constructor(args?: { id: string; optionIds: string[]; });
+  read(input: Object): void;
+  write(input: Object): void;
+}
+
+/**
+ * Stores the result of a build, referring to the project that was built
+ */
+declare class BuildResult {
+  public projectContext: ProjectContext;
+  public buildOutput: string[];
+  public succeded: boolean;
+
+    constructor(args?: { projectContext: ProjectContext; buildOutput: string[]; succeded: boolean; });
   read(input: Object): void;
   write(input: Object): void;
 }

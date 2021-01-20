@@ -4,8 +4,8 @@ require 'fileutils'
 TMP_FOLDER = "thrift-temp"
 THRIFT_EXE_NAME_WIN = "thrift.exe"
 THRIFT_EXE_NAME_LINUX = "thrift"
-DEFINITIONS_URL = "http://seupp-s-ci02.ad.iar.com:8080/job/thrift-services/job/thrift-services-ide-trunk/lastSuccessfulBuild/artifact/Services/ThriftServiceDefinitions/com.iar.services.ide/target/com.iar.services.ide-9.0.3-SNAPSHOT-thrift.zip"
-DEFINITIONS_FILENAME = "com.iar.services.ide-9.0.3-SNAPSHOT-thrift.zip"
+DEFINITIONS_FILENAME = "com.iar.services.ide-9.0.4-SNAPSHOT-thrift.zip"
+DEFINITIONS_URL = "http://seupp-s-ci02.ad.iar.com:8080/job/thrift-services/job/thrift-services-ide-trunk/lastSuccessfulBuild/artifact/Services/ThriftServiceDefinitions/com.iar.services.ide/target/" + DEFINITIONS_FILENAME
 
 $options = {}
 OptionParser.new do |opts|
