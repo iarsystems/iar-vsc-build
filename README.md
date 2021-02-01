@@ -4,9 +4,9 @@
 
 # IAR-VSC-thrift
 
-This is a modified version of `iar-vsc`, providing some thrift project integration.
-Note that is **not** the actual development repo for this project, I just put this here to make it easier for others to find it.
-The actual repo is on my (private) github for now.
+This is a fork of the `iar-vsc` Visual Studio code extension, available at https://github.com/pluyckx/iar-vsc .
+Unlike the original extension, this fork adds an IAR view to the Activity bar where users are able to manipulate the file structure in `.ewp` project files directly, and to read which build configurations they support.
+
 
 ## Building
 
