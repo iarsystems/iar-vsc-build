@@ -1,11 +1,17 @@
 require 'optparse'
 require 'fileutils'
 
+WINDOWS = RUBY_PLATFORM.match(/cygwin|mswin|mingw|bccwin|wince|emx/)
 TMP_FOLDER = "thrift-temp"
 THRIFT_EXE_NAME_WIN = "thrift.exe"
 THRIFT_EXE_NAME_LINUX = "thrift"
 DEFINITIONS_FILENAME = "com.iar.services.ide-9.0.4-SNAPSHOT-thrift.zip"
 DEFINITIONS_URL = "http://seupp-s-ci02.ad.iar.com:8080/job/thrift-services/job/thrift-services-ide-trunk/lastSuccessfulBuild/artifact/Services/ThriftServiceDefinitions/com.iar.services.ide/target/" + DEFINITIONS_FILENAME
+
+def error(str)
+  STDERR.puts "ERROR: " + str
+  exit(1)
+end
 
 $options = {}
 OptionParser.new do |opts|
@@ -40,30 +46,48 @@ def valid_thrift_compiler?(path)
   version_string.match(/^Thrift version [0-9\.]+$/)
 end
 
-# resolve path to extension
-iar_vsc_path = ARGV.shift
-iar_vsc_path = Dir.pwd unless iar_vsc_path
-raise "This folder does not seem to contain the 'iar-vsc' sources (see --help)." unless valid_iar_vsc_path?(iar_vsc_path)
+#----------------------------------------------------------------------
 
-# resolve path to thrift compiler
-thrift_compiler_path = $options[:thrift]
-unless thrift_compiler_path
-  thrift_name = RUBY_PLATFORM.match(/cygwin|mswin|mingw|bccwin|wince|emx/) ? THRIFT_EXE_NAME_WIN : THRIFT_EXE_NAME_LINUX
-  thrift_compiler_path = File.join(__dir__, thrift_name)
-  unless File.file? thrift_compiler_path
-    thrift_compiler_path = File.expand_path(File.join("../../thrift-for-ts", thrift_name))
-    unless File.file? thrift_compiler_path
-      thrift_dir = ENV["PATH"].split(File::PATH_SEPARATOR).find do |d|
-        File.exist?(File.join(d, thrift_name))
-      end
-      thrift_compiler_path = thrift_dir ? File.join(thrift_dir, thrift_name) : nil
-      raise "Couldn't find a thrift compiler to use. Please make sure #{thrift_name} is in your PATH or adjacent to this script. You may also manually point it out (see --help)." unless File.file?(thrift_compiler_path) 
-    end
+def get_thrift_compiler
+  path = $options[:thrift]
+  return path if path
+
+  name = WINDOWS ? THRIFT_EXE_NAME_WIN : THRIFT_EXE_NAME_LINUX
+  path = File.join(__dir__, name)
+  return path if File.file?(path)
+
+  thrift_for_ts = File.expand_path("../../thrift-for-ts", __dir__)
+  path = File.join(thrift_for_ts, name)
+  return path if File.file?(path)
+
+  thrift_dir = ENV["PATH"].split(File::PATH_SEPARATOR).find do |d|
+    File.exist?(File.join(d, name))
   end
+  path = thrift_dir ? File.join(thrift_dir, name) : nil
+  return path if File.file?(path)
+
+  raise "Couldn't find a thrift compiler to use. Please make sure #{name} is in your PATH or adjacent to this script. You may also manually point it out (see --help)."
 end
+
+#----------------------------------------------------------------------
+
+# resolve path to extension
+case ARGV.size
+when 0
+  iar_vsc_path = Dir.pwd
+when 1
+  iar_vsc_path = File.expand_path(ARGV[0])
+else
+  raise "too many arguments ...."
+end
+
+if !valid_iar_vsc_path?(iar_vsc_path)
+  error("folder does not contain the 'iar-vsc' sources (no 'package.json'): #{iar_vsc_path}")
+end
+
+thrift_compiler_path = get_thrift_compiler()
 do_puts "Found thrift compiler: #{thrift_compiler_path}"
 raise "The thrift compiler does not seem to be valid." unless valid_thrift_compiler?(thrift_compiler_path)
-
 
 tmp_folder = File.join(iar_vsc_path, TMP_FOLDER)
 
