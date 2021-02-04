@@ -3143,6 +3143,151 @@ ProjectManager_IsMultiFileDiscardPublicSymbolsEnabled_result.prototype.write = f
   return;
 };
 
+var ProjectManager_GetToolArgumentsForConfiguration_args = function(args) {
+  this.prj = null;
+  this.toolId = null;
+  this.configurationName = null;
+  if (args) {
+    if (args.prj !== undefined && args.prj !== null) {
+      this.prj = new ttypes.ProjectContext(args.prj);
+    }
+    if (args.toolId !== undefined && args.toolId !== null) {
+      this.toolId = args.toolId;
+    }
+    if (args.configurationName !== undefined && args.configurationName !== null) {
+      this.configurationName = args.configurationName;
+    }
+  }
+};
+ProjectManager_GetToolArgumentsForConfiguration_args.prototype = {};
+ProjectManager_GetToolArgumentsForConfiguration_args.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true) {
+    var ret = input.readFieldBegin();
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid) {
+      case 1:
+      if (ftype == Thrift.Type.STRUCT) {
+        this.prj = new ttypes.ProjectContext();
+        this.prj.read(input);
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.STRING) {
+        this.toolId = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 3:
+      if (ftype == Thrift.Type.STRING) {
+        this.configurationName = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+ProjectManager_GetToolArgumentsForConfiguration_args.prototype.write = function(output) {
+  output.writeStructBegin('ProjectManager_GetToolArgumentsForConfiguration_args');
+  if (this.prj !== null && this.prj !== undefined) {
+    output.writeFieldBegin('prj', Thrift.Type.STRUCT, 1);
+    this.prj.write(output);
+    output.writeFieldEnd();
+  }
+  if (this.toolId !== null && this.toolId !== undefined) {
+    output.writeFieldBegin('toolId', Thrift.Type.STRING, 2);
+    output.writeString(this.toolId);
+    output.writeFieldEnd();
+  }
+  if (this.configurationName !== null && this.configurationName !== undefined) {
+    output.writeFieldBegin('configurationName', Thrift.Type.STRING, 3);
+    output.writeString(this.configurationName);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+var ProjectManager_GetToolArgumentsForConfiguration_result = function(args) {
+  this.success = null;
+  if (args) {
+    if (args.success !== undefined && args.success !== null) {
+      this.success = Thrift.copyList(args.success, [null]);
+    }
+  }
+};
+ProjectManager_GetToolArgumentsForConfiguration_result.prototype = {};
+ProjectManager_GetToolArgumentsForConfiguration_result.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true) {
+    var ret = input.readFieldBegin();
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid) {
+      case 0:
+      if (ftype == Thrift.Type.LIST) {
+        this.success = [];
+        var _rtmp3106 = input.readListBegin();
+        var _size105 = _rtmp3106.size || 0;
+        for (var _i107 = 0; _i107 < _size105; ++_i107) {
+          var elem108 = null;
+          elem108 = input.readString();
+          this.success.push(elem108);
+        }
+        input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 0:
+        input.skip(ftype);
+        break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+ProjectManager_GetToolArgumentsForConfiguration_result.prototype.write = function(output) {
+  output.writeStructBegin('ProjectManager_GetToolArgumentsForConfiguration_result');
+  if (this.success !== null && this.success !== undefined) {
+    output.writeFieldBegin('success', Thrift.Type.LIST, 0);
+    output.writeListBegin(Thrift.Type.STRING, this.success.length);
+    for (var iter109 in this.success) {
+      if (this.success.hasOwnProperty(iter109)) {
+        iter109 = this.success[iter109];
+        output.writeString(iter109);
+      }
+    }
+    output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
 var ProjectManagerClient = exports.Client = function(output, pClass) {
   this.output = output;
   this.pClass = pClass;
@@ -4612,6 +4757,67 @@ ProjectManagerClient.prototype.recv_IsMultiFileDiscardPublicSymbolsEnabled = fun
   }
   return callback('IsMultiFileDiscardPublicSymbolsEnabled failed: unknown result');
 };
+
+ProjectManagerClient.prototype.GetToolArgumentsForConfiguration = function(prj, toolId, configurationName, callback) {
+  this._seqid = this.new_seqid();
+  if (callback === undefined) {
+    var _defer = Q.defer();
+    this._reqs[this.seqid()] = function(error, result) {
+      if (error) {
+        _defer.reject(error);
+      } else {
+        _defer.resolve(result);
+      }
+    };
+    this.send_GetToolArgumentsForConfiguration(prj, toolId, configurationName);
+    return _defer.promise;
+  } else {
+    this._reqs[this.seqid()] = callback;
+    this.send_GetToolArgumentsForConfiguration(prj, toolId, configurationName);
+  }
+};
+
+ProjectManagerClient.prototype.send_GetToolArgumentsForConfiguration = function(prj, toolId, configurationName) {
+  var output = new this.pClass(this.output);
+  var params = {
+    prj: prj,
+    toolId: toolId,
+    configurationName: configurationName
+  };
+  var args = new ProjectManager_GetToolArgumentsForConfiguration_args(params);
+  try {
+    output.writeMessageBegin('GetToolArgumentsForConfiguration', Thrift.MessageType.CALL, this.seqid());
+    args.write(output);
+    output.writeMessageEnd();
+    return this.output.flush();
+  }
+  catch (e) {
+    delete this._reqs[this.seqid()];
+    if (typeof output.reset === 'function') {
+      output.reset();
+    }
+    throw e;
+  }
+};
+
+ProjectManagerClient.prototype.recv_GetToolArgumentsForConfiguration = function(input,mtype,rseqid) {
+  var callback = this._reqs[rseqid] || function() {};
+  delete this._reqs[rseqid];
+  if (mtype == Thrift.MessageType.EXCEPTION) {
+    var x = new Thrift.TApplicationException();
+    x.read(input);
+    input.readMessageEnd();
+    return callback(x);
+  }
+  var result = new ProjectManager_GetToolArgumentsForConfiguration_result();
+  result.read(input);
+  input.readMessageEnd();
+
+  if (null !== result.success) {
+    return callback(null, result.success);
+  }
+  return callback('GetToolArgumentsForConfiguration failed: unknown result');
+};
 var ProjectManagerProcessor = exports.Processor = function(handler) {
   this._handler = handler;
 };
@@ -5609,6 +5815,45 @@ ProjectManagerProcessor.prototype.process_IsMultiFileDiscardPublicSymbolsEnabled
       } else {
         result_obj = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN, err.message);
         output.writeMessageBegin("IsMultiFileDiscardPublicSymbolsEnabled", Thrift.MessageType.EXCEPTION, seqid);
+      }
+      result_obj.write(output);
+      output.writeMessageEnd();
+      output.flush();
+    });
+  }
+};
+ProjectManagerProcessor.prototype.process_GetToolArgumentsForConfiguration = function(seqid, input, output) {
+  var args = new ProjectManager_GetToolArgumentsForConfiguration_args();
+  args.read(input);
+  input.readMessageEnd();
+  if (this._handler.GetToolArgumentsForConfiguration.length === 3) {
+    Q.fcall(this._handler.GetToolArgumentsForConfiguration.bind(this._handler),
+      args.prj,
+      args.toolId,
+      args.configurationName
+    ).then(function(result) {
+      var result_obj = new ProjectManager_GetToolArgumentsForConfiguration_result({success: result});
+      output.writeMessageBegin("GetToolArgumentsForConfiguration", Thrift.MessageType.REPLY, seqid);
+      result_obj.write(output);
+      output.writeMessageEnd();
+      output.flush();
+    }).catch(function (err) {
+      var result;
+      result = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN, err.message);
+      output.writeMessageBegin("GetToolArgumentsForConfiguration", Thrift.MessageType.EXCEPTION, seqid);
+      result.write(output);
+      output.writeMessageEnd();
+      output.flush();
+    });
+  } else {
+    this._handler.GetToolArgumentsForConfiguration(args.prj, args.toolId, args.configurationName, function (err, result) {
+      var result_obj;
+      if ((err === null || typeof err === 'undefined')) {
+        result_obj = new ProjectManager_GetToolArgumentsForConfiguration_result((err !== null || typeof err === 'undefined') ? err : {success: result});
+        output.writeMessageBegin("GetToolArgumentsForConfiguration", Thrift.MessageType.REPLY, seqid);
+      } else {
+        result_obj = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN, err.message);
+        output.writeMessageBegin("GetToolArgumentsForConfiguration", Thrift.MessageType.EXCEPTION, seqid);
       }
       result_obj.write(output);
       output.writeMessageEnd();

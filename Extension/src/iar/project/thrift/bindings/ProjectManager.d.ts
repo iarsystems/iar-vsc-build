@@ -149,11 +149,19 @@ declare class Client extends HeartbeatService.Client {
 
   /**
    * Get a list of available Toolchains.
+   * 
+   * Note that as of now the retrieved toolchains cannot provide a list of tools, so those need to be
+   * known in advance by the client. A workaround is that the option categories ids usually match
+   * the tool IDs, so they can be used as such in e.g. GetToolCommandLineForConfiguration(). See MAJ-114
    */
   GetToolchains(): Q.Promise<Toolchain[]>;
 
   /**
    * Get a list of available Toolchains.
+   * 
+   * Note that as of now the retrieved toolchains cannot provide a list of tools, so those need to be
+   * known in advance by the client. A workaround is that the option categories ids usually match
+   * the tool IDs, so they can be used as such in e.g. GetToolCommandLineForConfiguration(). See MAJ-114
    */
   GetToolchains(callback?: (error: ttypes.ProjectManagerError, response: Toolchain[])=>void): void;
 
@@ -278,14 +286,28 @@ declare class Client extends HeartbeatService.Client {
   IsMultiFileCompilationEnabled(prj: ProjectContext, configurationName: string, node: Node, callback?: (error: void, response: boolean)=>void): void;
 
   /**
-   * Enable/disable multi-file 'discard public symbols' for the provided project, configuration and project node
+   * Returns whether multi-file 'discard public symbols' is enabled for the provided project, configuration and project node
    */
   IsMultiFileDiscardPublicSymbolsEnabled(prj: ProjectContext, configurationName: string, node: Node): Q.Promise<boolean>;
 
   /**
-   * Enable/disable multi-file 'discard public symbols' for the provided project, configuration and project node
+   * Returns whether multi-file 'discard public symbols' is enabled for the provided project, configuration and project node
    */
   IsMultiFileDiscardPublicSymbolsEnabled(prj: ProjectContext, configurationName: string, node: Node, callback?: (error: void, response: boolean)=>void): void;
+
+  /**
+   * Get the command line arguments of a tool given a build configuration in a project.
+   * Note that GetToolchains() cannot currently provide information about the tools in a toolchain, so the tool
+   * ids must be either known in advance, or assumed to match option category ids. See MAJ-114
+   */
+  GetToolArgumentsForConfiguration(prj: ProjectContext, toolId: string, configurationName: string): Q.Promise<string[]>;
+
+  /**
+   * Get the command line arguments of a tool given a build configuration in a project.
+   * Note that GetToolchains() cannot currently provide information about the tools in a toolchain, so the tool
+   * ids must be either known in advance, or assumed to match option category ids. See MAJ-114
+   */
+  GetToolArgumentsForConfiguration(prj: ProjectContext, toolId: string, configurationName: string, callback?: (error: void, response: string[])=>void): void;
 }
 
 declare class Processor extends HeartbeatService.Processor {
@@ -317,4 +339,5 @@ declare class Processor extends HeartbeatService.Processor {
   process_EnableMultiFileDiscardPublicSymbols(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_IsMultiFileCompilationEnabled(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_IsMultiFileDiscardPublicSymbolsEnabled(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_GetToolArgumentsForConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
 }
