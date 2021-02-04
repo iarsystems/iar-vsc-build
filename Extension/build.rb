@@ -86,64 +86,70 @@ end
 
 #----------------------------------------------------------------------
 
-# resolve path to extension
-case ARGV.size
-when 0
-  iar_vsc_path = Dir.pwd
-when 1
-  iar_vsc_path = File.expand_path(ARGV[0])
-else
-  raise "too many arguments ...."
-end
-
-if !valid_iar_vsc_path?(iar_vsc_path)
-  error("folder does not contain the 'iar-vsc' sources (no 'package.json'): #{iar_vsc_path}")
-end
-
-thrift_compiler_path = get_thrift_compiler()
-logg "Found thrift compiler: #{thrift_compiler_path}"
-raise "The thrift compiler does not seem to be valid." unless valid_thrift_compiler?(thrift_compiler_path)
-
-tmp_folder = File.join(iar_vsc_path, TMP_FOLDER)
-
-begin
-  FileUtils.rm_rf(tmp_folder) if File.exist?(tmp_folder)
-  FileUtils.mkdir_p(tmp_folder)
-  Dir.chdir(tmp_folder)
-
-  logg "Fetching Thrift definitions..."
-  shell "wget #{$options[:quiet] ? "-q" : ""} #{DEFINITIONS_URL}"
-  logg "Extracting and compiling Thrift definitions..."
-  shell "unzip #{DEFINITIONS_FILENAME}"
-
-  Dir.entries(Dir.pwd).select {|file| file.end_with?(".thrift")}.each do |file|
-    command = "'#{thrift_compiler_path}' -gen js:ts,node -o #{Dir.pwd} #{File.join(Dir.pwd, file)}"
-    logg command
-    raise "Thrift definition failed to compile" unless system( command )
-  end
-  out_dir = File.join(Dir.pwd, "gen-nodejs")
-  Dir.entries(out_dir).select {|file| not file.start_with?(".")}.each do |file|
-    FileUtils.cp_r(File.join(out_dir, file), File.join(iar_vsc_path, "src/iar/project/thrift/bindings"))
+def main
+  # resolve path to extension
+  case ARGV.size
+  when 0
+    iar_vsc_path = Dir.pwd
+  when 1
+    iar_vsc_path = File.expand_path(ARGV[0])
+  else
+    raise "too many arguments ...."
   end
 
-  Dir.chdir(iar_vsc_path)
-  logg "Running 'npm install'..."
-  shell "npm install"
+  if !valid_iar_vsc_path?(iar_vsc_path)
+    error("folder does not contain the 'iar-vsc' sources (no 'package.json'): #{iar_vsc_path}")
+  end
 
-  logg "Running TypeScript compiler..."
-  shell "npm run compile"
-rescue StandardError => e
-  FileUtils.rm_rf(tmp_folder)
-  raise e
-else
-  FileUtils.rm_rf(tmp_folder)
+  thrift_compiler_path = get_thrift_compiler()
+  logg "Found thrift compiler: #{thrift_compiler_path}"
+  raise "The thrift compiler does not seem to be valid." unless valid_thrift_compiler?(thrift_compiler_path)
+
+  tmp_folder = File.join(iar_vsc_path, TMP_FOLDER)
+
+  begin
+    FileUtils.rm_rf(tmp_folder) if File.exist?(tmp_folder)
+    FileUtils.mkdir_p(tmp_folder)
+    Dir.chdir(tmp_folder)
+
+    logg "Fetching Thrift definitions..."
+    shell "wget #{$options[:quiet] ? "-q" : ""} #{DEFINITIONS_URL}"
+    logg "Extracting and compiling Thrift definitions..."
+    shell "unzip #{DEFINITIONS_FILENAME}"
+
+    Dir.entries(Dir.pwd).select {|file| file.end_with?(".thrift")}.each do |file|
+      command = "'#{thrift_compiler_path}' -gen js:ts,node -o #{Dir.pwd} #{File.join(Dir.pwd, file)}"
+      logg command
+      raise "Thrift definition failed to compile" unless system( command )
+    end
+    out_dir = File.join(Dir.pwd, "gen-nodejs")
+    Dir.entries(out_dir).select {|file| not file.start_with?(".")}.each do |file|
+      FileUtils.cp_r(File.join(out_dir, file), File.join(iar_vsc_path, "src/iar/project/thrift/bindings"))
+    end
+
+    Dir.chdir(iar_vsc_path)
+    logg "Running 'npm install'..."
+    shell "npm install"
+
+    logg "Running TypeScript compiler..."
+    shell "npm run compile"
+  rescue StandardError => e
+    FileUtils.rm_rf(tmp_folder)
+    raise e
+  else
+    FileUtils.rm_rf(tmp_folder)
+  end
+
+  logg "Done building"
+  logg "Generating .vsix file..."
+
+  shell "npm install -g vsce"
+
+  shell "vsce package"
+
+  logg "Generating .vsix file..."
 end
 
-logg "Done building"
-logg "Generating .vsix file..."
-
-shell "npm install -g vsce"
-
-shell "vsce package"
-
-logg "Generating .vsix file..."
+#----------------------------------------------------------------------
+main()
+#----------------------------------------------------------------------
