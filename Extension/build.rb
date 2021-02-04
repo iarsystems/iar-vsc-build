@@ -12,7 +12,9 @@ DEFINITIONS_URL = "http://seupp-s-ci02.ad.iar.com:8080/job/thrift-services/job/t
 #----------------------------------------------------------------------
 
 def error(str)
-  STDERR.puts "ERROR: " + str
+  for line in [str].flatten
+    STDERR.puts "ERROR: " + line
+  end
   exit(1)
 end
 
@@ -68,20 +70,15 @@ def get_thrift_compiler
   return path if path
 
   name = WINDOWS ? THRIFT_EXE_NAME_WIN : THRIFT_EXE_NAME_LINUX
-  path = File.join(__dir__, name)
-  return path if File.file?(path)
 
   thrift_for_ts = File.expand_path("../../thrift-for-ts", __dir__)
   path = File.join(thrift_for_ts, name)
   return path if File.file?(path)
 
-  thrift_dir = ENV["PATH"].split(File::PATH_SEPARATOR).find do |d|
-    File.exist?(File.join(d, name))
-  end
-  path = thrift_dir ? File.join(thrift_dir, name) : nil
-  return path if File.file?(path)
-
-  raise "Couldn't find a thrift compiler to use. Please make sure #{name} is in your PATH or adjacent to this script. You may also manually point it out (see --help)."
+  error [
+    "couldn't find thrift compiler: #{thrift_for_ts}",
+    "maybe use -t option",
+  ]
 end
 
 #----------------------------------------------------------------------
