@@ -1,5 +1,6 @@
 require 'optparse'
 require 'fileutils'
+require 'open3'
 
 WINDOWS = RUBY_PLATFORM.match(/cygwin|mswin|mingw|bccwin|wince|emx/)
 TMP_FOLDER = "thrift-temp"
@@ -8,10 +9,24 @@ THRIFT_EXE_NAME_LINUX = "thrift"
 DEFINITIONS_FILENAME = "com.iar.services.ide-9.1.0-SNAPSHOT-thrift.zip"
 DEFINITIONS_URL = "http://seupp-s-ci02.ad.iar.com:8080/job/thrift-services/job/thrift-services-ide-trunk/lastSuccessfulBuild/artifact/Services/ThriftServiceDefinitions/com.iar.services.ide/target/" + DEFINITIONS_FILENAME
 
+#----------------------------------------------------------------------
+
 def error(str)
   STDERR.puts "ERROR: " + str
   exit(1)
 end
+
+def shell(cmd)
+  stdout, status = Open3.capture2(cmd)
+  if ! $options[:quiet]
+    puts stdout
+  end
+  if ! status.success?
+    error "command failed: #{cmd}"
+  end
+end
+
+#----------------------------------------------------------------------
 
 $options = {}
 OptionParser.new do |opts|
@@ -31,7 +46,7 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-def do_puts(str)
+def logg(str)
   return if $options[:quiet]
   puts str
 end
@@ -86,7 +101,7 @@ if !valid_iar_vsc_path?(iar_vsc_path)
 end
 
 thrift_compiler_path = get_thrift_compiler()
-do_puts "Found thrift compiler: #{thrift_compiler_path}"
+logg "Found thrift compiler: #{thrift_compiler_path}"
 raise "The thrift compiler does not seem to be valid." unless valid_thrift_compiler?(thrift_compiler_path)
 
 tmp_folder = File.join(iar_vsc_path, TMP_FOLDER)
@@ -96,16 +111,14 @@ begin
   FileUtils.mkdir_p(tmp_folder)
   Dir.chdir(tmp_folder)
 
-  do_puts "Fetching Thrift definitions..."
-  do_puts `wget #{$options[:quiet] ? "-q" : ""} #{DEFINITIONS_URL}`
-  raise "The previous command was unsuccessful" unless $?.exitstatus == 0
-  do_puts "Extracting and compiling Thrift definitions..."
-  do_puts `unzip #{DEFINITIONS_FILENAME}`
-  raise "The previous command was unsuccessful" unless $?.exitstatus == 0
+  logg "Fetching Thrift definitions..."
+  shell "wget #{$options[:quiet] ? "-q" : ""} #{DEFINITIONS_URL}"
+  logg "Extracting and compiling Thrift definitions..."
+  shell "unzip #{DEFINITIONS_FILENAME}"
 
   Dir.entries(Dir.pwd).select {|file| file.end_with?(".thrift")}.each do |file|
     command = "'#{thrift_compiler_path}' -gen js:ts,node -o #{Dir.pwd} #{File.join(Dir.pwd, file)}"
-    do_puts command
+    logg command
     raise "Thrift definition failed to compile" unless system( command )
   end
   out_dir = File.join(Dir.pwd, "gen-nodejs")
@@ -114,13 +127,11 @@ begin
   end
 
   Dir.chdir(iar_vsc_path)
-  do_puts "Running 'npm install'..."
-  do_puts `npm install`
-  raise "The previous command was unsuccessful" unless $?.exitstatus == 0
+  logg "Running 'npm install'..."
+  shell "npm install"
 
-  do_puts "Running TypeScript compiler..."
-  do_puts `npm run compile`
-  raise "The previous command was unsuccessful" unless $?.exitstatus == 0
+  logg "Running TypeScript compiler..."
+  shell "npm run compile"
 rescue StandardError => e
   FileUtils.rm_rf(tmp_folder)
   raise e
@@ -128,13 +139,11 @@ else
   FileUtils.rm_rf(tmp_folder)
 end
 
-do_puts "Done building"
-do_puts "Generating .vsix file..."
+logg "Done building"
+logg "Generating .vsix file..."
 
-do_puts `npm install -g vsce`
-raise "Failed to install vsce, which is needed to package the extension. Try running 'npm install -g vsce'." unless $?.exitstatus == 0
+shell "npm install -g vsce"
 
-do_puts `vsce package`
-raise "The previous command was unsuccessful" unless $?.exitstatus == 0
+shell "vsce package"
 
-do_puts "Generating .vsix file..."
+logg "Generating .vsix file..."
