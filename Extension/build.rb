@@ -19,6 +19,7 @@ def error(str)
 end
 
 def shell(cmd)
+  puts ">>> #{cmd}"
   stdout, status = Open3.capture2(cmd)
   if ! $options[:quiet]
     puts stdout
@@ -38,6 +39,9 @@ OptionParser.new do |opts|
 
   opts.on("-q", "--quiet", "Surpress output to stdout") do |q|
     $options[:quiet] = q
+  end
+  opts.on("--verbose", "Extra verbose, executing commands") do |q|
+    $options[:verbose] = q
   end
   opts.on("-h", "--help", "Print this help") do
         puts opts
@@ -110,9 +114,10 @@ def main
     Dir.chdir(tmp_folder)
 
     logg "Fetching Thrift definitions..."
-    shell "wget #{$options[:quiet] ? "-q" : ""} #{DEFINITIONS_URL}"
+    silent_opt = ($options[:verbose] ? "" : "-q")
+    shell "wget #{silent_opt} #{DEFINITIONS_URL}"
     logg "Extracting and compiling Thrift definitions..."
-    shell "unzip #{DEFINITIONS_FILENAME}"
+    shell "unzip #{silent_opt} #{DEFINITIONS_FILENAME}"
 
     Dir.entries(Dir.pwd).select {|file| file.end_with?(".thrift")}.each do |file|
       command = "'#{thrift_compiler_path}' -gen js:ts,node -o #{Dir.pwd} #{File.join(Dir.pwd, file)}"
