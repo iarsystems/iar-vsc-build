@@ -11,7 +11,7 @@ import { ListUtils, OsUtils } from "../../utils/utils";
 import { Platform } from "./platform";
 
 const ideSubPath = "common/bin/IarIdePm.exe";
-const builderSubPath = "common/bin/IarBuild" + (OsUtils.OsType.Windows === OsUtils.detectOsType() ? ".exe" : "");
+const builderSubPath = "common/bin/iarbuild" + (OsUtils.OsType.Windows === OsUtils.detectOsType() ? ".exe" : "");
 
 export interface Workbench {
     readonly name: string;
