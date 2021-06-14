@@ -132,7 +132,7 @@ export namespace BuildTasks {
                 label: label,
                 type: "iar",
                 command: command,
-                builder: "${command:iar-settings.workbench}/common/bin/IarBuild" + (OsUtils.detectOsType() == OsUtils.OsType.Windows ? ".exe" : ""),
+                builder: "${command:iar-settings.workbench}/common/bin/iarbuild" + (OsUtils.detectOsType() == OsUtils.OsType.Windows ? ".exe" : ""),
                 project: "${command:iar-settings.project-file}",
                 config: "${command:iar-settings.project-configuration}",
                 problemMatcher: ["$iar-cc", "$iar-linker"]
