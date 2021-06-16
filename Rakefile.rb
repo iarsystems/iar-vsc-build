@@ -10,3 +10,13 @@ desc "remove all non-versioned files"
 task "distclean" do
     sh "git clean --force -d -x"
 end
+
+desc "run tests"
+task "run-tests" do
+	sh "node Extension/out/test/runTests.js"
+end
+
+desc "run tests and produce junit"
+task "run-tests-junit" do
+	sh "node Extension/out/test/runTests.js --junit"
+end
