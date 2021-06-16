@@ -1,0 +1,262 @@
+###############################################################################
+#
+# IAR ELF Linker V9.10.1.308/LNX for ARM                  01/Jun/2021  09:17:20
+# Copyright 2007-2021 IAR Systems AB.
+#
+#    Output file  =
+#        /home/power/iar-vs-code/iar-vsc-debug/samples/GettingStarted/Debug/Exe/BasicDebugging.out
+#    Map file     =
+#        /home/power/iar-vs-code/iar-vsc-debug/samples/GettingStarted/Debug/List/BasicDebugging.map
+#    Command line =
+#        -f
+#        /home/power/iar-vs-code/iar-vsc-debug/samples/GettingStarted/Debug/Exe/BasicDebugging.out.rsp
+#        (/home/power/iar-vs-code/iar-vsc-debug/samples/GettingStarted/Debug/Obj/Fibonacci.o
+#        /home/power/iar-vs-code/iar-vsc-debug/samples/GettingStarted/Debug/Obj/Utilities.o
+#        --no_out_extension -o
+#        /home/power/iar-vs-code/iar-vsc-debug/samples/GettingStarted/Debug/Exe/BasicDebugging.out
+#        --map
+#        /home/power/iar-vs-code/iar-vsc-debug/samples/GettingStarted/Debug/List/BasicDebugging.map
+#        --config
+#        /home/power/ewarm-master/StageLinux_x86_64/Debug/arm/config/generic.icf
+#        --semihosting --entry __iar_program_start --vfe --text_out locale)
+#
+###############################################################################
+
+*******************************************************************************
+*** RUNTIME MODEL ATTRIBUTES
+***
+
+CppFlavor       = *
+__SystemLibrary = DLib
+__dlib_version  = 6
+
+
+*******************************************************************************
+*** HEAP SELECTION
+***
+
+The basic heap was selected because no calls to memory allocation
+functions were found in the application outside of system library
+functions, and there are calls to deallocation functions in the
+application.
+
+
+*******************************************************************************
+*** PLACEMENT SUMMARY
+***
+
+"A0":  place at address 0x0 { ro section .intvec };
+"P1":  place in [from 0x80 to 0x7'ffff] { ro };
+define block CSTACK with size = 8K, alignment = 8 { };
+define block SVC_STACK with size = 256, alignment = 8 { };
+define block IRQ_STACK with size = 256, alignment = 8 { };
+define block FIQ_STACK with size = 256, alignment = 8 { };
+define block UND_STACK with size = 256, alignment = 8 { };
+define block ABT_STACK with size = 256, alignment = 8 { };
+define block HEAP with size = 32K, alignment = 8 { };
+"P2":  place in [from 0x10'0000 to 0x1f'ffff] {
+          rw, block CSTACK, block SVC_STACK, block IRQ_STACK, block FIQ_STACK,
+          block UND_STACK, block ABT_STACK, block HEAP };
+initialize by copy { rw };
+
+  Section            Kind       Address    Size  Object
+  -------            ----       -------    ----  ------
+"A0":                                      0x3c
+  .intvec            ro code        0x0    0x3c  cstartup.o [3]
+                                 - 0x3c    0x3c
+
+"P1":                                     0x600
+  Veneer             ro code       0x80     0x4  - Linker created -
+  .text              ro code       0x84   0x1a4  I32DivMod.o [3]
+  .text              ro code      0x228     0x4  IntDivZer.o [3]
+  Veneer             ro code      0x22c     0xc  - Linker created -
+  .text              ro code      0x238    0xd4  iarttio.o [4]
+  .text              ro code      0x30c     0x8  XShttio.o [2]
+  .text              ro code      0x314    0xbc  Utilities.o [1]
+  .text              ro code      0x3d0    0x20  putchar.o [2]
+  Veneer             ro code      0x3f0     0x4  - Linker created -
+  .text              ro code      0x3f4    0x10  write.o [4]
+  .text              ro code      0x404    0x24  dwrite.o [4]
+  .text              ro code      0x428    0x40  iarwstd.o [4]
+  .text              ro code      0x468    0x44  iarwrite.o [4]
+  .text              ro code      0x4ac    0x58  cstartup.o [3]
+  Veneer             ro code      0x504     0xc  - Linker created -
+  Veneer             ro code      0x510     0xc  - Linker created -
+  Veneer             ro code      0x51c     0xc  - Linker created -
+  Veneer             ro code      0x528     0xc  - Linker created -
+  .text              ro code      0x534    0x30  cmain.o [3]
+  .text              ro code      0x564     0x4  low_level_init.o [2]
+  .text              ro code      0x568    0x32  data_init.o [3]
+  .text              ro code      0x59a    0x42  packbits_init_single.o [3]
+  .text              ro code      0x5dc    0x48  Fibonacci.o [1]
+  .text              ro code      0x624     0xa  exit.o [2]
+  .text              ro code      0x630    0x20  exit.o [4]
+  Veneer             ro code      0x650     0x4  - Linker created -
+  .text              ro code      0x654    0x10  cexit.o [3]
+  .iar.init_table    const        0x664    0x10  - Linker created -
+  .text              ro code      0x674     0x4  vectortrap.o [3]
+  .text              ro code      0x678     0x4  xreturnswi.o [4]
+  .rodata            const        0x67c     0x0  packbits_init_single.o [3]
+  Initializer bytes  const        0x67c     0x4  <for P2-1>
+                                - 0x680   0x600
+
+"P2", part 1 of 2:                         0x34
+  P2-1                        0x10'0000    0x34  <Init block>
+    .data            inited   0x10'0000     0x8  XShttio.o [2]
+    .bss             inited   0x10'0008     0x4  Fibonacci.o [1]
+    .bss             inited   0x10'000c    0x28  Utilities.o [1]
+                            - 0x10'0034    0x34
+
+"P2", part 2 of 2:                       0x2200
+  CSTACK                      0x10'0038  0x2000  <Block>
+    CSTACK           uninit   0x10'0038  0x2000  <Block tail>
+  IRQ_STACK                   0x10'2038   0x100  <Block>
+    IRQ_STACK        uninit   0x10'2038   0x100  <Block tail>
+  FIQ_STACK                   0x10'2138   0x100  <Block>
+    FIQ_STACK        uninit   0x10'2138   0x100  <Block tail>
+                            - 0x10'2238  0x2200
+
+Unused ranges:
+
+       From         To      Size
+       ----         --      ----
+      0x680   0x7'ffff  0x7'f980
+  0x10'0034  0x10'0037       0x4
+  0x10'2238  0x1f'ffff  0xf'ddc8
+
+
+*******************************************************************************
+*** INIT TABLE
+***
+
+          Address    Size
+          -------    ----
+Copy/packbits (__iar_packbits_init_single3)
+    1 source range, total size 0x4 (7% of destination):
+              0x67c   0x4
+    1 destination range, total size 0x34:
+          0x10'0000  0x34
+
+
+
+*******************************************************************************
+*** MODULE SUMMARY
+***
+
+    Module                  ro code  ro data  rw data
+    ------                  -------  -------  -------
+command line/config:
+    -------------------------------------------------
+    Total:
+
+/home/power/iar-vs-code/iar-vsc-debug/samples/GettingStarted/Debug/Obj: [1]
+    Fibonacci.o                  72                 4
+    Utilities.o                 188        4       40
+    -------------------------------------------------
+    Total:                      260        4       44
+
+dl4t_tln.a: [2]
+    XShttio.o                     8                 8
+    exit.o                       10
+    low_level_init.o              4
+    putchar.o                    32
+    -------------------------------------------------
+    Total:                       54                 8
+
+rt4t_al.a: [3]
+    I32DivMod.o                 420
+    IntDivZer.o                   4
+    cexit.o                      16
+    cmain.o                      48
+    cstartup.o                  148
+    data_init.o                  50
+    packbits_init_single.o       66
+    vectortrap.o                  4
+    -------------------------------------------------
+    Total:                      756
+
+shs_l.a: [4]
+    dwrite.o                     36
+    exit.o                       32
+    iarttio.o                   212
+    iarwrite.o                   68
+    iarwstd.o                    64
+    write.o                      16
+    xreturnswi.o                  4
+    -------------------------------------------------
+    Total:                      432
+
+    Gaps                          2
+    Linker created               72       16    8'704
+-----------------------------------------------------
+    Grand Total:              1'576       20    8'756
+
+
+*******************************************************************************
+*** ENTRY LIST
+***
+
+Entry                     Address  Size  Type      Object
+-----                     -------  ----  ----      ------
+.iar.init_table$$Base       0x664         --   Gb  - Linker created -
+.iar.init_table$$Limit      0x674         --   Gb  - Linker created -
+?main                       0x534        Code  Gb  cmain.o [3]
+Abort_Handler               0x674        Code  Wk  vectortrap.o [3]
+CSTACK$$Base            0x10'0038         --   Gb  - Linker created -
+CSTACK$$Limit           0x10'2038         --   Gb  - Linker created -
+DoForegroundProcess         0x5e9  0x16  Code  Lc  Fibonacci.o [1]
+FIQ_Handler                 0x674        Code  Wk  vectortrap.o [3]
+FIQ_STACK$$Base         0x10'2138         --   Gb  - Linker created -
+FIQ_STACK$$Limit        0x10'2238         --   Gb  - Linker created -
+Fib                     0x10'000c  0x28  Data  Lc  Utilities.o [1]
+GetFib                      0x34d  0x1c  Code  Gb  Utilities.o [1]
+IRQ_Handler                 0x674        Code  Wk  vectortrap.o [3]
+IRQ_STACK$$Base         0x10'2038         --   Gb  - Linker created -
+IRQ_STACK$$Limit        0x10'2138         --   Gb  - Linker created -
+InitFib                     0x315  0x38  Code  Gb  Utilities.o [1]
+NextCounter                 0x5dd   0xc  Code  Lc  Fibonacci.o [1]
+Prefetch_Handler            0x674        Code  Wk  vectortrap.o [3]
+PutFib                      0x369  0x60  Code  Gb  Utilities.o [1]
+Region$$Table$$Base         0x664         --   Gb  - Linker created -
+Region$$Table$$Limit        0x674         --   Gb  - Linker created -
+SWI_Handler                 0x674        Code  Wk  vectortrap.o [3]
+Undefined_Handler           0x674        Code  Wk  vectortrap.o [3]
+__aeabi_idiv0               0x228        Code  Gb  IntDivZer.o [3]
+__aeabi_uidiv                0x84        Code  Gb  I32DivMod.o [3]
+__aeabi_uidivmod             0x84        Code  Gb  I32DivMod.o [3]
+__cmain                     0x534        Code  Gb  cmain.o [3]
+__dwrite                    0x404  0x24  Code  Gb  dwrite.o [4]
+__exit                      0x630  0x20  Code  Gb  exit.o [4]
+__iar_close_ttio            0x238  0x54  Code  Gb  iarttio.o [4]
+__iar_data_init3            0x569  0x30  Code  Gb  data_init.o [3]
+__iar_get_ttio              0x28c  0x7c  Code  Gb  iarttio.o [4]
+__iar_lookup_ttioh          0x30d   0x8  Code  Gb  XShttio.o [2]
+__iar_packbits_init_single3
+                            0x59b  0x42  Code  Gb  packbits_init_single.o [3]
+__iar_program_start         0x4ac        Code  Gb  cstartup.o [3]
+__iar_return_from_swi       0x678   0x4  Code  Gb  xreturnswi.o [4]
+__iar_sh_stdout             0x428  0x40  Code  Gb  iarwstd.o [4]
+__iar_sh_write              0x468  0x44  Code  Gb  iarwrite.o [4]
+__iar_ttio_handles      0x10'0000   0x8  Data  Lc  XShttio.o [2]
+__low_level_init            0x565   0x4  Code  Gb  low_level_init.o [2]
+__vector                      0x0        Data  Gb  cstartup.o [3]
+__write                     0x3f4  0x10  Code  Gb  write.o [4]
+_call_main                  0x54c        Code  Gb  cmain.o [3]
+_exit                       0x654        Code  Gb  cexit.o [3]
+callCount               0x10'0008   0x4  Data  Lc  Fibonacci.o [1]
+exit                        0x625   0xa  Code  Gb  exit.o [2]
+main                        0x5ff  0x20  Code  Gb  Fibonacci.o [1]
+putchar                     0x3d1  0x20  Code  Gb  putchar.o [2]
+
+
+[1] = /home/power/iar-vs-code/iar-vsc-debug/samples/GettingStarted/Debug/Obj
+[2] = dl4t_tln.a
+[3] = rt4t_al.a
+[4] = shs_l.a
+
+  1'576 bytes of readonly  code memory
+     20 bytes of readonly  data memory
+  8'756 bytes of readwrite data memory
+
+Errors: none
+Warnings: none

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <fileVersion>5</fileVersion>
+    <fileChecksum>176849035</fileChecksum>
+    <configuration>
+        <name>Test</name>
+        <outputs>
+            <file>$TOOLKIT_DIR$/lib/m7M_tl.a</file>
+            <file>$PROJ_DIR$/main.c</file>
+            <file>$TOOLKIT_DIR$/config/generic_cortex.icf</file>
+            <file>$TOOLKIT_DIR$/lib/shb_l.a</file>
+            <file>$TOOLKIT_DIR$/lib/rt7M_tl.a</file>
+            <file>$PROJ_DIR$/Test/Obj/main.o</file>
+            <file>$PROJ_DIR$/Test/Exe/BasicProject.out</file>
+            <file>$TOOLKIT_DIR$/lib/dl7M_tln.a</file>
+            <file>$PROJ_DIR$/Test/List/BasicProject.map</file>
+        </outputs>
+        <file>
+            <name>[ROOT_NODE]</name>
+            <outputs>
+                <tool>
+                    <name>ILINK</name>
+                    <file> 6 8</file>
+                </tool>
+            </outputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$/main.c</name>
+            <outputs>
+                <tool>
+                    <name>ICCARM</name>
+                    <file> 5</file>
+                </tool>
+            </outputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$/Test/Exe/BasicProject.out</name>
+            <outputs>
+                <tool>
+                    <name>ILINK</name>
+                    <file> 8</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ILINK</name>
+                    <file> 2 7 0 4 3 5</file>
+                </tool>
+            </inputs>
+        </file>
+        <forcedrebuild>
+            <name>[MULTI_TOOL]</name>
+            <tool>ILINK</tool>
+        </forcedrebuild>
+    </configuration>
+</project>

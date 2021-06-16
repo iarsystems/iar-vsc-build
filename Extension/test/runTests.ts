@@ -1,22 +1,35 @@
 import * as path from "path";
 import { runTests } from "vscode-test";
+import { TestOptions } from "vscode-test/out/runTest";
 
-async function main() {
+async function runTestsIn(produceJunit:boolean,testPath:string, additionalDirectories: string | undefined = undefined){
+    const extensionDevelopmentPath = path.resolve(__dirname, '../../');
     try {
-        const extensionDevelopmentPath = path.resolve(__dirname, '../');
+        console.log("Running tests in " + testPath);
+        const unitTestsPath = path.resolve(__dirname, testPath);
 
-        console.log("Running unit tests...");
-        const unitTestsPath = path.resolve(__dirname, './unitTests/index');
-        await runTests({ extensionDevelopmentPath, extensionTestsPath: unitTestsPath });
+        let options:TestOptions = {extensionDevelopmentPath, extensionTestsPath: unitTestsPath};
 
-        console.log("Running integration tests...");
-        const integrationTestsPath = path.resolve(__dirname, './integrationTests/index');
-        await runTests({ extensionDevelopmentPath, extensionTestsPath: integrationTestsPath });
+        if(additionalDirectories){
+            const additionals = path.resolve(__dirname, additionalDirectories);
+            options.launchArgs = [additionals];
+        }
+
+        if(produceJunit){
+            options.extensionTestsEnv = {junit:"true"};
+        }
+
+        await runTests(options);
     } catch (err) {
         console.error(err);
-        console.error('Failed to run tests');
-        process.exit(1);
     }
+}
+
+async function main() {
+    let produceJunit: boolean = process.argv.includes("--junit");
+    await runTestsIn(produceJunit, './unitTests/index');
+    await runTestsIn(produceJunit, './integrationTests/index');
+    await runTestsIn(produceJunit, './vscodeTests/index', '../../test/vscodeTests/TestProjects' );
 }
 
 main();

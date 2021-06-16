@@ -1,0 +1,4 @@
+# ninja log v5
+1	74	1622531840113800297	/home/power/iar-vs-code/iar-vsc-debug/samples/GettingStarted/Debug/Obj/Fibonacci.o	4803e480a411a505
+74	125	1622531840161824502	/home/power/iar-vs-code/iar-vsc-debug/samples/GettingStarted/Debug/Obj/Utilities.o	1432f0261c9aa811
+125	197	1622531840237862826	/home/power/iar-vs-code/iar-vsc-debug/samples/GettingStarted/Debug/Exe/BasicDebugging.out	996c01b8a9f0c31c

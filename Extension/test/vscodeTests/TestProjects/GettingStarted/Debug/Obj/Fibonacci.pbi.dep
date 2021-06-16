@@ -1,0 +1,10 @@
+Fibonacci.pbi: \
+  E:\iar-vscode-github\iar-vsc-debug\samples\GettingStarted\Fibonacci.c \
+  E:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ for\ ARM\ 8.50.6\arm\inc\c\stdint.h \
+  E:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ for\ ARM\ 8.50.6\arm\inc\c\ycheck.h \
+  E:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ for\ ARM\ 8.50.6\arm\inc\c\yvals.h \
+  E:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ for\ ARM\ 8.50.6\arm\inc\c\DLib_Defaults.h \
+  E:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ for\ ARM\ 8.50.6\arm\inc\c\DLib_Config_Normal.h \
+  E:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ for\ ARM\ 8.50.6\arm\inc\c\DLib_Product.h \
+  E:\iar-vscode-github\iar-vsc-debug\samples\GettingStarted/Fibonacci.h \
+  E:\iar-vscode-github\iar-vsc-debug\samples\GettingStarted/Utilities.h
