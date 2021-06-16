@@ -6,7 +6,7 @@ import * as fs from 'fs';
 
 export function getTestPromise(testsRoot:string) : Promise<void>{
 
-    let junitFile:string = "/junit-vs-" + path.dirname(testsRoot) + ".xml";
+    let junitFile:string = "/junit-vs-" + path.basename(testsRoot) + ".xml";
 
     let options:any = {ui: 'tdd'};
     if(process.env["junit"]){
