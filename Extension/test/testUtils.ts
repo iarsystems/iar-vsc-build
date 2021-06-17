@@ -2,9 +2,40 @@
 import * as Mocha from 'mocha';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as vscode from "vscode"
 
 
-export function getTestPromise(testsRoot:string) : Promise<void>{
+/**
+ * The Setup allows the user to inject workbenches into the workspace using a 
+ * java-properties file.
+ */
+export async function Setup(){
+    const ewSetupFile = process.env["ew-setup-file"];
+    if(ewSetupFile){
+        console.log(`Reading stages from ${ewSetupFile}`);
+
+        var properties = require('java-properties');
+        var values = properties.of(ewSetupFile);
+
+        let ewPaths: String[] = [];
+        for(var key of values.getKeys()){
+            let newPath = values.get(key);
+            console.log("Adding " + newPath);
+            ewPaths.push(newPath);
+        }
+
+        // Update the set of available workbenches
+        await vscode.workspace.getConfiguration("iarvsc").update("iarInstallDirectories", ewPaths, false);
+    }
+}
+
+/**
+ * The mocha test promise that runs the actual test using mocha and produces the junit results.
+ * @param testsRoot 
+ * @returns 
+ */
+export async function getTestPromise(testsRoot:string) : Promise<void>{
+    await Setup();
 
     let junitFile:string = "/junit-vs-" + path.basename(testsRoot) + ".xml";
 
