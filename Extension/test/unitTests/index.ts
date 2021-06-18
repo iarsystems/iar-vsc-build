@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
  import * as path from 'path';
- import * as utils from '../testUtils';
+ import * as utils from '../../utils/testutils/testUtils'
  
  export function run(): Promise<void> {
      const testsRoot = path.resolve(__dirname);
