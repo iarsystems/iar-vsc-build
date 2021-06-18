@@ -72,7 +72,7 @@ export class DynamicConfigGenerator {
 
     private generateConfigurationImpl(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<boolean> {
         return new Promise(async (resolve, reject) => {
-            let builderPath = join(workbench.path.toString(), "common/bin/IarBuild");
+            let builderPath = join(workbench.path.toString(), "common/bin/iarbuild");
             if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
                 builderPath += ".exe";
             }

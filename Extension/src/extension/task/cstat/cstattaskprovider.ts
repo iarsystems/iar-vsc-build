@@ -92,7 +92,7 @@ class CStatProvider implements Vscode.TaskProvider {
             label: label,
             type: "iar-cstat",
             action: action,
-            builder: "${command:iar-settings.workbench}/common/bin/IarBuild" + (OsUtils.detectOsType() === OsUtils.OsType.Windows ? ".exe" : ""),
+            builder: "${command:iar-settings.workbench}/common/bin/iarbuild" + (OsUtils.detectOsType() === OsUtils.OsType.Windows ? ".exe" : ""),
             project: "${command:iar-settings.project-file}",
             config: "${command:iar-settings.project-configuration}",
         };
