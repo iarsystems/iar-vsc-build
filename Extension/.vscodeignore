@@ -1,0 +1,5 @@
+**/*.ts
+**/tsconfig.json
+**/tslint.json
+**/test/
+build.rb
