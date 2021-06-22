@@ -44,7 +44,7 @@ export namespace Project {
             if (stat.isFile()) {
                 let extension = Path.parse(path.toString()).ext;
 
-                if (extension === ".ewp") {
+                if (extension === ".ewp" && !Path.basename(path.toString()).startsWith("Backup ")) {
                     return true;
                 }
             }
