@@ -7,7 +7,7 @@ import * as path from 'path'
 import { Settings } from '../../src/extension/settings';
 
 class Utils{
-    public static TEST_PROJECT_ROOT:string = path.join(path.resolve(__dirname), "TestProjects");
+    public static TEST_PROJECT_ROOT:string = path.join(path.resolve(__dirname),'../../../test/vscodeTests/TestProjects');
 
     // Tags for working with the Iar GUI integration
     public static EW:string = "EW Installation";
@@ -82,7 +82,7 @@ class Utils{
 					resolve();
 				}
 			});
-		});
+        });
 	}
 
     static assertFileExists(path:string){
@@ -172,7 +172,7 @@ suite("Test build extension", ()=>{
 
     test("Build project", ()=>{
         return Utils.runTaskForProject(Utils.BUILD, "BasicDebugging", "Debug").then(()=>{
-          Utils.assertFileExists(path.join(Utils.TEST_PROJECT_ROOT, "GettingStarted", "Debug", "BasicDebugging.out"))
+          Utils.assertFileExists(path.join(Utils.TEST_PROJECT_ROOT, "GettingStarted", "Debug", "Exe", "BasicDebugging.out"))
         });
     });
 
