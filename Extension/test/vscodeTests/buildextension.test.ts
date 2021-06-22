@@ -4,8 +4,8 @@ import {UI} from '../../src/extension/ui/app';
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
+import { Settings } from '../../src/extension/settings';
 
-// @ts-ignore
 class Utils{
     public static TEST_PROJECT_ROOT:string = path.join(path.resolve(__dirname), "TestProjects");
 
@@ -126,6 +126,8 @@ class Utils{
     }
 }
 
+
+
 suite("Test build extension", ()=>{
     
     test("Load projects in directory",()=>{
@@ -172,6 +174,27 @@ suite("Test build extension", ()=>{
         return Utils.runTaskForProject(Utils.BUILD, "BasicDebugging", "Debug").then(()=>{
           Utils.assertFileExists(path.join(Utils.TEST_PROJECT_ROOT, "GettingStarted", "Debug", "BasicDebugging.out"))
         });
+    });
+
+    test("Check that all EW's are listed", ()=>{
+        // Get the list of configured workbenches.
+        let configuredEws: String[] | undefined = vscode.workspace.getConfiguration("iarvsc").get<String[]>(Settings.Field.IarInstallDirectories);
+        if(!configuredEws){
+            fail("No listed workbenches found");
+        }
+
+        // Get the list of selectable ew:s
+        let listedEws = Utils.getEntries(Utils.CONFIG);
+        if(Array.isArray(listedEws)){
+            // Check that the lists are the same.
+            deepEqual(configuredEws?.length, listedEws.length);
+            for(let configuredEw of configuredEws){
+                let ewId:string = path.basename(configuredEw.toString());
+                Utils.assertNodelistContains(listedEws, ewId);
+            }
+        }else{
+            fail("Failed to collect configurable workbenches.");
+        }
     });
 
 });
