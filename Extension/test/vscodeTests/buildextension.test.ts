@@ -5,20 +5,28 @@ import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
 import { Settings } from '../../src/extension/settings';
+import {ProjectListModel} from '../../src/extension/model/selectproject'
+import { TestUtils } from '../../utils/testutils/testUtils';
+import { Project } from '../../src/iar/project/project';
+import {IarUtils} from '../../utils/iarUtils'
 
-class Utils{
-    public static TEST_PROJECT_ROOT:string = path.join(path.resolve(__dirname),'../../../test/vscodeTests/TestProjects');
+export namespace Utils{
+    export const TEST_PROJECT_ROOT:string = path.join(path.resolve(__dirname),'../../../test/vscodeTests/TestProjects');
 
     // Tags for working with the Iar GUI integration
-    public static EW:string = "EW Installation";
-    public static PROJECT:string = "Project";
-    public static CONFIG:string = "Configuration";
+    export const  EW:string = "EW Installation";
+    export const  PROJECT:string = "Project";
+    export const  CONFIG:string = "Configuration";
 
     // Tags for the tasks that can be executed
-    public static BUILD:string = "Iar Build";
-    public static REBUILD:string = "Iar Rebuild";
+    export const  BUILD:string = "Iar Build";
+    export const  REBUILD:string = "Iar Rebuild";
 
-    public static getEntries(topNodeName : string){
+    export function failOnReject(reject:any){
+        fail(reject);
+    }
+
+    export function getEntries(topNodeName : string){
         let theTree = UI.getInstance().settingsTreeView;
         let nodes = theTree.getChildren();
         if(Array.isArray(nodes)){
@@ -32,7 +40,7 @@ class Utils{
         fail("Failed to locate: " + topNodeName);
     }
 
-    public static assertNodelistContains(treeItems: vscode.ProviderResult<vscode.TreeItem[]>, labelToFind: string ){
+    export function assertNodelistContains(treeItems: vscode.ProviderResult<vscode.TreeItem[]>, labelToFind: string ){
         if(Array.isArray(treeItems)){
             for(let i = 0; i < treeItems.length; i++){
                 if(treeItems[i].label?.toString().startsWith(labelToFind)){
@@ -43,9 +51,9 @@ class Utils{
         fail("Failed to locate item with label: " + labelToFind);
     }
 
-    private static activateSomething(entryLabel:string, toActivate:string){
-        let list = this.getEntries(entryLabel);
-        let listEntry = this.assertNodelistContains(list,toActivate);
+    export function activateSomething(entryLabel:string, toActivate:string){
+        let list = getEntries(entryLabel);
+        let listEntry = assertNodelistContains(list,toActivate);
 
         if(!listEntry.command || !listEntry.command.arguments){
             fail();
@@ -53,16 +61,16 @@ class Utils{
         return vscode.commands.executeCommand(listEntry.command.command, listEntry.command.arguments[0]);
     }
 
-    public static activateProject(projectLabel: string){
-        return this.activateSomething(this.PROJECT, projectLabel);
+    export function activateProject(projectLabel: string){
+        return activateSomething(PROJECT, projectLabel);
     }
 
-    public static activateConfiguration(configurationTag: string){
-        return this.activateSomething(this.CONFIG, configurationTag);
+    export function activateConfiguration(configurationTag: string){
+        return activateSomething(CONFIG, configurationTag);
     }
 
-    public static activateWorkbench(ew: string){
-        return this.activateSomething(this.EW, ew);
+    export function activateWorkbench(ew: string){
+        return activateSomething(EW, ew);
     }
 
     /**
@@ -72,7 +80,7 @@ class Utils{
      * @param matcher 
      * @returns 
      */
-    static async executeTask(task: vscode.Task, matcher: (taskEvent: vscode.TaskEndEvent)=>boolean) {
+     export async function executeTask(task: vscode.Task, matcher: (taskEvent: vscode.TaskEndEvent)=>boolean) {
 		await vscode.tasks.executeTask(task);
 
 		return new Promise<void>(resolve => {
@@ -85,7 +93,7 @@ class Utils{
         });
 	}
 
-    static assertFileExists(path:string){
+    export function assertFileExists(path:string){
 		return fs.stat(path, (exists) => {
 			if (exists == null) {
 				return;
@@ -103,10 +111,10 @@ class Utils{
      * @param configuration 
      * @returns 
      */
-    public static async runTaskForProject(taskName:string, projectName:string, configuration:string){
+     export async function runTaskForProject(taskName:string, projectName:string, configuration:string){
         // To have the call to vscode.tasks working the activate calls needs to be awaited.
-        await this.activateProject(projectName);
-        await this.activateConfiguration(configuration);
+        await activateProject(projectName);
+        await activateConfiguration(configuration);
 
         // Fetch the tasks and execute the build task.
         return vscode.tasks.fetchTasks().then(async (listedTasks)=>{
@@ -123,6 +131,47 @@ class Utils{
 		},(reason)=>{
             fail(reason);
         });
+    }
+
+    export async function createProject(projName:string){
+        const exWorkbench = await UI.getInstance().extendedWorkbench.selectedPromise;
+        if (!exWorkbench) {
+            fail("Failed to get the active workbench");
+        }
+
+        // Locate the Test folder in the workspace.
+        const workspaces = vscode.workspace.workspaceFolders;
+        if(!workspaces){
+            fail("Failed to list the folders in the workspace: This test requires a workspace");
+        }
+
+        const newProj = path.join(workspaces[0].uri.fsPath, projName);
+        const proj = await exWorkbench.createProject(newProj);
+
+        (UI.getInstance().project.model as ProjectListModel).addProject(proj);
+        return newProj;
+    }
+
+    export function setupProject(id:number, target:string, ewpFile:string) : any {
+        // The unique name of the ewp-file.
+        let ewpId:string = `${path.basename(ewpFile, '.ewp')}_${target}_${id}.ewp`
+        // The unique output folder
+        let outputFolder:string = path.join(Utils.TEST_PROJECT_ROOT, "Test_" + target + "_" + id);
+
+        // Delete if already existing.
+        if(fs.existsSync(outputFolder)){
+            TestUtils.deleteDirectory(outputFolder);
+        }
+        fs.mkdirSync(outputFolder);
+
+        // Generate the name of the outputfile
+        let outputFile: string = path.join(outputFolder, ewpId);
+        // Generate the ewp-file to work with.
+        TestUtils.patchEwpFile(target,ewpFile, outputFile);
+        // Add the ewp-file to the list of project.
+        (UI.getInstance().project.model as ProjectListModel).addProject(new Project(outputFile));
+        
+        return {ewp: ewpId, folder: outputFolder}
     }
 }
 
@@ -170,10 +219,29 @@ suite("Test build extension", ()=>{
             });
     });
 
-    test("Build project", ()=>{
-        return Utils.runTaskForProject(Utils.BUILD, "BasicDebugging", "Debug").then(()=>{
-          Utils.assertFileExists(path.join(Utils.TEST_PROJECT_ROOT, "GettingStarted", "Debug", "Exe", "BasicDebugging.out"))
-        });
+    test("Build project with all listed EW:s", async ()=>{
+        let ewpFile = path.join(path.join(Utils.TEST_PROJECT_ROOT, "BasicProject", "BasicProject.ewp"));
+        let listedEws = Utils.getEntries(Utils.EW);
+        let id:number = 1;
+        if(Array.isArray(listedEws)){
+            for(let ew of listedEws){
+                if(ew.label && ew.tooltip){
+                    // The tooltip is the absolute path to the current workbench. Read all the targets from the workbench.
+                    let targets:string[] = IarUtils.getTargetsFromEwPath(ew.tooltip.toString())
+                    for(let target of targets){
+                        // Generate a testproject to build using the generic template
+                        let testEwp = Utils.setupProject(id++, target.toUpperCase(), ewpFile);
+                        // Build the project.
+                        await Utils.runTaskForProject(Utils.BUILD, path.basename(testEwp.ewp, ".ewp"), "Debug");
+                        // Check that an output file has been created
+                        await Utils.assertFileExists(path.join(testEwp.folder, "Debug", "Exe", path.basename(testEwp.ewp, ".ewp") + ".out"));
+                    }
+                }else{
+                    console.log("Skipping " + ew);
+                    continue;
+                }
+            }
+        }
     });
 
     test("Check that all EW's are listed", ()=>{
@@ -184,7 +252,7 @@ suite("Test build extension", ()=>{
         }
 
         // Get the list of selectable ew:s
-        let listedEws = Utils.getEntries(Utils.CONFIG);
+        let listedEws = Utils.getEntries(Utils.EW);
         if(Array.isArray(listedEws)){
             // Check that the lists are the same.
             deepEqual(configuredEws?.length, listedEws.length);

@@ -7,5 +7,5 @@ import * as utils from '../../utils/testutils/testUtils'
 
 export function run(): Promise<void> {
     const testsRoot = path.resolve(__dirname);
-    return utils.getTestPromise(testsRoot);
+    return utils.getTestPromise(testsRoot,20000);
 }

@@ -4,9 +4,9 @@
     xsi:noNamespaceSchemaLocation="../model/ewp.xsd">
     <fileVersion>2</fileVersion>
     <configuration>
-        <name>Test</name>
+        <name>Debug</name>
         <toolchain>
-            <name>ARM</name>
+            <name>$TARGET$</name>
         </toolchain>
         <debug>1</debug>
         <settings>
@@ -20,7 +20,7 @@
         </settings>
     </configuration>
     <file>
-        <name>$PROJ_DIR$/main.c</name>
+        <name>$PROJ_DIR$/../BasicProject/main.c</name>
     </file>
 </project>
 
