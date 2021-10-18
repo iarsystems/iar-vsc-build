@@ -77,7 +77,7 @@ suite("Thrift project", function() {
         Assert(updatedRootNode);
         const groupNode = rootNode.children[0];
         Assert.equal(groupNode.type, NodeType.Group);
-        Assert.equal(sourceNode.name, "TestGroup");
+        Assert.equal(groupNode.name, "TestGroup");
     });
   
 });
