@@ -3,7 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Assert from "assert";
-import * as path from "path";
 import { ToolManager } from "../../src/iar/tools/manager";
 import { Settings } from "../../src/extension/settings";
 import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
