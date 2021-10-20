@@ -4,10 +4,10 @@
 
 import * as Vscode from "vscode";
 import * as Jsonc from "jsonc-parser";
-import * as Fs from "fs";
 import * as Path from "path";
 import * as equal from "fast-deep-equal";
-import { FsUtils } from "../../utils/fs";
+import { promises as fsPromises } from "fs";
+import * as Fs from "fs";
 import { Settings } from "../settings";
 import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
 
@@ -18,7 +18,7 @@ import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfigur
  */
 export namespace JsonConfigurationWriter {
 
-    export function writeJsonConfiguration(configuration: PartialSourceFileConfiguration, provider?: string) {
+    export async function writeJsonConfiguration(configuration: PartialSourceFileConfiguration, provider?: string) {
         let jsonConfiguration: any = {
             name: "IAR",
             defines: configuration.defines.map(d => d.makeString()),
@@ -42,23 +42,23 @@ export namespace JsonConfigurationWriter {
 
         createOutDirectory(outPath);
 
-        const loadedConfig = loadConfiguration(outPath);
+        const loadedConfig = await loadConfiguration(outPath);
 
         if (setConfigurationIfChanged(loadedConfig, "IAR", jsonConfiguration)) {
-            Fs.writeFileSync(outPath, JSON.stringify(loadedConfig, undefined, 4));
+            await fsPromises.writeFile(outPath, JSON.stringify(loadedConfig, undefined, 4));
         }
     }
 
-    function loadConfiguration(path: Fs.PathLike): any {
+    async function loadConfiguration(path: Fs.PathLike): Promise<any> {
         let config: any = {};
         try {
-            let stat = Fs.statSync(path);
+            let stat = await fsPromises.stat(path);
 
             if (!stat.isFile()) {
                 throw new Error("'${outPath}' is not a file");
             }
 
-            let content = Fs.readFileSync(path);
+            let content = await fsPromises.readFile(path);
             config = Jsonc.parse(content.toString());
 
             if (config === undefined) {
@@ -113,11 +113,11 @@ export namespace JsonConfigurationWriter {
         return cpptoolsConfigFile["configurations"];
     }
 
-    function createOutDirectory(path: Fs.PathLike): void {
+    async function createOutDirectory(path: Fs.PathLike): Promise<void> {
         let parsedPath = Path.parse(path.toString());
 
         if (parsedPath.dir) {
-            FsUtils.mkdirsSync(parsedPath.dir);
+            await fsPromises.mkdir(parsedPath.dir, { recursive: true });
         }
     }
 }

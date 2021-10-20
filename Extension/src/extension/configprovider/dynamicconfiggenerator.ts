@@ -186,7 +186,7 @@ export class DynamicConfigGenerator {
      * Generates config data for a single translation unit
      * by invoking the compiler with specific flags.
      * It is unadvised to run multiple instances of this function at the same time,
-     * doing so may cause undefined behaviour.  TODO: fix this by using a unique predef_macros file
+     * doing so may cause strange file collisions.  TODO: fix this by using a unique predef_macros file
      */
     private generateConfigurationForFile(compiler: Compiler, compilerArgs: string[]): Promise<{includes: IncludePath[], defines: Define[]}> {
         const macrosOutFile = join(tmpdir(), "iarvsc.predef_macros");

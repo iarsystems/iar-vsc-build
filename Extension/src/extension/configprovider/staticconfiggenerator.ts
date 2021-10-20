@@ -13,11 +13,12 @@ import { Compiler } from "../../iar/tools/compiler";
 import { LanguageUtils } from "../../utils/utils";
 import * as Path from "path";
 import * as Os from "os";
-import * as Fs from "fs";
+import { promises as fsPromises } from "fs";
 import * as Process from "child_process";
 import { Project } from "../../iar/project/project";
 import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
 import { XmlConfig } from "../../iar/project/parsing/xmlconfig";
+import { FsUtils } from "../../utils/fs";
 
 /**
  * Detects source file configuration for an IAR project.
@@ -27,7 +28,7 @@ import { XmlConfig } from "../../iar/project/parsing/xmlconfig";
  */
 export namespace StaticConfigGenerator {
 
-    export function generateConfiguration(language: LanguageUtils.Language, config?: Config, project?: Project, compiler?: Compiler): PartialSourceFileConfiguration {
+    export async function generateConfiguration(language: LanguageUtils.Language, config?: Config, project?: Project, compiler?: Compiler): Promise<PartialSourceFileConfiguration> {
         let defines: Define[] = [];
         let includepaths: IncludePath[] = [];
         let preincludes: PreIncludePath[] = [];
@@ -40,7 +41,7 @@ export namespace StaticConfigGenerator {
         }
 
         if (compiler) {
-            const compilerSpecifics = generateCompilerSpecifics(language, compiler);
+            const compilerSpecifics = await generateCompilerSpecifics(language, compiler);
             defines = defines.concat(compilerSpecifics.defines);
             includepaths = includepaths.concat(compilerSpecifics.includes);
             preincludes = preincludes.concat(compilerSpecifics.preIncludes);
@@ -53,7 +54,7 @@ export namespace StaticConfigGenerator {
         };
     }
 
-    function generateCompilerSpecifics(language: LanguageUtils.Language, compiler: Compiler): PartialSourceFileConfiguration {
+    async function generateCompilerSpecifics(language: LanguageUtils.Language, compiler: Compiler): Promise<PartialSourceFileConfiguration> {
         let cmd = compiler.path.toString();
         let tmpFile = Path.join(Os.tmpdir(), "iarvsc.c");
         let tmpOutFile = Path.join(Os.tmpdir(), "iarvsc.predef_macros");
@@ -64,33 +65,33 @@ export namespace StaticConfigGenerator {
         }
 
         try {
-            let stat = Fs.statSync(tmpFile);
+            let stat = await fsPromises.stat(tmpFile);
 
             if (stat.isDirectory()) {
-                Fs.rmdirSync(tmpFile);
+                await fsPromises.rmdir(tmpFile);
             } else if (stat.isFile()) {
-                Fs.unlinkSync(tmpFile);
+                await fsPromises.unlink(tmpFile);
             }
         } catch (e) {
         }
 
         try {
-            let stat = Fs.statSync(tmpOutFile);
+            let stat = await fsPromises.stat(tmpOutFile);
 
             if (stat.isDirectory()) {
-                Fs.rmdirSync(tmpOutFile);
+                await fsPromises.rmdir(tmpOutFile);
             } else if (stat.isFile()) {
-                Fs.unlinkSync(tmpOutFile);
+                await fsPromises.unlink(tmpOutFile);
             }
         } catch (e) {
         }
 
-        Fs.writeFileSync(tmpFile, "");
+        await fsPromises.writeFile(tmpFile, "");
 
         let process = Process.spawnSync(cmd, args, { encoding: "utf8" });
 
         let defines: Define[] = [];
-        if (Fs.existsSync(tmpOutFile)) {
+        if (await FsUtils.exists(tmpOutFile)) {
             defines = Define.fromSourceFile(tmpOutFile);
         }
         let includePaths = IncludePath.fromCompilerOutput(process.stdout);
@@ -99,7 +100,7 @@ export namespace StaticConfigGenerator {
         // C syntax files are named <platform dir>/config/syntax_icc.cfg
         const platformBasePath = Path.join(Path.dirname(compiler.path.toString()), "..");
         const filePath         = platformBasePath + "/config/syntax_icc.cfg";
-        if (Fs.existsSync(filePath)) {
+        if (await FsUtils.exists(filePath)) {
             const keywords = Keyword.fromSyntaxFile(filePath);
             defines = defines.concat(keywords.map(kw => Keyword.toDefine(kw)));
         }

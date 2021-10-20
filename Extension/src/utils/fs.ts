@@ -6,16 +6,14 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 export namespace FsUtils {
-    export function mkdirsSync(dirPath: fs.PathLike) {
-        if (!fs.existsSync(dirPath)) {
-            let parentDir = path.dirname(dirPath.toString());
-
-            if (parentDir !== dirPath) {
-                mkdirsSync(parentDir);
-            }
-
-            fs.mkdirSync(dirPath);
+    // Node has no promise-based exists function
+    export async function exists(p: fs.PathLike): Promise<boolean> {
+        try {
+            fs.promises.access(p, fs.constants.R_OK);
+            return true;
+        } catch {
         }
+        return false;
     }
 
     export function filteredListDirectory(dirPath: fs.PathLike, filterCallback: (path: fs.PathLike) => boolean): fs.PathLike[] {

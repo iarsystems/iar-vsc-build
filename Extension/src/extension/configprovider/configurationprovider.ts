@@ -130,14 +130,14 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         this.generator.dispose();
     }
 
-    private generateFallbackConfigs() {
+    private async generateFallbackConfigs() {
         const compiler = UI.getInstance().compiler.model.selected;
         const config = UI.getInstance().config.model.selected;
         const project = UI.getInstance().project.model.selected;
-        this.fallbackConfigurationC   = StaticConfigGenerator.generateConfiguration("c", config, project, compiler);
-        this.fallbackConfigurationCpp = StaticConfigGenerator.generateConfiguration("cpp", config, project, compiler);
+        this.fallbackConfigurationC   = await StaticConfigGenerator.generateConfiguration("c", config, project, compiler);
+        this.fallbackConfigurationCpp = await StaticConfigGenerator.generateConfiguration("cpp", config, project, compiler);
         const mergedConfig = PartialSourceFileConfiguration.merge(this.fallbackConfigurationC, this.fallbackConfigurationCpp);
-        JsonConfigurationWriter.writeJsonConfiguration(mergedConfig, this.name);
+        await JsonConfigurationWriter.writeJsonConfiguration(mergedConfig, this.name);
     }
 
     // returns true if configs changed
@@ -161,7 +161,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
 
     private async onSettingsChanged() {
         this.generateFallbackConfigs();
-        const changed = await this.generateAccurateConfigs();
-        if (changed) { this.api.didChangeCustomConfiguration(this); }
+        this.generateAccurateConfigs().then(changed => {
+            if (changed) { this.api.didChangeCustomConfiguration(this); }
+        });
     }
 }
