@@ -12,16 +12,14 @@ import { Compiler } from "../../src/iar/tools/compiler";
 import { DynamicConfigGenerator } from "../../src/extension/configprovider/dynamicconfiggenerator";
 import { Workbench } from "../../src/iar/tools/workbench";
 import * as vscode from "vscode";
-
-const TEST_PROJECT_FILE = path.resolve(__dirname, "../../../test/ewpFiles/test_project.ewp");
-const TEST_SOURCE_FILE = path.resolve(__dirname, "../../../test/ewpFiles/main.c");
+import { IntegrationTestsCommon } from "./common";
 
 suite("Test source configuration providers", function() {
     this.timeout(0);
 
     let workbench: Workbench;
     let armCompiler: Compiler;
-    let project = new EwpFile(TEST_PROJECT_FILE);
+    let project = new EwpFile(IntegrationTestsCommon.TEST_PROJECT_FILE);
 
     suiteSetup(async () => {
         let manager = ToolManager.createIarToolManager();
@@ -68,9 +66,9 @@ suite("Test source configuration providers", function() {
     test("Finds file specific configs", async () => {
         const generator = new DynamicConfigGenerator();
         await generator.generateConfiguration(workbench, project, armCompiler, project.findConfiguration("Debug")!);
-        const includes = generator.getIncludes(vscode.Uri.file(TEST_SOURCE_FILE));
+        const includes = generator.getIncludes(vscode.Uri.file(IntegrationTestsCommon.TEST_SOURCE_FILE));
         Assert.equal(includes.map(path => path.path), ["only/this/file"]);
-        const defines = generator.getDefines(vscode.Uri.file(TEST_SOURCE_FILE));
+        const defines = generator.getDefines(vscode.Uri.file(IntegrationTestsCommon.TEST_SOURCE_FILE));
         Assert.equal(defines.map(def => def.identifier), ["FILE_SYMBOL"]);
     });
 });

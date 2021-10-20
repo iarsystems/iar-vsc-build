@@ -1,16 +1,14 @@
 import * as Assert from "assert";
 import { copyFileSync, unlinkSync, existsSync } from "fs";
-import * as path from "path";
 import { Settings } from "../../src/extension/settings";
 import { ThriftWorkbench } from "../../src/iar/extendedworkbench";
 import { Project } from "../../src/iar/project/project";
 import { Configuration, Node, NodeType } from "../../src/iar/project/thrift/bindings/projectmanager_types";
 import { ToolManager } from "../../src/iar/tools/manager";
 import { ThriftProject } from "../../src/iar/project/thrift/thriftproject";
+import { IntegrationTestsCommon } from "./common";
 
-const TEST_PROJECT_FILE = path.resolve(__dirname, "../../../test/ewpFiles/test_project.ewp");
-const TEST_PROJECT_COPY = path.resolve(__dirname, "../../../test/ewpFiles/test_project_copy.ewp");
-const TEST_SOURCE_FILE = path.resolve(__dirname, "../../../test/ewpFiles/main.c");
+const TEST_PROJECT_COPY = IntegrationTestsCommon.TEST_PROJECT_FILE.replace(".ewp", "_copy.ewp");
 
 suite("Thrift project", function() {
     this.timeout(0);
@@ -30,6 +28,7 @@ suite("Thrift project", function() {
         Assert(workbenchCandidate, "These tests require a project manager-enabled EW to run, but none was found.");
 
         workbench = await ThriftWorkbench.from(workbenchCandidate!!);
+        Assert(workbench, "Thrift workbench did not load correctly");
     });
     suiteTeardown(async () => {
         await workbench.dispose();
@@ -47,7 +46,7 @@ suite("Thrift project", function() {
     let project: ThriftProject;
 
     setup(async () => {
-        copyFileSync(TEST_PROJECT_FILE, TEST_PROJECT_COPY);
+        copyFileSync(IntegrationTestsCommon.TEST_PROJECT_FILE, TEST_PROJECT_COPY);
         project = await workbench.loadProject(new Project(TEST_PROJECT_COPY));
         Assert(project);
     });
@@ -69,7 +68,7 @@ suite("Thrift project", function() {
         Assert(sourceNode);
         Assert.equal(sourceNode.type, NodeType.File);
         Assert.equal(sourceNode.name, "main.c");
-        Assert.equal(sourceNode.path, TEST_SOURCE_FILE);
+        Assert.equal(sourceNode.path, IntegrationTestsCommon.TEST_SOURCE_FILE);
         rootNode.children = [new Node({name: "TestGroup", children: [sourceNode], path: "", type: NodeType.Group})];
         await project.setNode(rootNode);
 
