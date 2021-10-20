@@ -126,7 +126,7 @@ export namespace ThriftServiceManager {
                 serviceRegistryProcess = spawn(registryPath, ["-standalone", "-sockets", projectManagerManifestPath],
                                                         { cwd: tmpDir });
 
-                serviceRegistryProcess.stdout.on("data", data => {
+                serviceRegistryProcess.stdout?.on("data", data => {
                     output?.append(data.toString());
                 });
 
