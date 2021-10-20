@@ -196,8 +196,8 @@ suite("Test build extension", ()=>{
         }
     })
 
-    test("Load all configurations",()=>{
-        Utils.activateProject("BasicDebugging").then(()=>{
+    test("Load all configurations",async ()=>{
+        await Utils.activateProject("BasicDebugging").then(()=>{
             let allConfigurations = Utils.getEntries(Utils.CONFIG);
             Utils.assertNodelistContains(allConfigurations,"Debug");
             Utils.assertNodelistContains(allConfigurations,"Release");
