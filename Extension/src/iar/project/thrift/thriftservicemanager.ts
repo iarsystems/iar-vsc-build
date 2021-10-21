@@ -24,8 +24,11 @@ import { tmpdir } from "os";
  * Provides and manages thrift services for a workbench.
  */
 export class ThriftServiceManager {
+    private static readonly SERVICE_LOOKUP_TIMEOUT = 1000;
+    private static readonly REGISTRY_EXIT_TIMEOUT = 2000;
+
     /**
-     * 
+     * Create a new service manager from the given service registry.
      * @param registryLocationPath Path to a file containing a valid {@link ServiceLocation} pointing to a service registry
      */
     constructor(private registryLocationPath: fs.PathLike, private process: ChildProcess) {
@@ -41,7 +44,16 @@ export class ThriftServiceManager {
         const serviceMgr = await this.findService(SERVICE_MANAGER_SERVICE, CSpyServiceManager);
         await serviceMgr.service.shutdown();
         serviceMgr.close();
-        this.process.kill();
+        // Wait for service registry process to exit
+        if(this.process.exitCode === null) {
+            await new Promise((resolve, reject) => {
+                this.process.on("exit", resolve);
+                setTimeout(() => {
+                    reject("Service registry exit timed out");
+                    this.process.kill();
+                }, ThriftServiceManager.REGISTRY_EXIT_TIMEOUT);
+            });
+        }
     }
 
     /**
@@ -51,7 +63,7 @@ export class ThriftServiceManager {
     public async findService<T>(serviceId: string, serviceType: Thrift.TClientConstructor<T>): Promise<ThriftClient<T>> {
         const registry = await this.getServiceAt(this.getRegistryLocation(), CSpyServiceRegistry);
 
-        const location = await registry.service.waitForService(serviceId, 1000);
+        const location = await registry.service.waitForService(serviceId, ThriftServiceManager.SERVICE_LOOKUP_TIMEOUT);
         const service = await this.getServiceAt(location, serviceType);
 
         registry.close();
@@ -117,7 +129,6 @@ export namespace ThriftServiceManager {
         return new Promise<ThriftServiceManager>((resolve, reject) => {
                 // TODO: should reject immediately if process exits
                 fs.watch(tmpDir, undefined, (type: string) => {
-                    console.log(type);
                     if (type === "change" && serviceRegistryProcess) {
                         resolve(new ThriftServiceManager(locationFile, serviceRegistryProcess));
                     }
