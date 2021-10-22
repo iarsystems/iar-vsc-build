@@ -108,7 +108,7 @@ export namespace ThriftServiceManager {
         }
         // for now needs to load projectmanager at launch, otherwise it seems to behave strangely
         const projectManagerManifestPath = path.join(workbench.path.toString(), "common/bin/projectmanager.json");
-        const tmpDir = getTmpDir(workbench);
+        const tmpDir = getTmpDir();
         const locationFile = path.join(tmpDir, "CSpyServer2-ServiceRegistry.txt");
         let serviceRegistryProcess: ChildProcess | undefined;
 
@@ -130,7 +130,6 @@ export namespace ThriftServiceManager {
                         prot.readMessageEnd();
 
                         resolved = true;
-                        fs.rmdirSync(tmpDir, {recursive: true});
                         resolve(new ThriftServiceManager(serviceRegistryProcess, location));
                     }
                 });
@@ -143,24 +142,19 @@ export namespace ThriftServiceManager {
                 });
                 serviceRegistryProcess.on("exit", () => reject("ServiceRegistry exited"));
 
-                setTimeout(() => reject("Service registry launch timed out"), 5000);
+                setTimeout(() => reject("Service registry launch timed out"), 10000);
         }).catch(e => { serviceRegistryProcess?.kill(); throw e; })
           .finally(() => fs.unwatchFile(locationFile));
     }
 
-    // Creates and returns a temporary directory unique to the currently opened folder & workbench.
-    // This is used to store the bootstrap files created by IarServiceLauncher, to avoid conflicts if
+    // Creates and returns a unique temporary directory.
+    // This is used to store the bootstrap file created by IarServiceLauncher, to avoid conflicts if
     // several service launcher processes are run at the same time.
-    function getTmpDir(workbench: Workbench): string {
-        const folders = Vscode.workspace.workspaceFolders;
-        let openedFolder = "";
-        if (folders && folders.length > 0) {
-            openedFolder = folders[0].uri.fsPath;
-        }
-        const hashed = createHash("md5").update(openedFolder + workbench.path).digest("hex");
-        const tmpPath = path.join(tmpdir(), "iar-vsc-" + hashed);
+    function getTmpDir(): string {
+        // Generate a uuid-based name and place in /tmp or similar
+        const tmpPath = path.join(tmpdir(), "iar-vsc", uuidv4());
         if (!fs.existsSync(tmpPath)) {
-            fs.mkdirSync(tmpPath);
+            fs.mkdirSync(tmpPath, {recursive: true});
         }
         return tmpPath;
     }
