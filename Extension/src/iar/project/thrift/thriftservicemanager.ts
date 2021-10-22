@@ -17,8 +17,8 @@ import { ThriftClient } from "./thriftclient";
 import * as CSpyServiceRegistry from "./bindings/CSpyServiceRegistry";
 import * as CSpyServiceManager from "./bindings/CSpyServiceManager";
 import { SERVICE_MANAGER_SERVICE } from "./bindings/ServiceManager_types";
-import { createHash } from "crypto";
 import { tmpdir } from "os";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * Provides and manages thrift services for a workbench.
@@ -29,9 +29,10 @@ export class ThriftServiceManager {
 
     /**
      * Create a new service manager from the given service registry.
-     * @param registryLocationPath Path to a file containing a valid {@link ServiceLocation} pointing to a service registry
+     * @param process The service manager process serving the service registry.
+     * @param registryLocation The location of the service registry to use.
      */
-    constructor(private registryLocationPath: fs.PathLike, private process: ChildProcess) {
+    constructor(private process: ChildProcess, private registryLocation: ServiceLocation) {
     }
 
     /**
@@ -61,7 +62,7 @@ export class ThriftServiceManager {
      * (or in the process of starting), otherwise this method will never return.
      */
     public async findService<T>(serviceId: string, serviceType: Thrift.TClientConstructor<T>): Promise<ThriftClient<T>> {
-        const registry = await this.getServiceAt(this.getRegistryLocation(), CSpyServiceRegistry);
+        const registry = await this.getServiceAt(this.registryLocation, CSpyServiceRegistry);
 
         const location = await registry.service.waitForService(serviceId, ThriftServiceManager.SERVICE_LOOKUP_TIMEOUT);
         const service = await this.getServiceAt(location, serviceType);
@@ -69,21 +70,6 @@ export class ThriftServiceManager {
         registry.close();
 
         return service;
-    }
-
-    private getRegistryLocation(): ServiceLocation {
-        const locSerialized = fs.readFileSync(this.registryLocationPath);
-
-        // These concats are a hack to create a valid thrift message. The thrift library seems unable to deserialize just a struct (at least for the json protocol)
-        // Once could also do JSON.parse and manually convert it to a ServiceLocation, but this is arguably more robust
-        const transport = new Thrift.TFramedTransport(Buffer.concat([Buffer.from("[1,0,0,0,"), locSerialized, Buffer.from("]")]));
-        const prot = new Thrift.TJSONProtocol(transport);
-        prot.readMessageBegin();
-        const location = new ServiceLocation();
-        location.read(prot);
-        prot.readMessageEnd();
-
-        return location;
     }
 
     private getServiceAt<T>(location: ServiceLocation, serviceType: Thrift.TClientConstructor<T>): Promise<ThriftClient<T>> {
@@ -126,11 +112,26 @@ export namespace ThriftServiceManager {
         const locationFile = path.join(tmpDir, "CSpyServer2-ServiceRegistry.txt");
         let serviceRegistryProcess: ChildProcess | undefined;
 
+        let resolved = false;
         return new Promise<ThriftServiceManager>((resolve, reject) => {
-                // TODO: should reject immediately if process exits
-                fs.watch(tmpDir, undefined, (type: string) => {
-                    if (type === "change" && serviceRegistryProcess) {
-                        resolve(new ThriftServiceManager(locationFile, serviceRegistryProcess));
+                // Start watching for the registry file
+                fs.watch(tmpDir, undefined, (type, fileName) => {
+                    // When the file has been created, read the location of the registry, and create the service manager
+                    if (!resolved && serviceRegistryProcess && (type === "rename") && fileName == path.basename(locationFile)) {
+                        // Find the location of the service registry
+                        const locSerialized = fs.readFileSync(path.join(tmpDir, "CSpyServer2-ServiceRegistry.txt"));
+                        // These concats are a hack to create a valid thrift message. The thrift library seems unable to deserialize just a struct (at least for the json protocol)
+                        // Once could also do JSON.parse and manually convert it to a ServiceLocation, but this is arguably more robust
+                        const transport = new Thrift.TFramedTransport(Buffer.concat([Buffer.from("[1,0,0,0,"), locSerialized, Buffer.from("]")]));
+                        const prot = new Thrift.TJSONProtocol(transport);
+                        prot.readMessageBegin();
+                        const location = new ServiceLocation();
+                        location.read(prot);
+                        prot.readMessageEnd();
+
+                        resolved = true;
+                        fs.rmdirSync(tmpDir, {recursive: true});
+                        resolve(new ThriftServiceManager(serviceRegistryProcess, location));
                     }
                 });
 
@@ -140,6 +141,7 @@ export namespace ThriftServiceManager {
                 serviceRegistryProcess.stdout?.on("data", data => {
                     output?.append(data.toString());
                 });
+                serviceRegistryProcess.on("exit", () => reject("ServiceRegistry exited"));
 
                 setTimeout(() => reject("Service registry launch timed out"), 5000);
         }).catch(e => { serviceRegistryProcess?.kill(); throw e; })
