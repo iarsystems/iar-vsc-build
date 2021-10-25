@@ -10,6 +10,7 @@ import { TestUtils } from '../../utils/testutils/testUtils';
 import { Project } from '../../src/iar/project/project';
 import {IarUtils} from '../../utils/iarUtils'
 import { TestSandbox } from '../../utils/testutils/testSandbox';
+import { VscodeTestsSetup } from './setup';
 
 export namespace Utils{
     export const EXTENSION_ROOT = path.join(path.resolve(__dirname),'../../../');
@@ -178,9 +179,13 @@ export namespace Utils{
 
 suite("Test build extension", ()=>{
 
-    let sandbox: TestSandbox = new TestSandbox(Utils.EXTENSION_ROOT);
+    let sandbox: TestSandbox;
+
     suiteSetup(async () => {
-        sandbox.copyToSandbox(Utils.TEST_PROJECTS_ROOT, "UiTestProjects");
+        if (VscodeTestsSetup.sandbox === undefined) {
+            VscodeTestsSetup.setup();
+        }
+        sandbox = VscodeTestsSetup.sandbox!;
     });
 
     test("Load projects in directory",()=>{
