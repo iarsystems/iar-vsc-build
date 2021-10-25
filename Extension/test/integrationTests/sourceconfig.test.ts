@@ -12,13 +12,17 @@ import { DynamicConfigGenerator } from "../../src/extension/configprovider/dynam
 import { Workbench } from "../../src/iar/tools/workbench";
 import * as vscode from "vscode";
 import { IntegrationTestsCommon } from "./common";
+import { TestSandbox } from "../../utils/testutils/testSandbox";
+import * as Path from "path";
 
 suite("Test source configuration providers", function() {
     this.timeout(0);
 
     let workbench: Workbench;
     let armCompiler: Compiler;
-    let project = new EwpFile(IntegrationTestsCommon.TEST_PROJECT_FILE);
+    let sandbox: TestSandbox;
+    let projectDir: string;
+    let project: EwpFile;
 
     suiteSetup(async () => {
         let manager = ToolManager.createIarToolManager();
@@ -30,14 +34,16 @@ suite("Test source configuration providers", function() {
         Assert(workbenches && workbenches.length > 0, "These tests require an ARM EW to run, but none was found.");
         workbench = workbenches[0];
         armCompiler = workbench.platforms.find(p => p.path.toString().endsWith("arm"))!.compilers[0];
+
+        sandbox = new TestSandbox(IntegrationTestsCommon.PROJECT_ROOT);
+        projectDir = sandbox.copyToSandbox(IntegrationTestsCommon.TEST_PROJECTS_DIR, "SourceConfigTests");
+        project = new EwpFile(Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_NAME));
     });
+
     suiteTeardown(async () => {
-
-    });
-
-    teardown(() => {
         project.unload();
     });
+
     test("Finds project wide configs", async () => {
         const config = await StaticConfigGenerator.generateConfiguration("c", project.findConfiguration("Debug"), project, undefined);
         Assert(config.includes.some(path => path.path.toString() === "my\\test\\include\\path"));
@@ -65,9 +71,10 @@ suite("Test source configuration providers", function() {
     test("Finds file specific configs", async () => {
         const generator = new DynamicConfigGenerator();
         await generator.generateConfiguration(workbench, project, armCompiler, project.findConfiguration("Debug")!);
-        const includes = generator.getIncludes(vscode.Uri.file(IntegrationTestsCommon.TEST_SOURCE_FILE));
+        const projectFile = Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
+        const includes = generator.getIncludes(vscode.Uri.file(projectFile));
         Assert.equal(includes.map(path => path.path), ["only/this/file"]);
-        const defines = generator.getDefines(vscode.Uri.file(IntegrationTestsCommon.TEST_SOURCE_FILE));
+        const defines = generator.getDefines(vscode.Uri.file(projectFile));
         Assert.equal(defines.map(def => def.identifier), ["FILE_SYMBOL"]);
     });
 });

@@ -9,9 +9,11 @@ import {ProjectListModel} from '../../src/extension/model/selectproject'
 import { TestUtils } from '../../utils/testutils/testUtils';
 import { Project } from '../../src/iar/project/project';
 import {IarUtils} from '../../utils/iarUtils'
+import { TestSandbox } from '../../utils/testutils/testSandbox';
 
 export namespace Utils{
-    export const TEST_PROJECT_ROOT:string = path.join(path.resolve(__dirname),'../../../test/vscodeTests/TestProjects');
+    export const EXTENSION_ROOT = path.join(path.resolve(__dirname),'../../../');
+    export const TEST_PROJECTS_ROOT = path.join(EXTENSION_ROOT, 'test/vscodeTests/TestProjects');
 
     // Tags for working with the Iar GUI integration
     export const  EW:string = "EW Installation";
@@ -152,17 +154,11 @@ export namespace Utils{
         return newProj;
     }
 
-    export function setupProject(id:number, target:string, ewpFile:string) : any {
-        // The unique name of the ewp-file.
-        let ewpId:string = `${path.basename(ewpFile, '.ewp')}_${target}_${id}.ewp`
+    export function setupProject(id: number, target: string, ewpFile: string, sandbox: TestSandbox) : any {
         // The unique output folder
-        let outputFolder:string = path.join(Utils.TEST_PROJECT_ROOT, "Test_" + target + "_" + id);
-
-        // Delete if already existing.
-        if(fs.existsSync(outputFolder)){
-            TestUtils.deleteDirectory(outputFolder);
-        }
-        fs.mkdirSync(outputFolder);
+        const outputFolder = sandbox.copyToSandbox(path.dirname(ewpFile), "Test_" + target + "_" + id);
+        // The unique name of the ewp-file.
+        let ewpId = `${path.basename(ewpFile, '.ewp')}_${target}_${id}.ewp`
 
         // Generate the name of the outputfile
         let outputFile: string = path.join(outputFolder, ewpId);
@@ -170,7 +166,10 @@ export namespace Utils{
         TestUtils.patchEwpFile(target,ewpFile, outputFile);
         // Add the ewp-file to the list of project.
         (UI.getInstance().project.model as ProjectListModel).addProject(new Project(outputFile));
-        
+
+        // Remove the unpatched ewp from the sandbox
+        fs.unlinkSync(path.join(outputFolder, path.basename(ewpFile)));
+
         return {ewp: ewpId, folder: outputFolder}
     }
 }
@@ -178,7 +177,12 @@ export namespace Utils{
 
 
 suite("Test build extension", ()=>{
-    
+
+    let sandbox: TestSandbox = new TestSandbox(Utils.EXTENSION_ROOT);
+    suiteSetup(async () => {
+        sandbox.copyToSandbox(Utils.TEST_PROJECTS_ROOT, "UiTestProjects");
+    });
+
     test("Load projects in directory",()=>{
         let allProjects = Utils.getEntries(Utils.PROJECT);
         Utils.assertNodelistContains(allProjects,"BasicProject");
@@ -220,7 +224,7 @@ suite("Test build extension", ()=>{
     });
 
     test("Build project with all listed EW:s", async ()=>{
-        let ewpFile = path.join(path.join(Utils.TEST_PROJECT_ROOT, "BasicProject", "BasicProject.ewp"));
+        let ewpFile = path.join(path.join(Utils.TEST_PROJECTS_ROOT, "BasicProject", "BasicProject.ewp"));
         let listedEws = Utils.getEntries(Utils.EW);
         let id:number = 1;
         if(Array.isArray(listedEws)){
@@ -230,7 +234,7 @@ suite("Test build extension", ()=>{
                     let targets:string[] = IarUtils.getTargetsFromEwPath(ew.tooltip.toString())
                     for(let target of targets){
                         // Generate a testproject to build using the generic template
-                        let testEwp = Utils.setupProject(id++, target.toUpperCase(), ewpFile);
+                        let testEwp = Utils.setupProject(id++, target.toUpperCase(), ewpFile, sandbox);
                         // Build the project.
                         await Utils.runTaskForProject(Utils.BUILD, path.basename(testEwp.ewp, ".ewp"), "Debug");
                         // Check that an output file has been created

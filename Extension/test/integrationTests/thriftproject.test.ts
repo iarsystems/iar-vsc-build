@@ -1,5 +1,5 @@
 import * as Assert from "assert";
-import { copyFileSync, unlinkSync, existsSync } from "fs";
+import * as Path from "path";
 import { Settings } from "../../src/extension/settings";
 import { ThriftWorkbench } from "../../src/iar/extendedworkbench";
 import { Project } from "../../src/iar/project/project";
@@ -7,13 +7,14 @@ import { Configuration, Node, NodeType } from "../../src/iar/project/thrift/bind
 import { ToolManager } from "../../src/iar/tools/manager";
 import { ThriftProject } from "../../src/iar/project/thrift/thriftproject";
 import { IntegrationTestsCommon } from "./common";
-
-const TEST_PROJECT_COPY = IntegrationTestsCommon.TEST_PROJECT_FILE.replace(".ewp", "_copy.ewp");
+import { TestSandbox } from "../../utils/testutils/testSandbox";
 
 suite("Thrift project", function() {
     this.timeout(0);
 
     let workbench: ThriftWorkbench;
+    let sandbox: TestSandbox;
+    let projectPath: string;
 
     suiteSetup(async () => {
         let manager = ToolManager.createIarToolManager();
@@ -29,29 +30,22 @@ suite("Thrift project", function() {
 
         workbench = await ThriftWorkbench.from(workbenchCandidate!!);
         Assert(workbench, "Thrift workbench did not load correctly");
+
+        sandbox = new TestSandbox(IntegrationTestsCommon.PROJECT_ROOT);
     });
     suiteTeardown(async () => {
-        await workbench.dispose();
-        unlinkSync(TEST_PROJECT_COPY);
-        const depFile = TEST_PROJECT_COPY.replace(".ewp", ".dep");
-        if (existsSync(depFile)) {
-            unlinkSync(depFile);
-        }
-        const ewtFile = TEST_PROJECT_COPY.replace(".ewp", ".ewt");
-        if (existsSync(ewtFile)) {
-            unlinkSync(ewtFile);
-        }
+        await workbench?.dispose();
     });
 
     let project: ThriftProject;
 
     setup(async () => {
-        copyFileSync(IntegrationTestsCommon.TEST_PROJECT_FILE, TEST_PROJECT_COPY);
-        project = await workbench.loadProject(new Project(TEST_PROJECT_COPY));
+        projectPath = sandbox.copyToSandbox(IntegrationTestsCommon.TEST_PROJECTS_DIR, "IntegrationTestProject");
+        project = await workbench.loadProject(new Project(Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_NAME)));
         Assert(project);
     });
     teardown(async () => {
-        await project.unload();
+        await project?.unload();
     })
 
     test("Managing configurations", async () => {
@@ -67,8 +61,8 @@ suite("Thrift project", function() {
         const sourceNode = rootNode.children[0];
         Assert(sourceNode);
         Assert.equal(sourceNode.type, NodeType.File);
-        Assert.equal(sourceNode.name, "main.c");
-        Assert.equal(sourceNode.path, IntegrationTestsCommon.TEST_SOURCE_FILE);
+        Assert.equal(sourceNode.name, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
+        Assert.equal(sourceNode.path, Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE));
         rootNode.children = [new Node({name: "TestGroup", children: [sourceNode], path: "", type: NodeType.Group})];
         await project.setNode(rootNode);
 
@@ -78,5 +72,5 @@ suite("Thrift project", function() {
         Assert.equal(groupNode.type, NodeType.Group);
         Assert.equal(groupNode.name, "TestGroup");
     });
-  
+
 });

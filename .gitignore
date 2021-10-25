@@ -1,7 +1,7 @@
 Extension/out
 Extension/node_modules
+Extension/test-sandbox
 Extension/*.vsix
-Extension/package-lock.json
 TestWorkspaces/**/Debug
 TestWorkspaces/**/settings
 .vscode-test
