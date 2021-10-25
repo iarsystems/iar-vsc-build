@@ -78,9 +78,9 @@ export namespace Utils{
     /**
      * Execute a task and return a promise to keep track of the completion. The promise is resolved when
      * the matcher returns true.
-     * @param task 
-     * @param matcher 
-     * @returns 
+     * @param task
+     * @param matcher
+     * @returns
      */
      export async function executeTask(task: vscode.Task, matcher: (taskEvent: vscode.TaskEndEvent)=>boolean) {
 		await vscode.tasks.executeTask(task);
@@ -108,10 +108,10 @@ export namespace Utils{
     /**
      * Run a task with the given name for the a project and configuration. Returns a promise that resolves
      * once the task has been executed.
-     * @param taskName 
-     * @param projectName 
-     * @param configuration 
-     * @returns 
+     * @param taskName
+     * @param projectName
+     * @param configuration
+     * @returns
      */
      export async function runTaskForProject(taskName:string, projectName:string, configuration:string){
         // To have the call to vscode.tasks working the activate calls needs to be awaited.

@@ -1,6 +1,0 @@
-{
-    "ewp": "/home/power/iar-vs-code/iar-vsc-thrift/Extension/test/vscodeTests/TestProjects/GettingStarted/BasicDebugging.ewp",
-    "compiler": "/home/power/ewarm-master/StageLinux_x86_64/Debug/arm/bin/iccarm",
-    "workbench": "/home/power/ewarm-master/StageLinux_x86_64/Debug",
-    "configuration": "Debug"
-}

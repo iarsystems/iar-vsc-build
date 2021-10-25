@@ -20,7 +20,7 @@
         </settings>
     </configuration>
     <file>
-        <name>$PROJ_DIR$/../BasicProject/main.c</name>
+        <name>$PROJ_DIR$/main.c</name>
     </file>
 </project>
 
