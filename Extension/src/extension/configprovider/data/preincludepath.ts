@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 import * as Fs from "fs";
@@ -18,8 +18,8 @@ export interface PreIncludePath {
 }
 
 export class XmlPreIncludePath implements PreIncludePath {
-    private xmlData: XmlNode;
-    private projectPath: Fs.PathLike;
+    private readonly xmlData: XmlNode;
+    private readonly projectPath: Fs.PathLike;
 
     constructor(xml: XmlNode, projectPath: Fs.PathLike) {
         this.xmlData = xml;
@@ -31,7 +31,7 @@ export class XmlPreIncludePath implements PreIncludePath {
     }
 
     get path(): Fs.PathLike {
-        let path = this.xmlData.text;
+        const path = this.xmlData.text;
 
         if (path) {
             return path;
@@ -41,14 +41,14 @@ export class XmlPreIncludePath implements PreIncludePath {
     }
 
     get absolutePath(): Fs.PathLike {
-        let path = this.path.toString();
+        const path = this.path.toString();
 
-        return path.replace('$PROJ_DIR$', this.projectPath.toString());
+        return path.replace("$PROJ_DIR$", this.projectPath.toString());
     }
 
     get workspaceRelativePath(): Fs.PathLike {
         if (Vscode.workspace.rootPath) {
-            let path = this.absolutePath.toString();
+            const path = this.absolutePath.toString();
 
             return Path.relative(Vscode.workspace.rootPath, path);
         } else {
@@ -61,17 +61,17 @@ export class XmlPreIncludePath implements PreIncludePath {
 export namespace PreIncludePath {
 
     export function fromXml(xml: XmlNode, projectPath: Fs.PathLike): PreIncludePath[] {
-        let settings = IarXml.findSettingsFromConfig(xml, '/ICC.*/');
+        const settings = IarXml.findSettingsFromConfig(xml, "/ICC.*/");
 
         if (settings) {
-            let option = IarXml.findOptionFromSettings(settings, 'PreInclude');
+            const option = IarXml.findOptionFromSettings(settings, "PreInclude");
 
             if (option) {
-                let states = option.getAllChildsByName('state');
-                let preIncludePaths: PreIncludePath[] = [];
+                const states = option.getAllChildsByName("state");
+                const preIncludePaths: PreIncludePath[] = [];
 
                 states.forEach(state => {
-                    let path = new XmlPreIncludePath(state, projectPath);
+                    const path = new XmlPreIncludePath(state, projectPath);
 
                     if (path.path) {
                         preIncludePaths.push(path);

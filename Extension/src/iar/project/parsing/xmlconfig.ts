@@ -2,19 +2,19 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import { IarXml } from "../../../utils/xml";
 import { XmlNode } from "../../../utils/XmlNode";
 import { Config } from "../config";
 
 export class XmlConfig implements Config {
-    private xml: XmlNode;
+    private readonly xml: XmlNode;
 
     constructor(xmlConfigElement: XmlNode) {
         this.xml = xmlConfigElement;
 
-        if (this.xml.tagName !== 'configuration') {
+        if (this.xml.tagName !== "configuration") {
             throw new Error("Expected an xml element 'configuration' instead of '" + this.xml.tagName + "'");
         }
     }
@@ -24,7 +24,7 @@ export class XmlConfig implements Config {
     }
 
     get name(): string {
-        let name = IarXml.getNameTextFromElement(this.xml);
+        const name = IarXml.getNameTextFromElement(this.xml);
 
         if (name === undefined) {
             return "";
@@ -47,9 +47,9 @@ export class XmlConfig implements Config {
 
 export namespace XmlConfig {
     export function fromXml(projectXml: XmlNode): Config[] {
-        let configs: Config[] = [];
+        const configs: Config[] = [];
 
-        let xmlConfigs = projectXml.getAllChildsByName("configuration");
+        const xmlConfigs = projectXml.getAllChildsByName("configuration");
 
         xmlConfigs.forEach(config => {
             try {

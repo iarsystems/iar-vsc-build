@@ -34,7 +34,7 @@ export class DynamicConfigGenerator {
     /**
      * Generates configuration data for an entire project, using the supplied values,
      * and caches the results
-     * @returns true if the operation succeded (i.e. was not canceled and did not crash)
+     * @returns true if the operation succeded, false if the operation was canceled (and rejects on errors)
      */
     public generateConfiguration(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<boolean> {
         // make sure we only run once at a time
@@ -70,53 +70,51 @@ export class DynamicConfigGenerator {
         this.output.dispose();
     }
 
-    private generateConfigurationImpl(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<boolean> {
-        return new Promise(async (resolve, reject) => {
-            let builderPath = join(workbench.path.toString(), "common/bin/iarbuild");
-            if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
-                builderPath += ".exe";
-            }
-            const builderProc = spawn(builderPath, [project.path.toString(), "-dryrun", config.name, "-log", "all"]);
-            builderProc.on("error", (err) => {
-                this.output.appendLine("Canceled.");
-                reject(err);
-            });
-
-            const compilerInvocations = await this.findCompilerInvocations(builderProc.stdout);
-
-            let hasIncorrectCompiler = false;
-            const fileConfigs: Array<{includes: IncludePath[], defines: Define[]}> = [];
-            for (let i = 0; i < compilerInvocations.length; i++) {
-                const compInv = compilerInvocations[i];
-                if (LanguageUtils.determineLanguage(compInv[1]) === undefined) {
-                    this.output.appendLine("Skipping file of unsupported type: " + compInv[1]);
-                    continue;
-                }
-                if (Path.parse(compInv[0]).name !== compiler.name) {
-                    this.output.appendLine(`WARN: Compiler name for ${compInv[1]} (${compInv[0]}) does not seem to match the selected compiler.`);
-                    hasIncorrectCompiler = true;
-                    continue;
-                }
-                try {
-                    fileConfigs.push(await this.generateConfigurationForFile(compiler, compInv.slice(1)));
-                } catch {}
-
-                if (this.shouldCancel) {
-                    resolve(false);
-                    return;
-                }
-            }
-
-            fileConfigs.forEach((fileConfig, index) => {
-                const uri = Vscode.Uri.file(compilerInvocations[index][1]);
-                this.putIncludes(uri, fileConfig.includes);
-                this.putDefines(uri, fileConfig.defines);
-            });
-            if (hasIncorrectCompiler) {
-                Vscode.window.showWarningMessage("IAR: The selected compiler does not appear to match the one used by the project.");
-            }
-            resolve(true);
+    private async generateConfigurationImpl(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<boolean> {
+        let builderPath = join(workbench.path.toString(), "common/bin/iarbuild");
+        if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
+            builderPath += ".exe";
+        }
+        const builderProc = spawn(builderPath, [project.path.toString(), "-dryrun", config.name, "-log", "all"]);
+        builderProc.on("error", (err) => {
+            this.output.appendLine(err.name + ": " + err.message);
+            return Promise.reject(err);
         });
+
+        const compilerInvocations = await this.findCompilerInvocations(builderProc.stdout);
+
+        let hasIncorrectCompiler = false;
+        const fileConfigs: Array<{includes: IncludePath[], defines: Define[]}> = [];
+
+        for (let i = 0; i < compilerInvocations.length; i++) {
+            const compInv = compilerInvocations[i];
+            if (LanguageUtils.determineLanguage(compInv[1]) === undefined) {
+                this.output.appendLine("Skipping file of unsupported type: " + compInv[1]);
+                continue;
+            }
+            if (Path.parse(compInv[0]).name !== compiler.name) {
+                this.output.appendLine(`WARN: Compiler name for ${compInv[1]} (${compInv[0]}) does not seem to match the selected compiler.`);
+                hasIncorrectCompiler = true;
+                continue;
+            }
+            try {
+                fileConfigs.push(await this.generateConfigurationForFile(compiler, compInv.slice(1)));
+            } catch {}
+
+            if (this.shouldCancel) {
+                return Promise.resolve(false);
+            }
+        }
+
+        fileConfigs.forEach((fileConfig, index) => {
+            const uri = Vscode.Uri.file(compilerInvocations[index][1]);
+            this.putIncludes(uri, fileConfig.includes);
+            this.putDefines(uri, fileConfig.defines);
+        });
+        if (hasIncorrectCompiler) {
+            Vscode.window.showWarningMessage("IAR: The selected compiler does not appear to match the one used by the project.");
+        }
+        return Promise.resolve(true);
     }
 
     public getIncludes(file: Vscode.Uri): IncludePath[] {
@@ -134,7 +132,7 @@ export class DynamicConfigGenerator {
     }
 
     // parses output from builder to find the calls to a compiler (eg iccarm) and what arguments it uses
-    private async findCompilerInvocations(builderOutput: Readable): Promise<string[][]> {
+    private findCompilerInvocations(builderOutput: Readable): Promise<string[][]> {
         return new Promise((resolve, _reject) => {
             const compilerInvocations: string[][] = [];
             const lineReader = readline.createInterface({
@@ -155,8 +153,7 @@ export class DynamicConfigGenerator {
                     }
                     args.push(this.stripQuotes(argsRaw));
                     compilerInvocations.push(args);
-                }
-                else if (line.match(/^Linking/)) { // usually the promise finishes here
+                } else if (line.match(/^Linking/)) { // usually the promise finishes here
                     lineReader.removeAllListeners();
                     resolve(compilerInvocations);
                     return;
@@ -203,7 +200,9 @@ export class DynamicConfigGenerator {
                 }
             });
             const chunks: Buffer[] = [];
-            compilerProc.stdout.on("data", (chunk: Buffer) => { chunks.push(chunk); });
+            compilerProc.stdout.on("data", (chunk: Buffer) => {
+                chunks.push(chunk);
+            });
             compilerProc.stdout.on("end", () => {
                 const output = Buffer.concat(chunks).toString();
                 const includePaths = IncludePath.fromCompilerOutput(output);

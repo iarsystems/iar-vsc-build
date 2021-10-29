@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 import { Node, NodeType } from "../../iar/project/thrift/bindings/projectmanager_types";
@@ -45,15 +45,15 @@ export class ConfigurationNode implements ProjectNode {
  * and configsNode under which all configurations are shown.
  */
 export class TreeProjectProvider implements Vscode.TreeDataProvider<ProjectNode> {
-    private _onDidChangeTreeData = new Vscode.EventEmitter<ProjectNode | undefined>();
+    private readonly _onDidChangeTreeData = new Vscode.EventEmitter<ProjectNode | undefined>();
     readonly onDidChangeTreeData: Vscode.Event<ProjectNode | undefined> = this._onDidChangeTreeData.event;
 
     private rootNode: Node | undefined;
     private configs: ReadonlyArray<Config> | undefined;
 
-    private filesNode: ProjectNode;
-    private separatorNode: ProjectNode;
-    private configsNode: ProjectNode;
+    private readonly filesNode: ProjectNode;
+    private readonly separatorNode: ProjectNode;
+    private readonly configsNode: ProjectNode;
 
     constructor() {
         this.filesNode = { name: "Files", context: "filesroot" };
@@ -116,7 +116,7 @@ export class TreeProjectProvider implements Vscode.TreeDataProvider<ProjectNode>
             return [];
         } else if (element === this.configsNode) {
             return this.configs ? this.configs.map(conf => new ConfigurationNode(conf)) : [];
-        } else if (element instanceof FilesNode){
+        } else if (element instanceof FilesNode) {
             return element.getChildren();
         } else if (element instanceof ConfigurationNode) {
             return [];

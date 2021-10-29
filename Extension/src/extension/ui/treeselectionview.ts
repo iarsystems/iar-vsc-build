@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 import { ListInputModel } from "../model/model";
@@ -17,10 +17,10 @@ class TreeNode extends Vscode.TreeItem {
         collapsibleState: Vscode.TreeItemCollapsibleState = Vscode.TreeItemCollapsibleState.None,
         tooltip?: string,
         command?: Vscode.Command) {
-            super(name, collapsibleState);
-            this.tooltip = tooltip;
-            this.command = command;
-        }
+        super(name, collapsibleState);
+        this.tooltip = tooltip;
+        this.command = command;
+    }
 }
 
 /**
@@ -33,7 +33,7 @@ class TreeTopNode extends TreeNode {
         public readonly commandToSet: string,
         public readonly model: ListInputModel<Workbench | Compiler | Project | Config>,
         tooltip?: string,) {
-            super(name, collapsibleState, tooltip)
+        super(name, collapsibleState, tooltip);
     }
 }
 
@@ -43,13 +43,13 @@ class TreeTopNode extends TreeNode {
  * set each setting by pressing on an option.
  */
 export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
-    private _onDidChangeTreeData = new Vscode.EventEmitter<TreeNode | undefined>();
+    private readonly _onDidChangeTreeData = new Vscode.EventEmitter<TreeNode | undefined>();
     readonly onDidChangeTreeData: Vscode.Event<TreeNode | undefined> = this._onDidChangeTreeData.event;
 
     private readonly topNodes: TreeTopNode[] = [];
-    private compilerVisible: boolean = false;
+    private compilerVisible = false;
 
-    constructor (
+    constructor(
         context: Vscode.ExtensionContext,
         workbenchModel: ListInputModel<Workbench>,
         compilerModel: ListInputModel<Compiler>,
@@ -63,8 +63,12 @@ export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
             new TreeTopNode("Configuration", Vscode.TreeItemCollapsibleState.Expanded, "setConfig", configModel, "Select build configuration"),
         ];
         this.topNodes.forEach(node => {
-            node.model.addOnSelectedHandler(() => { this._onDidChangeTreeData.fire(node); });
-            node.model.addOnInvalidateHandler(() => { this._onDidChangeTreeData.fire(node); });
+            node.model.addOnSelectedHandler(() => {
+                this._onDidChangeTreeData.fire(node);
+            });
+            node.model.addOnInvalidateHandler(() => {
+                this._onDidChangeTreeData.fire(node);
+            });
             context.subscriptions.push(Vscode.commands.registerCommand(node.commandToSet, (indexToSet: number) => {
                 node.model.select(indexToSet);
             }));
@@ -72,7 +76,7 @@ export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
     }
 
     setCompilerVisible(visible: boolean) {
-        if (visible != this.compilerVisible) {
+        if (visible !== this.compilerVisible) {
             this.compilerVisible = visible;
             this._onDidChangeTreeData.fire(undefined);
         }
@@ -88,7 +92,7 @@ export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
                 const children: TreeNode[] = [];
                 for (let i = 0; i < model.amount; i++) {
                     children.push(new TreeNode(
-                        model.label(i) + (model.selectedIndex == i ? " (selected)" : ""),
+                        model.label(i) + (model.selectedIndex === i ? " (selected)" : ""),
                         Vscode.TreeItemCollapsibleState.None,
                         model.description(i),
                         { command: element.commandToSet, arguments: [i], title: "" },

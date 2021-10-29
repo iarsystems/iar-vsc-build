@@ -34,8 +34,8 @@ export interface CStatTaskDefinition {
 
 class CStatProvider implements Vscode.TaskProvider {
     // shared by all cstat tasks
-    private diagnosticsCollection: Vscode.DiagnosticCollection;
-    private extensionRootPath: string;
+    private readonly diagnosticsCollection: Vscode.DiagnosticCollection;
+    private readonly extensionRootPath: string;
 
     constructor(context: Vscode.ExtensionContext) {
         this.diagnosticsCollection = Vscode.languages.createDiagnosticCollection("C-STAT");
@@ -49,19 +49,19 @@ class CStatProvider implements Vscode.TaskProvider {
         }
         const taskVariants: Array<[string, "run" | "clear"]> =
             [["Run C-STAT Analysis", "run"],
-            ["Clear C-STAT Diagnostics", "clear"]];
+                ["Clear C-STAT Diagnostics", "clear"]];
         for (const [label, action] of taskVariants) {
             const definition = this.getDefaultTaskDefinition(label, action);
-            let execution = this.executionFromDefinition(definition);
-            let task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar-cstat", execution, []);
+            const execution = this.executionFromDefinition(definition);
+            const task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar-cstat", execution, []);
             tasks.push(task);
         }
         return tasks;
     }
 
     resolveTask(_task: Vscode.Task): Vscode.ProviderResult<Vscode.Task> {
-        let action = _task.definition.action;
-        let label = _task.definition.label;
+        const action = _task.definition.action;
+        const label = _task.definition.label;
 
         if (!action) {
             this.showErrorMissingField("action", label);
@@ -75,7 +75,9 @@ class CStatProvider implements Vscode.TaskProvider {
             return undefined;
         }
 
-        // fill in missing properties with their default values
+        // Fill in missing properties with their default values.
+        // I don't think there is a better way than using 'any', this should be type-safe anyway
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fullDefinition: any = this.getDefaultTaskDefinition(_task.definition.label, _task.definition.action);
         for (const property in fullDefinition) {
             if (_task.definition[property]) {
@@ -83,7 +85,7 @@ class CStatProvider implements Vscode.TaskProvider {
             }
         }
 
-        let execution = this.executionFromDefinition(fullDefinition);
+        const execution = this.executionFromDefinition(fullDefinition);
         return new Vscode.Task(_task.definition, Vscode.TaskScope.Workspace, _task.definition.label, "iar-cstat", execution, []);
     }
 
@@ -100,8 +102,9 @@ class CStatProvider implements Vscode.TaskProvider {
     }
 
     private executionFromDefinition(definition: CStatTaskDefinition): Vscode.CustomExecution {
-        return new Vscode.CustomExecution(async () => {
-            return new CStatTaskExecution(this.extensionRootPath, this.diagnosticsCollection, definition);
+        return new Vscode.CustomExecution(() => {
+            console.log("sadfasdfas");
+            return Promise.resolve(new CStatTaskExecution(this.extensionRootPath, this.diagnosticsCollection, definition));
         });
     }
 

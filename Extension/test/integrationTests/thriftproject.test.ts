@@ -16,8 +16,8 @@ suite("Thrift project", function() {
     let sandbox: TestSandbox;
     let projectPath: string;
 
-    suiteSetup(async () => {
-        let manager = ToolManager.createIarToolManager();
+    suiteSetup(async() => {
+        const manager = ToolManager.createIarToolManager();
         Settings.getIarInstallDirectories().forEach(directory => {
             manager.collectFrom(directory);
         });
@@ -28,34 +28,34 @@ suite("Thrift project", function() {
         const workbenchCandidate = workbenches?.find(wb => ThriftWorkbench.hasThriftSupport(wb) );
         Assert(workbenchCandidate, "These tests require a project manager-enabled EW to run, but none was found.");
 
-        workbench = await ThriftWorkbench.from(workbenchCandidate!!);
+        workbench = await ThriftWorkbench.from(workbenchCandidate!);
         Assert(workbench, "Thrift workbench did not load correctly");
 
         sandbox = new TestSandbox(IntegrationTestsCommon.PROJECT_ROOT);
     });
-    suiteTeardown(async () => {
+    suiteTeardown(async() => {
         await workbench?.dispose();
     });
 
     let project: ThriftProject;
 
-    setup(async () => {
+    setup(async() => {
         projectPath = sandbox.copyToSandbox(IntegrationTestsCommon.TEST_PROJECTS_DIR, "IntegrationTestProject");
         project = await workbench.loadProject(new Project(Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_NAME)));
         Assert(project);
     });
-    teardown(async () => {
+    teardown(async() => {
         await project?.unload();
-    })
+    });
 
-    test("Managing configurations", async () => {
+    test("Managing configurations", async() => {
         await project.addConfiguration(new Configuration({ name: "TestConfig", toolchainId: "ARM"}), false);
         Assert.equal(project.configurations.length, 3);
         await project.removeConfiguration(new Configuration({ name: "TestConfig", toolchainId: "ARM"}));
         Assert.equal(project.configurations.length, 2);
     });
 
-    test("Managing nodes", async () => {
+    test("Managing nodes", async() => {
         const rootNode = await project.getRootNode();
         Assert(rootNode);
         const sourceNode = rootNode.children[0];

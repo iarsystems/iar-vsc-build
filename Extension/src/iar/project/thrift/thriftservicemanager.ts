@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 import * as Thrift from "thrift";
@@ -32,7 +32,7 @@ export class ThriftServiceManager {
      * @param process The service manager process serving the service registry.
      * @param registryLocation The location of the service registry to use.
      */
-    constructor(private process: ChildProcess, private registryLocation: ServiceLocation) {
+    constructor(private readonly process: ChildProcess, private readonly registryLocation: ServiceLocation) {
     }
 
     /**
@@ -46,11 +46,11 @@ export class ThriftServiceManager {
         await serviceMgr.service.shutdown();
         serviceMgr.close();
         // Wait for service registry process to exit
-        if(this.process.exitCode === null) {
+        if (this.process.exitCode === null) {
             await new Promise((resolve, reject) => {
                 this.process.on("exit", resolve);
                 setTimeout(() => {
-                    reject("Service registry exit timed out");
+                    reject(new Error("Service registry exit timed out"));
                     this.process.kill();
                 }, ThriftServiceManager.REGISTRY_EXIT_TIMEOUT);
             });
@@ -81,9 +81,9 @@ export class ThriftServiceManager {
             protocol: location.protocol === Protocol.Binary ? Thrift.TBinaryProtocol : Thrift.TJSONProtocol,
         };
         return new Promise((resolve, reject) => {
-            const conn = Thrift.createConnection(location.host, location.port, options)
-                .on("error", err => reject(err))
-                .on("connect", async () => {
+            const conn = Thrift.createConnection(location.host, location.port, options).
+                on("error", err => reject(err)).
+                on("connect", () => {
                     const client = Thrift.createClient<T>(serviceType, conn);
                     resolve(new ThriftClient(conn, client));
                 });
@@ -99,8 +99,10 @@ export namespace ThriftServiceManager {
      * Readies a service registry/manager and waits for it to finish starting before returning.
      * @param workbench The workbench to use
      */
-    export async function fromWorkbench(workbench: Workbench): Promise<ThriftServiceManager> {
-        if (!output) { output = Vscode.window.createOutputChannel("IarServiceManager"); }
+    export function fromWorkbench(workbench: Workbench): Promise<ThriftServiceManager> {
+        if (!output) {
+            output = Vscode.window.createOutputChannel("IarServiceManager");
+        }
 
         let registryPath = path.join(workbench.path.toString(), "common/bin/IarServiceLauncher");
         if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
@@ -114,37 +116,38 @@ export namespace ThriftServiceManager {
 
         let resolved = false;
         return new Promise<ThriftServiceManager>((resolve, reject) => {
-                // Start watching for the registry file
-                fs.watch(tmpDir, undefined, (type, fileName) => {
-                    // When the file has been created, read the location of the registry, and create the service manager
-                    if (!resolved && serviceRegistryProcess && (type === "rename") && fileName == path.basename(locationFile)) {
-                        // Find the location of the service registry
-                        const locSerialized = fs.readFileSync(path.join(tmpDir, "CSpyServer2-ServiceRegistry.txt"));
-                        // These concats are a hack to create a valid thrift message. The thrift library seems unable to deserialize just a struct (at least for the json protocol)
-                        // Once could also do JSON.parse and manually convert it to a ServiceLocation, but this is arguably more robust
-                        const transport = new Thrift.TFramedTransport(Buffer.concat([Buffer.from("[1,0,0,0,"), locSerialized, Buffer.from("]")]));
-                        const prot = new Thrift.TJSONProtocol(transport);
-                        prot.readMessageBegin();
-                        const location = new ServiceLocation();
-                        location.read(prot);
-                        prot.readMessageEnd();
+            // Start watching for the registry file
+            fs.watch(tmpDir, undefined, (type, fileName) => {
+                // When the file has been created, read the location of the registry, and create the service manager
+                if (!resolved && serviceRegistryProcess && (type === "rename") && fileName === path.basename(locationFile)) {
+                    // Find the location of the service registry
+                    const locSerialized = fs.readFileSync(path.join(tmpDir, "CSpyServer2-ServiceRegistry.txt"));
+                    // These concats are a hack to create a valid thrift message. The thrift library seems unable to deserialize just a struct (at least for the json protocol)
+                    // Once could also do JSON.parse and manually convert it to a ServiceLocation, but this is arguably more robust
+                    const transport = new Thrift.TFramedTransport(Buffer.concat([Buffer.from("[1,0,0,0,"), locSerialized, Buffer.from("]")]));
+                    const prot = new Thrift.TJSONProtocol(transport);
+                    prot.readMessageBegin();
+                    const location = new ServiceLocation();
+                    location.read(prot);
+                    prot.readMessageEnd();
 
-                        resolved = true;
-                        resolve(new ThriftServiceManager(serviceRegistryProcess, location));
-                    }
-                });
+                    resolved = true;
+                    resolve(new ThriftServiceManager(serviceRegistryProcess, location));
+                }
+            });
 
-                serviceRegistryProcess = spawn(registryPath, ["-standalone", "-sockets", projectManagerManifestPath],
-                                                        { cwd: tmpDir });
+            serviceRegistryProcess = spawn(registryPath, ["-standalone", "-sockets", projectManagerManifestPath],
+                { cwd: tmpDir });
 
-                serviceRegistryProcess.stdout?.on("data", data => {
-                    output?.append(data.toString());
-                });
-                serviceRegistryProcess.on("exit", () => reject("ServiceRegistry exited"));
+            serviceRegistryProcess.stdout?.on("data", data => {
+                output?.append(data.toString());
+            });
+            serviceRegistryProcess.on("exit", () => reject(new Error("ServiceRegistry exited")));
 
-                setTimeout(() => reject("Service registry launch timed out"), 10000);
-        }).catch(e => { serviceRegistryProcess?.kill(); throw e; })
-          .finally(() => fs.unwatchFile(locationFile));
+            setTimeout(() => reject(new Error("Service registry launch timed out")), 10000);
+        }).catch(e => {
+            serviceRegistryProcess?.kill(); throw e;
+        }).finally(() => fs.unwatchFile(locationFile));
     }
 
     // Creates and returns a unique temporary directory.

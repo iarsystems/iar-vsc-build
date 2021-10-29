@@ -8,7 +8,7 @@ suite("Thrift workbench", function() {
     let workbench: Workbench;
 
     suiteSetup(() => {
-        let manager = ToolManager.createIarToolManager();
+        const manager = ToolManager.createIarToolManager();
         Settings.getIarInstallDirectories().forEach(directory => {
             manager.collectFrom(directory);
         });
@@ -19,16 +19,16 @@ suite("Thrift workbench", function() {
         const workbenchCandidate = workbenches?.find(wb => ThriftWorkbench.hasThriftSupport(wb) );
         Assert(workbenchCandidate, "These tests require a project manager-enabled EW to run, but none was found.");
 
-        workbench = workbenchCandidate!!;
+        workbench = workbenchCandidate!;
     });
 
-    test("Can start registry", async () => {
+    test("Can start registry", async() => {
         const thriftWb = await ThriftWorkbench.from(workbench);
         Assert(thriftWb);
         await thriftWb.dispose();
     });
 
-    test("Provides toolchain(s)", async () => {
+    test("Provides toolchain(s)", async() => {
         const thriftWb = await ThriftWorkbench.from(workbench);
         Assert(thriftWb);
         const tcs = await thriftWb.getToolchains();

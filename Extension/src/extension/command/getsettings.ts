@@ -2,12 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 
-import { Command } from "./command"
-import { Settings } from "../settings"
+import { Command } from "./command";
+import { Settings } from "../settings";
 
 export enum GetSettingsCommand {
     Workbench = "iar-settings.workbench",
@@ -16,34 +16,22 @@ export enum GetSettingsCommand {
     ProjectConfiguration = "iar-settings.project-configuration"
 }
 
-class GetSettings implements Command {
-    private settingsCallback: () => any;
+class GetSettings implements Command<string | undefined> {
+    enabled = true;
 
-    command: string;
-    enabled: boolean;
-
-    constructor(command: GetSettingsCommand, getSettingsCallback: () => any) {
-        this.command = command;
-        this.enabled = true;
-        this.settingsCallback = getSettingsCallback;
+    constructor(readonly command: GetSettingsCommand, private readonly field: Settings.LocalSettingsField) {
     }
 
     canExecute(): boolean {
         return true;
     }
 
-    execute(_autoTriggered: boolean): any {
-        let value = this.settingsCallback();
-
-        if (value !== undefined) {
-            return value.toString();
-        } else {
-            return undefined;
-        }
+    execute(_autoTriggered: boolean): string | undefined {
+        return Settings.getLocalSetting(this.field);
     }
 
     register(context: Vscode.ExtensionContext): void {
-        let cmd = Vscode.commands.registerCommand(this.command, (): any => {
+        const cmd = Vscode.commands.registerCommand(this.command, (): string | undefined => {
             return this.execute(false);
         }, this);
 
@@ -53,14 +41,14 @@ class GetSettings implements Command {
 
 export namespace GetSettingsCommand {
     export function initCommands(context: Vscode.ExtensionContext): void {
-        initCommand(context, GetSettingsCommand.Workbench, Settings.getWorkbench);
-        initCommand(context, GetSettingsCommand.Compiler, Settings.getCompiler);
-        initCommand(context, GetSettingsCommand.ProjectFile, Settings.getEwpFile);
-        initCommand(context, GetSettingsCommand.ProjectConfiguration, Settings.getConfiguration);
+        initCommand(context, GetSettingsCommand.Workbench, Settings.LocalSettingsField.Workbench);
+        initCommand(context, GetSettingsCommand.Compiler, Settings.LocalSettingsField.Compiler);
+        initCommand(context, GetSettingsCommand.ProjectFile, Settings.LocalSettingsField.Ewp);
+        initCommand(context, GetSettingsCommand.ProjectConfiguration, Settings.LocalSettingsField.Configuration);
     }
 
-    function initCommand(context: Vscode.ExtensionContext, command: GetSettingsCommand, getSettingsCallback: () => any): void {
-        let cmd = new GetSettings(command, getSettingsCallback);
+    function initCommand(context: Vscode.ExtensionContext, command: GetSettingsCommand, field: Settings.LocalSettingsField): void {
+        const cmd = new GetSettings(command, field);
         cmd.register(context);
 
         Command.getCommandManager().add(cmd);

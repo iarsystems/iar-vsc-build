@@ -2,18 +2,18 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
 
-import * as xmljs from 'xml-js';
+
+import * as xmljs from "xml-js";
 
 export class XmlNode {
-    private mElement: xmljs.Element;
+    private readonly mElement: xmljs.Element;
 
     constructor(xml: xmljs.Element | string) {
         let element: xmljs.Element;
 
         if (typeof xml === "string") {
-            let document = xmljs.xml2js(xml, { compact: false }) as xmljs.Element;
+            const document = xmljs.xml2js(xml, { compact: false }) as xmljs.Element;
             if (document.elements === undefined) {
                 throw new Error("Invalid xml data");
             }
@@ -34,7 +34,7 @@ export class XmlNode {
         if (this.mElement.type === "text") {
             return "" + this.mElement.text;
         } else {
-            let texts = this.getAllChildsByType('text');
+            const texts = this.getAllChildsByType("text");
 
             if (texts.length > 0) {
                 let concatenated = "";
@@ -75,7 +75,7 @@ export class XmlNode {
     }
 
     public getAllChildsByName(name: string): XmlNode[] {
-        let ret: XmlNode[] = [];
+        const ret: XmlNode[] = [];
 
         if (this.mElement.elements) {
             for (let idx = 0; idx < this.mElement.elements.length; idx += 1) {
@@ -89,11 +89,11 @@ export class XmlNode {
     }
 
     public getAllChildsByType(type: string): XmlNode[] {
-        let ret: XmlNode[] = [];
+        const ret: XmlNode[] = [];
 
         if (this.mElement.elements) {
             for (let idx = 0; idx < this.mElement.elements.length; idx += 1) {
-                let element = this.mElement.elements[idx];
+                const element = this.mElement.elements[idx];
 
                 if (element.type === type) {
                     ret.push(new XmlNode(element));

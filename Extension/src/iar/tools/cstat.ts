@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import { OsUtils } from "../../utils/utils";
 import { spawn } from "child_process";
@@ -48,28 +48,32 @@ export namespace CStat {
         // the warnings are parsed from cstat.db in the Obj/ output folder
         // we use the sqlite3 executable CLI to perform queries against the database
         const sqliteBin = getSqliteBinaryName();
-        if (sqliteBin === null) { return Promise.reject("Couldn't find sqlite binaries for cstat. Your OS likely isn't supported."); }
+        if (sqliteBin === null) {
+            return Promise.reject(new Error("Couldn't find sqlite binaries for cstat. Your OS likely isn't supported."));
+        }
         const sqliteBinPath = join(extensionPath.toString(), "sqlite-bin", sqliteBin);
         const cstatDBPath = getCStatDBPath(projectPath, configurationName);
-        if (!Fs.existsSync(cstatDBPath)) { return Promise.reject("Couldn't find cstat DB: " + cstatDBPath); }
+        if (!Fs.existsSync(cstatDBPath)) {
+            return Promise.reject(new Error("Couldn't find cstat DB: " + cstatDBPath));
+        }
 
         return new Promise((resolve, reject) => {
             const sqlProc = spawn(sqliteBinPath, [cstatDBPath, "-csv"]); // we want csv output for easier parsing
 
             sqlProc.stdin.write("SELECT sql FROM sqlite_master WHERE type IS 'table' AND name IS 'warnings';\n");
-            sqlProc.stdout.once('data', tableData => {
+            sqlProc.stdout.once("data", tableData => {
                 // The name of the check is contained in property_alias if present, otherwise in property_id
                 const checkIdColumn = tableData.toString().includes("property_alias") ? "property_alias" : "property_id";
 
                 sqlProc.stdin.write("SELECT Count(*) FROM warnings;\n");
-                sqlProc.stdout.once('data', data => {
+                sqlProc.stdout.once("data", data => {
                     const expectedRows = Number(data.toString());
 
                     if (expectedRows > 0) {
                         const query = `SELECT ${fieldsToLoad.join(",")},${checkIdColumn} FROM warnings;\n`;
                         sqlProc.stdin.write(query);
                         let output = "";
-                        sqlProc.stdout.on('data', data => {
+                        sqlProc.stdout.on("data", data => {
                             output += data.toString();
                             try {
                                 const warnsRaw: string[][] = CsvParser(output);
@@ -88,7 +92,7 @@ export namespace CStat {
                 }); /* stdout.once() */
             }); /* stdout.once() */
 
-            sqlProc.stderr.on('data', data => {
+            sqlProc.stderr.on("data", data => {
                 reject(data.toString());
                 sqlProc.kill();
             });
@@ -101,7 +105,7 @@ export namespace CStat {
      */
     export function runAnalysis(builderPath: PathLike, projectPath: PathLike, configurationName: string, onWrite?: (msg: string) => void): Thenable<void> {
         if (!Fs.existsSync(builderPath)) {
-            return Promise.reject(`The builder ${builderPath} does not exists.`);
+            return Promise.reject(new Error(`The builder ${builderPath} does not exists.`));
         }
 
         // It seems we need to delete the db and regenerate it every time to get around
@@ -110,7 +114,9 @@ export namespace CStat {
         // It seems EW solves this by checking if each file in the db is in the project,
         // but i'm not sure how I would do that in VS Code
         const dbPath = getCStatDBPath(projectPath, configurationName);
-        if (Fs.existsSync(dbPath)) { Fs.unlinkSync(dbPath); }
+        if (Fs.existsSync(dbPath)) {
+            Fs.unlinkSync(dbPath);
+        }
 
         const iarbuild = spawn(builderPath.toString(), [projectPath.toString(), "-cstat_analyze", configurationName.toString(), "-log", "info"]);
         iarbuild.stdout.on("data", data => {
@@ -122,7 +128,7 @@ export namespace CStat {
         return new Promise<void>((resolve, reject) => {
             iarbuild.on("close", (code) => {
                 if (code !== 0) {
-                    reject("C-STAT exited with code: " + code);
+                    reject(new Error("C-STAT exited with code: " + code));
                 } else {
                     resolve(); // C-STAT is done!
                 }
@@ -132,12 +138,12 @@ export namespace CStat {
 
     export function SeverityStringToSeverityEnum(severity: string): CStatWarningSeverity {
         switch (severity) {
-            case "Low":    return CStatWarningSeverity.LOW;
-            case "Medium": return CStatWarningSeverity.MEDIUM;
-            case "High":   return CStatWarningSeverity.HIGH;
-            default:
-                console.log("Unrecognized C-STAT severity: " + severity);
-                return CStatWarningSeverity.HIGH;
+        case "Low":    return CStatWarningSeverity.LOW;
+        case "Medium": return CStatWarningSeverity.MEDIUM;
+        case "High":   return CStatWarningSeverity.HIGH;
+        default:
+            console.log("Unrecognized C-STAT severity: " + severity);
+            return CStatWarningSeverity.HIGH;
         }
     }
 
@@ -164,18 +170,18 @@ export namespace CStat {
 
     function getSqliteBinaryName(): string | null {
         switch (OsUtils.detectOsType()) {
-            case OsUtils.OsType.Windows:
-                return "sqlite-v3.26.0-win32-x86.exe";
-            case OsUtils.OsType.Linux:
-                if (OsUtils.detectArchitecture() === OsUtils.Architecture.x64) {
-                    return 'sqlite-v3.26.0-linux-x64';
-                } else {
-                    return 'sqlite-v3.26.0-linux-x86';
-                }
-            case OsUtils.OsType.Mac:
-                return "sqlite-v3.26.0-osx-x86";
-            default:
-                return null;
+        case OsUtils.OsType.Windows:
+            return "sqlite-v3.26.0-win32-x86.exe";
+        case OsUtils.OsType.Linux:
+            if (OsUtils.detectArchitecture() === OsUtils.Architecture.x64) {
+                return "sqlite-v3.26.0-linux-x64";
+            } else {
+                return "sqlite-v3.26.0-linux-x86";
+            }
+        case OsUtils.OsType.Mac:
+            return "sqlite-v3.26.0-osx-x86";
+        default:
+            return null;
         }
     }
 }

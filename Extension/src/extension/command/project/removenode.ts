@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 import { ConfirmationDialog } from "../../ui/confirmationdialog";
@@ -24,14 +24,16 @@ export class RemoveNodeCommand extends ProjectCommand {
         try {
             const toRemove = source.iarNode;
             const shouldRemove = await ConfirmationDialog.show(`Really remove ${typeString} "${toRemove.name}"?`);
-            if (!shouldRemove) { return; }
+            if (!shouldRemove) {
+                return;
+            }
 
             const rootNode = await project.getRootNode();
             this.removeNode(rootNode, toRemove);
             project.setNode(rootNode);
 
             Vscode.window.showInformationMessage(`The ${typeString} "${toRemove.name}" has been removed from the project.`);
-        } catch(e) {
+        } catch (e) {
             Vscode.window.showErrorMessage("Unable to remove " + typeString + ": " + e.toString());
         }
     }

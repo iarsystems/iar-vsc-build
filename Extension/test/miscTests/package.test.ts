@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as path from "path";
 import * as Assert from "assert";
@@ -16,6 +16,7 @@ suite("Test package.json", () => {
         // but it's probably safer to add them all anyway
 
         const packageJsonPath = path.join(__dirname, "../../../package.json");
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const packageJson = require(packageJsonPath);
 
         const activationEvents: string[] = packageJson["activationEvents"];
@@ -25,7 +26,7 @@ suite("Test package.json", () => {
 
         commandNames.forEach(commandName => {
             Assert(activationEvents.some(event => event === `onCommand:${commandName}`),
-                    `Command '${commandName} is not in the activation events'`);
+                `Command '${commandName} is not in the activation events'`);
         });
     });
 });

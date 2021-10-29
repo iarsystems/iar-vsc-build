@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Fs from "fs";
 import { XmlNode } from "../../../utils/XmlNode";
@@ -30,7 +30,7 @@ abstract class BaseDefine implements Define {
 }
 
 class XmlDefine extends BaseDefine {
-    private xmlData: XmlNode;
+    private readonly xmlData: XmlNode;
 
     constructor(xml: XmlNode) {
         super();
@@ -39,7 +39,7 @@ class XmlDefine extends BaseDefine {
         if (xml.tagName !== "state") {
             throw new Error("Expected an xml element 'state' instead of '" + xml.tagName + "'.");
         } else {
-            let identifier = this.parse(DefinePart.Identifier);
+            const identifier = this.parse(DefinePart.Identifier);
 
             if (!identifier || (identifier === "")) {
                 throw new Error("Empty define.");
@@ -57,10 +57,10 @@ class XmlDefine extends BaseDefine {
     }
 
     private parse(part: DefinePart): string | undefined {
-        let define = this.xmlData.text;
+        const define = this.xmlData.text;
 
         if (define) {
-            let parts = define.split("=", 2);
+            const parts = define.split("=", 2);
 
             if (part === DefinePart.Identifier) {
                 if (parts.length >= 1) {
@@ -94,14 +94,14 @@ export namespace Define {
     }
 
     export function fromXml(configNode: XmlNode): Define[] {
-        let settings = IarXml.findSettingsFromConfig(configNode, '/ICC.*/');
+        const settings = IarXml.findSettingsFromConfig(configNode, "/ICC.*/");
 
         if (settings) {
-            let option = IarXml.findOptionFromSettings(settings, 'CCDefines');
+            const option = IarXml.findOptionFromSettings(settings, "CCDefines");
 
             if (option) {
-                let states = option.getAllChildsByName('state');
-                let defines: Define[] = [];
+                const states = option.getAllChildsByName("state");
+                const defines: Define[] = [];
 
                 states.forEach(state => {
                     try {
@@ -118,25 +118,25 @@ export namespace Define {
     }
 
     export function fromSourceFile(path: Fs.PathLike): Define[] {
-        let buf = Fs.readFileSync(path.toString());
+        const buf = Fs.readFileSync(path.toString());
 
         return fromSourceData(buf);
     }
 
     export function fromSourceData(buf: Buffer): Define[] {
-        let content = buf.toString();
+        const content = buf.toString();
 
         return fromSourceContent(content);
     }
 
     export function fromSourceContent(content: string): Define[] {
-        let defines = new Array<Define>();
+        const defines = new Array<Define>();
 
-        let lines = content.split(/\r\n|\n/);
+        const lines = content.split(/\r\n|\n/);
 
         lines.forEach(line => {
             if (line !== undefined) {
-                let define = parseSourceLine(line);
+                const define = parseSourceLine(line);
 
                 if (define) {
                     defines.push(define);

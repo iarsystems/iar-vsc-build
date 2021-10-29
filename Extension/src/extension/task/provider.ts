@@ -1,3 +1,5 @@
+// TODO: remove this comment once VSC-5 has been closed, it should remove all any:s in this file
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
@@ -32,10 +34,10 @@ export namespace IarTaskProvider {
         }
 
         if (!watcher) {
-            let workspaceFolder = Vscode.workspace.rootPath;
+            const workspaceFolder = Vscode.workspace.rootPath;
 
             if (workspaceFolder) {
-                let tasksPath = Path.join(workspaceFolder, ".vscode", "tasks.json");
+                const tasksPath = Path.join(workspaceFolder, ".vscode", "tasks.json");
                 watcher = Vscode.workspace.createFileSystemWatcher(tasksPath);
 
                 watcher.onDidChange(() => {
@@ -65,9 +67,9 @@ export namespace IarTaskProvider {
     }
 
     function getTasks(): Vscode.Task[] {
-        let tasks = new Map<string, Vscode.Task>();
+        const tasks = new Map<string, Vscode.Task>();
 
-        let json = readTasksJson();
+        const json = readTasksJson();
 
         if (json !== undefined) {
             BuildTasks.generateFromTasksJson(json, tasks);
@@ -81,22 +83,22 @@ export namespace IarTaskProvider {
     }
 
     function readTasksJson(): any | undefined {
-        let workspaceFolders = Vscode.workspace.workspaceFolders;
+        const workspaceFolders = Vscode.workspace.workspaceFolders;
 
         if (workspaceFolders === undefined) {
             return undefined;
         }
 
-        let workspaceFolder = workspaceFolders[0];
+        const workspaceFolder = workspaceFolders[0];
 
         if (workspaceFolder === undefined) {
             return undefined;
         }
 
-        let path = Path.join(workspaceFolder.uri.fsPath, ".vscode", "tasks.json");
+        const path = Path.join(workspaceFolder.uri.fsPath, ".vscode", "tasks.json");
 
         try {
-            let stat = Fs.statSync(path);
+            const stat = Fs.statSync(path);
 
             if (!stat.isFile()) {
                 return undefined;

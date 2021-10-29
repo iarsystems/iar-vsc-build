@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 import { Input } from "../ui/input";
@@ -12,16 +12,20 @@ import { Compiler } from "../../iar/tools/compiler";
 import { Project } from "../../iar/project/project";
 import { Config } from "../../iar/project/config";
 
-export interface Command {
+/**
+ * A VS Code command. Produces a nice error message if called before the extension has been activated.
+ * @typeParam T the type of value the command returns
+ */
+export interface Command<T> {
     readonly command: string;
     enabled: boolean;
 
     canExecute(): boolean;
-    execute(autoTriggered?: boolean): any;
+    execute(autoTriggered?: boolean): T | undefined;
     register(context: Vscode.ExtensionContext): void;
 }
 
-export abstract class CommandBase implements Command {
+export abstract class CommandBase<T> implements Command<T> {
     private enabled_: boolean;
     readonly command: string;
 
@@ -42,24 +46,25 @@ export abstract class CommandBase implements Command {
         return true;
     }
 
-    execute(autoTriggered?: boolean): any {
+    execute(autoTriggered?: boolean): T | undefined {
         if (this.enabled) {
-            this.executeImpl(autoTriggered);
-        } else if(!autoTriggered) {
+            return this.executeImpl(autoTriggered);
+        } else if (!autoTriggered) {
             Vscode.window.showErrorMessage("Extension is not yet ready, cannot execute this command. Try again later.");
         }
+        return undefined;
     }
 
     register(context: Vscode.ExtensionContext): void {
-        let cmd = Vscode.commands.registerCommand(this.command, this.execute, this);
+        const cmd = Vscode.commands.registerCommand(this.command, this.execute, this);
         context.subscriptions.push(cmd);
     }
 
-    protected abstract executeImpl(autoTriggered?: boolean): void;
+    protected abstract executeImpl(autoTriggered?: boolean): T;
 }
 
-class CommandWithInput<T> extends CommandBase {
-    private input: Input<T>;
+class CommandWithInput<T> extends CommandBase<void> {
+    private readonly input: Input<T>;
 
     constructor(command: string, model: ListInputModel<T>) {
         super(command);
@@ -75,21 +80,21 @@ class CommandWithInput<T> extends CommandBase {
 export namespace Command {
 
     class CommandManager {
-        private commands_: Command[];
+        private readonly commands_: Command<unknown>[];
 
         public constructor() {
             this.commands_ = [];
         }
 
-        public get commands(): Command[] {
+        public get commands(): Command<unknown>[] {
             return this.commands_;
         }
 
-        public add(command: Command): void {
+        public add(command: Command<unknown>): void {
             this.commands_.push(command);
         }
 
-        public find(command: string): Command | undefined {
+        public find(command: string): Command<unknown> | undefined {
             return this.commands.find((value): boolean => {
                 if (value.command === command) {
                     return true;
@@ -100,30 +105,30 @@ export namespace Command {
         }
     }
 
-    let manager = new CommandManager();
+    const manager = new CommandManager();
 
     export function getCommandManager(): CommandManager {
         return manager;
     }
 
-    export function createSelectWorkbenchCommand(model: ListInputModel<Workbench>): Command {
+    export function createSelectWorkbenchCommand(model: ListInputModel<Workbench>): Command<void> {
         return createInputCommand("iar.selectWorkbench", model);
     }
 
-    export function createSelectCompilerCommand(model: ListInputModel<Compiler>): Command {
+    export function createSelectCompilerCommand(model: ListInputModel<Compiler>): Command<void> {
         return createInputCommand("iar.selectCompiler", model);
     }
 
-    export function createSelectProjectCommand(model: ListInputModel<Project>): Command {
+    export function createSelectProjectCommand(model: ListInputModel<Project>): Command<void> {
         return createInputCommand("iar.selectProject", model);
     }
 
-    export function createSelectConfigurationCommand(model: ListInputModel<Config>): Command {
+    export function createSelectConfigurationCommand(model: ListInputModel<Config>): Command<void> {
         return createInputCommand("iar.selectConfiguration", model);
     }
 
-    function createInputCommand<T>(command: string, model: ListInputModel<T>): Command {
-        let cmd = new CommandWithInput(command, model);
+    function createInputCommand<T>(command: string, model: ListInputModel<T>): Command<void> {
+        const cmd = new CommandWithInput(command, model);
 
         manager.add(cmd);
 

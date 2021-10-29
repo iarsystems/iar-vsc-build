@@ -2,14 +2,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import * as path from 'path';
-import * as fs from 'fs';
+import * as path from "path";
+import * as fs from "fs";
 
 export namespace FsUtils {
     // Node has no promise-based exists function
     export async function exists(p: fs.PathLike): Promise<boolean> {
         try {
-            fs.promises.access(p, fs.constants.R_OK);
+            await fs.promises.access(p, fs.constants.R_OK);
             return true;
         } catch {
         }
@@ -24,20 +24,20 @@ export namespace FsUtils {
         let children: fs.PathLike[] = [];
 
         if (fs.existsSync(dirPath)) {
-            let stat = fs.statSync(dirPath);
+            const stat = fs.statSync(dirPath);
 
             if (stat.isDirectory()) {
-                let dir = fs.readdirSync(dirPath);
+                const dir = fs.readdirSync(dirPath);
 
                 dir.forEach(child => {
-                    let fullpath = path.join(dirPath.toString(), child);
+                    const fullpath = path.join(dirPath.toString(), child);
 
                     if (filterCallback(fullpath)) {
                         children.push(fullpath);
                     }
 
                     if (recursive) {
-                        let stat = fs.statSync(fullpath);
+                        const stat = fs.statSync(fullpath);
 
                         if (stat.isDirectory()) {
                             children = children.concat(walkAndFind(fullpath, true, filterCallback));
@@ -52,11 +52,11 @@ export namespace FsUtils {
 
     export function createFilteredListDirectoryFilenameRegex(regex: RegExp): (fullpath: fs.PathLike) => boolean {
         return (fullpath: fs.PathLike): boolean => {
-            let stat = fs.statSync(fullpath);
+            const stat = fs.statSync(fullpath);
 
             if (stat.isFile()) {
-                let parsedPath = path.parse(fullpath.toString());
-                let filename = parsedPath.base;
+                const parsedPath = path.parse(fullpath.toString());
+                const filename = parsedPath.base;
 
                 return regex.test(filename);
             } else {
@@ -67,11 +67,11 @@ export namespace FsUtils {
 
     export function createFilteredListDirectoryDirectoryRegex(regex: RegExp): (fullpath: fs.PathLike) => boolean {
         return (fullpath: fs.PathLike): boolean => {
-            let stat = fs.statSync(fullpath);
+            const stat = fs.statSync(fullpath);
 
             if (stat.isDirectory()) {
-                let parsedPath = path.parse(fullpath.toString());
-                let filename = parsedPath.base;
+                const parsedPath = path.parse(fullpath.toString());
+                const filename = parsedPath.base;
 
                 return regex.test(filename);
             } else {
@@ -82,8 +82,8 @@ export namespace FsUtils {
 
     export function createFilteredListDirectoryBlacklist(blacklist: string[]): (fullpath: fs.PathLike) => boolean {
         return (fullpath: fs.PathLike): boolean => {
-            let parsedPath = path.parse(fullpath.toString());
-            let base = parsedPath.base;
+            const parsedPath = path.parse(fullpath.toString());
+            const base = parsedPath.base;
 
             return blacklist.indexOf(base) === -1;
         };

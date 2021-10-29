@@ -2,7 +2,7 @@
  * license, v. 2.0. if a copy of the mpl was not distributed with this
  * file, you can obtain one at https://mozilla.org/mpl/2.0/. */
 
-'use strict';
+
 
 import * as ProjectManager from "./project/thrift/bindings/ProjectManager";
 import * as Fs from "fs";
@@ -26,7 +26,7 @@ export interface ExtendedWorkbench {
 
     loadProject(project: Project): Promise<ExtendedProject>;
     createProject(path: Fs.PathLike): Promise<Project>;
-    
+
     dispose(): Promise<void>;
 }
 
@@ -47,8 +47,8 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     }
 
     constructor(public workbench:   Workbench,
-                private serviceMgr: ThriftServiceManager,
-                private projectMgr: ThriftClient<ProjectManager.Client>) {
+                private readonly serviceMgr: ThriftServiceManager,
+                private readonly projectMgr: ThriftClient<ProjectManager.Client>) {
     }
 
     public getToolchains() {
@@ -61,7 +61,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
 
     public async createProject(path: Fs.PathLike) {
         if (Fs.existsSync(path)) {
-            return Promise.reject("The file already exists.");
+            return Promise.reject(new Error(`The file '${path}' already exists.`));
         }
         const context = await this.projectMgr.service.CreateEwpFile(path.toString());
         const project = new Project(context.filename);

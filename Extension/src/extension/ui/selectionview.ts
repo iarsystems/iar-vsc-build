@@ -2,14 +2,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 import { Command } from "../command/command";
 import { InputModel } from "../model/model";
 
 export interface SelectionView<T> {
-    readonly controller: Command;
+    readonly controller: Command<unknown>;
     readonly model: InputModel<T>;
     defaultText: string;
     label: string;
@@ -23,14 +23,14 @@ class SelectionViewImpl<T> implements SelectionView<T> {
     private defaultText_: string;
     private label_: string;
 
-    readonly controller: Command;
+    readonly controller: Command<void>;
     readonly model: InputModel<T>;
 
-    constructor(controller: Command, model: InputModel<T>, priority?: number) {
+    constructor(controller: Command<void>, model: InputModel<T>, priority?: number) {
         this.controller = controller;
         this.model = model;
 
-        this.model.addOnSelectedHandler(this.onSelectionChanged, this);
+        this.model.addOnSelectedHandler(this.onSelectionChanged.bind(this));
 
         this.ui = Vscode.window.createStatusBarItem(Vscode.StatusBarAlignment.Left, priority);
         this.ui.command = this.controller.command;
@@ -84,7 +84,7 @@ class SelectionViewImpl<T> implements SelectionView<T> {
 
 export namespace SelectionView {
 
-    export function createSelectionView<T>(controller: Command, model: InputModel<T>, priority?: number) {
+    export function createSelectionView<T>(controller: Command<void>, model: InputModel<T>, priority?: number) {
         return new SelectionViewImpl(controller, model, priority);
     }
 }

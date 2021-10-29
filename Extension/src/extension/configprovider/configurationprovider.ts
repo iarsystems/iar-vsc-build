@@ -19,13 +19,15 @@ import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfigur
  */
 export class IarConfigurationProvider implements CustomConfigurationProvider {
     private static _instance: IarConfigurationProvider | undefined = undefined;
-    public static get instance() { return IarConfigurationProvider._instance; }
+    public static get instance() {
+        return IarConfigurationProvider._instance;
+    }
 
     /**
      * Initializes the configuration provider and registers it with the cpptools api
      */
     public static async init(): Promise<boolean> {
-        let api = await getCppToolsApi(Version.v2);
+        const api = await getCppToolsApi(Version.v2);
 
         if (api) {
             if (IarConfigurationProvider._instance) {
@@ -44,8 +46,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     /**
      * Forces the provider to regenerate configurations for all source files
      */
-    public forceUpdate(): Promise<void> {
-        return this.onSettingsChanged();
+    public forceUpdate() {
+        this.onSettingsChanged();
     }
 
     private fallbackConfigurationC: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
@@ -54,13 +56,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     readonly name = "iar-vsc";
     readonly extensionId = "pluyckx.iar-vsc";
 
-    private constructor(private api: CppToolsApi, private generator: DynamicConfigGenerator) {
+    private constructor(private readonly api: CppToolsApi, private readonly generator: DynamicConfigGenerator) {
         UI.getInstance().compiler.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
         UI.getInstance().config.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
         UI.getInstance().project.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
-        Settings.observeSetting(Settings.Field.Defines, this.onSettingsChanged.bind(this));
-        Settings.observeSetting(Settings.Field.CStandard, this.onSettingsChanged.bind(this));
-        Settings.observeSetting(Settings.Field.CppStandard, this.onSettingsChanged.bind(this));
+        Settings.observeSetting(Settings.ExtensionSettingsField.Defines, this.onSettingsChanged.bind(this));
+        Settings.observeSetting(Settings.ExtensionSettingsField.CStandard, this.onSettingsChanged.bind(this));
+        Settings.observeSetting(Settings.ExtensionSettingsField.CppStandard, this.onSettingsChanged.bind(this));
 
         this.api.registerCustomConfigurationProvider(this);
         // to provide configs as fast as possible at startup, do notifyReady as soon as fallback configs are ready,
@@ -68,7 +70,9 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         this.generateFallbackConfigs();
         this.api.notifyReady(this);
         this.generateAccurateConfigs().then((didChange: boolean) => {
-            if (didChange) { this.api.didChangeCustomConfiguration(this); }
+            if (didChange) {
+                this.api.didChangeCustomConfiguration(this);
+            }
         });
     }
 
@@ -121,11 +125,11 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     canProvideBrowseConfigurationsPerFolder(_token?: CancellationToken | undefined): Thenable<boolean> {
         return Promise.resolve(false);
     }
-    provideFolderBrowseConfiguration(_uri: Vscode.Uri, _token?: CancellationToken | undefined): Thenable<WorkspaceBrowseConfiguration> {
-        return Promise.reject();
+    provideFolderBrowseConfiguration(_uri: Vscode.Uri, _token?: CancellationToken | undefined): Thenable<WorkspaceBrowseConfiguration | null> {
+        return Promise.resolve(null);
     }
     dispose() {
-        this.canProvideConfiguration = (): Thenable<boolean> => Promise.reject(false);
+        this.canProvideConfiguration = (): Thenable<boolean> => Promise.resolve(false);
         this.api.dispose();
         this.generator.dispose();
     }
@@ -159,10 +163,12 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         }
     }
 
-    private async onSettingsChanged() {
+    private onSettingsChanged() {
         this.generateFallbackConfigs();
         this.generateAccurateConfigs().then(changed => {
-            if (changed) { this.api.didChangeCustomConfiguration(this); }
+            if (changed) {
+                this.api.didChangeCustomConfiguration(this);
+            }
         });
     }
 }

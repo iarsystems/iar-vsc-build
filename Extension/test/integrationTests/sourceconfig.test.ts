@@ -24,8 +24,8 @@ suite("Test source configuration providers", function() {
     let projectDir: string;
     let project: EwpFile;
 
-    suiteSetup(async () => {
-        let manager = ToolManager.createIarToolManager();
+    suiteSetup(() => {
+        const manager = ToolManager.createIarToolManager();
         Settings.getIarInstallDirectories().forEach(directory => {
             manager.collectFrom(directory);
         });
@@ -40,19 +40,19 @@ suite("Test source configuration providers", function() {
         project = new EwpFile(Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_NAME));
     });
 
-    suiteTeardown(async () => {
+    suiteTeardown(() => {
         project.unload();
     });
 
-    test("Finds project wide configs", async () => {
+    test("Finds project wide configs", async() => {
         const config = await StaticConfigGenerator.generateConfiguration("c", project.findConfiguration("Debug"), project, undefined);
         Assert(config.includes.some(path => path.path.toString() === "my\\test\\include\\path"));
         Assert(config.includes.some(path => path.path.toString() === "my/other/include/path"));
-        Assert(config.defines.some(define => define.identifier === "MY_SYMBOL" && define.value == "42"));
-        Assert(config.defines.some(define => define.identifier === "MY_SYMBOL2" && define.value == "\"test\""));
+        Assert(config.defines.some(define => define.identifier === "MY_SYMBOL" && define.value === "42"));
+        Assert(config.defines.some(define => define.identifier === "MY_SYMBOL2" && define.value === "\"test\""));
     });
 
-    test("Finds compiler configs", async () => {
+    test("Finds compiler configs", async() => {
         const config = await StaticConfigGenerator.generateConfiguration("c", undefined, undefined, armCompiler);
         Assert(config.includes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]/)));
         Assert(config.includes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]c[/\\]aarch32/)));
@@ -61,14 +61,14 @@ suite("Test source configuration providers", function() {
     });
 
 
-    test("Finds c++ configs", async () => {
+    test("Finds c++ configs", async() => {
         const config = await StaticConfigGenerator.generateConfiguration("cpp", undefined, undefined, armCompiler);
         Assert(config.includes.some(path => path.absolutePath.toString().endsWith("cpp")), "Does not include c++ header directory");
         // Assumes this define is always there, but might not be if using an old c++ standard?
         Assert(config.defines.some(define => define.identifier === "__cpp_constexpr"), "Does not include c++ defines");
     });
 
-    test("Finds file specific configs", async () => {
+    test("Finds file specific configs", async() => {
         const generator = new DynamicConfigGenerator();
         await generator.generateConfiguration(workbench, project, armCompiler, project.findConfiguration("Debug")!);
         const projectFile = Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);

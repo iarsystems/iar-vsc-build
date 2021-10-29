@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 import * as Path from "path";
@@ -17,8 +17,8 @@ export interface IncludePath {
 }
 
 export class XmlIncludePath implements IncludePath {
-    private xmlData: XmlNode;
-    private projectPath: Fs.PathLike;
+    private readonly xmlData: XmlNode;
+    private readonly projectPath: Fs.PathLike;
 
     constructor(xml: XmlNode, projectPath: Fs.PathLike) {
         this.xmlData = xml;
@@ -30,7 +30,7 @@ export class XmlIncludePath implements IncludePath {
     }
 
     get path(): Fs.PathLike {
-        let path = this.xmlData.text;
+        const path = this.xmlData.text;
 
         if (path) {
             return path;
@@ -41,7 +41,7 @@ export class XmlIncludePath implements IncludePath {
 
     get absolutePath(): Fs.PathLike {
 
-        let fullPath = this.path.toString().replace('$PROJ_DIR$', this.projectPath.toString());
+        const fullPath = this.path.toString().replace("$PROJ_DIR$", this.projectPath.toString());
 
         return Path.resolve(fullPath);
     }
@@ -56,8 +56,8 @@ export class XmlIncludePath implements IncludePath {
 }
 
 export class StringIncludePath implements IncludePath {
-    private includePath: Fs.PathLike;
-    private projectPath: Fs.PathLike | undefined;
+    private readonly includePath: Fs.PathLike;
+    private readonly projectPath: Fs.PathLike | undefined;
 
     constructor(includePath: string, projectPath: string | undefined = undefined) {
         this.includePath = includePath;
@@ -72,7 +72,7 @@ export class StringIncludePath implements IncludePath {
         if (this.projectPath === undefined) {
             return Path.resolve(this.includePath.toString());
         } else {
-            let fullPath = this.includePath.toString().replace('$PROJ_DIR$', this.projectPath.toString());
+            const fullPath = this.includePath.toString().replace("$PROJ_DIR$", this.projectPath.toString());
 
             return Path.resolve(fullPath);
         }
@@ -89,17 +89,17 @@ export class StringIncludePath implements IncludePath {
 
 export namespace IncludePath {
     export function fromXmlData(xml: XmlNode, projectPath: Fs.PathLike): IncludePath[] {
-        let settings = IarXml.findSettingsFromConfig(xml, '/ICC.*/');
+        const settings = IarXml.findSettingsFromConfig(xml, "/ICC.*/");
 
         if (settings) {
-            let option = IarXml.findOptionFromSettings(settings, '/CCIncludePath/');
+            const option = IarXml.findOptionFromSettings(settings, "/CCIncludePath/");
 
             if (option) {
-                let states = option.getAllChildsByName('state');
-                let includePaths: IncludePath[] = [];
+                const states = option.getAllChildsByName("state");
+                const includePaths: IncludePath[] = [];
 
                 states.forEach(state => {
-                    let path = new XmlIncludePath(state, projectPath);
+                    const path = new XmlIncludePath(state, projectPath);
 
                     if (path.path !== "") {
                         includePaths.push(path);
@@ -114,18 +114,18 @@ export namespace IncludePath {
     }
 
     export function fromCompilerOutput(output: string): IncludePath[] {
-        let includes: IncludePath[] = [];
+        const includes: IncludePath[] = [];
 
-        let regex = /\$\$FILEPATH\s\"([^"]*)/g;
+        const regex = /\$\$FILEPATH\s"([^"]*)/g;
         let result: RegExpExecArray | null = null;
         do {
             result = regex.exec(output);
 
             if (result !== null && (result.length === 2)) {
-                let p = result[1].replace(/\\\\/g, "\\");
+                const p = result[1].replace(/\\\\/g, "\\");
 
                 try {
-                    let stat = Fs.statSync(p);
+                    const stat = Fs.statSync(p);
 
                     if (stat.isDirectory()) {
                         includes.push(new StringIncludePath(p));

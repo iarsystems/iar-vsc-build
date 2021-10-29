@@ -2,16 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import { XmlNode } from "./XmlNode";
 
 export namespace IarXml {
     export function findSettingsFromConfig(xml: XmlNode, name: string): XmlNode | undefined {
-        let settings = xml.getAllChildsByName('settings');
+        const settings = xml.getAllChildsByName("settings");
 
         for (let idx = 0; idx < settings.length; idx += 1) {
-            let setting = settings[idx];
+            const setting = settings[idx];
 
             if (validateText(getNameTextFromElement(setting), name)) {
                 return setting;
@@ -22,16 +22,16 @@ export namespace IarXml {
     }
 
     export function findOptionFromSettings(xml: XmlNode, name: string): XmlNode | undefined {
-        let data = xml.getFirstChildByName('data');
+        const data = xml.getFirstChildByName("data");
 
         if (!data) {
             return undefined;
         }
 
-        let options = data.getAllChildsByName('option');
+        const options = data.getAllChildsByName("option");
 
         for (let idx = 0; idx < options.length; idx += 1) {
-            let option = options[idx];
+            const option = options[idx];
 
             if (validateText(getNameTextFromElement(option), name)) {
                 return option;
@@ -42,7 +42,7 @@ export namespace IarXml {
     }
 
     export function getNameTextFromElement(xml: XmlNode): string | undefined {
-        let nameElement = xml.getFirstChildByName('name');
+        const nameElement = xml.getFirstChildByName("name");
 
         if (nameElement) {
             return nameElement.text;
@@ -56,8 +56,8 @@ export namespace IarXml {
             return false;
         }
 
-        if ((validate[0] === '/') && (validate[validate.length - 1] === '/')) {
-            let regex = new RegExp(validate.substr(1, validate.length - 2));
+        if ((validate[0] === "/") && (validate[validate.length - 1] === "/")) {
+            const regex = new RegExp(validate.substr(1, validate.length - 2));
 
             return regex.test(content);
         } else {

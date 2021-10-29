@@ -2,25 +2,23 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
 
-import { Handler } from "../../utils/handler";
 
-export type selectHandler<T> = (model: InputModel<T>, selected?: T) => void;
-export type invalidateHandler<T> = (model: ListInputModel<T>) => void;
+export type SelectHandler<T> = (model: InputModel<T>, selected?: T) => void;
+export type InvalidateHandler<T> = (model: ListInputModel<T>) => void;
 
 export interface InputModel<T> {
     readonly selected: T | undefined;
     readonly selectedText: string | undefined;
 
-    addOnSelectedHandler(fn: selectHandler<T>, thisArg?: any): void;
+    addOnSelectedHandler(fn: SelectHandler<T>): void;
 }
 
 export interface ListInputModel<T> extends InputModel<T> {
     readonly amount: number;
     readonly selectedIndex: number | undefined;
 
-    addOnInvalidateHandler(fn: invalidateHandler<T>, thisArg?: any): void;
+    addOnInvalidateHandler(fn: InvalidateHandler<T>): void;
 
     label(index: number): string;
     description(index: number): string | undefined;
@@ -33,8 +31,8 @@ export interface ListInputModel<T> extends InputModel<T> {
 }
 
 export abstract class ListInputModelBase<T> implements ListInputModel<T> {
-    private selectHandlers: Handler<selectHandler<T>>[];
-    private changeHandlers: Handler<invalidateHandler<T>>[];
+    private readonly selectHandlers: SelectHandler<T>[];
+    private readonly changeHandlers: InvalidateHandler<T>[];
 
     protected selectedIndex_: number | undefined;
     protected data: ReadonlyArray<T>;
@@ -95,23 +93,23 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
         });
     }
 
-    addOnSelectedHandler(fn: selectHandler<T>, thisArg?: any): void {
-        this.selectHandlers.push(new Handler(fn, thisArg));
+    addOnSelectedHandler(fn: SelectHandler<T>): void {
+        this.selectHandlers.push(fn);
     }
 
-    addOnInvalidateHandler(fn: invalidateHandler<T>, thisArg?: any): void {
-        this.changeHandlers.push(new Handler(fn, thisArg));
+    addOnInvalidateHandler(fn: InvalidateHandler<T>): void {
+        this.changeHandlers.push(fn);
     }
 
     protected fireSelectionChanged(item?: T): void {
         this.selectHandlers.forEach(handler => {
-            handler.call(this, item);
+            handler(this, item);
         });
     }
 
     protected fireInvalidateEvent(): void {
         this.changeHandlers.forEach(handler => {
-            handler.call(this);
+            handler(this);
         });
     }
 

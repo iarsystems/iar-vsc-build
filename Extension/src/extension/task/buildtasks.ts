@@ -1,8 +1,10 @@
+// TODO: remove this comment once VSC-5 has been closed, it should remove all any:s in this file
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 import { isArray } from "util";
@@ -22,7 +24,7 @@ export interface BuildTaskDefinition {
 export namespace BuildTasks {
     export function generateTasks(dstMap: Map<string, Vscode.Task>): void {
         if (dstMap.get("Iar Build") === undefined) {
-            let task = generateTask("Iar Build", "build");
+            const task = generateTask("Iar Build", "build");
 
             if (!task) {
                 showErrorFailedToCreateDefaultTask("Iar Build", "build");
@@ -32,7 +34,7 @@ export namespace BuildTasks {
         }
 
         if (dstMap.get("Iar Rebuild") === undefined) {
-            let task = generateTask("Iar Rebuild", "rebuild");
+            const task = generateTask("Iar Rebuild", "rebuild");
 
             if (!task) {
                 showErrorFailedToCreateDefaultTask("Iar Rebuild", "rebuild");
@@ -43,12 +45,12 @@ export namespace BuildTasks {
     }
 
     export function generateFromDefinition(definition: Vscode.TaskDefinition): Vscode.Task | undefined {
-        let builder = definition["builder"];
-        let command = definition["command"];
-        let project = definition["project"];
-        let config = definition["config"];
-        let label = definition["label"];
-        let iarCommand = convertCommandToIarCommand(command);
+        const builder = definition["builder"];
+        const command = definition["command"];
+        const project = definition["project"];
+        const config = definition["config"];
+        const label = definition["label"];
+        const iarCommand = convertCommandToIarCommand(command);
 
         if (command === undefined) {
             showErrorMissingField("command", label);
@@ -84,17 +86,17 @@ export namespace BuildTasks {
             config
         ];
 
-        let extraArgs = Settings.getExtraBuildArguments();
+        const extraArgs = Settings.getExtraBuildArguments();
         if (extraArgs.length !== 0) {
             args = args.concat(extraArgs);
         }
 
-        let process = new IarExecution(
+        const process = new IarExecution(
             builder,
             args
         );
 
-        let task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);
+        const task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);
 
         if (definition["problemMatcher"] !== undefined) {
             task.problemMatchers = definition["problemMatcher"];
@@ -104,7 +106,7 @@ export namespace BuildTasks {
     }
 
     export function generateFromTasksJson(json: any, dst: Map<string, Vscode.Task>): void {
-        let tasks: any = json["tasks"];
+        const tasks: any = json["tasks"];
         let tasksAsArray: Array<any>;
 
         if ((tasks === undefined) || !isArray(tasks)) {
@@ -115,7 +117,7 @@ export namespace BuildTasks {
 
         tasksAsArray.forEach(taskDefinition => {
             if (taskDefinition["type"] === "iar") {
-                let task = generateFromDefinition(taskDefinition);
+                const task = generateFromDefinition(taskDefinition);
 
                 if (task) {
                     dst.set(taskDefinition["label"], task);
@@ -125,14 +127,14 @@ export namespace BuildTasks {
     }
 
     function generateTask(label: string, command: string): Vscode.Task | undefined {
-        let iarCommand = convertCommandToIarCommand(command);
+        const iarCommand = convertCommandToIarCommand(command);
 
         if (iarCommand) {
-            let definition = {
+            const definition = {
                 label: label,
                 type: "iar",
                 command: command,
-                builder: "${command:iar-settings.workbench}/common/bin/iarbuild" + (OsUtils.detectOsType() == OsUtils.OsType.Windows ? ".exe" : ""),
+                builder: "${command:iar-settings.workbench}/common/bin/iarbuild" + (OsUtils.detectOsType() === OsUtils.OsType.Windows ? ".exe" : ""),
                 project: "${command:iar-settings.project-file}",
                 config: "${command:iar-settings.project-configuration}",
                 problemMatcher: ["$iar-cc", "$iar-linker"]

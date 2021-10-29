@@ -1,6 +1,6 @@
 
-import * as Vscode from 'vscode';
-import { CommandUtils } from '../../utils/utils';
+import * as Vscode from "vscode";
+import { CommandUtils } from "../../utils/utils";
 
 export class IarExecution extends Vscode.ProcessExecution {
 

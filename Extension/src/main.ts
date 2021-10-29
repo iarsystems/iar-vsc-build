@@ -2,22 +2,22 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
 
 
-import * as vscode from 'vscode';
-import { UI } from './extension/ui/app';
-import { ToolManager } from './iar/tools/manager';
-import { Settings } from './extension/settings';
-import { SettingsMonitor } from './extension/settingsmonitor';
-import { IarTaskProvider } from './extension/task/provider';
+
+import * as vscode from "vscode";
+import { UI } from "./extension/ui/app";
+import { ToolManager } from "./iar/tools/manager";
+import { Settings } from "./extension/settings";
+import { SettingsMonitor } from "./extension/settingsmonitor";
+import { IarTaskProvider } from "./extension/task/provider";
 import { GetSettingsCommand } from "./extension/command/getsettings";
-import { Logging } from './utils/logging';
-import { IarConfigurationProvider } from './extension/configprovider/configurationprovider';
-import { CStatTaskProvider } from './extension/task/cstat/cstattaskprovider';
-import { BuildTaskProvider } from './extension/task/thriftbuild/buildtaskprovider';
+import { Logging } from "./utils/logging";
+import { IarConfigurationProvider } from "./extension/configprovider/configurationprovider";
+import { CStatTaskProvider } from "./extension/task/cstat/cstattaskprovider";
+import { BuildTaskProvider } from "./extension/task/thriftbuild/buildtaskprovider";
 
-export async function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
     Logging.setup(context);
 
     GetSettingsCommand.initCommands(context);
@@ -30,7 +30,7 @@ export async function activate(context: vscode.ExtensionContext) {
     UI.getInstance().show();
 
     loadTools();
-    Settings.observeSetting(Settings.Field.IarInstallDirectories, loadTools);
+    Settings.observeSetting(Settings.ExtensionSettingsField.IarInstallDirectories, loadTools);
 
     IarConfigurationProvider.init();
     IarTaskProvider.register();
@@ -48,7 +48,7 @@ export function deactivate() {
 }
 
 function loadTools() {
-    let roots = Settings.getIarInstallDirectories();
+    const roots = Settings.getIarInstallDirectories();
 
     roots.forEach(path => {
         IarVsc.toolManager.collectFrom(path);
@@ -61,5 +61,5 @@ function loadTools() {
 }
 
 namespace IarVsc {
-    export let toolManager = ToolManager.createIarToolManager();
+    export const toolManager = ToolManager.createIarToolManager();
 }

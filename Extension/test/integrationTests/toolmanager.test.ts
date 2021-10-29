@@ -11,7 +11,7 @@ suite("Test toolmanager creation with filesystem", () => {
            the local filesystem and print the result. To improve this we have to
            create something like a filesystem simulator using stubbing, but that
            is a lot of work for now. */
-        let manager = ToolManager.createIarToolManager();
+        const manager = ToolManager.createIarToolManager();
         Settings.getIarInstallDirectories().forEach(directory => {
             manager.collectFrom(directory);
         });

@@ -10,7 +10,7 @@ suite("XmlNode validation", () => {
         test("Valid Node", () => {
             const xml = "<root></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
             assert.equal(node.tagName, "root");
         });
@@ -21,7 +21,7 @@ suite("XmlNode validation", () => {
             const text = "Some text";
             const xml = "<root>" + text + "</root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
             assert.equal(node.text, text);
         });
@@ -29,7 +29,7 @@ suite("XmlNode validation", () => {
         test("Node has no text", () => {
             const xml = "<root> </root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
             assert.equal(node.text, undefined);
         });
@@ -38,7 +38,7 @@ suite("XmlNode validation", () => {
         test("Node has child", () => {
             const xml = "<root><child></child></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
             assert.equal(node.text, undefined);
         });
@@ -48,9 +48,9 @@ suite("XmlNode validation", () => {
         test("Has no satisfying children", () => {
             const xml = "<root><child /></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
-            let unexistendChild = node.getFirstChildByName("unknownChild");
+            const unexistendChild = node.getFirstChildByName("unknownChild");
 
             assert.equal(unexistendChild, undefined);
         });
@@ -58,7 +58,7 @@ suite("XmlNode validation", () => {
         test("Has one satisfying child", () => {
             const xml = "<root><child1 /><child2 /></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
             let child1 = node.getFirstChildByName("child1");
             let child2 = node.getFirstChildByName("child2");
@@ -76,7 +76,7 @@ suite("XmlNode validation", () => {
         test("Has multiple satisfying children", () => {
             const xml = "<root><child1>1</child1><child1>2</child1></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
             let first = node.getFirstChildByName("child1");
 
@@ -92,9 +92,9 @@ suite("XmlNode validation", () => {
         test("Has no satisfying children", () => {
             const xml = "<root><child /></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
-            let unexistendChild = node.getAllChildsByName("unknownChild");
+            const unexistendChild = node.getAllChildsByName("unknownChild");
 
             assert.equal(unexistendChild.length, 0);
         });
@@ -102,10 +102,10 @@ suite("XmlNode validation", () => {
         test("Has one satisfying child", () => {
             const xml = "<root><child1 /><child2>1</child2></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
-            let child1 = node.getAllChildsByName("child1");
-            let child2 = node.getAllChildsByName("child2");
+            const child1 = node.getAllChildsByName("child1");
+            const child2 = node.getAllChildsByName("child2");
 
             assert.equal(child1.length, 1);
             assert.equal(child2.length, 1);
@@ -119,9 +119,9 @@ suite("XmlNode validation", () => {
         test("Has multiple satisfying children", () => {
             const xml = "<root><child1>1</child1><child1>2</child1></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
-            let children = node.getAllChildsByName("child1");
+            const children = node.getAllChildsByName("child1");
 
             assert.equal(children.length, 2);
             assert.equal(children[0].tagName, "child1");
@@ -135,9 +135,9 @@ suite("XmlNode validation", () => {
         test("Has no satisfying children", () => {
             const xml = "<root><child></child></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
-            let unexistendChild = node.getFirstChildByType("text");
+            const unexistendChild = node.getFirstChildByType("text");
 
             assert.equal(unexistendChild, undefined);
         });
@@ -145,7 +145,7 @@ suite("XmlNode validation", () => {
         test("Has one satisfying child", () => {
             const xml = "<root><child1 /><child2 /></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
             let child1 = node.getFirstChildByType("element");
 
@@ -159,7 +159,7 @@ suite("XmlNode validation", () => {
         test("Has multiple satisfying children", () => {
             const xml = "<root>text<child1 /><child2 /></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
             let first = node.getFirstChildByType("element");
             let text = node.getFirstChildByType("text");
@@ -179,9 +179,9 @@ suite("XmlNode validation", () => {
         test("Has no satisfying children", () => {
             const xml = "<root><child /></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
-            let unexistendChild = node.getAllChildsByType("unknownType");
+            const unexistendChild = node.getAllChildsByType("unknownType");
 
             assert.equal(unexistendChild.length, 0);
         });
@@ -189,9 +189,9 @@ suite("XmlNode validation", () => {
         test("Has one satisfying child", () => {
             const xml = "<root><child1 /></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
-            let child1 = node.getAllChildsByType("element");
+            const child1 = node.getAllChildsByType("element");
 
             assert.equal(child1.length, 1);
 
@@ -202,10 +202,10 @@ suite("XmlNode validation", () => {
         test("Has multiple satisfying children", () => {
             const xml = "<root>some text<child1>1</child1><child2>2</child2></root>";
 
-            let node = new XmlNode(xml);
+            const node = new XmlNode(xml);
 
-            let children = node.getAllChildsByType("element");
-            let text = node.getAllChildsByType("text");
+            const children = node.getAllChildsByType("element");
+            const text = node.getAllChildsByType("text");
 
             assert.equal(children.length, 2);
             assert.equal(children[0].tagName, "child1");

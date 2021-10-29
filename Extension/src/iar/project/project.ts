@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Fs from "fs";
 import * as Path from "path";
@@ -21,8 +21,8 @@ export class Project {
 export interface LoadedProject extends Project {
     readonly configurations: ReadonlyArray<Config>;
 
-    onChanged(callback: (project: LoadedProject) => void, thisArg?: any): void;
-    reload(): any;
+    onChanged(callback: (project: LoadedProject) => void): void;
+    reload(): void | Promise<void>;
     unload(): void | Promise<void>;
 }
 
@@ -37,12 +37,12 @@ export interface ExtendedProject extends LoadedProject {
 
 
 export namespace Project {
-    export function findProjectsIn(directory: Fs.PathLike, recursive: boolean = true): Project[] {
-        let projectPaths = FsUtils.walkAndFind(directory, recursive, (path): boolean => {
-            let stat = Fs.statSync(path);
+    export function findProjectsIn(directory: Fs.PathLike, recursive = true): Project[] {
+        const projectPaths = FsUtils.walkAndFind(directory, recursive, (path): boolean => {
+            const stat = Fs.statSync(path);
 
             if (stat.isFile()) {
-                let extension = Path.parse(path.toString()).ext;
+                const extension = Path.parse(path.toString()).ext;
 
                 if (extension === ".ewp" && !Path.basename(path.toString()).startsWith("Backup ")) {
                     return true;

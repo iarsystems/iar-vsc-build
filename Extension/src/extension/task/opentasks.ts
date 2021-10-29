@@ -1,8 +1,10 @@
+// TODO: remove this comment once VSC-5 has been closed, it should remove all any:s in this file
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 import { isArray } from "util";
@@ -24,7 +26,7 @@ export namespace OpenTasks {
                 return; // We can only perform open tasks on Windows
             }
 
-            let task = generateTask("Iar Open");
+            const task = generateTask("Iar Open");
 
             if (!task) {
                 showErrorFailedToCreateDefaultTask("Iar Open", "open");
@@ -35,10 +37,10 @@ export namespace OpenTasks {
     }
 
     export function generateFromDefinition(definition: Vscode.TaskDefinition): Vscode.Task | undefined {
-        let command = definition["command"];
-        let workspace = definition["workspace"];
-        let label = definition["label"];
-        let workbench = definition["workbench"];
+        const command = definition["command"];
+        const workspace = definition["workspace"];
+        const label = definition["label"];
+        const workbench = definition["workbench"];
 
         if (command === undefined) {
             showErrorMissingField("command", label);
@@ -62,14 +64,14 @@ export namespace OpenTasks {
             return undefined;
         }
 
-        let process = new IarExecution(
+        const process = new IarExecution(
             workbench,
             [
                 workspace
             ]
         );
 
-        let task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);
+        const task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);
 
         if (definition["problemMatcher"] !== undefined) {
             task.problemMatchers = definition["problemMatcher"];
@@ -78,7 +80,7 @@ export namespace OpenTasks {
     }
 
     export function generateFromTasksJson(json: any, dst: Map<string, Vscode.Task>): void {
-        let tasks: any = json["tasks"];
+        const tasks: any = json["tasks"];
         let tasksAsArray: Array<any>;
 
         if ((tasks === undefined) || !isArray(tasks)) {
@@ -89,7 +91,7 @@ export namespace OpenTasks {
 
         tasksAsArray.forEach(taskDefinition => {
             if (taskDefinition["type"] === "iar") {
-                let task = generateFromDefinition(taskDefinition);
+                const task = generateFromDefinition(taskDefinition);
 
                 if (task) {
                     dst.set(taskDefinition["label"], task);
@@ -99,7 +101,7 @@ export namespace OpenTasks {
     }
 
     function generateTask(label: string): Vscode.Task | undefined {
-        let definition = {
+        const definition = {
             label: label,
             type: "iar",
             command: "open",

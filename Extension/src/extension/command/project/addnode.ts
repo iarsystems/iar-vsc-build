@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Fs from "fs";
 import * as Path from "path";
@@ -32,13 +32,17 @@ export class AddNodeCommand extends ProjectCommand {
                 { label: "Group", description: "A group containing files", type: NodeType.Group }
             ];
             const selectedType = await Vscode.window.showQuickPick(types, { placeHolder: "What do you want to add?" });
-            if (!selectedType) { return; }
+            if (!selectedType) {
+                return;
+            }
 
             const typeString = selectedType.type === NodeType.File ? "file" : "group";
             const placeHolder = selectedType.type === NodeType.File ? "my_src.c" : "MyGroup";
 
             const name = await Vscode.window.showInputBox({ prompt: "Enter a name for the " + typeString, placeHolder });
-            if (!name) { return; }
+            if (!name) {
+                return;
+            }
 
             const fullPath = Path.join(Path.dirname(project.path.toString()), name);
             if (selectedType.type === NodeType.File && !Fs.existsSync(fullPath)) {
@@ -49,7 +53,7 @@ export class AddNodeCommand extends ProjectCommand {
             await project.setNode(newParent);
 
             Vscode.window.showInformationMessage(`The ${typeString} "${name}" has been added to the project.`);
-        } catch(e) {
+        } catch (e) {
             Vscode.window.showErrorMessage("Unable to add file/group: " + e.toString());
         }
     }

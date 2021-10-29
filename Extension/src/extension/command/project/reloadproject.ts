@@ -2,30 +2,19 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
-import { Command } from "../manager";
 import { UI } from "../../ui/app";
+import { CommandBase } from "../command";
 
-export class ReloadProjectCommand implements Command {
+export class ReloadProjectCommand extends CommandBase<Promise<void>> {
 
-    readonly command = "iar.reloadProject";
-    readonly enabled: boolean = true;
-
-    canExecute(): boolean {
-        return true;
+    constructor() {
+        super("iar.reloadProject");
     }
 
-    register(context: Vscode.ExtensionContext): void {
-        let cmd = Vscode.commands.registerCommand(this.command, (): any => {
-            return this.execute(false);
-        }, this);
-
-        context.subscriptions.push(cmd);
-    }
-
-    async execute(_autoTriggered?: boolean) {
+    async executeImpl(_autoTriggered?: boolean): Promise<void> {
         const project = UI.getInstance().loadedProject.selected;
         if (!project) {
             Vscode.window.showErrorMessage("IAR: No project is loaded.");
@@ -34,4 +23,4 @@ export class ReloadProjectCommand implements Command {
         await project.reload();
         Vscode.window.showInformationMessage("IAR: Project reloaded.");
     }
-} 
+}

@@ -2,11 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import { Command } from "../extension/command/command";
 import { isString } from "util";
-import * as os from 'os';
+import * as os from "os";
 import { PathLike } from "fs";
 import * as Path from "path";
 
@@ -20,7 +20,7 @@ export namespace ReplaceUtils {
      * @param inSrc The source string in which to replace \a replace by \by
      */
     export function replaceInStrings(replace: string, by: string, inSrc: string[]): string[] {
-        let ret: string[] = [];
+        const ret: string[] = [];
 
         inSrc.forEach(src => {
             ret.push(src.replace(replace, by));
@@ -38,7 +38,7 @@ export namespace ListUtils {
      * @param list Array list containing lists of workbenches
      */
     export function mergeUnique<T>(getKey: (o: T) => string, ...lists: Array<T>[]): T[] {
-        let result: Map<string, T> = new Map<string, T>();
+        const result: Map<string, T> = new Map<string, T>();
 
         lists.forEach(list => {
             list.forEach(item => {
@@ -55,18 +55,18 @@ export namespace CommandUtils {
         let position = inStr.indexOf("${command:");
 
         while (position !== -1) {
-            let start = inStr.indexOf(":", position) + 1;
-            let end = inStr.indexOf("}", start);
+            const start = inStr.indexOf(":", position) + 1;
+            const end = inStr.indexOf("}", start);
 
-            let command = inStr.substring(start, end);
+            const command = inStr.substring(start, end);
 
-            let cmd = Command.getCommandManager().find(command);
+            const cmd = Command.getCommandManager().find(command);
             if (cmd !== undefined) {
-                let result = cmd.execute(true);
+                const result = cmd.execute(true);
 
                 if (isString(result)) {
-                    let replaceString = "${command:" + command + "}";
-                    let replaceBy = result as string;
+                    const replaceString = "${command:" + command + "}";
+                    const replaceBy = result as string;
 
                     inStr = inStr.replace(replaceString, replaceBy);
 
@@ -87,22 +87,22 @@ export namespace CommandUtils {
 
 export namespace OsUtils {
     export enum OsType {
-        Windows, 
+        Windows,
         Linux,
         Mac
     }
     export function detectOsType(): OsType {
         const platform = os.platform();
-        switch(platform) {
-            case "win32":
-                return OsType.Windows;
-            case "linux":
-                return OsType.Linux;
-            case "darwin":
-                return OsType.Mac;
-            default:
-                console.error("Unknown platform " + platform);
-                return OsType.Linux;
+        switch (platform) {
+        case "win32":
+            return OsType.Windows;
+        case "linux":
+            return OsType.Linux;
+        case "darwin":
+            return OsType.Mac;
+        default:
+            console.error("Unknown platform " + platform);
+            return OsType.Linux;
         }
     }
 
@@ -112,14 +112,14 @@ export namespace OsUtils {
     }
     export function detectArchitecture(): Architecture {
         const arch = os.arch();
-        switch(arch) {
-            case "x64":
-                return Architecture.x64;
-            case "x32":
-                return Architecture.x32;
-            default:
-                console.error("Unsupported architecture " + arch);
-                return Architecture.x64;
+        switch (arch) {
+        case "x64":
+            return Architecture.x64;
+        case "x32":
+            return Architecture.x32;
+        default:
+            console.error("Unsupported architecture " + arch);
+            return Architecture.x64;
         }
     }
 }

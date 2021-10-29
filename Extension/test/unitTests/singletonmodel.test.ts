@@ -19,7 +19,7 @@ suite("Test SingletonModel", () => {
         Assert(called);
     });
 
-    test("Asynchronous SingletonModel", async () => {
+    test("Asynchronous SingletonModel", async() => {
         let model = new SingletonModel<string>();
         model.selectedPromise = makeRejectedPromise();
         Assert.equal(await model.selectedPromise, undefined);

@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import { Config } from "../../iar/project/config";
 import { IncludePath } from "./data/includepath";
@@ -55,17 +55,17 @@ export namespace StaticConfigGenerator {
     }
 
     async function generateCompilerSpecifics(language: LanguageUtils.Language, compiler: Compiler): Promise<PartialSourceFileConfiguration> {
-        let cmd = compiler.path.toString();
-        let tmpFile = Path.join(Os.tmpdir(), "iarvsc.c");
-        let tmpOutFile = Path.join(Os.tmpdir(), "iarvsc.predef_macros");
-        let args = ["--IDE3", "--NCG", tmpFile, "--predef_macros", tmpOutFile];
+        const cmd = compiler.path.toString();
+        const tmpFile = Path.join(Os.tmpdir(), "iarvsc.c");
+        const tmpOutFile = Path.join(Os.tmpdir(), "iarvsc.predef_macros");
+        const args = ["--IDE3", "--NCG", tmpFile, "--predef_macros", tmpOutFile];
 
         if (language === "cpp") {
             args.push("--c++");
         }
 
         try {
-            let stat = await fsPromises.stat(tmpFile);
+            const stat = await fsPromises.stat(tmpFile);
 
             if (stat.isDirectory()) {
                 await fsPromises.rmdir(tmpFile);
@@ -76,7 +76,7 @@ export namespace StaticConfigGenerator {
         }
 
         try {
-            let stat = await fsPromises.stat(tmpOutFile);
+            const stat = await fsPromises.stat(tmpOutFile);
 
             if (stat.isDirectory()) {
                 await fsPromises.rmdir(tmpOutFile);
@@ -88,13 +88,13 @@ export namespace StaticConfigGenerator {
 
         await fsPromises.writeFile(tmpFile, "");
 
-        let process = Process.spawnSync(cmd, args, { encoding: "utf8" });
+        const process = Process.spawnSync(cmd, args, { encoding: "utf8" });
 
         let defines: Define[] = [];
         if (await FsUtils.exists(tmpOutFile)) {
             defines = Define.fromSourceFile(tmpOutFile);
         }
-        let includePaths = IncludePath.fromCompilerOutput(process.stdout);
+        const includePaths = IncludePath.fromCompilerOutput(process.stdout);
 
         // To force cpptools to recognize extended keywords we pretend they're compiler-defined macros
         // C syntax files are named <platform dir>/config/syntax_icc.cfg
@@ -112,7 +112,7 @@ export namespace StaticConfigGenerator {
         const projectRoot = Path.parse(project.path.toString()).dir;
 
         if (config instanceof XmlConfig) {
-            let xml = config.getXml();
+            const xml = config.getXml();
             const defines = Define.fromXml(xml);
             const includes = IncludePath.fromXmlData(xml, projectRoot);
             const preIncludes = PreIncludePath.fromXml(xml, projectRoot);

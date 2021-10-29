@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 import { ExtendedProject, Project } from "../../iar/project/project";
@@ -20,9 +20,9 @@ export class TreeProjectView {
     private readonly view: Vscode.TreeView<ProjectNode>;
 
     constructor(projectModel: InputModel<Project>,
-                extProjectModel: InputModel<ExtendedProject>,
-                workbenchModel: InputModel<Workbench>,
-                extWorkbenchModel: InputModel<ExtendedWorkbench>) {
+        extProjectModel: InputModel<ExtendedProject>,
+        workbenchModel: InputModel<Workbench>,
+        extWorkbenchModel: InputModel<ExtendedWorkbench>) {
         this.view = Vscode.window.createTreeView("iar-project", { treeDataProvider: this.provider });
         projectModel.addOnSelectedHandler((_model, project) => {
             this.view.title = project ? project.name : "IAR Project";

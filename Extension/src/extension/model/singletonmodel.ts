@@ -2,14 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
 
-import { InputModel, selectHandler } from "./model";
-import { Handler } from "../../utils/handler";
+
+import { InputModel, SelectHandler } from "./model";
 
 /**
  * Stores a single object instance and notifies observers when the instance changes.
- * 
+ *
  * The instance can be set using promises, so that it's possible to get
  * a pending value. Doing this will also ensure consistency, so that even if there are multiple
  * promises trying to change the value, the one that was started last will always be the one
@@ -20,12 +19,12 @@ export class SingletonModel<T> implements InputModel<T> {
     private _selected: T | undefined;
     private _promise: Promise<T | undefined> | undefined;
 
-    private handlers: Handler<selectHandler<T>>[] = [];
+    private readonly handlers: SelectHandler<T>[] = [];
 
     public readonly selectedText = "";
 
-    public addOnSelectedHandler(fn: selectHandler<T>, thisArg?: any): void {
-        this.handlers.push(new Handler(fn, thisArg));
+    public addOnSelectedHandler(fn: SelectHandler<T>): void {
+        this.handlers.push(fn);
     }
 
     public get selected() {
@@ -36,7 +35,7 @@ export class SingletonModel<T> implements InputModel<T> {
         this._selected = newSelected;
         this._promise = undefined;
         this.handlers.forEach(handler => {
-            handler.call(this, this._selected);
+            handler(this, this._selected);
         });
     }
 
@@ -75,9 +74,9 @@ export class SingletonModel<T> implements InputModel<T> {
                 } else {
                     return this.selectedPromise;
                 }
-            }
-            return currentPromise.then(res => returnIfPromiseUnchanged(res))
-                                    .catch(() => returnIfPromiseUnchanged(undefined));
+            };
+            return currentPromise.then(res => returnIfPromiseUnchanged(res)).
+                catch(() => returnIfPromiseUnchanged(undefined));
         }
     }
 }

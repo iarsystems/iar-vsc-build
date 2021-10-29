@@ -14,16 +14,33 @@ import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfigur
 /**
  * Writes a source file configuration to the 'c_cpp_properties.json' file.
  * This is both to have a fallback configuration if the TS API fails,
- * and to forcibly enable our TS config provider (by setting the 'provider' field in the json).
+ * and to forcibly enable our TS config provider (by setting the 'configurationProvider' field in the json).
  */
 export namespace JsonConfigurationWriter {
+    // See reference for the format here: https://code.visualstudio.com/docs/cpp/c-cpp-properties-schema-reference
+    interface CCppProperties {
+        version?: number;
+        configurations?: JsonConfiguration[];
+    }
+    interface JsonConfiguration {
+        name: string;
+        configurationProvider?: string;
+        defines?: string[];
+        includePath?: string[];
+        forcedInclude?: string[];
+        cStandard?: string;
+        cppStandard?: string;
+        compilerPath?: string;
+        intelliSenseMode?: string;
+        compileCommands?: string;
+    }
 
     export async function writeJsonConfiguration(configuration: PartialSourceFileConfiguration, provider?: string) {
-        let jsonConfiguration: any = {
+        const jsonConfiguration: JsonConfiguration = {
             name: "IAR",
             defines: configuration.defines.map(d => d.makeString()),
-            includePath: configuration.includes.map(i => i.absolutePath),
-            forcedInclude: configuration.preIncludes.map(i => i.absolutePath),
+            includePath: configuration.includes.map(i => i.absolutePath.toString()),
+            forcedInclude: configuration.preIncludes.map(i => i.absolutePath.toString()),
             cStandard: Settings.getCStandard(),
             cppStandard: Settings.getCppStandard(),
             compilerPath: "",
@@ -49,16 +66,16 @@ export namespace JsonConfigurationWriter {
         }
     }
 
-    async function loadConfiguration(path: Fs.PathLike): Promise<any> {
-        let config: any = {};
+    async function loadConfiguration(path: Fs.PathLike): Promise<CCppProperties> {
+        let config: CCppProperties = {};
         try {
-            let stat = await fsPromises.stat(path);
+            const stat = await fsPromises.stat(path);
 
             if (!stat.isFile()) {
                 throw new Error("'${outPath}' is not a file");
             }
 
-            let content = await fsPromises.readFile(path);
+            const content = await fsPromises.readFile(path);
             config = Jsonc.parse(content.toString());
 
             if (config === undefined) {
@@ -84,8 +101,8 @@ export namespace JsonConfigurationWriter {
         return config;
     }
 
-    function setConfigurationIfChanged(cpptoolsConfigFile: any, name: string, config: any): boolean {
-        let configs = fetchConfigArray(cpptoolsConfigFile);
+    function setConfigurationIfChanged(cpptoolsConfigFile: CCppProperties, name: string, config: JsonConfiguration): boolean {
+        const configs = fetchConfigArray(cpptoolsConfigFile);
         let idx: number | undefined = undefined;
 
         configs.some((c, index) => {
@@ -109,12 +126,12 @@ export namespace JsonConfigurationWriter {
         return false;
     }
 
-    function fetchConfigArray(cpptoolsConfigFile: any): any[] {
-        return cpptoolsConfigFile["configurations"];
+    function fetchConfigArray(cpptoolsConfigFile: CCppProperties): JsonConfiguration[] {
+        return cpptoolsConfigFile.configurations ?? [];
     }
 
     async function createOutDirectory(path: Fs.PathLike): Promise<void> {
-        let parsedPath = Path.parse(path.toString());
+        const parsedPath = Path.parse(path.toString());
 
         if (parsedPath.dir) {
             await fsPromises.mkdir(parsedPath.dir, { recursive: true });

@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Vscode from "vscode";
 import { ToolManager } from "../../iar/tools/manager";
@@ -33,15 +33,18 @@ import { EwpFile } from "../../iar/project/parsing/ewpfile";
 import { ExtendedWorkbench, ThriftWorkbench } from "../../iar/extendedworkbench";
 import { ReloadProjectCommand } from "../command/project/reloadproject";
 
-type UI<T> = {
-    model: ListInputModel<T>,
-    cmd: Command,
-    ui: SelectionView<T>
-};
+/**
+ * A clickable UI element allowing the user to select one of several items in a list
+ */
+interface UI<T> {
+    model: ListInputModel<T>, // The data being selected from
+    cmd: Command<void>,    // The command used to select an item
+    ui: SelectionView<T> // The UI element
+}
 
 class Application {
-    private toolManager: ToolManager;
-    private context: Vscode.ExtensionContext;
+    private readonly toolManager: ToolManager;
+    private readonly context: Vscode.ExtensionContext;
 
     readonly workbench: UI<Workbench>;
     readonly compiler: UI<Compiler>;
@@ -58,10 +61,8 @@ class Application {
     readonly projectTreeView: TreeProjectView;
     readonly settingsTreeView: TreeSelectionView;
 
-    readonly generator: Command;
-    readonly selectIarWorkspace: Command;
-
-    //private cppToolsProvider: IarConfigurationProvider | undefined;
+    readonly generator: Command<unknown>;
+    readonly selectIarWorkspace: Command<unknown>;
 
     constructor(context: Vscode.ExtensionContext, toolManager: ToolManager) {
         this.context = context;
@@ -79,11 +80,11 @@ class Application {
         this.extendedWorkbench = new SingletonModel<ExtendedWorkbench>();
 
         this.settingsTreeView = new TreeSelectionView(context,
-                                                        this.workbench.model,
-                                                        this.compiler.model,
-                                                        this.project.model,
-                                                        this.config.model);
-        Vscode.window.registerTreeDataProvider('iar-settings', this.settingsTreeView);
+            this.workbench.model,
+            this.compiler.model,
+            this.project.model,
+            this.config.model);
+        Vscode.window.registerTreeDataProvider("iar-settings", this.settingsTreeView);
 
         this.projectTreeView = new TreeProjectView(this.project.model, this.extendedProject, this.workbench.model, this.extendedWorkbench);
 
@@ -119,15 +120,6 @@ class Application {
         this.generator.enabled = true;
     }
 
-    public hide(): void {
-        this.generator.enabled = false;
-
-        this.hideHelper(this.workbench);
-        this.hideHelper(this.compiler);
-        this.hideHelper(this.project);
-        this.hideHelper(this.config);
-    }
-
     public dispose(): void {
         if (this.extendedProject.selected) {
             this.extendedProject.selected.unload();
@@ -148,9 +140,9 @@ class Application {
     }
 
     private createWorkbenchUi(): UI<Workbench> {
-        let model = new WorkbenchListModel(...this.toolManager.workbenches);
-        let cmd = Command.createSelectWorkbenchCommand(model);
-        let ui = SelectionView.createSelectionView(cmd, model, 5);
+        const model = new WorkbenchListModel(...this.toolManager.workbenches);
+        const cmd = Command.createSelectWorkbenchCommand(model);
+        const ui = SelectionView.createSelectionView(cmd, model, 5);
 
         cmd.register(this.context);
         ui.label = "Workbench: ";
@@ -164,9 +156,9 @@ class Application {
     }
 
     private createCompilerUi(): UI<Compiler> {
-        let model = new CompilerListModel();
-        let cmd = Command.createSelectCompilerCommand(model);
-        let ui = SelectionView.createSelectionView(cmd, model, 4);
+        const model = new CompilerListModel();
+        const cmd = Command.createSelectCompilerCommand(model);
+        const ui = SelectionView.createSelectionView(cmd, model, 4);
 
         cmd.register(this.context);
         ui.label = "Compiler: ";
@@ -185,9 +177,9 @@ class Application {
             projects = Project.findProjectsIn(Vscode.workspace.rootPath, true);
         }
 
-        let model = new ProjectListModel(...projects);
-        let cmd = Command.createSelectProjectCommand(model);
-        let ui = SelectionView.createSelectionView(cmd, model, 3);
+        const model = new ProjectListModel(...projects);
+        const cmd = Command.createSelectProjectCommand(model);
+        const ui = SelectionView.createSelectionView(cmd, model, 3);
 
         cmd.register(this.context);
         ui.label = "Project: ";
@@ -201,11 +193,11 @@ class Application {
     }
 
     private createConfigurationUi(): UI<Config> {
-        let configs: ReadonlyArray<Config> = [];
+        const configs: ReadonlyArray<Config> = [];
 
-        let model = new ConfigurationListModel(...configs);
-        let cmd = Command.createSelectConfigurationCommand(model);
-        let ui = SelectionView.createSelectionView(cmd, model, 2);
+        const model = new ConfigurationListModel(...configs);
+        const cmd = Command.createSelectConfigurationCommand(model);
+        const ui = SelectionView.createSelectionView(cmd, model, 2);
 
         cmd.register(this.context);
         ui.label = "Configuration: ";
@@ -226,11 +218,11 @@ class Application {
     }
 
     private selectCurrentWorkbench(): void {
-        let currentWorkbench = Settings.getWorkbench();
+        const currentWorkbench = Settings.getWorkbench();
 
         if (currentWorkbench) {
             const currentWorkbenchPath = currentWorkbench.toString();
-            let model = this.workbench.model as WorkbenchListModel;
+            const model = this.workbench.model as WorkbenchListModel;
 
             if (!model.selectWhen(workbench => workbench.path === currentWorkbenchPath) && model.amount > 0) {
                 Vscode.window.showWarningMessage(`IAR: Can't find the workbench '${currentWorkbench}' (defined in iar-vsc.json).`);
@@ -242,11 +234,11 @@ class Application {
     }
 
     private selectCurrentCompiler(): void {
-        let currentCompiler = Settings.getCompiler();
+        const currentCompiler = Settings.getCompiler();
 
         if (currentCompiler) {
             const currentCompilerPath = currentCompiler.toString();
-            let model = this.compiler.model as CompilerListModel;
+            const model = this.compiler.model as CompilerListModel;
 
             if (!model.selectWhen(compiler => compiler.path === currentCompilerPath) && model.amount > 0) {
                 Vscode.window.showWarningMessage(`IAR: Can't find the compiler '${currentCompiler}' (defined in iar-vsc.json).`);
@@ -259,11 +251,11 @@ class Application {
     }
 
     private selectCurrentProject(): void {
-        let currentProject = Settings.getEwpFile();
+        const currentProject = Settings.getEwpFile();
 
         if (currentProject) {
             const currentProjPath = currentProject.toString();
-            let model = this.project.model as ProjectListModel;
+            const model = this.project.model as ProjectListModel;
 
             if (!model.selectWhen(proj => proj.path === currentProjPath) && model.amount > 0) {
                 Vscode.window.showWarningMessage(`IAR: Can't find the project '${currentProject}' (defined in iar-vsc.json).`);
@@ -276,10 +268,10 @@ class Application {
     }
 
     private selectCurrentConfiguration(): void {
-        let currentConfiguration = Settings.getConfiguration();
+        const currentConfiguration = Settings.getConfiguration();
 
         if (currentConfiguration) {
-            let model = this.config.model as ConfigurationListModel;
+            const model = this.config.model as ConfigurationListModel;
 
             if (!model.selectWhen(config => config.name === currentConfiguration) && model.amount > 0) {
                 Vscode.window.showWarningMessage(`IAR: Can't find the configuration '${currentConfiguration}' (defined in iar-vsc.json).`);
@@ -304,18 +296,18 @@ class Application {
 
     private addToolManagerListeners(): void {
         this.toolManager.addInvalidateListener(() => {
-            let model = this.workbench.model as WorkbenchListModel;
+            const model = this.workbench.model as WorkbenchListModel;
 
             model.set(...this.toolManager.workbenches);
         });
     }
 
     private addProjectContentListeners(): void {
-        let model = this.loadedProject;
+        const model = this.loadedProject;
 
         model.addOnSelectedHandler((_model, project) => {
             project?.onChanged(() => {
-                let configModel = this.config.model as ConfigurationListModel;
+                const configModel = this.config.model as ConfigurationListModel;
 
                 configModel.set(...project.configurations);
             });
@@ -323,14 +315,14 @@ class Application {
     }
 
     private addWorkbenchModelListeners(): void {
-        let model = this.workbench.model as WorkbenchListModel;
+        const model = this.workbench.model as WorkbenchListModel;
 
         model.addOnInvalidateHandler(() => {
             this.selectCurrentWorkbench();
         });
 
         model.addOnSelectedHandler(() => {
-            let compilerModel = this.compiler.model as CompilerListModel;
+            const compilerModel = this.compiler.model as CompilerListModel;
 
             compilerModel.useCompilersFromWorkbench(model.selected);
         });
@@ -340,7 +332,7 @@ class Application {
             const selectedWb = workbench.selected;
 
             if (selectedWb) {
-                this.extendedWorkbench.selectedPromise = (async () => {
+                this.extendedWorkbench.selectedPromise = (async() => {
                     if (ThriftWorkbench.hasThriftSupport(selectedWb)) {
                         try {
                             return await ThriftWorkbench.from(selectedWb);
@@ -366,7 +358,7 @@ class Application {
     }
 
     private addCompilerModelListeners(): void {
-        let model = this.compiler.model as CompilerListModel;
+        const model = this.compiler.model as CompilerListModel;
 
         model.addOnInvalidateHandler(() => {
             this.selectCurrentCompiler();
@@ -374,7 +366,7 @@ class Application {
     }
 
     private addProjectModelListeners(): void {
-        let model = this.project.model as ProjectListModel;
+        const model = this.project.model as ProjectListModel;
 
         model.addOnInvalidateHandler(() => {
             this.selectCurrentProject();
@@ -385,7 +377,7 @@ class Application {
         });
 
         this.loadedProject.addOnSelectedHandler(() => {
-            let configModel = this.config.model as ConfigurationListModel;
+            const configModel = this.config.model as ConfigurationListModel;
 
             configModel.useConfigurationsFromProject(this.loadedProject.selected);
         });
@@ -402,7 +394,7 @@ class Application {
     }
 
     private addConfigurationModelListeners(): void {
-        let model = this.config.model as ConfigurationListModel;
+        const model = this.config.model as ConfigurationListModel;
 
         model.addOnInvalidateHandler(() => {
             this.selectCurrentConfiguration();

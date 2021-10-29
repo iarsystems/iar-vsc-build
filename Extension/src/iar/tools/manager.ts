@@ -2,21 +2,20 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import * as Fs from "fs";
 import * as Path from "path";
 import { Workbench } from "./workbench";
 import { Platform } from "./platform";
 import { Compiler } from "./compiler";
-import { Handler } from "../../utils/handler";
 
-type invalidateHandler = (manager: ToolManager) => void;
+type InvalidateHandler = (manager: ToolManager) => void;
 
 export interface ToolManager {
     readonly workbenches: ReadonlyArray<Workbench>;
 
-    addInvalidateListener(handler: invalidateHandler, thisArg?: any): void;
+    addInvalidateListener(handler: InvalidateHandler): void;
 
     add(...workbenches: Workbench[]): void;
     collectFrom(directory: Fs.PathLike): void;
@@ -28,7 +27,7 @@ export interface ToolManager {
 
 class IarToolManager implements ToolManager {
     private workbenches_: Workbench[];
-    private invalidateHandlers: Handler<invalidateHandler>[] = [];
+    private readonly invalidateHandlers: InvalidateHandler[] = [];
 
     constructor() {
         this.workbenches_ = [];
@@ -38,8 +37,8 @@ class IarToolManager implements ToolManager {
         return this.workbenches_;
     }
 
-    addInvalidateListener(handler: invalidateHandler, thisArg?: any): void {
-        this.invalidateHandlers.push(new Handler(handler, thisArg));
+    addInvalidateListener(handler: InvalidateHandler): void {
+        this.invalidateHandlers.push(handler);
     }
 
     add(...workbenches: Workbench[]): void {
@@ -51,7 +50,7 @@ class IarToolManager implements ToolManager {
     }
 
     collectFrom(directory: Fs.PathLike): void {
-        let workbench = Workbench.create(directory);
+        const workbench = Workbench.create(directory);
 
         if (workbench) {
             this.add(workbench);
@@ -76,7 +75,7 @@ class IarToolManager implements ToolManager {
 
     findWorkbenchesContainingCompiler(compiler: Compiler | string): Workbench[] {
         if (typeof compiler !== "string") {
-            let found = this.findWorkbenchContainingPath(compiler.path);
+            const found = this.findWorkbenchContainingPath(compiler.path);
             if (found) {
                 return [found];
             } else {
@@ -84,12 +83,12 @@ class IarToolManager implements ToolManager {
             }
         }
 
-        let workbenches: Workbench[] = [];
+        const workbenches: Workbench[] = [];
 
         this.workbenches_.forEach((wb) => {
             wb.platforms.forEach((platform) => {
                 platform.compilers.forEach((c) => {
-                    let parsed = Path.parse(c.path.toString());
+                    const parsed = Path.parse(c.path.toString());
 
                     if ((parsed.name === compiler) || (parsed.base === compiler)) {
                         workbenches.push(wb);
@@ -103,7 +102,7 @@ class IarToolManager implements ToolManager {
 
     findWorkbenchesContainingPlatform(platform: Platform | string): Workbench[] {
         if (typeof platform !== "string") {
-            let result = this.findWorkbenchContainingPath(platform.path);
+            const result = this.findWorkbenchContainingPath(platform.path);
 
             if (result) {
                 return [result];
@@ -112,11 +111,11 @@ class IarToolManager implements ToolManager {
             }
         }
 
-        let workbench: Workbench[] = [];
+        const workbench: Workbench[] = [];
 
         this.workbenches_.forEach((wb) => {
             wb.platforms.forEach((p) => {
-                let parsed = Path.parse(p.path.toString());
+                const parsed = Path.parse(p.path.toString());
 
                 if ((parsed.name === platform) || (parsed.base === platform)) {
                     workbench.push(wb);
@@ -129,7 +128,7 @@ class IarToolManager implements ToolManager {
 
     private fireInvalidateEvent() {
         this.invalidateHandlers.forEach(handler => {
-            handler.call(this);
+            handler(this);
         });
     }
 }

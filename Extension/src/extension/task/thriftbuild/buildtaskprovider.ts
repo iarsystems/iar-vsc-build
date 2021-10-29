@@ -31,28 +31,27 @@ export interface BuildTaskDefinition {
 
 class BuildProvider implements Vscode.TaskProvider {
 
-    constructor() {
-    }
-
     provideTasks(): Vscode.ProviderResult<Vscode.Task[]> {
         const tasks: Vscode.Task[] = [];
         const defaultLabel = "Iar Build (thrift)";
         const definition = this.getDefaultTaskDefinition(defaultLabel);
-        let execution = this.executionFromDefinition(definition);
-        let task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, defaultLabel, "iar-thrift", execution);
+        const execution = this.executionFromDefinition(definition);
+        const task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, defaultLabel, "iar-thrift", execution);
         tasks.push(task);
         return tasks;
     }
 
     resolveTask(_task: Vscode.Task): Vscode.ProviderResult<Vscode.Task> {
-        let label = _task.definition.label;
+        const label = _task.definition.label;
 
         if (!label) {
             this.showErrorMissingField("label", label);
             return undefined;
         }
 
-        // fill in missing properties with their default values
+        // Fill in missing properties with their default values.
+        // I don't think there is a better way than using 'any', this should be type-safe anyway
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fullDefinition: any = this.getDefaultTaskDefinition(_task.definition.label);
         for (const property in fullDefinition) {
             if (_task.definition[property]) {
@@ -60,7 +59,7 @@ class BuildProvider implements Vscode.TaskProvider {
             }
         }
 
-        let execution = this.executionFromDefinition(fullDefinition);
+        const execution = this.executionFromDefinition(fullDefinition);
         return new Vscode.Task(_task.definition, Vscode.TaskScope.Workspace, _task.definition.label, "iar-thrift", execution);
     }
 
@@ -74,8 +73,8 @@ class BuildProvider implements Vscode.TaskProvider {
     }
 
     private executionFromDefinition(definition: BuildTaskDefinition): Vscode.CustomExecution {
-        return new Vscode.CustomExecution(async () => {
-            return new BuildTaskExecution(definition);
+        return new Vscode.CustomExecution(() => {
+            return Promise.resolve(new BuildTaskExecution(definition));
         });
     }
 

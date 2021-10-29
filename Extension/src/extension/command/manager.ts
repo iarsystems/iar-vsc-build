@@ -2,29 +2,27 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-'use strict';
+
 
 import { Command } from "./command";
 
-export { Command };
-
 export interface CommandManager {
-    getCommand(cmd: CommandManager.Commands): Command | undefined;
-    setCommand(cmd: CommandManager.Commands, command: Command): void;
+    getCommand(cmd: CommandManager.Commands): Command<unknown> | undefined;
+    setCommand(cmd: CommandManager.Commands, command: Command<unknown>): void;
 }
 
 class Manager implements CommandManager {
-    private commands: Map<CommandManager.Commands, Command>;
+    private readonly commands: Map<CommandManager.Commands, Command<unknown>>;
 
     constructor() {
         this.commands = new Map();
     }
 
-    public getCommand(cmd: CommandManager.Commands): Command | undefined {
+    public getCommand(cmd: CommandManager.Commands): Command<unknown> | undefined {
         return this.commands.get(cmd);
     }
 
-    public setCommand(cmd: CommandManager.Commands, command: Command): void {
+    public setCommand(cmd: CommandManager.Commands, command: Command<unknown>): void {
         this.commands.set(cmd, command);
     }
 }

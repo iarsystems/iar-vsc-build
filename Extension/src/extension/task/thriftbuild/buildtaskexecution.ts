@@ -13,17 +13,19 @@ import { UI } from "../../ui/app";
  * https://github.com/microsoft/Vscode-extension-samples/blob/master/task-provider-sample/src/customTaskProvider.ts
  */
 export class BuildTaskExecution implements Vscode.Pseudoterminal {
-    private writeEmitter = new Vscode.EventEmitter<string>();
-	onDidWrite: Vscode.Event<string> = this.writeEmitter.event;
-	private closeEmitter = new Vscode.EventEmitter<void>();
-	onDidClose?: Vscode.Event<void> = this.closeEmitter.event;
+    private readonly writeEmitter = new Vscode.EventEmitter<string>();
+    onDidWrite: Vscode.Event<string> = this.writeEmitter.event;
+    private readonly closeEmitter = new Vscode.EventEmitter<void>();
+    onDidClose?: Vscode.Event<void> = this.closeEmitter.event;
 
     onDidOverrideDimensions?: Vscode.Event<Vscode.TerminalDimensions | undefined> | undefined;
 
-    private definition: BuildTaskDefinition;
+    private readonly definition: BuildTaskDefinition;
 
     constructor(definition: BuildTaskDefinition) {
-        // substitute command variables
+        // Substitute command variables.
+        // I don't think there is a better way than using 'any', this should be type-safe anyway
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const resolvedDef: any = definition;
         for (const property in resolvedDef) {
             if (resolvedDef[property]) {
@@ -31,7 +33,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
             }
         }
         this.definition = resolvedDef;
-	}
+    }
 
     async open(_initialDimensions: Vscode.TerminalDimensions | undefined)  {
         // TODO: there should be a standardized way of getting the reason e.g. an extended
@@ -51,15 +53,16 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
             await project.build(config);
             this.writeEmitter.fire("Build finished!\r\n");
             this.closeEmitter.fire();
-        } catch(e) {
+        } catch (e) {
             this.onError(e.toString());
         }
     }
 
     close(): void {
+        // Nothing to do here
     }
 
-    private onError(reason: any) {
+    private onError(reason: string) {
         this.writeEmitter.fire("Failed building project: " + reason + "\r\n");
         this.closeEmitter.fire();
     }

@@ -1,17 +1,17 @@
-'use strict';
+
 
 import * as Vscode from "vscode";
 
 export interface Logging {
-    debug(msg: string, ...args: any[]): void;
-    warning(msg: string, ...args: any[]): void;
-    error(msg: string, ...args: any[]): void;
-    info(msg: string, ...args: any[]): void;
+    debug(msg: string, ...args: string[]): void;
+    warning(msg: string, ...args: string[]): void;
+    error(msg: string, ...args: string[]): void;
+    info(msg: string, ...args: string[]): void;
 }
 
 class ChannelLogger implements Logging {
 
-    private channel: Vscode.OutputChannel;
+    private readonly channel: Vscode.OutputChannel;
 
     constructor(context: Vscode.ExtensionContext) {
         this.channel = Vscode.window.createOutputChannel("iar-vsc");
@@ -19,26 +19,26 @@ class ChannelLogger implements Logging {
         context.subscriptions.push(this.channel);
     }
 
-    debug(message: string, ...args: any[]): void {
+    debug(message: string, ...args: string[]): void {
         this.print("Debug", message, ...args);
     }
 
-    warning(message: string, ...args: any[]): void {
+    warning(message: string, ...args: string[]): void {
         this.print("Warning", message, ...args);
     }
 
-    error(message: string, ...args: any[]): void {
+    error(message: string, ...args: string[]): void {
         this.print("Error", message, ...args);
     }
-    info(message: string, ...args: any[]): void {
+    info(message: string, ...args: string[]): void {
         this.print("Info", message, ...args);
     }
 
-    private print(logType: string, message: string, ...args: any[]) {
+    private print(logType: string, message: string, ...args: string[]) {
         let msg = "[" + logType + "] " + message;
 
-        for (let idx in args) {
-            msg = msg.replace(new RegExp(`\\{${idx}\\}`, 'g'), args[idx]);
+        for (const idx in args) {
+            msg = msg.replace(new RegExp(`\\{${idx}\\}`, "g"), args[idx]);
         }
 
         this.channel.appendLine(msg);
@@ -47,15 +47,19 @@ class ChannelLogger implements Logging {
 
 class NullLogger implements Logging {
     debug(): void {
+        // Not implemented
     }
 
     warning(): void {
+        // Not implemented
     }
 
     error(): void {
+        // Not implemented
     }
 
     info(): void {
+        // Not implemented
     }
 }
 
