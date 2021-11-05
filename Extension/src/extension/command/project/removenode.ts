@@ -34,7 +34,11 @@ export class RemoveNodeCommand extends ProjectCommand {
 
             Vscode.window.showInformationMessage(`The ${typeString} "${toRemove.name}" has been removed from the project.`);
         } catch (e) {
-            Vscode.window.showErrorMessage("Unable to remove " + typeString + ": " + e.toString());
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage("Unable to remove " + typeString + ": " + e.toString());
+            } else {
+                Vscode.window.showErrorMessage("Unable to remove " + typeString + ".");
+            }
         }
     }
 

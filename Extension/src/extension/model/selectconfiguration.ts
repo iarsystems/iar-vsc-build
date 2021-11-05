@@ -26,10 +26,10 @@ export class ConfigurationListModel extends ListInputModelBase<Config> {
     }
 
     label(index: number): string {
-        return this.data[index].name;
+        return this.getConfigurationAt(index).name;
     }
     description(index: number): string | undefined {
-        return this.data[index].toolchainId;
+        return this.getConfigurationAt(index).toolchainId;
     }
     detail(): string | undefined {
         return undefined;
@@ -47,5 +47,13 @@ export class ConfigurationListModel extends ListInputModelBase<Config> {
 
         this.fireInvalidateEvent();
         this.fireSelectionChanged();
+    }
+
+    private getConfigurationAt(index: number): Config {
+        const result = this.data[index];
+        if (result === undefined) {
+            throw new Error(`No configuration with index ${index}`);
+        }
+        return result;
     }
 }

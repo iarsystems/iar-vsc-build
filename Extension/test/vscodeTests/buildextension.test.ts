@@ -1,5 +1,6 @@
 
 import { fail, deepEqual } from "assert";
+import * as assert from "assert";
 import {UI} from "../../src/extension/ui/app";
 import * as vscode from "vscode";
 import * as fs from "fs";
@@ -34,7 +35,7 @@ export namespace Utils{
         const nodes = theTree.getChildren();
         if (Array.isArray(nodes)) {
             for (let i = 0; i < nodes.length; i++) {
-                if (nodes[i].label === topNodeName) {
+                if (nodes[i]!.label === topNodeName) {
                     return theTree.getChildren(nodes[i]);
                 }
             }
@@ -44,11 +45,9 @@ export namespace Utils{
 
     export function assertNodelistContains(treeItems: vscode.ProviderResult<vscode.TreeItem[]>, labelToFind: string ) {
         if (Array.isArray(treeItems)) {
-            for (let i = 0; i < treeItems.length; i++) {
-                if (treeItems[i].label?.toString().startsWith(labelToFind)) {
-                    return treeItems[i];
-                }
-            }
+            return treeItems.find(item => {
+                return item.label?.toString().startsWith(labelToFind);
+            });
         }
         fail("Failed to locate item with label: " + labelToFind);
     }
@@ -57,9 +56,7 @@ export namespace Utils{
         const list = getEntries(entryLabel);
         const listEntry = assertNodelistContains(list, toActivate);
 
-        if (!listEntry.command || !listEntry.command.arguments) {
-            fail();
-        }
+        assert(listEntry && listEntry.command && listEntry.command.arguments);
         return vscode.commands.executeCommand(listEntry.command.command, listEntry.command.arguments[0]);
     }
 
@@ -100,7 +97,6 @@ export namespace Utils{
             if (exists === null) {
                 return;
             } else if (exists.code === "ENOENT") {
-                6;
                 fail(`${path} is missing`);
             }
         });
@@ -150,7 +146,7 @@ export namespace Utils{
             fail("Failed to list the folders in the workspace: This test requires a workspace");
         }
 
-        const newProj = path.join(workspaces[0].uri.fsPath, projName);
+        const newProj = path.join(workspaces[0]!.uri.fsPath, projName);
         const proj = await exWorkbench.createProject(newProj);
 
         (UI.getInstance().project.model as ProjectListModel).addProject(proj);
@@ -199,11 +195,11 @@ suite("Test build extension", ()=>{
     test("No backups in project list", ()=>{
         const allProjects = Utils.getEntries(Utils.PROJECT);
         if (Array.isArray(allProjects)) {
-            for (let i = 0; i < allProjects.length; i++) {
-                if (allProjects[i].label?.toString().startsWith("Backup ")) {
+            allProjects.forEach(project => {
+                if (project.label?.toString().startsWith("Backup ")) {
                     fail("Backup files should not be included in the list of projects");
                 }
-            }
+            });
         }
     });
 

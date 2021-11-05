@@ -32,8 +32,8 @@ suite("Test source configuration providers", function() {
 
         const workbenches = manager.findWorkbenchesContainingPlatform("arm");
         Assert(workbenches && workbenches.length > 0, "These tests require an ARM EW to run, but none was found.");
-        workbench = workbenches[0];
-        armCompiler = workbench.platforms.find(p => p.path.toString().endsWith("arm"))!.compilers[0];
+        workbench = workbenches[0]!;
+        armCompiler = workbench.platforms.find(p => p.path.toString().endsWith("arm"))!.compilers[0]!;
 
         sandbox = new TestSandbox(IntegrationTestsCommon.PROJECT_ROOT);
         projectDir = sandbox.copyToSandbox(IntegrationTestsCommon.TEST_PROJECTS_DIR, "SourceConfigTests");

@@ -69,6 +69,7 @@ suite("Thrift project", function() {
         const updatedRootNode = await project.getRootNode();
         Assert(updatedRootNode);
         const groupNode = rootNode.children[0];
+        Assert(groupNode !== undefined);
         Assert.equal(groupNode.type, NodeType.Group);
         Assert.equal(groupNode.name, "TestGroup");
     });

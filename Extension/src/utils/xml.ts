@@ -10,15 +10,9 @@ export namespace IarXml {
     export function findSettingsFromConfig(xml: XmlNode, name: string): XmlNode | undefined {
         const settings = xml.getAllChildsByName("settings");
 
-        for (let idx = 0; idx < settings.length; idx += 1) {
-            const setting = settings[idx];
-
-            if (validateText(getNameTextFromElement(setting), name)) {
-                return setting;
-            }
-        }
-
-        return undefined;
+        return settings.find(setting => {
+            return validateText(getNameTextFromElement(setting), name);
+        });
     }
 
     export function findOptionFromSettings(xml: XmlNode, name: string): XmlNode | undefined {
@@ -30,15 +24,9 @@ export namespace IarXml {
 
         const options = data.getAllChildsByName("option");
 
-        for (let idx = 0; idx < options.length; idx += 1) {
-            const option = options[idx];
-
-            if (validateText(getNameTextFromElement(option), name)) {
-                return option;
-            }
-        }
-
-        return undefined;
+        return options.find(option => {
+            return validateText(getNameTextFromElement(option), name);
+        });
     }
 
     export function getNameTextFromElement(xml: XmlNode): string | undefined {

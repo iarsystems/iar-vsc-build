@@ -21,9 +21,9 @@ suite("Test keyword parsers", () => {
             const keywords = Keyword.fromSyntaxFileContents(src);
 
             Assert.equal(keywords.length, 3);
-            Assert.equal(keywords[0].identifier, "word1");
-            Assert.equal(keywords[1].identifier, "__word2");
-            Assert.equal(keywords[2].identifier, "_w_o_r_d_3");
+            Assert.equal(keywords[0]!.identifier, "word1");
+            Assert.equal(keywords[1]!.identifier, "__word2");
+            Assert.equal(keywords[2]!.identifier, "_w_o_r_d_3");
         });
 
         test("Untrimmed keywords", () => {
@@ -32,9 +32,9 @@ suite("Test keyword parsers", () => {
             const keywords = Keyword.fromSyntaxFileContents(src);
 
             Assert.equal(keywords.length, 3);
-            Assert.equal(keywords[0].identifier, "word1");
-            Assert.equal(keywords[1].identifier, "__word2");
-            Assert.equal(keywords[2].identifier, "_w_o_r_d_3");
+            Assert.equal(keywords[0]!.identifier, "word1");
+            Assert.equal(keywords[1]!.identifier, "__word2");
+            Assert.equal(keywords[2]!.identifier, "_w_o_r_d_3");
         });
 
         test("Empty lines", () => {
@@ -43,9 +43,9 @@ suite("Test keyword parsers", () => {
             const keywords = Keyword.fromSyntaxFileContents(src);
 
             Assert.equal(keywords.length, 3);
-            Assert.equal(keywords[0].identifier, "word1");
-            Assert.equal(keywords[1].identifier, "__word2");
-            Assert.equal(keywords[2].identifier, "_w_o_r_d_3");
+            Assert.equal(keywords[0]!.identifier, "word1");
+            Assert.equal(keywords[1]!.identifier, "__word2");
+            Assert.equal(keywords[2]!.identifier, "_w_o_r_d_3");
         });
     });
 });

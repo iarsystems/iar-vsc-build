@@ -68,7 +68,9 @@ export class EwpFile implements LoadedProject {
 
             this.fireChanged();
         } catch (e) {
-            Logging.getInstance().error("Failed to reload project: ", e);
+            if (typeof e === "string" || e instanceof Error) {
+                Logging.getInstance().error("Failed to reload project: ", e.toString());
+            }
         }
     }
 

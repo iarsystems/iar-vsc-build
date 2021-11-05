@@ -37,9 +37,9 @@ class ChannelLogger implements Logging {
     private print(logType: string, message: string, ...args: string[]) {
         let msg = "[" + logType + "] " + message;
 
-        for (const idx in args) {
-            msg = msg.replace(new RegExp(`\\{${idx}\\}`, "g"), args[idx]);
-        }
+        args.forEach((arg, idx) => {
+            msg = msg.replace(new RegExp(`\\{${idx}\\}`, "g"), arg);
+        });
 
         this.channel.appendLine(msg);
     }

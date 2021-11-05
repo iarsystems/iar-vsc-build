@@ -26,7 +26,7 @@ export namespace CStatTaskProvider {
 export interface CStatTaskDefinition {
     label: string;
     type: string;
-    action: "run" | "clear";
+    action: string;
     builder: string;
     project: string;
     config: string;
@@ -60,8 +60,8 @@ class CStatProvider implements Vscode.TaskProvider {
     }
 
     resolveTask(_task: Vscode.Task): Vscode.ProviderResult<Vscode.Task> {
-        const action = _task.definition.action;
-        const label = _task.definition.label;
+        const action = _task.definition["action"];
+        const label = _task.definition["label"];
 
         if (!action) {
             this.showErrorMissingField("action", label);
@@ -76,17 +76,15 @@ class CStatProvider implements Vscode.TaskProvider {
         }
 
         // Fill in missing properties with their default values.
-        // I don't think there is a better way than using 'any', this should be type-safe anyway
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const fullDefinition: any = this.getDefaultTaskDefinition(_task.definition.label, _task.definition.action);
+        const fullDefinition: CStatTaskDefinition = this.getDefaultTaskDefinition(_task.definition["label"], _task.definition["action"]);
         for (const property in fullDefinition) {
-            if (_task.definition[property]) {
-                fullDefinition[property] = _task.definition[property];
+            if (_task.definition[property as keyof CStatTaskDefinition]) {
+                fullDefinition[property as keyof CStatTaskDefinition] = _task.definition[property];
             }
         }
 
         const execution = this.executionFromDefinition(fullDefinition);
-        return new Vscode.Task(_task.definition, Vscode.TaskScope.Workspace, _task.definition.label, "iar-cstat", execution, []);
+        return new Vscode.Task(_task.definition, Vscode.TaskScope.Workspace, _task.definition[label], "iar-cstat", execution, []);
     }
 
     private getDefaultTaskDefinition(label: string, action: "run" | "clear"): CStatTaskDefinition {

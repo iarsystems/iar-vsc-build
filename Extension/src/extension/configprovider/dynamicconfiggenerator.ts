@@ -88,6 +88,7 @@ export class DynamicConfigGenerator {
 
         for (let i = 0; i < compilerInvocations.length; i++) {
             const compInv = compilerInvocations[i];
+            if (compInv?.[0] === undefined || compInv[1] === undefined) continue;
             if (LanguageUtils.determineLanguage(compInv[1]) === undefined) {
                 this.output.appendLine("Skipping file of unsupported type: " + compInv[1]);
                 continue;
@@ -107,9 +108,12 @@ export class DynamicConfigGenerator {
         }
 
         fileConfigs.forEach((fileConfig, index) => {
-            const uri = Vscode.Uri.file(compilerInvocations[index][1]);
-            this.putIncludes(uri, fileConfig.includes);
-            this.putDefines(uri, fileConfig.defines);
+            const path = compilerInvocations[index]?.[1];
+            if (path !== undefined) {
+                const uri = Vscode.Uri.file(path);
+                this.putIncludes(uri, fileConfig.includes);
+                this.putDefines(uri, fileConfig.defines);
+            }
         });
         if (hasIncorrectCompiler) {
             Vscode.window.showWarningMessage("IAR: The selected compiler does not appear to match the one used by the project.");

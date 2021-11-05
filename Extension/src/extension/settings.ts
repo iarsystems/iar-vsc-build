@@ -46,11 +46,11 @@ export namespace Settings {
     }
 
     export function getLocalSetting(field: LocalSettingsField): string | undefined {
-        return getSettingsFile().get(field);
+        return getSettingsFile()?.get(field);
     }
 
     export function setLocalSetting(field: LocalSettingsField, path: Fs.PathLike) {
-        getSettingsFile().set(field, path.toString());
+        getSettingsFile()?.set(field, path.toString());
     }
 
     export function getWorkbench(): string | undefined {
@@ -112,19 +112,21 @@ export namespace Settings {
         return Vscode.workspace.getConfiguration(section).get(ExtensionSettingsField.ExtraBuildArguments) as Array<string>;
     }
 
-    function generateSettingsFilePath(): Fs.PathLike {
+    function generateSettingsFilePath(): Fs.PathLike | undefined  {
         const folders = Vscode.workspace.workspaceFolders as Vscode.WorkspaceFolder[];
-        const folder = folders[0].uri.fsPath;
-
-        const path = Path.join(folder, ".vscode", "iar-vsc.json");
-
-        return path;
+        if (folders[0] !== undefined) {
+            const folder = folders[0].uri.fsPath;
+            return Path.join(folder, ".vscode", "iar-vsc.json");
+        }
+        return undefined;
     }
 
-    function getSettingsFile(): LocalSettingsFile {
+    function getSettingsFile(): LocalSettingsFile | undefined {
         if (settingsFile === undefined) {
-
-            settingsFile = new LocalSettingsFile(generateSettingsFilePath());
+            const path = generateSettingsFilePath();
+            if (path !== undefined) {
+                settingsFile = new LocalSettingsFile(path);
+            }
         }
 
         return settingsFile;

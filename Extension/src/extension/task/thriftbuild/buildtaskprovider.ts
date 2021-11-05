@@ -42,7 +42,7 @@ class BuildProvider implements Vscode.TaskProvider {
     }
 
     resolveTask(_task: Vscode.Task): Vscode.ProviderResult<Vscode.Task> {
-        const label = _task.definition.label;
+        const label = _task.definition["label"];
 
         if (!label) {
             this.showErrorMissingField("label", label);
@@ -50,17 +50,15 @@ class BuildProvider implements Vscode.TaskProvider {
         }
 
         // Fill in missing properties with their default values.
-        // I don't think there is a better way than using 'any', this should be type-safe anyway
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const fullDefinition: any = this.getDefaultTaskDefinition(_task.definition.label);
+        const fullDefinition: BuildTaskDefinition = this.getDefaultTaskDefinition(_task.definition["label"]);
         for (const property in fullDefinition) {
-            if (_task.definition[property]) {
-                fullDefinition[property] = _task.definition[property];
+            if (_task.definition[property as keyof BuildTaskDefinition]) {
+                fullDefinition[property as keyof BuildTaskDefinition] = _task.definition[property];
             }
         }
 
         const execution = this.executionFromDefinition(fullDefinition);
-        return new Vscode.Task(_task.definition, Vscode.TaskScope.Workspace, _task.definition.label, "iar-thrift", execution);
+        return new Vscode.Task(_task.definition, Vscode.TaskScope.Workspace, _task.definition["label"], "iar-thrift", execution);
     }
 
     private getDefaultTaskDefinition(label: string): BuildTaskDefinition {

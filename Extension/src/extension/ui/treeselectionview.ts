@@ -46,7 +46,8 @@ export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
     private readonly _onDidChangeTreeData = new Vscode.EventEmitter<TreeNode | undefined>();
     readonly onDidChangeTreeData: Vscode.Event<TreeNode | undefined> = this._onDidChangeTreeData.event;
 
-    private readonly topNodes: TreeTopNode[] = [];
+    // Declaring this as a tuple rather than an array gives an extra bit of type safety
+    private readonly topNodes: [TreeTopNode, TreeTopNode, TreeTopNode, TreeTopNode];
     private compilerVisible = false;
 
     constructor(
@@ -106,7 +107,6 @@ export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
             if (this.compilerVisible) {
                 return this.topNodes;
             } else {
-                // TODO: refactor
                 return [this.topNodes[0], this.topNodes[2], this.topNodes[3]];
             }
         }

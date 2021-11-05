@@ -25,17 +25,25 @@ export class ProjectListModel extends ListInputModelBase<Project> {
     }
 
     label(index: number): string {
-        return this.data[index].name;
+        return this.getProjectAt(index).name;
     }
     description(index: number): string | undefined {
-        return this.data[index].path.toString();
+        return this.getProjectAt(index).path.toString();
     }
     detail(index: number): string | undefined {
-        return this.data[index].path.toString();
+        return this.getProjectAt(index).path.toString();
     }
 
     addProject(project: Project) {
         this.data = this.data.concat([project]);
         this.fireInvalidateEvent();
+    }
+
+    private getProjectAt(index: number): Project {
+        const result = this.data[index];
+        if (result === undefined) {
+            throw new Error(`No project with index ${index}`);
+        }
+        return result;
     }
 }

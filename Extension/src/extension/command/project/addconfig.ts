@@ -61,7 +61,11 @@ export class AddConfigCommand extends ProjectCommand {
 
             Vscode.window.showInformationMessage(`The configuration "${name}" has been added.`);
         } catch (e) {
-            Vscode.window.showErrorMessage("Unable to add configuration: " + e.toString());
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage("Unable to add configuration: " + e.toString());
+            } else {
+                Vscode.window.showErrorMessage("Unable to add configuration.");
+            }
         }
     }
 }

@@ -25,12 +25,20 @@ export class WorkbenchListModel extends ListInputModelBase<Workbench> {
     }
 
     label(index: number): string {
-        return this.data[index].name;
+        return this.getWorkbenchAt(index).name;
     }
     description(index: number): string | undefined {
-        return this.data[index].path.toString();
+        return this.getWorkbenchAt(index).path.toString();
     }
     detail(index: number): string | undefined {
-        return this.data[index].idePath.toString();
+        return this.getWorkbenchAt(index).path.toString();
+    }
+
+    private getWorkbenchAt(index: number): Workbench {
+        const result = this.data[index];
+        if (result === undefined) {
+            throw new Error(`No workbench with index ${index}`);
+        }
+        return result;
     }
 }

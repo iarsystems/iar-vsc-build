@@ -14,7 +14,7 @@ export class XmlNode {
 
         if (typeof xml === "string") {
             const document = xmljs.xml2js(xml, { compact: false }) as xmljs.Element;
-            if (document.elements === undefined) {
+            if (document.elements?.[0] === undefined) {
                 throw new Error("Invalid xml data");
             }
 
@@ -52,10 +52,9 @@ export class XmlNode {
 
     public getFirstChildByName(element: string): XmlNode | undefined {
         if (this.mElement.elements) {
-            for (let idx = 0; idx < this.mElement.elements.length; idx += 1) {
-                if (this.mElement.elements[idx].name === element) {
-                    return new XmlNode(this.mElement.elements[idx]);
-                }
+            const elem = this.mElement.elements.find(elem => elem.name === element);
+            if (elem) {
+                return new XmlNode(elem);
             }
         }
 
@@ -64,10 +63,9 @@ export class XmlNode {
 
     public getFirstChildByType(type: string): XmlNode | undefined {
         if (this.mElement.elements) {
-            for (let idx = 0; idx < this.mElement.elements.length; idx += 1) {
-                if (this.mElement.elements[idx].type === type) {
-                    return new XmlNode(this.mElement.elements[idx]);
-                }
+            const elem = this.mElement.elements.find(elem => elem.type === type);
+            if (elem) {
+                return new XmlNode(elem);
             }
         }
 
@@ -75,32 +73,18 @@ export class XmlNode {
     }
 
     public getAllChildsByName(name: string): XmlNode[] {
-        const ret: XmlNode[] = [];
-
         if (this.mElement.elements) {
-            for (let idx = 0; idx < this.mElement.elements.length; idx += 1) {
-                if (this.mElement.elements[idx].name === name) {
-                    ret.push(new XmlNode(this.mElement.elements[idx]));
-                }
-            }
+            return this.mElement.elements.filter(elem => elem.name === name).map(elem => new XmlNode(elem));
         }
 
-        return ret;
+        return [];
     }
 
     public getAllChildsByType(type: string): XmlNode[] {
-        const ret: XmlNode[] = [];
-
         if (this.mElement.elements) {
-            for (let idx = 0; idx < this.mElement.elements.length; idx += 1) {
-                const element = this.mElement.elements[idx];
-
-                if (element.type === type) {
-                    ret.push(new XmlNode(element));
-                }
-            }
+            return this.mElement.elements.filter(elem => elem.type === type).map(elem => new XmlNode(elem));
         }
 
-        return ret;
+        return [];
     }
 }

@@ -64,11 +64,11 @@ class XmlDefine extends BaseDefine {
 
             if (part === DefinePart.Identifier) {
                 if (parts.length >= 1) {
-                    return parts[0].trim();
+                    return parts[0]?.trim();
                 }
             } else if (part === DefinePart.Value) {
                 if (parts.length >= 2) {
-                    return parts[1].trim();
+                    return parts[1]?.trim();
                 }
             }
         }

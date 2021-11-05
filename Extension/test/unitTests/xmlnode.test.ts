@@ -110,10 +110,10 @@ suite("XmlNode validation", () => {
             assert.equal(child1.length, 1);
             assert.equal(child2.length, 1);
 
-            assert.equal(child1[0].tagName, "child1");
-            assert.equal(child2[0].tagName, "child2");
-            assert.equal(child1[0].text, undefined);
-            assert.equal(child2[0].text, "1");
+            assert.equal(child1[0]!.tagName, "child1");
+            assert.equal(child2[0]!.tagName, "child2");
+            assert.equal(child1[0]!.text, undefined);
+            assert.equal(child2[0]!.text, "1");
         });
 
         test("Has multiple satisfying children", () => {
@@ -124,10 +124,10 @@ suite("XmlNode validation", () => {
             const children = node.getAllChildsByName("child1");
 
             assert.equal(children.length, 2);
-            assert.equal(children[0].tagName, "child1");
-            assert.equal(children[1].tagName, "child1");
-            assert.equal(children[0].text, "1");
-            assert.equal(children[1].text, "2");
+            assert.equal(children[0]!.tagName, "child1");
+            assert.equal(children[1]!.tagName, "child1");
+            assert.equal(children[0]!.text, "1");
+            assert.equal(children[1]!.text, "2");
         });
     });
 
@@ -195,8 +195,8 @@ suite("XmlNode validation", () => {
 
             assert.equal(child1.length, 1);
 
-            assert.equal(child1[0].tagName, "child1");
-            assert.equal(child1[0].text, undefined);
+            assert.equal(child1[0]!.tagName, "child1");
+            assert.equal(child1[0]!.text, undefined);
         });
 
         test("Has multiple satisfying children", () => {
@@ -208,13 +208,13 @@ suite("XmlNode validation", () => {
             const text = node.getAllChildsByType("text");
 
             assert.equal(children.length, 2);
-            assert.equal(children[0].tagName, "child1");
-            assert.equal(children[1].tagName, "child2");
-            assert.equal(children[0].text, "1");
-            assert.equal(children[1].text, "2");
+            assert.equal(children[0]!.tagName, "child1");
+            assert.equal(children[1]!.tagName, "child2");
+            assert.equal(children[0]!.text, "1");
+            assert.equal(children[1]!.text, "2");
 
             assert.equal(text.length, 1);
-            assert.equal(text[0].text, "some text");
+            assert.equal(text[0]!.text, "some text");
         });
     });
 });

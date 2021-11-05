@@ -158,6 +158,9 @@ export namespace CStat {
         const message  = warnRow[fieldsToLoad.indexOf(CStatWarningField.MSG)];
         const severity = warnRow[fieldsToLoad.indexOf(CStatWarningField.SEVERITY)];
         const checkId  = warnRow[warnRow.length - 1];
+        if (!file || !line || !col || !message || !severity || !checkId) {
+            throw new Error("One or more fields missing from row: " + warnRow.toString());
+        }
         return {
             file: file,
             line: Number(line),

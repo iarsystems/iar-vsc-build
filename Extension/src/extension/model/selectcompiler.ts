@@ -27,13 +27,13 @@ export class CompilerListModel extends ListInputModelBase<Compiler> {
     }
 
     label(index: number): string {
-        return this.data[index].name;
+        return this.getCompilerAt(index).name;
     }
     description(index: number): string | undefined {
-        return this.data[index].path.toString();
+        return this.getCompilerAt(index).path.toString();
     }
     detail(index: number): string | undefined {
-        return this.data[index].path.toString();
+        return this.getCompilerAt(index).path.toString();
     }
 
     useCompilersFromWorkbench(workbench?: Workbench): void {
@@ -65,5 +65,13 @@ export class CompilerListModel extends ListInputModelBase<Compiler> {
 
         this.fireInvalidateEvent();
         this.fireSelectionChanged();
+    }
+
+    private getCompilerAt(index: number): Compiler {
+        const result = this.data[index];
+        if (result === undefined) {
+            throw new Error(`No compiler with index ${index}`);
+        }
+        return result;
     }
 }

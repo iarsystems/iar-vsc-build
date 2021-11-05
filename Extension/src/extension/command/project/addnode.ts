@@ -54,7 +54,11 @@ export class AddNodeCommand extends ProjectCommand {
 
             Vscode.window.showInformationMessage(`The ${typeString} "${name}" has been added to the project.`);
         } catch (e) {
-            Vscode.window.showErrorMessage("Unable to add file/group: " + e.toString());
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage("Unable to add file/group: " + e.toString());
+            } else {
+                Vscode.window.showErrorMessage("Unable to add file/group.");
+            }
         }
     }
 

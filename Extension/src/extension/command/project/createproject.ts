@@ -51,7 +51,11 @@ export class CreateProjectCommand extends CommandBase<Promise<void>> {
 
             Vscode.window.showInformationMessage(`The project has been created as ${name}.`);
         } catch (e) {
-            Vscode.window.showErrorMessage("Unable to create project: " + e.toString());
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage("Unable to create project: " + e.toString());
+            } else {
+                Vscode.window.showErrorMessage("Unable to create project.");
+            }
         }
     }
 

@@ -24,12 +24,11 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
 
     constructor(private readonly extensionPath: string, private readonly diagnostics: Vscode.DiagnosticCollection, definition: CStatTaskDefinition) {
         // Substitute command variables.
-        // I don't think there is a better way than using 'any', this should be type-safe anyway
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const resolvedDef: any = definition;
+        const resolvedDef: CStatTaskDefinition = definition;
         for (const property in resolvedDef) {
-            if (resolvedDef[property]) {
-                resolvedDef[property] = CommandUtils.parseSettingCommands(resolvedDef[property]);
+            const propTyped = property as keyof CStatTaskDefinition;
+            if (resolvedDef[propTyped]) {
+                resolvedDef[propTyped] = CommandUtils.parseSettingCommands(resolvedDef[propTyped]);
             }
         }
         this.definition = resolvedDef;

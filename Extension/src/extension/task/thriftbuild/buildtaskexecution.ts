@@ -24,12 +24,11 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
 
     constructor(definition: BuildTaskDefinition) {
         // Substitute command variables.
-        // I don't think there is a better way than using 'any', this should be type-safe anyway
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const resolvedDef: any = definition;
+        const resolvedDef: BuildTaskDefinition = definition;
         for (const property in resolvedDef) {
-            if (resolvedDef[property]) {
-                resolvedDef[property] = CommandUtils.parseSettingCommands(resolvedDef[property]);
+            const propTyped = property as keyof BuildTaskDefinition;
+            if (resolvedDef[propTyped]) {
+                resolvedDef[propTyped] = CommandUtils.parseSettingCommands(resolvedDef[propTyped]);
             }
         }
         this.definition = resolvedDef;
@@ -54,7 +53,11 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
             this.writeEmitter.fire("Build finished!\r\n");
             this.closeEmitter.fire();
         } catch (e) {
-            this.onError(e.toString());
+            if (typeof e === "string" || e instanceof Error) {
+                this.onError(e.toString());
+            } else {
+                this.onError("Unknown error");
+            }
         }
     }
 

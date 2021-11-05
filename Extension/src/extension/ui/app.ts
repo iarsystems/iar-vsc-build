@@ -337,7 +337,9 @@ class Application {
                         try {
                             return await ThriftWorkbench.from(selectedWb);
                         } catch (e) {
-                            Vscode.window.showErrorMessage(`IAR: Error initiating workbench backend. Some functionality may be unavailable (${e.toString()}).`);
+                            if (typeof e === "string" || e instanceof Error) {
+                                Vscode.window.showErrorMessage(`IAR: Error initiating workbench backend. Some functionality may be unavailable (${e.toString()}).`);
+                            }
                             return undefined;
                         }
                     } else {
@@ -430,7 +432,9 @@ class Application {
             return await exWorkbench.loadProject(project);
         } catch (e) {
             // TODO: consider displaying more error information when the project manager starts providing specific errors
-            Vscode.window.showErrorMessage(`IAR: Error while loading the project. Some functionality may be unavailable (${e.toString()}).`);
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage(`IAR: Error while loading the project. Some functionality may be unavailable (${e.toString()}).`);
+            }
             return Promise.reject(e);
         }
     }

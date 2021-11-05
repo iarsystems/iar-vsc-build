@@ -31,7 +31,11 @@ export class RemoveConfigCommand extends ProjectCommand {
 
             Vscode.window.showInformationMessage(`The configuration "${toRemove.name}" has been removed from the project.`);
         } catch (e) {
-            Vscode.window.showErrorMessage("Unable to remove configuration: " + e.toString());
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage("Unable to remove configuration: " + e.toString());
+            } else {
+                Vscode.window.showErrorMessage("Unable to remove configuration");
+            }
         }
     }
 }
