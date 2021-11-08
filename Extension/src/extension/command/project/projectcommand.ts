@@ -22,7 +22,7 @@ export abstract class ProjectCommand {
     register(context: Vscode.ExtensionContext): void {
         const cmd = Vscode.commands.registerCommand(this.command, (source): void | Promise<void> => {
             const proj = UI.getInstance().extendedProject.selected;
-            if (!proj) {
+            if (proj === undefined || source === undefined) {
                 return;
             }
 
