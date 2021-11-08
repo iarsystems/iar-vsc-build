@@ -21,6 +21,5 @@ export class ReloadProjectCommand extends CommandBase<Promise<void>> {
             return;
         }
         await project.reload();
-        Vscode.window.showInformationMessage("IAR: Project reloaded.");
     }
 }

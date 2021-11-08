@@ -58,6 +58,7 @@ export abstract class CommandBase<T> implements Command<T> {
     register(context: Vscode.ExtensionContext): void {
         const cmd = Vscode.commands.registerCommand(this.command, this.execute, this);
         context.subscriptions.push(cmd);
+        this.enabled = true;
     }
 
     protected abstract executeImpl(autoTriggered?: boolean): T;

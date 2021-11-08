@@ -62,7 +62,6 @@ class Application {
     readonly settingsTreeView: TreeSelectionView;
 
     readonly generator: Command<unknown>;
-    readonly selectIarWorkspace: Command<unknown>;
 
     constructor(context: Vscode.ExtensionContext, toolManager: ToolManager) {
         this.context = context;
@@ -88,14 +87,12 @@ class Application {
 
         this.projectTreeView = new TreeProjectView(this.project.model, this.extendedProject, this.workbench.model, this.extendedWorkbench);
 
-        // Create commands without UI
+        // Create commands
         this.generator = RegenerateCommand.createRegenerateCppToolsConfig(this.compiler.model as CompilerListModel,
             this.config.model as ConfigurationListModel);
         this.generator.register(context);
 
-        this.selectIarWorkspace = new SelectIarWorkspace();
-        this.selectIarWorkspace.register(context);
-
+        new SelectIarWorkspace().register(context);
         new CreateProjectCommand().register(context);
         new ReloadProjectCommand().register(context);
         new AddConfigCommand().register(context);
@@ -116,8 +113,6 @@ class Application {
         this.showHelper(this.compiler);
         this.showHelper(this.project);
         this.showHelper(this.config);
-
-        this.generator.enabled = true;
     }
 
     public dispose(): void {
