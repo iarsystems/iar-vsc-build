@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
@@ -17,8 +19,6 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     onDidWrite: Vscode.Event<string> = this.writeEmitter.event;
     private readonly closeEmitter = new Vscode.EventEmitter<void>();
     onDidClose?: Vscode.Event<void> = this.closeEmitter.event;
-
-    onDidOverrideDimensions?: Vscode.Event<Vscode.TerminalDimensions | undefined> | undefined;
 
     private readonly definition: CStatTaskDefinition;
 
@@ -54,7 +54,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     /**
      * Runs C-STAT on the current project and updates the warnings displayed in VS Code
      */
-    private generateDiagnostics(): Thenable<void> {
+    private async generateDiagnostics(): Promise<void> {
         if (OsUtils.detectOsType() !== OsUtils.OsType.Windows) {
             Vscode.window.showErrorMessage("C-STAT is only available on windows, sorry!");
             return Promise.reject(new Error("C-STAT is only available on windows, sorry!"));
@@ -66,31 +66,34 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
 
         this.writeEmitter.fire("Running C-STAT...\r\n");
 
-        const analysis = CStat.runAnalysis(builderPath, projectPath, configName, (msg) => this.writeEmitter.fire(msg));
-        return analysis.then(() => {
-            return CStat.getAllWarnings(projectPath, configName, this.extensionPath).then(warnings => {
-                this.writeEmitter.fire("Analyzing output...\r\n");
-                this.diagnostics.clear();
+        try {
+            let warnings = await CStat.runAnalysis(builderPath, projectPath, configName, this.extensionPath, (msg) => this.writeEmitter.fire(msg));
+            this.writeEmitter.fire("Analyzing output...\r\n");
+            this.diagnostics.clear();
 
-                const filterString = Vscode.workspace.getConfiguration("iarvsc").get<string>("c-StatFilterLevel");
-                const filterLevel = filterString ?
-                    CStat.SeverityStringToSeverityEnum(filterString)
-                    : CStat.CStatWarningSeverity.LOW;
-                warnings = warnings.filter(w => w.severity >= filterLevel);
-                this.writeEmitter.fire("After filtering, " + warnings.length + " warning(s) remain.\r\n");
+            const filterString = Vscode.workspace.getConfiguration("iarvsc").get<string>("c-StatFilterLevel");
+            const filterLevel = filterString ?
+                CStat.SeverityStringToSeverityEnum(filterString)
+                : CStat.CStatWarningSeverity.LOW;
+            warnings = warnings.filter(w => w.severity >= filterLevel);
+            this.writeEmitter.fire("After filtering, " + warnings.length + " warning(s) remain.\r\n");
 
-                const fileDiagnostics: [Vscode.Uri, Vscode.Diagnostic[]][] = [];
-                warnings.forEach(warning => {
-                    const diagnostic = CStatTaskExecution.warningToDiagnostic(warning);
-                    fileDiagnostics.push([Vscode.Uri.file(warning.file), [diagnostic]]);
-                });
+            const fileDiagnostics: [Vscode.Uri, Vscode.Diagnostic[]][] = [];
+            warnings.forEach(warning => {
+                const diagnostic = CStatTaskExecution.warningToDiagnostic(warning);
+                fileDiagnostics.push([Vscode.Uri.file(warning.file), [diagnostic]]);
+            });
 
-                this.diagnostics.set(fileDiagnostics);
-                this.writeEmitter.fire("C-STAT is done!\r\n");
-                this.closeEmitter.fire();
-            }, this.onError.bind(this)); /* getAllWarnings.then */
+            this.diagnostics.set(fileDiagnostics);
+            this.writeEmitter.fire("C-STAT is done!\r\n");
+        } catch (e) {
+            if (typeof e === "string" || e instanceof Error) {
+                this.onError(e);
+            }
+        } finally {
+            this.closeEmitter.fire();
+        }
 
-        }, this.onError.bind(this)); /* analysis.then */
     }
 
     /**
@@ -102,7 +105,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         this.closeEmitter.fire();
     }
 
-    private onError(reason: string) {
+    private onError(reason: string | Error) {
         this.writeEmitter.fire(reason + "\r\n");
         this.closeEmitter.fire();
     }

@@ -5,8 +5,7 @@
 
 
 import { OsUtils } from "../../utils/utils";
-import { spawn } from "child_process";
-import { PathLike } from "fs";
+import { spawn, spawnSync } from "child_process";
 import { join, dirname } from "path";
 import CsvParser = require("csv-parse/lib/sync");
 import * as Fs from "fs";
@@ -41,24 +40,86 @@ export namespace CStat {
     }
     const fieldsToLoad: string[] = Object.values(CStatWarningField);
 
+
+    /**
+     * Runs a C-STAT analysis on a given project and configuration,
+     * using IarBuild.
+     * @param builderPath path to the IarBuild to use
+     * @param projectPath path to the project to run for
+     * @param configurationName name of the project configuration
+     * @param extensionPath path to the root of this extension
+     * @param onWrite an output channel for writing logs and other messages while running
+     */
+    export async function runAnalysis(builderPath: string, projectPath: string, configurationName: string,
+        extensionPath: string, onWrite?: (msg: string) => void): Promise<CStatWarning[]> {
+
+        if (!Fs.existsSync(builderPath)) {
+            return Promise.reject(new Error(`The builder ${builderPath} does not exists.`));
+        }
+
+        // Try to guess where the cstat db will be created. This is the best we can do without parsing the .ewt file ourselves.
+        const output = spawnSync(builderPath).stdout.toString(); // Spawn without args to get help list
+        let dbPath: string;
+        if (output.includes("-cstat_cmds")) { // Filifjonkan
+            dbPath = join(dirname(projectPath), configurationName, "C-STAT", "cstat.db");
+        } else {
+            onWrite?.("Detected pre-9.X workbench.");
+            dbPath = join(dirname(projectPath), configurationName, "Obj", "cstat.db");
+        }
+
+        // It seems we need to delete the db and regenerate it every time to get around
+        // some weird behaviour where the db keeps references to files outside the project
+        // (specifically when the project is moved or the db is accidentally put under VCS).
+        // It seems EW solves this by checking if each file in the db is in the project,
+        // but i'm not sure how I would do that in VS Code
+        if (Fs.existsSync(dbPath)) {
+            Fs.unlinkSync(dbPath);
+        }
+        const iarbuild = spawn(builderPath, [projectPath, "-cstat_analyze", configurationName, "-log", "info"]);
+        iarbuild.stdout.on("data", data => {
+            onWrite?.(data.toString());
+        });
+
+        await new Promise<void>((resolve, reject) => {
+            iarbuild.on("exit", (code) => {
+                if (code !== 0) {
+                    reject(new Error("C-STAT exited with code: " + code));
+                } else {
+                    resolve(); // C-STAT is done!
+                }
+            });
+        });
+
+        return getAllWarnings(dbPath, extensionPath);
+    }
+
+    export function SeverityStringToSeverityEnum(severity: string): CStatWarningSeverity {
+        switch (severity) {
+        case "Low":    return CStatWarningSeverity.LOW;
+        case "Medium": return CStatWarningSeverity.MEDIUM;
+        case "High":   return CStatWarningSeverity.HIGH;
+        default:
+            console.log("Unrecognized C-STAT severity: " + severity);
+            return CStatWarningSeverity.HIGH;
+        }
+    }
+
     /**
      * Returns all warnings from the last C-STAT analysis.
      */
-    export function getAllWarnings(projectPath: PathLike, configurationName: string, extensionPath: PathLike): Thenable<CStatWarning[]> {
-        // the warnings are parsed from cstat.db in the Obj/ output folder
+    function getAllWarnings(dbPath: string, extensionPath: string): Promise<CStatWarning[]> {
         // we use the sqlite3 executable CLI to perform queries against the database
         const sqliteBin = getSqliteBinaryName();
         if (sqliteBin === null) {
             return Promise.reject(new Error("Couldn't find sqlite binaries for cstat. Your OS likely isn't supported."));
         }
-        const sqliteBinPath = join(extensionPath.toString(), "sqlite-bin", sqliteBin);
-        const cstatDBPath = getCStatDBPath(projectPath, configurationName);
-        if (!Fs.existsSync(cstatDBPath)) {
-            return Promise.reject(new Error("Couldn't find cstat DB: " + cstatDBPath));
+        const sqliteBinPath = join(extensionPath, "sqlite-bin", sqliteBin);
+        if (!Fs.existsSync(dbPath)) {
+            return Promise.reject(new Error("Couldn't find cstat DB: " + dbPath));
         }
 
         return new Promise((resolve, reject) => {
-            const sqlProc = spawn(sqliteBinPath, [cstatDBPath, "-csv"]); // we want csv output for easier parsing
+            const sqlProc = spawn(sqliteBinPath, [dbPath, "-csv"]); // we want csv output for easier parsing
 
             sqlProc.stdin.write("SELECT sql FROM sqlite_master WHERE type IS 'table' AND name IS 'warnings';\n");
             sqlProc.stdout.once("data", tableData => {
@@ -97,58 +158,6 @@ export namespace CStat {
                 sqlProc.kill();
             });
         }); /* new Promise() */
-    }
-
-    /**
-     * Runs a C-STAT analysis on a given project and configuration
-     * (calls IarBuild with the -cstat_analyze parameter)
-     */
-    export function runAnalysis(builderPath: PathLike, projectPath: PathLike, configurationName: string, onWrite?: (msg: string) => void): Thenable<void> {
-        if (!Fs.existsSync(builderPath)) {
-            return Promise.reject(new Error(`The builder ${builderPath} does not exists.`));
-        }
-
-        // It seems we need to delete the db and regenerate it every time to get around
-        // some weird behaviour where the db keeps references to files outside the project
-        // (specifically when the project is moved or the db is accidentally put under VCS).
-        // It seems EW solves this by checking if each file in the db is in the project,
-        // but i'm not sure how I would do that in VS Code
-        const dbPath = getCStatDBPath(projectPath, configurationName);
-        if (Fs.existsSync(dbPath)) {
-            Fs.unlinkSync(dbPath);
-        }
-
-        const iarbuild = spawn(builderPath.toString(), [projectPath.toString(), "-cstat_analyze", configurationName.toString(), "-log", "info"]);
-        iarbuild.stdout.on("data", data => {
-            if (onWrite) {
-                onWrite(data.toString());
-            }
-        });
-
-        return new Promise<void>((resolve, reject) => {
-            iarbuild.on("close", (code) => {
-                if (code !== 0) {
-                    reject(new Error("C-STAT exited with code: " + code));
-                } else {
-                    resolve(); // C-STAT is done!
-                }
-            });
-        });
-    }
-
-    export function SeverityStringToSeverityEnum(severity: string): CStatWarningSeverity {
-        switch (severity) {
-        case "Low":    return CStatWarningSeverity.LOW;
-        case "Medium": return CStatWarningSeverity.MEDIUM;
-        case "High":   return CStatWarningSeverity.HIGH;
-        default:
-            console.log("Unrecognized C-STAT severity: " + severity);
-            return CStatWarningSeverity.HIGH;
-        }
-    }
-
-    function getCStatDBPath(projectPath: PathLike, configurationName: string) {
-        return join(dirname(projectPath.toString()), configurationName, "Obj", "cstat.db");
     }
 
     function parseWarning(warnRow: string[]): CStatWarning {
