@@ -84,7 +84,7 @@ class CStatProvider implements Vscode.TaskProvider {
         }
 
         const execution = this.executionFromDefinition(fullDefinition);
-        return new Vscode.Task(_task.definition, Vscode.TaskScope.Workspace, _task.definition[label], "iar-cstat", execution, []);
+        return new Vscode.Task(_task.definition, Vscode.TaskScope.Workspace, _task.definition["label"], "iar-cstat", execution, []);
     }
 
     private getDefaultTaskDefinition(label: string, action: "run" | "clear"): CStatTaskDefinition {
@@ -101,7 +101,6 @@ class CStatProvider implements Vscode.TaskProvider {
 
     private executionFromDefinition(definition: CStatTaskDefinition): Vscode.CustomExecution {
         return new Vscode.CustomExecution(() => {
-            console.log("sadfasdfas");
             return Promise.resolve(new CStatTaskExecution(this.extensionRootPath, this.diagnosticsCollection, definition));
         });
     }
