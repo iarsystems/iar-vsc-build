@@ -277,7 +277,7 @@
         },
         "iarvsc.c-StatFilterLevel": {
           "description": "C-STAT warnings with a lower severity than this are filtered out.",
-          "default": "Medium",
+          "default": "Low",
           "type": "string",
           "enum": [
             "Low",
