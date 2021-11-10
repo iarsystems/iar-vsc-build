@@ -8,7 +8,12 @@
 			"action": "run",
 			"project": "${command:iar-settings.project-file}",
 			"config": "${command:iar-settings.project-configuration}",
-			"builder": "${command:iar-settings.workbench}/common/bin/iarbuild.exe",
+			"linux": {
+				"builder": "${command:iar-settings.workbench}/common/bin/iarbuild",
+			},
+			"windows": {
+				"builder": "${command:iar-settings.workbench}/common/bin/iarbuild.exe",
+			},
 			"problemMatcher": []
 		},
 		{
@@ -17,7 +22,12 @@
 			"action": "clear",
 			"project": "${command:iar-settings.project-file}",
 			"config": "${command:iar-settings.project-configuration}",
-			"builder": "${command:iar-settings.workbench}/common/bin/iarbuild.exe",
+			"linux": {
+				"builder": "${command:iar-settings.workbench}/common/bin/iarbuild",
+			},
+			"windows": {
+				"builder": "${command:iar-settings.workbench}/common/bin/iarbuild.exe",
+			},
 			"problemMatcher": []
 		},
 	]
