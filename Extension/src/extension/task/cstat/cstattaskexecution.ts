@@ -55,11 +55,6 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
      * Runs C-STAT on the current project and updates the warnings displayed in VS Code
      */
     private async generateDiagnostics(): Promise<void> {
-        if (OsUtils.detectOsType() !== OsUtils.OsType.Windows) {
-            Vscode.window.showErrorMessage("C-STAT is only available on windows, sorry!");
-            return Promise.reject(new Error("C-STAT is only available on windows, sorry!"));
-        }
-
         const projectPath = this.definition.project;
         const configName = this.definition.config;
         const builderPath = this.definition.builder;

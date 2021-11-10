@@ -44,9 +44,6 @@ class CStatProvider implements Vscode.TaskProvider {
 
     provideTasks(): Vscode.ProviderResult<Vscode.Task[]> {
         const tasks: Vscode.Task[] = [];
-        if (OsUtils.OsType.Windows !== OsUtils.detectOsType()) {
-            return []; // We can only perform cstat tasks on Windows
-        }
         const taskVariants: Array<[string, "run" | "clear"]> =
             [["Run C-STAT Analysis", "run"],
                 ["Clear C-STAT Diagnostics", "clear"]];
