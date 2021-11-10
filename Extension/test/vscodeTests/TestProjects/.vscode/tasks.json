@@ -1,0 +1,24 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		// These are used to test that C-STAT tasks work both with and without a tasks.json file
+		{
+			"type": "iar-cstat",
+			"label": "iar-cstat: Run C-STAT Analysis (configured)",
+			"action": "run",
+			"project": "${command:iar-settings.project-file}",
+			"config": "${command:iar-settings.project-configuration}",
+			"builder": "${command:iar-settings.workbench}/common/bin/iarbuild.exe",
+			"problemMatcher": []
+		},
+		{
+			"type": "iar-cstat",
+			"label": "iar-cstat: Clear C-STAT Diagnostics (configured)",
+			"action": "clear",
+			"project": "${command:iar-settings.project-file}",
+			"config": "${command:iar-settings.project-configuration}",
+			"builder": "${command:iar-settings.workbench}/common/bin/iarbuild.exe",
+			"problemMatcher": []
+		},
+	]
+}
