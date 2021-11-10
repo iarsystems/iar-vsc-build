@@ -130,8 +130,12 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             }
         }
 
+        const severityString = warning.severity === CStat.CStatWarningSeverity.LOW ? "Low"
+            : warning.severity === CStat.CStatWarningSeverity.MEDIUM ? "Medium"
+                : "High";
+
         const diagnostic = new Vscode.Diagnostic(range, warning.message, severity);
-        diagnostic.source = warning.checkId;
+        diagnostic.source = warning.checkId + ` [${severityString}]`;
         return diagnostic;
     }
 }
