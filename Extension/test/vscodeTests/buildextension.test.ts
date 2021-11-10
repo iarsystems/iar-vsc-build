@@ -11,86 +11,16 @@ import { TestUtils } from "../../utils/testutils/testUtils";
 import { Project } from "../../src/iar/project/project";
 import {IarUtils} from "../../utils/iarUtils";
 import { TestSandbox } from "../../utils/testutils/testSandbox";
-import { VscodeTestsSetup } from "./setup";
+import { VscodeTestsUtils } from "./utils";
+import { readdir, rm } from "fs/promises";
 
 export namespace Utils{
     export const EXTENSION_ROOT = path.join(path.resolve(__dirname), "../../../");
     export const TEST_PROJECTS_ROOT = path.join(EXTENSION_ROOT, "test/vscodeTests/TestProjects");
 
-    // Tags for working with the Iar GUI integration
-    export const  EW = "EW Installation";
-    export const  PROJECT = "Project";
-    export const  CONFIG = "Configuration";
-
     // Tags for the tasks that can be executed
     export const  BUILD = "Iar Build";
     export const  REBUILD = "Iar Rebuild";
-
-    export function failOnReject(reject: any) {
-        fail(reject);
-    }
-
-    export function getEntries(topNodeName: string) {
-        const theTree = UI.getInstance().settingsTreeView;
-        const nodes = theTree.getChildren();
-        if (Array.isArray(nodes)) {
-            for (let i = 0; i < nodes.length; i++) {
-                if (nodes[i]!.label === topNodeName) {
-                    return theTree.getChildren(nodes[i]);
-                }
-            }
-        }
-        fail("Failed to locate: " + topNodeName);
-    }
-
-    export function assertNodelistContains(treeItems: vscode.ProviderResult<vscode.TreeItem[]>, labelToFind: string ) {
-        if (Array.isArray(treeItems)) {
-            return treeItems.find(item => {
-                return item.label?.toString().startsWith(labelToFind);
-            });
-        }
-        fail("Failed to locate item with label: " + labelToFind);
-    }
-
-    export function activateSomething(entryLabel: string, toActivate: string) {
-        const list = getEntries(entryLabel);
-        const listEntry = assertNodelistContains(list, toActivate);
-
-        assert(listEntry && listEntry.command && listEntry.command.arguments);
-        return vscode.commands.executeCommand(listEntry.command.command, listEntry.command.arguments[0]);
-    }
-
-    export function activateProject(projectLabel: string) {
-        return activateSomething(PROJECT, projectLabel);
-    }
-
-    export function activateConfiguration(configurationTag: string) {
-        return activateSomething(CONFIG, configurationTag);
-    }
-
-    export function activateWorkbench(ew: string) {
-        return activateSomething(EW, ew);
-    }
-
-    /**
-     * Execute a task and return a promise to keep track of the completion. The promise is resolved when
-     * the matcher returns true.
-     * @param task
-     * @param matcher
-     * @returns
-     */
-     export async function executeTask(task: vscode.Task, matcher: (taskEvent: vscode.TaskEndEvent) => boolean) {
-         await vscode.tasks.executeTask(task);
-
-         return new Promise<void>(resolve => {
-             const disposable = vscode.tasks.onDidEndTask(e => {
-                 if (matcher(e)) {
-                     disposable.dispose();
-                     resolve();
-                 }
-             });
-         });
-     }
 
     export function assertFileExists(path: string) {
         return fs.stat(path, (exists) => {
@@ -102,37 +32,7 @@ export namespace Utils{
         });
     }
 
-    /**
-     * Run a task with the given name for the a project and configuration. Returns a promise that resolves
-     * once the task has been executed.
-     * @param taskName
-     * @param projectName
-     * @param configuration
-     * @returns
-     */
-     export async function runTaskForProject(taskName: string, projectName: string, configuration: string) {
-         // To have the call to vscode.tasks working the activate calls needs to be awaited.
-         await activateProject(projectName);
-         await activateConfiguration(configuration);
 
-         // Fetch the tasks and execute the build task.
-         return vscode.tasks.fetchTasks().then(async(listedTasks)=>{
-             // Locate the build task
-             const theTask = listedTasks.find((task)=>{
-                 return task.name === taskName;
-             });
-             if (!theTask) {
-                 fail("Failed to locate " + taskName);
-             }
-
-             // Execute the task and wait for it to complete
-             await Utils.executeTask(theTask, (e)=>{
-                 return e.execution.task.name === taskName;
-             });
-         }, (reason)=>{
-             fail(reason);
-         });
-     }
 
     export async function createProject(projName: string) {
         const exWorkbench = await UI.getInstance().extendedWorkbench.selectedPromise;
@@ -179,21 +79,26 @@ suite("Test build extension", ()=>{
 
     let sandbox: TestSandbox;
 
-    suiteSetup(() => {
-        if (VscodeTestsSetup.sandbox === undefined) {
-            VscodeTestsSetup.setup();
-        }
-        sandbox = VscodeTestsSetup.sandbox!;
+    suiteSetup(async() => {
+        VscodeTestsUtils.setup();
+        sandbox = VscodeTestsUtils.sandbox!;
+        // Remove any build results from previous runs
+        const nodes = await readdir(sandbox.path);
+        return Promise.all(
+            nodes.filter(node => node.match(/^Test_\w+_\d+/)).map(node => {
+                return rm(path.join(sandbox.path, node), {recursive: true, force: true});
+            })
+        );
     });
 
     test("Load projects in directory", ()=>{
-        const allProjects = Utils.getEntries(Utils.PROJECT);
-        Utils.assertNodelistContains(allProjects, "BasicProject");
-        Utils.assertNodelistContains(allProjects, "BasicDebugging");
+        const allProjects = VscodeTestsUtils.getEntries(VscodeTestsUtils.PROJECT);
+        VscodeTestsUtils.assertNodelistContains(allProjects, "BasicProject");
+        VscodeTestsUtils.assertNodelistContains(allProjects, "BasicDebugging");
     });
 
     test("No backups in project list", ()=>{
-        const allProjects = Utils.getEntries(Utils.PROJECT);
+        const allProjects = VscodeTestsUtils.getEntries(VscodeTestsUtils.PROJECT);
         if (Array.isArray(allProjects)) {
             allProjects.forEach(project => {
                 if (project.label?.toString().startsWith("Backup ")) {
@@ -204,17 +109,17 @@ suite("Test build extension", ()=>{
     });
 
     test("Load all configurations", async()=>{
-        await Utils.activateProject("BasicDebugging").then(()=>{
-            const allConfigurations = Utils.getEntries(Utils.CONFIG);
-            Utils.assertNodelistContains(allConfigurations, "Debug");
-            Utils.assertNodelistContains(allConfigurations, "Release");
+        await VscodeTestsUtils.activateProject("BasicDebugging").then(()=>{
+            const allConfigurations = VscodeTestsUtils.getEntries(VscodeTestsUtils.CONFIG);
+            VscodeTestsUtils.assertNodelistContains(allConfigurations, "Debug");
+            VscodeTestsUtils.assertNodelistContains(allConfigurations, "Release");
         });
     } );
 
     test("Check IAR tasks exist", async()=>{
         const taskToFind: string[] = [Utils.BUILD, Utils.REBUILD];
         // Needs to be awaited otherwise the fetchtasks does not return anything.
-        await Utils.activateProject("BasicDebugging");
+        await VscodeTestsUtils.activateProject("BasicDebugging");
 
         return vscode.tasks.fetchTasks({type : "iar"}).then((iarTasks)=>{
             deepEqual(iarTasks.length, taskToFind.length, "To few iar tasks located.");
@@ -228,24 +133,21 @@ suite("Test build extension", ()=>{
 
     test("Build project with all listed EW:s", async()=>{
         const ewpFile = path.join(path.join(Utils.TEST_PROJECTS_ROOT, "BasicProject", "BasicProject.ewp"));
-        const listedEws = Utils.getEntries(Utils.EW);
+        const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
         let id = 1;
         if (Array.isArray(listedEws)) {
             for (const ew of listedEws) {
-                if (ew.label && ew.tooltip) {
-                    // The tooltip is the absolute path to the current workbench. Read all the targets from the workbench.
-                    const targets: string[] = IarUtils.getTargetsFromEwPath(ew.tooltip.toString());
-                    for (const target of targets) {
-                        // Generate a testproject to build using the generic template
-                        const testEwp = Utils.setupProject(id++, target.toUpperCase(), ewpFile, sandbox);
-                        // Build the project.
-                        await Utils.runTaskForProject(Utils.BUILD, path.basename(testEwp.ewp, ".ewp"), "Debug");
-                        // Check that an output file has been created
-                        await Utils.assertFileExists(path.join(testEwp.folder, "Debug", "Exe", path.basename(testEwp.ewp, ".ewp") + ".out"));
-                    }
-                } else {
-                    console.log("Skipping " + ew);
-                    continue;
+                assert.strictEqual(typeof ew.label, "string");
+                VscodeTestsUtils.activateWorkbench(ew.label as string);
+                // The tooltip is the absolute path to the current workbench. Read all the targets from the workbench.
+                const targets: string[] = IarUtils.getTargetsFromEwPath(ew.tooltip!.toString());
+                for (const target of targets) {
+                    // Generate a testproject to build using the generic template
+                    const testEwp = Utils.setupProject(id++, target.toUpperCase(), ewpFile, sandbox);
+                    // Build the project.
+                    await VscodeTestsUtils.runTaskForProject(Utils.BUILD, path.basename(testEwp.ewp, ".ewp"), "Debug");
+                    // Check that an output file has been created
+                    await Utils.assertFileExists(path.join(testEwp.folder, "Debug", "Exe", path.basename(testEwp.ewp, ".ewp") + ".out"));
                 }
             }
         }
@@ -259,13 +161,13 @@ suite("Test build extension", ()=>{
         }
 
         // Get the list of selectable ew:s
-        const listedEws = Utils.getEntries(Utils.EW);
+        const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
         if (Array.isArray(listedEws)) {
             // Check that the lists are the same.
             deepEqual(configuredEws?.length, listedEws.length);
             for (const configuredEw of configuredEws) {
                 const ewId: string = path.basename(configuredEw.toString());
-                Utils.assertNodelistContains(listedEws, ewId);
+                VscodeTestsUtils.assertNodelistContains(listedEws, ewId);
             }
         } else {
             fail("Failed to collect configurable workbenches.");
