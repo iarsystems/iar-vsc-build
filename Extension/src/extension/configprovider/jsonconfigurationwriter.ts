@@ -57,12 +57,16 @@ export namespace JsonConfigurationWriter {
         const vscodePath = Path.join(workspaceFolder, ".vscode");
         const outPath = Path.join(vscodePath, "c_cpp_properties.json");
 
-        createOutDirectory(outPath);
+        await createOutDirectory(outPath);
 
         const loadedConfig = await loadConfiguration(outPath);
 
         if (setConfigurationIfChanged(loadedConfig, "IAR", jsonConfiguration)) {
-            await fsPromises.writeFile(outPath, JSON.stringify(loadedConfig, undefined, 4));
+            // VSC-48 It seems if we do this async and write the config rapidly in succession
+            // (such as in automatic tests), they will sometimes interfere with one another.
+            // Do it synchronously instead.
+            Fs.writeFileSync(outPath, JSON.stringify(loadedConfig, undefined, 4));
+            // await fsPromises.writeFile(outPath, JSON.stringify(loadedConfig, undefined, 4));
         }
     }
 
