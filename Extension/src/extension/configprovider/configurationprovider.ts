@@ -67,12 +67,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         this.api.registerCustomConfigurationProvider(this);
         // to provide configs as fast as possible at startup, do notifyReady as soon as fallback configs are ready,
         // and let the configs be updated when accurate configs are available
-        this.generateFallbackConfigs();
-        this.api.notifyReady(this);
-        this.generateAccurateConfigs().then((didChange: boolean) => {
-            if (didChange) {
-                this.api.didChangeCustomConfiguration(this);
-            }
+        this.generateFallbackConfigs().then(() => {
+            this.api.notifyReady(this);
+            this.generateAccurateConfigs().then((didChange: boolean) => {
+                if (didChange) {
+                    this.api.didChangeCustomConfiguration(this);
+                }
+            });
         });
     }
 
