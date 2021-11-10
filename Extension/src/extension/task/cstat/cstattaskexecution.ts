@@ -6,7 +6,7 @@
 
 import * as Vscode from "vscode";
 import { CStatTaskDefinition } from "./cstattaskprovider";
-import { OsUtils, CommandUtils } from "../../../utils/utils";
+import { CommandUtils } from "../../../utils/utils";
 import { CStat } from "../../../iar/tools/cstat";
 
 /**
