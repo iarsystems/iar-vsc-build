@@ -4,6 +4,7 @@ import * as path from "path";
 import { VscodeTestsUtils } from "./utils";
 import { OsUtils } from "../../utils/osUtils";
 import { readdir, unlink } from "fs/promises";
+import { VscodeTestsSetup } from "./setup";
 
 namespace Utils {
     export function assertPathEquals(actual: string, expected: string) {
@@ -35,7 +36,7 @@ suite("Test C-STAT", ()=>{
     let originalFilterLevel: string | undefined;
 
     suiteSetup(async() => {
-        sandboxPath = VscodeTestsUtils.setup();
+        sandboxPath = VscodeTestsSetup.setup();
         originalFilterLevel = Vscode.workspace.getConfiguration("iarvsc").get("c-StatFilterLevel");
         // Remove all backup files, since too many backup files will cause iarbuild to fail
         const nodes = await readdir(path.join(sandboxPath, TARGET_PROJECT));

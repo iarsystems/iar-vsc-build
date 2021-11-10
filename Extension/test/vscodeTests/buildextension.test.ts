@@ -13,6 +13,7 @@ import {IarUtils} from "../../utils/iarUtils";
 import { TestSandbox } from "../../utils/testutils/testSandbox";
 import { VscodeTestsUtils } from "./utils";
 import { readdir, rm } from "fs/promises";
+import { VscodeTestsSetup } from "./setup";
 
 export namespace Utils{
     export const EXTENSION_ROOT = path.join(path.resolve(__dirname), "../../../");
@@ -80,8 +81,8 @@ suite("Test build extension", ()=>{
     let sandbox: TestSandbox;
 
     suiteSetup(async() => {
-        VscodeTestsUtils.setup();
-        sandbox = VscodeTestsUtils.sandbox!;
+        VscodeTestsSetup.setup();
+        sandbox = VscodeTestsSetup.sandbox!;
         // Remove any build results from previous runs
         const nodes = await readdir(sandbox.path);
         return Promise.all(
