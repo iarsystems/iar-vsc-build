@@ -5,7 +5,7 @@
 
 
 import { OsUtils } from "../../utils/utils";
-import { spawn, spawnSync } from "child_process";
+import { ChildProcessWithoutNullStreams, spawn, spawnSync } from "child_process";
 import { join, dirname } from "path";
 import CsvParser = require("csv-parse/lib/sync");
 import * as Fs from "fs";
@@ -90,6 +90,7 @@ export namespace CStat {
             });
         });
 
+        onWrite?.("Reading C-STAT output.");
         return getAllWarnings(dbPath, extensionPath);
     }
 
@@ -105,9 +106,9 @@ export namespace CStat {
     }
 
     /**
-     * Returns all warnings from the last C-STAT analysis.
+     * Returns all warnings from a C-STAT database.
      */
-    function getAllWarnings(dbPath: string, extensionPath: string): Promise<CStatWarning[]> {
+    async function getAllWarnings(dbPath: string, extensionPath: string): Promise<CStatWarning[]> {
         // we use the sqlite3 executable CLI to perform queries against the database
         const sqliteBin = getSqliteBinaryName();
         if (sqliteBin === null) {
@@ -118,20 +119,27 @@ export namespace CStat {
             return Promise.reject(new Error("Couldn't find cstat DB: " + dbPath));
         }
 
-        return new Promise((resolve, reject) => {
-            const sqlProc = spawn(sqliteBinPath, [dbPath, "-csv"]); // we want csv output for easier parsing
+        const sqlProc = spawn(sqliteBinPath, [dbPath, "-csv"]); // we want csv output for easier parsing
+        const warnings = await getWarningsFromTable(sqlProc, "warnings");
+        const linkWarnings = await getWarningsFromTable(sqlProc, "link_warnings");
+        sqlProc.kill();
 
-            sqlProc.stdin.write("SELECT sql FROM sqlite_master WHERE type IS 'table' AND name IS 'warnings';\n");
+        return warnings.concat(linkWarnings);
+    }
+
+    function getWarningsFromTable(sqlProc: ChildProcessWithoutNullStreams, tableName: string): Promise<CStatWarning[]> {
+        return new Promise((resolve, reject) => {
+            sqlProc.stdin.write(`SELECT sql FROM sqlite_master WHERE type IS 'table' AND name IS '${tableName}';\n`);
             sqlProc.stdout.once("data", tableData => {
                 // The name of the check is contained in property_alias if present, otherwise in property_id
                 const checkIdColumn = tableData.toString().includes("property_alias") ? "property_alias" : "property_id";
 
-                sqlProc.stdin.write("SELECT Count(*) FROM warnings;\n");
+                sqlProc.stdin.write(`SELECT Count(*) FROM ${tableName};\n`);
                 sqlProc.stdout.once("data", data => {
                     const expectedRows = Number(data.toString());
 
                     if (expectedRows > 0) {
-                        const query = `SELECT ${fieldsToLoad.join(",")},${checkIdColumn} FROM warnings;\n`;
+                        const query = `SELECT ${fieldsToLoad.join(",")},${checkIdColumn} FROM '${tableName}';\n`;
                         sqlProc.stdin.write(query);
                         let output = "";
                         sqlProc.stdout.on("data", data => {
@@ -141,13 +149,11 @@ export namespace CStat {
                                 const warnings = warnsRaw.map(row => parseWarning(row));
                                 if (warnings.length === expectedRows) {
                                     resolve(warnings);  // We are done
-                                    sqlProc.kill();
                                 }
                             } catch (e) { } // CsvParser will throw if we havent recieved all output yet
                         });
                     } else {
                         resolve([]);
-                        sqlProc.kill();
                     }
 
                 }); /* stdout.once() */
@@ -155,9 +161,8 @@ export namespace CStat {
 
             sqlProc.stderr.on("data", data => {
                 reject(data.toString());
-                sqlProc.kill();
             });
-        }); /* new Promise() */
+        });
     }
 
     function parseWarning(warnRow: string[]): CStatWarning {

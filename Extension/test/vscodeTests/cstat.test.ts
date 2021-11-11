@@ -83,7 +83,9 @@ suite("Test C-STAT", ()=>{
         { message: "`main' does not have a valid prototype", source: "MISRAC2004-16.5,MISRAC2012-Rule-8.2_a [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(13, 5) },
         { message: "`bad_fun' does not have a valid prototype", source: "MISRAC2004-16.5,MISRAC2012-Rule-8.2_a [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6) },
         { message: "Use of <stdio.h> is not compliant", source: "MISRAC++2008-27-0-1,MISRAC2004-20.9,MISRAC2012-Rule-21.6 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(1, 19) },
-        { message: "Function `addOne' declared at block scope", source: "MISRAC2004-8.6 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(17, 11) }
+        { message: "Function `addOne' declared at block scope", source: "MISRAC2004-8.6 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(17, 11) },
+        { message: "Externally-linked object or function `bad_fun' is referenced in only one translation unit", source: "MISRAC2004-8.10,MISRAC2012-Rule-8.7 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6) },
+        { message: "Externally-linked object or function `addOne' is referenced in only one translation unit", source: "MISRAC2004-8.10,MISRAC2012-Rule-8.7 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(17, 11) }
     ];
 
     // Expected to time out until VSC-75 is fixed (a bug in the VS Code platform)
