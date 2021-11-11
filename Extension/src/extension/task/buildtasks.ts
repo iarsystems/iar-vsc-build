@@ -9,7 +9,6 @@
 import * as Vscode from "vscode";
 import { isArray } from "util";
 import { Settings } from "../settings";
-import { IarExecution } from "./iarexecution";
 import { OsUtils } from "../../utils/utils";
 
 export interface BuildTaskDefinition {
@@ -91,9 +90,13 @@ export namespace BuildTasks {
             args = args.concat(extraArgs);
         }
 
-        const process = new IarExecution(
-            builder,
-            args
+        // Make sure to quote all arguments
+        const process = new Vscode.ShellExecution(
+            { value: builder, quoting: Vscode.ShellQuoting.Strong },
+            args.map(arg => {
+                return { value: arg, quoting: Vscode.ShellQuoting.Strong };
+            }),
+            {}
         );
 
         const task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);

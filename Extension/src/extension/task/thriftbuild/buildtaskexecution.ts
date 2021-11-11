@@ -4,7 +4,6 @@
 
 import * as Vscode from "vscode";
 import { BuildTaskDefinition } from "./buildtaskprovider";
-import { CommandUtils } from "../../../utils/utils";
 import { UI } from "../../ui/app";
 
 /**
@@ -20,18 +19,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
 
     onDidOverrideDimensions?: Vscode.Event<Vscode.TerminalDimensions | undefined> | undefined;
 
-    private readonly definition: BuildTaskDefinition;
-
-    constructor(definition: BuildTaskDefinition) {
-        // Substitute command variables.
-        const resolvedDef: BuildTaskDefinition = definition;
-        for (const property in resolvedDef) {
-            const propTyped = property as keyof BuildTaskDefinition;
-            if (resolvedDef[propTyped]) {
-                resolvedDef[propTyped] = CommandUtils.parseSettingCommands(resolvedDef[propTyped]);
-            }
-        }
-        this.definition = resolvedDef;
+    constructor(private readonly definition: BuildTaskDefinition) {
     }
 
     async open(_initialDimensions: Vscode.TerminalDimensions | undefined)  {

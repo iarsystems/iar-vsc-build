@@ -4,8 +4,6 @@
 
 
 
-import { Command } from "../extension/command/command";
-import { isString } from "util";
 import * as os from "os";
 import { PathLike } from "fs";
 import * as Path from "path";
@@ -47,41 +45,6 @@ export namespace ListUtils {
         });
 
         return Array.from(result.values());
-    }
-}
-
-export namespace CommandUtils {
-    export function parseSettingCommands(inStr: string): string {
-        let position = inStr.indexOf("${command:");
-
-        while (position !== -1) {
-            const start = inStr.indexOf(":", position) + 1;
-            const end = inStr.indexOf("}", start);
-
-            const command = inStr.substring(start, end);
-
-            const cmd = Command.getCommandManager().find(command);
-            if (cmd !== undefined) {
-                const result = cmd.execute(true);
-
-                if (isString(result)) {
-                    const replaceString = "${command:" + command + "}";
-                    const replaceBy = result as string;
-
-                    inStr = inStr.replace(replaceString, replaceBy);
-
-                    position = 0;
-                } else {
-                    position = end;
-                }
-            } else {
-                position = end;
-            }
-
-            position = inStr.indexOf("${command:", position);
-        }
-
-        return inStr;
     }
 }
 
