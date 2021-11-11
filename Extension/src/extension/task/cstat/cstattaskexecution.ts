@@ -6,7 +6,6 @@
 
 import * as Vscode from "vscode";
 import { CStatTaskDefinition } from "./cstattaskprovider";
-import { CommandUtils } from "../../../utils/utils";
 import { CStat } from "../../../iar/tools/cstat";
 
 /**
@@ -20,26 +19,16 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     private readonly closeEmitter = new Vscode.EventEmitter<void>();
     onDidClose?: Vscode.Event<void> = this.closeEmitter.event;
 
-    private readonly definition: CStatTaskDefinition;
-
-    constructor(private readonly extensionPath: string, private readonly diagnostics: Vscode.DiagnosticCollection, definition: CStatTaskDefinition) {
-        // Substitute command variables.
-        const resolvedDef: CStatTaskDefinition = definition;
-        for (const property in resolvedDef) {
-            const propTyped = property as keyof CStatTaskDefinition;
-            if (resolvedDef[propTyped]) {
-                resolvedDef[propTyped] = CommandUtils.parseSettingCommands(resolvedDef[propTyped]);
-            }
-        }
-        this.definition = resolvedDef;
+    /**
+     * @param extensionPath Path to the extension root
+     * @param diagnostics A diagnostics collection to place the results in (or clear results from)
+     * @param definition The task definition to execute
+     */
+    constructor(private readonly extensionPath: string, private readonly diagnostics: Vscode.DiagnosticCollection,
+        private readonly definition: CStatTaskDefinition) {
     }
 
     open(_initialDimensions: Vscode.TerminalDimensions | undefined): void {
-        if (!this.definition.builder || !this.definition.project || !this.definition.config) {
-            this.writeEmitter.fire("Error: Make sure you select a workbench, project and configuration before running this task.");
-            this.closeEmitter.fire();
-            return;
-        }
         if (this.definition.action === "run") {
             this.generateDiagnostics();
         } else if (this.definition.action === "clear") {
