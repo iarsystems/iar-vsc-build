@@ -7,14 +7,6 @@ import { readdir, unlink } from "fs/promises";
 import { VscodeTestsSetup } from "./setup";
 
 namespace Utils {
-    export function assertPathEquals(actual: string, expected: string) {
-        if (OsUtils.detectOsType() === OsUtils.OsType.Windows) {
-            Assert.strictEqual(actual.toLowerCase(), expected.toLowerCase());
-        } else {
-            Assert.strictEqual(actual, expected);
-        }
-    }
-
     export function assertDiagnosticEquals(actual: Vscode.Diagnostic, expected: Vscode.Diagnostic) {
         Assert.strictEqual(actual.message, expected.message);
         Assert.strictEqual(actual.source, expected.source);
@@ -106,7 +98,7 @@ suite("Test C-STAT", ()=>{
                 const fileDiagnostics = Vscode.languages.getDiagnostics().filter(diag => diag[1].length > 0);
                 Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only)");
                 const expectedPath = path.join(sandboxPath, TARGET_PROJECT, "main.c");
-                Utils.assertPathEquals(fileDiagnostics[0]![0].fsPath, expectedPath);
+                Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, expectedPath));
 
                 diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
                 Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
@@ -140,7 +132,7 @@ suite("Test C-STAT", ()=>{
                 const fileDiagnostics = Vscode.languages.getDiagnostics().filter(diag => diag[1].length > 0);
                 Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only)");
                 const expectedPath = path.join(sandboxPath, targetProject, "main.c");
-                Utils.assertPathEquals(fileDiagnostics[0]![0].fsPath, expectedPath);
+                Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, expectedPath));
 
                 diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
                 Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
@@ -180,7 +172,7 @@ suite("Test C-STAT", ()=>{
                 const fileDiagnostics = Vscode.languages.getDiagnostics().filter(diag => diag[1].length > 0);
                 Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only)");
                 const expectedPath = path.join(sandboxPath, targetProject, "main.c");
-                Utils.assertPathEquals(fileDiagnostics[0]![0].fsPath, expectedPath);
+                Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, expectedPath));
 
                 diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
                 Assert.strictEqual(diagnostics.length, expectedDiagnosticsHigh.length, "Actual and expected diagnostics are not the same length");
