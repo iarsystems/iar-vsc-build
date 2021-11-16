@@ -147,7 +147,7 @@ def main
 
   shell "npm install -g vsce"
 
-  shell "vsce package"
+  shell "vsce package --no-rewrite-relative-links"
 
   logg "Generating .vsix file..."
 end
