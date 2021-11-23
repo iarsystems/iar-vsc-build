@@ -91,49 +91,40 @@
         "category": "IAR Settings"
       },
       {
-        "command": "iar.addNode",
-        "title": "Add file/group here",
+        "command": "iar.addFile",
+        "title": "Add file here",
         "category": "IAR",
-        "icon": {
-          "dark": "images/icons/add.png",
-          "light": "images/icons/add.png"
-        }
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "iar.addGroup",
+        "title": "Add group here",
+        "category": "IAR",
+        "icon": "$(new-folder)"
       },
       {
         "command": "iar.removeNode",
         "title": "Remove file/group from project",
         "category": "IAR",
-        "icon": {
-          "dark": "images/icons/remove.png",
-          "light": "images/icons/remove.png"
-        }
+        "icon": "$(trash)"
       },
       {
         "command": "iar.addConfig",
         "title": "Add configuration",
         "category": "IAR",
-        "icon": {
-          "dark": "images/icons/add.png",
-          "light": "images/icons/add.png"
-        }
+        "icon": "$(add)"
       },
       {
         "command": "iar.removeConfig",
         "title": "Remove configuration from project",
         "category": "IAR",
-        "icon": {
-          "dark": "images/icons/remove.png",
-          "light": "images/icons/remove.png"
-        }
+        "icon": "$(trash)"
       },
       {
         "command": "iar.reloadProject",
         "title": "Reload project",
         "category": "IAR",
-        "icon": {
-          "dark": "images/icons/reload.png",
-          "light": "images/icons/reload.png"
-        }
+        "icon": "$(refresh)"
       },
       {
         "command": "iar.createProject",
@@ -181,7 +172,12 @@
           "group": "inline"
         },
         {
-          "command": "iar.addNode",
+          "command": "iar.addGroup",
+          "when": "view == iar-project && viewItem == group || viewItem == filesroot",
+          "group": "inline"
+        },
+        {
+          "command": "iar.addFile",
           "when": "view == iar-project && viewItem == group || viewItem == filesroot",
           "group": "inline"
         },
@@ -198,7 +194,11 @@
       ],
       "commandPalette": [
         {
-          "command": "iar.addNode",
+          "command": "iar.addFile",
+          "when": "false"
+        },
+        {
+          "command": "iar.addGroup",
           "when": "false"
         },
         {
@@ -236,7 +236,11 @@
       "properties": {
         "iarvsc.iarInstallDirectories": {
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "description": "Root path where IAR installs its applications.",
+          "scope": "machine-overridable",
           "default": [
             "C:\\Program Files\\IAR Systems",
             "C:\\Program Files (x86)\\IAR Systems"
@@ -275,7 +279,7 @@
           "description": "The c++ standard to use in the config tool configuration.",
           "default": "c++14"
         },
-        "iarvsc.c-StatFilterLevel": {
+        "iarvsc.c-stat.filterLevel": {
           "description": "C-STAT warnings with a lower severity than this are filtered out.",
           "default": "Low",
           "type": "string",
@@ -285,7 +289,7 @@
             "High"
           ]
         },
-        "iarvsc.c-StatDisplayLowSeverityWarningsAsHints": {
+        "iarvsc.c-stat.displayLowSeverityWarningsAsHints": {
           "description": "If the filter level is set to Low, displays low severity C-STAT warnings as hints rather than warnings. This hides them from the problem list, but still shows them in the editor.",
           "type": "boolean",
           "default": false

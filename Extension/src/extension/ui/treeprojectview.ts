@@ -25,7 +25,7 @@ export class TreeProjectView {
         extWorkbenchModel: InputModel<ExtendedWorkbench>) {
         this.view = Vscode.window.createTreeView("iar-project", { treeDataProvider: this.provider });
         projectModel.addOnSelectedHandler((_model, project) => {
-            this.view.title = project ? project.name : "IAR Project";
+            this.view.title =  "IAR Project" + (project ? ": " + project.name : "");
         });
         extProjectModel.addOnSelectedHandler((_model, project) => {
             this.provider.setProject(project);

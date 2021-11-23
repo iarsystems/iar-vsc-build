@@ -27,7 +27,7 @@ import { CreateProjectCommand } from "../command/project/createproject";
 import { AddConfigCommand } from "../command/project/addconfig";
 import { RemoveConfigCommand } from "../command/project/removeconfig";
 import { RemoveNodeCommand } from "../command/project/removenode";
-import { AddNodeCommand } from "../command/project/addnode";
+import { AddFileCommand, AddGroupCommand } from "../command/project/addnode";
 import { SingletonModel } from "../model/singletonmodel";
 import { EwpFile } from "../../iar/project/parsing/ewpfile";
 import { ExtendedWorkbench, ThriftWorkbench } from "../../iar/extendedworkbench";
@@ -98,7 +98,8 @@ class Application {
         new AddConfigCommand().register(context);
         new RemoveConfigCommand().register(context);
         new RemoveNodeCommand().register(context);
-        new AddNodeCommand().register(context);
+        new AddFileCommand().register(context);
+        new AddGroupCommand().register(context);
 
         // add listeners
         this.addListeners();

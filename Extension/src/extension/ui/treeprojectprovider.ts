@@ -83,21 +83,21 @@ export class TreeProjectProvider implements Vscode.TreeDataProvider<ProjectNode>
         } else if (element instanceof FilesNode) {
 
             item.collapsibleState = element.iarNode.children.length > 0 ? Vscode.TreeItemCollapsibleState.Expanded : Vscode.TreeItemCollapsibleState.None;
-            item.description = element.iarNode.path;
 
             if (element.iarNode.type === NodeType.File) {
-                item.iconPath = new Vscode.ThemeIcon("file-code");
-                item.tooltip = element.iarNode.name + " - Click to open";
+                item.tooltip = element.iarNode.path;
                 item.command = { title: "Open in editor", command: "vscode.open", arguments: [Vscode.Uri.file(element.iarNode.path)] };
+                item.resourceUri = Vscode.Uri.file(element.iarNode.path);
             }
             if (element.iarNode.type === NodeType.Group) {
+                item.iconPath = new Vscode.ThemeIcon("folder");
                 item.contextValue = "group";
             }
 
         } else if (element instanceof ConfigurationNode) {
             item.collapsibleState = Vscode.TreeItemCollapsibleState.None;
             item.description = element.config.toolchainId.toUpperCase();
-            // item.iconPath = new Vscode.ThemeIcon("database");
+            item.iconPath = new Vscode.ThemeIcon("package");
         }
         return item;
     }

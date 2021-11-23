@@ -12,12 +12,18 @@ import { FilesNode, ProjectNode } from "../../ui/treeprojectprovider";
 import { ProjectCommand } from "./projectcommand";
 import { ExtendedProject } from "../../../iar/project/project";
 
+
+function addNode(parent: Node, newNode: Node, project: ExtendedProject): Promise<void> {
+    parent.children.push(newNode);
+    return project.setNode(parent);
+}
+
 /**
- * This command adds a file or group to a project (using a thrift ProjectManager)
+ * This command adds a file to a project (using a thrift ProjectManager)
  */
-export class AddNodeCommand extends ProjectCommand {
+export class AddFileCommand extends ProjectCommand {
     constructor() {
-        super("iar.addNode");
+        super("iar.addFile");
     }
 
     async execute(source: ProjectNode, project: ExtendedProject) {
@@ -25,51 +31,63 @@ export class AddNodeCommand extends ProjectCommand {
             const rootNode = await project.getRootNode();
             // The source is either a FilesNode corresponding to a group, or the user clicked the top-level "Files"
             // item, in which case we should add to the root node
-            const newParent = source instanceof FilesNode ? source.iarNode : rootNode;
+            const parent = source instanceof FilesNode ? source.iarNode : rootNode;
 
-            const types = [
-                { label: "File", description: "A source file", type: NodeType.File },
-                { label: "Group", description: "A group containing files", type: NodeType.Group }
-            ];
-            const selectedType = await Vscode.window.showQuickPick(types, { placeHolder: "What do you want to add?" });
-            if (!selectedType) {
-                return;
-            }
-
-            const typeString = selectedType.type === NodeType.File ? "file" : "group";
-            const placeHolder = selectedType.type === NodeType.File ? "my_src.c" : "MyGroup";
-
-            const name = await Vscode.window.showInputBox({ prompt: "Enter a name for the " + typeString, placeHolder });
+            const name = await Vscode.window.showInputBox({ prompt: "Enter a name for the file", placeHolder: "my_src.c" });
             if (!name) {
                 return;
             }
 
             const fullPath = Path.join(Path.dirname(project.path.toString()), name);
-            if (selectedType.type === NodeType.File && !Fs.existsSync(fullPath)) {
+            if (!Fs.existsSync(fullPath)) {
                 Fs.writeFileSync(fullPath, "");
             }
 
-            newParent.children.push(new Node({ children: [], name, type: selectedType.type, path: fullPath }));
-            await project.setNode(newParent);
+            const node = new Node({ children: [], name, type: NodeType.File, path: fullPath });
+            await addNode(parent, node, project);
 
-            Vscode.window.showInformationMessage(`The ${typeString} "${name}" has been added to the project.`);
+            Vscode.window.showInformationMessage(`The file "${name}" has been added to the project.`);
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
-                Vscode.window.showErrorMessage("Unable to add file/group: " + e.toString());
+                Vscode.window.showErrorMessage("Unable to add file: " + e.toString());
             } else {
-                Vscode.window.showErrorMessage("Unable to add file/group.");
+                Vscode.window.showErrorMessage("Unable to add file.");
             }
         }
     }
+}
 
-    // recursively looks for a node and removes it
-    private removeNode(root: Node, toRemove: Node): boolean {
-        if (root.path === toRemove.path && root.name === toRemove.name) {
-            return false;
+/**
+ * This command adds a group to a project (using a thrift ProjectManager)
+ */
+export class AddGroupCommand extends ProjectCommand {
+    constructor() {
+        super("iar.addGroup");
+    }
+
+    async execute(source: ProjectNode, project: ExtendedProject) {
+        try {
+            const rootNode = await project.getRootNode();
+            // The source is either a FilesNode corresponding to a group, or the user clicked the top-level "Files"
+            // item, in which case we should add to the root node
+            const parent = source instanceof FilesNode ? source.iarNode : rootNode;
+
+            const name = await Vscode.window.showInputBox({ prompt: "Enter a name for the group", placeHolder: "MyGroup" });
+            if (!name) {
+                return;
+            }
+
+            const fullPath = Path.join(Path.dirname(project.path.toString()), name);
+            const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath });
+            await addNode(parent, node, project);
+
+            Vscode.window.showInformationMessage(`The group "${name}" has been added to the project.`);
+        } catch (e) {
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage("Unable to add group: " + e.toString());
+            } else {
+                Vscode.window.showErrorMessage("Unable to add group.");
+            }
         }
-        root.children = root.children.filter(child => {
-            return this.removeNode(child, toRemove);
-        });
-        return true;
     }
 }
