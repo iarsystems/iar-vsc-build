@@ -43,7 +43,7 @@ export class AddFileCommand extends ProjectCommand {
                 Fs.writeFileSync(fullPath, "");
             }
 
-            const node = new Node({ children: [], name, type: NodeType.File, path: fullPath });
+            const node = new Node({ children: [], name, type: NodeType.File, path: fullPath, ...getNodeDefaults() });
             await addNode(parent, node, project);
 
             Vscode.window.showInformationMessage(`The file "${name}" has been added to the project.`);
@@ -78,7 +78,7 @@ export class AddGroupCommand extends ProjectCommand {
             }
 
             const fullPath = Path.join(Path.dirname(project.path.toString()), name);
-            const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath });
+            const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath, ...getNodeDefaults() });
             await addNode(parent, node, project);
 
             Vscode.window.showInformationMessage(`The group "${name}" has been added to the project.`);
@@ -90,4 +90,14 @@ export class AddGroupCommand extends ProjectCommand {
             }
         }
     }
+}
+
+function getNodeDefaults() {
+    return {
+        childrenHaveLocalSettings: false,
+        hasLocalSettings: false,
+        hasRelevantSettings: false,
+        isExcludedFromBuild: false,
+        isMfcEnabled: false,
+    };
 }

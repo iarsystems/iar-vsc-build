@@ -63,7 +63,17 @@ suite("Thrift project", function() {
         Assert.equal(sourceNode.type, NodeType.File);
         Assert.equal(sourceNode.name, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
         Assert.equal(sourceNode.path, Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE));
-        rootNode.children = [new Node({name: "TestGroup", children: [sourceNode], path: "", type: NodeType.Group})];
+        rootNode.children = [new Node({
+            name: "TestGroup",
+            children: [sourceNode],
+            path: "",
+            type: NodeType.Group,
+            childrenHaveLocalSettings: false,
+            hasLocalSettings: false,
+            hasRelevantSettings: false,
+            isExcludedFromBuild: false,
+            isMfcEnabled: false,
+        })];
         await project.setNode(rootNode);
 
         const updatedRootNode = await project.getRootNode();
