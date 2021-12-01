@@ -55,7 +55,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             this.writeEmitter.fire("Analyzing output...\r\n");
             this.diagnostics.clear();
 
-            const filterString = Vscode.workspace.getConfiguration("iarvsc").get<string>("c-StatFilterLevel");
+            const filterString = Vscode.workspace.getConfiguration("iarvsc").get<string>("c-stat.filterLevel");
             const filterLevel = filterString ?
                 CStat.SeverityStringToSeverityEnum(filterString)
                 : CStat.CStatWarningSeverity.LOW;

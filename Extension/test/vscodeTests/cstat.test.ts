@@ -29,7 +29,7 @@ suite("Test C-STAT", ()=>{
 
     suiteSetup(async() => {
         sandboxPath = VscodeTestsSetup.setup();
-        originalFilterLevel = Vscode.workspace.getConfiguration("iarvsc").get("c-StatFilterLevel");
+        originalFilterLevel = Vscode.workspace.getConfiguration("iarvsc").get("c-stat.filterLevel");
         // Remove all backup files, since too many backup files will cause iarbuild to fail
         const nodes = await readdir(path.join(sandboxPath, TARGET_PROJECT));
         return Promise.all(
@@ -38,7 +38,7 @@ suite("Test C-STAT", ()=>{
     });
 
     suiteTeardown(() => {
-        Vscode.workspace.getConfiguration("iarvsc").update("c-StatFilterLevel", originalFilterLevel);
+        Vscode.workspace.getConfiguration("iarvsc").update("c-stat.filterLevel", originalFilterLevel);
     });
 
     test("Tasks exist", async() => {
@@ -82,7 +82,7 @@ suite("Test C-STAT", ()=>{
 
     // Expected to time out until VSC-75 is fixed (a bug in the VS Code platform)
     test("Run C-STAT on all listed EWs", async()=>{
-        Vscode.workspace.getConfiguration("iarvsc").update("c-StatFilterLevel", "Low");
+        Vscode.workspace.getConfiguration("iarvsc").update("c-stat.filterLevel", "Low");
         const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
         if (Array.isArray(listedEws)) {
             console.log(listedEws);
@@ -116,7 +116,7 @@ suite("Test C-STAT", ()=>{
     });
 
     test("Run C-STAT with configured tasks", async()=>{
-        Vscode.workspace.getConfiguration("iarvsc").update("c-StatFilterLevel", "Low");
+        Vscode.workspace.getConfiguration("iarvsc").update("c-stat.filterLevel", "Low");
         const targetProject = "C-STATProject";
         const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
         if (Array.isArray(listedEws)) {
@@ -155,7 +155,7 @@ suite("Test C-STAT", ()=>{
     ];
     test("Run C-STAT with high filter level", async()=>{
         const targetProject = "C-STATProject";
-        Vscode.workspace.getConfiguration("iarvsc").update("c-StatFilterLevel", "High");
+        Vscode.workspace.getConfiguration("iarvsc").update("c-stat.filterLevel", "High");
 
         const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
         if (Array.isArray(listedEws)) {
