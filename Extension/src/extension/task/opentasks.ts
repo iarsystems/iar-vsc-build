@@ -9,7 +9,6 @@
 import * as Vscode from "vscode";
 import { isArray } from "util";
 import { IarExecution } from "./iarexecution";
-import { OsUtils } from "../../utils/utils";
 import { IarOsUtils } from "../../../utils/osUtils";
 
 export interface OpenTaskDefinition {
@@ -23,10 +22,6 @@ export interface OpenTaskDefinition {
 export namespace OpenTasks {
     export function generateTasks(dstMap: Map<string, Vscode.Task>): void {
         if (dstMap.get("Iar Open") === undefined) {
-            if (OsUtils.OsType.Windows !== OsUtils.detectOsType()) {
-                return; // We can only perform open tasks on Windows
-            }
-
             const task = generateTask("Iar Open");
 
             if (!task) {

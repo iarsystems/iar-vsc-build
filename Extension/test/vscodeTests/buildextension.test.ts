@@ -22,6 +22,7 @@ export namespace Utils{
     // Tags for the tasks that can be executed
     export const  BUILD = "Iar Build";
     export const  REBUILD = "Iar Rebuild";
+    export const  OPEN = "Iar Open";
 
     export function assertFileExists(path: string) {
         return fs.stat(path, (exists) => {
@@ -118,15 +119,13 @@ suite("Test build extension", ()=>{
     } );
 
     test("Check IAR tasks exist", async()=>{
-        const taskToFind: string[] = [Utils.BUILD, Utils.REBUILD];
+        const taskToFind: string[] = [Utils.BUILD, Utils.REBUILD, Utils.OPEN];
         // Needs to be awaited otherwise the fetchtasks does not return anything.
         await VscodeTestsUtils.activateProject("BasicDebugging");
 
         return vscode.tasks.fetchTasks({type : "iar"}).then((iarTasks)=>{
-            deepEqual(iarTasks.length, taskToFind.length, "To few iar tasks located.");
-            iarTasks.forEach((task)=>{
-                deepEqual(taskToFind.includes(task.name), true);
-            });
+            const taskNames = iarTasks.map(task => task.name);
+            assert.deepStrictEqual(taskNames.sort(), taskToFind.sort());
         }, (err)=>{
             fail(err);
         });
