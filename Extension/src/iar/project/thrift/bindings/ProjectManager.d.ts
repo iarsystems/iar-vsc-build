@@ -22,6 +22,7 @@ import ProjectManagerError = ttypes.ProjectManagerError
 import ToolDefinition = ttypes.ToolDefinition
 import Toolchain = ttypes.Toolchain
 import Configuration = ttypes.Configuration
+import WorkspaceContext = ttypes.WorkspaceContext
 import ProjectContext = ttypes.ProjectContext
 import Node = ttypes.Node
 import OptionElementDescription = ttypes.OptionElementDescription
@@ -36,6 +37,11 @@ import HeartbeatService = require('./HeartbeatService');
  * It can manipulate the project nodes and build configurations, as well as reading/writing
  * their respective settings.
  * 
+ * It also holds the one and only workspace.
+ * For project operations the workspace is implicit (no context parameter needed).
+ * If project operations are made without creating or loading any workspace first
+ * an 'anonymous' workspace is created. An 'anonymous' workspace cannot be saved.
+ * 
  * There is also experimental support to register new toolchains directly from the service, without
  * requiring an swtd library. This is however very limited as of now in that there is
  * no option support for the tools in the toolchain.
@@ -46,6 +52,76 @@ declare class Client extends HeartbeatService.Client {
   #_seqid: number;
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
+
+  /**
+   * will be created.
+   */
+  CreateEwwFile(file_path: string): Q.Promise<WorkspaceContext>;
+
+  /**
+   * will be created.
+   */
+  CreateEwwFile(file_path: string, callback?: (error: ttypes.ProjectManagerError, response: WorkspaceContext)=>void): void;
+
+  /**
+   * Loading a workspace will automatically close any open workspace.
+   */
+  LoadEwwFile(file_path: string): Q.Promise<WorkspaceContext>;
+
+  /**
+   * Loading a workspace will automatically close any open workspace.
+   */
+  LoadEwwFile(file_path: string, callback?: (error: ttypes.ProjectManagerError, response: WorkspaceContext)=>void): void;
+
+  /**
+   * There is always only one workspace so no context is needed.
+   */
+  SaveEwwFile(): Q.Promise<void>;
+
+  /**
+   * There is always only one workspace so no context is needed.
+   */
+  SaveEwwFile(callback?: (error: ttypes.ProjectManagerError, response: void)=>void): void;
+
+  /**
+   * There is always only one workspace so no context is needed.
+   */
+  GetProjects(): Q.Promise<ProjectContext[]>;
+
+  /**
+   * There is always only one workspace so no context is needed.
+   */
+  GetProjects(callback?: (error: void, response: ProjectContext[])=>void): void;
+
+  /**
+   * Get current project.
+   */
+  GetCurrentProject(): Q.Promise<ProjectContext>;
+
+  /**
+   * Get current project.
+   */
+  GetCurrentProject(callback?: (error: ttypes.ProjectManagerError, response: ProjectContext)=>void): void;
+
+  /**
+   * This change is saved to the settings file.
+   */
+  SetCurrentProject(ctx: ProjectContext): Q.Promise<void>;
+
+  /**
+   * This change is saved to the settings file.
+   */
+  SetCurrentProject(ctx: ProjectContext, callback?: (error: ttypes.ProjectManagerError, response: void)=>void): void;
+
+  /**
+   * Close loaded workspace, freeing the resources allocated for it by the project manager.
+   */
+  CloseWorkspace(): Q.Promise<void>;
+
+  /**
+   * Close loaded workspace, freeing the resources allocated for it by the project manager.
+   */
+  CloseWorkspace(callback?: (error: ttypes.ProjectManagerError, response: void)=>void): void;
 
   /**
    * Create new, empty project with the provided file path
@@ -88,12 +164,12 @@ declare class Client extends HeartbeatService.Client {
   GetProject(file_path: string, callback?: (error: ttypes.ProjectManagerError, response: ProjectContext)=>void): void;
 
   /**
-   * Close loaded project, freeing the resources allocated for it by the project manager
+   * It only has any effect on anonymous workspaces.
    */
   CloseProject(project: ProjectContext): Q.Promise<void>;
 
   /**
-   * Close loaded project, freeing the resources allocated for it by the project manager
+   * It only has any effect on anonymous workspaces.
    */
   CloseProject(project: ProjectContext, callback?: (error: ttypes.ProjectManagerError, response: void)=>void): void;
 
@@ -128,6 +204,26 @@ declare class Client extends HeartbeatService.Client {
   GetConfigurations(project: ProjectContext, callback?: (error: void, response: Configuration[])=>void): void;
 
   /**
+   * Get current configuration.
+   */
+  GetCurrentConfiguration(project: ProjectContext): Q.Promise<Configuration>;
+
+  /**
+   * Get current configuration.
+   */
+  GetCurrentConfiguration(project: ProjectContext, callback?: (error: ttypes.ProjectManagerError, response: Configuration)=>void): void;
+
+  /**
+   * This change is saved to the settings file.
+   */
+  SetCurrentConfiguration(project: ProjectContext, configurationName: string): Q.Promise<void>;
+
+  /**
+   * This change is saved to the settings file.
+   */
+  SetCurrentConfiguration(project: ProjectContext, configurationName: string, callback?: (error: ttypes.ProjectManagerError, response: void)=>void): void;
+
+  /**
    * Get the root of a project's file and group hierarchy tree, including all children
    */
   GetRootNode(ctx: ProjectContext): Q.Promise<Node>;
@@ -146,6 +242,16 @@ declare class Client extends HeartbeatService.Client {
    * Set a node in the project's hierarchy, possibly replacing an existing subtree if a node with the same name already exists (e.g. the project root).
    */
   SetNode(ctx: ProjectContext, node: Node, callback?: (error: void, response: void)=>void): void;
+
+  /**
+   * Within each string [:;, ] are used as separators
+   */
+  GetToolChainExtensions(ctx: ProjectContext): Q.Promise<string[]>;
+
+  /**
+   * Within each string [:;, ] are used as separators
+   */
+  GetToolChainExtensions(ctx: ProjectContext, callback?: (error: void, response: string[])=>void): void;
 
   /**
    * Get a list of available Toolchains.
@@ -308,6 +414,20 @@ declare class Client extends HeartbeatService.Client {
    * ids must be either known in advance, or assumed to match option category ids. See MAJ-114
    */
   GetToolArgumentsForConfiguration(prj: ProjectContext, toolId: string, configurationName: string, callback?: (error: void, response: string[])=>void): void;
+
+  /**
+   * Gets a JSON representaion of the option presentation
+   * 
+   * Supported locales: en_GB
+   */
+  GetPresentationForOptionsAsJson(locale: string): Q.Promise<string>;
+
+  /**
+   * Gets a JSON representaion of the option presentation
+   * 
+   * Supported locales: en_GB
+   */
+  GetPresentationForOptionsAsJson(locale: string, callback?: (error: ttypes.ProjectManagerError, response: string)=>void): void;
 }
 
 declare class Processor extends HeartbeatService.Processor {
@@ -315,6 +435,13 @@ declare class Processor extends HeartbeatService.Processor {
 
   constructor(handler: object);
   process(input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_CreateEwwFile(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_LoadEwwFile(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_SaveEwwFile(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_GetProjects(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_GetCurrentProject(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_SetCurrentProject(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_CloseWorkspace(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_CreateEwpFile(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_LoadEwpFile(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_SaveEwpFile(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
@@ -323,8 +450,11 @@ declare class Processor extends HeartbeatService.Processor {
   process_AddConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_RemoveConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_GetConfigurations(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_GetCurrentConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_SetCurrentConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_GetRootNode(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_SetNode(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_GetToolChainExtensions(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_GetToolchains(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_AddToolchain(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_BuildProject(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
@@ -340,4 +470,5 @@ declare class Processor extends HeartbeatService.Processor {
   process_IsMultiFileCompilationEnabled(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_IsMultiFileDiscardPublicSymbolsEnabled(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_GetToolArgumentsForConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_GetPresentationForOptionsAsJson(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
 }

@@ -11,6 +11,9 @@ import shared_ttypes = require('./shared_types');
 
 
 
+/**
+ * A disassembly operation result, matching a memory location with instructions
+ */
 declare class DisassembledLocation {
   public location: shared_ttypes.Location;
   public instructions: string[];
@@ -22,4 +25,7 @@ declare class DisassembledLocation {
   write(input: Object): void;
 }
 
+/**
+ * Unique identifier for the Disassembly service
+ */
 declare var DISASSEMBLY_SERVICE: string;

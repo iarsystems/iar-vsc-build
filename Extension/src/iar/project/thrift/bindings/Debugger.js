@@ -880,7 +880,7 @@ Debugger_loadModuleWithOptions_result.prototype.write = function(output) {
 var Debugger_flashModule_args = function(args) {
   this.boardFile = null;
   this.executable = null;
-  this.arguments = null;
+  this.argument_list = null;
   this.extraExecutables = null;
   if (args) {
     if (args.boardFile !== undefined && args.boardFile !== null) {
@@ -889,8 +889,8 @@ var Debugger_flashModule_args = function(args) {
     if (args.executable !== undefined && args.executable !== null) {
       this.executable = args.executable;
     }
-    if (args.arguments !== undefined && args.arguments !== null) {
-      this.arguments = Thrift.copyList(args.arguments, [null]);
+    if (args.argument_list !== undefined && args.argument_list !== null) {
+      this.argument_list = Thrift.copyList(args.argument_list, [null]);
     }
     if (args.extraExecutables !== undefined && args.extraExecutables !== null) {
       this.extraExecutables = Thrift.copyList(args.extraExecutables, [null]);
@@ -924,13 +924,13 @@ Debugger_flashModule_args.prototype.read = function(input) {
       break;
       case 3:
       if (ftype == Thrift.Type.LIST) {
-        this.arguments = [];
+        this.argument_list = [];
         var _rtmp331 = input.readListBegin();
         var _size30 = _rtmp331.size || 0;
         for (var _i32 = 0; _i32 < _size30; ++_i32) {
           var elem33 = null;
           elem33 = input.readString();
-          this.arguments.push(elem33);
+          this.argument_list.push(elem33);
         }
         input.readListEnd();
       } else {
@@ -973,12 +973,12 @@ Debugger_flashModule_args.prototype.write = function(output) {
     output.writeString(this.executable);
     output.writeFieldEnd();
   }
-  if (this.arguments !== null && this.arguments !== undefined) {
-    output.writeFieldBegin('arguments', Thrift.Type.LIST, 3);
-    output.writeListBegin(Thrift.Type.STRING, this.arguments.length);
-    for (var iter38 in this.arguments) {
-      if (this.arguments.hasOwnProperty(iter38)) {
-        iter38 = this.arguments[iter38];
+  if (this.argument_list !== null && this.argument_list !== undefined) {
+    output.writeFieldBegin('argument_list', Thrift.Type.LIST, 3);
+    output.writeListBegin(Thrift.Type.STRING, this.argument_list.length);
+    for (var iter38 in this.argument_list) {
+      if (this.argument_list.hasOwnProperty(iter38)) {
+        iter38 = this.argument_list[iter38];
         output.writeString(iter38);
       }
     }
@@ -6788,7 +6788,7 @@ DebuggerClient.prototype.recv_loadModuleWithOptions = function(input,mtype,rseqi
   callback(null);
 };
 
-DebuggerClient.prototype.flashModule = function(boardFile, executable, arguments, extraExecutables, callback) {
+DebuggerClient.prototype.flashModule = function(boardFile, executable, argument_list, extraExecutables, callback) {
   this._seqid = this.new_seqid();
   if (callback === undefined) {
     var _defer = Q.defer();
@@ -6799,20 +6799,20 @@ DebuggerClient.prototype.flashModule = function(boardFile, executable, arguments
         _defer.resolve(result);
       }
     };
-    this.send_flashModule(boardFile, executable, arguments, extraExecutables);
+    this.send_flashModule(boardFile, executable, argument_list, extraExecutables);
     return _defer.promise;
   } else {
     this._reqs[this.seqid()] = callback;
-    this.send_flashModule(boardFile, executable, arguments, extraExecutables);
+    this.send_flashModule(boardFile, executable, argument_list, extraExecutables);
   }
 };
 
-DebuggerClient.prototype.send_flashModule = function(boardFile, executable, arguments, extraExecutables) {
+DebuggerClient.prototype.send_flashModule = function(boardFile, executable, argument_list, extraExecutables) {
   var output = new this.pClass(this.output);
   var params = {
     boardFile: boardFile,
     executable: executable,
-    arguments: arguments,
+    argument_list: argument_list,
     extraExecutables: extraExecutables
   };
   var args = new Debugger_flashModule_args(params);
@@ -10043,7 +10043,7 @@ DebuggerProcessor.prototype.process_flashModule = function(seqid, input, output)
     Q.fcall(this._handler.flashModule.bind(this._handler),
       args.boardFile,
       args.executable,
-      args.arguments,
+      args.argument_list,
       args.extraExecutables
     ).then(function(result) {
       var result_obj = new Debugger_flashModule_result({success: result});
@@ -10065,7 +10065,7 @@ DebuggerProcessor.prototype.process_flashModule = function(seqid, input, output)
       output.flush();
     });
   } else {
-    this._handler.flashModule(args.boardFile, args.executable, args.arguments, args.extraExecutables, function (err, result) {
+    this._handler.flashModule(args.boardFile, args.executable, args.argument_list, args.extraExecutables, function (err, result) {
       var result_obj;
       if ((err === null || typeof err === 'undefined') || err instanceof shared_ttypes.CSpyException) {
         result_obj = new Debugger_flashModule_result((err !== null || typeof err === 'undefined') ? err : {success: result});

@@ -11,6 +11,9 @@ import shared_ttypes = require('./shared_types');
 
 
 
+/**
+ * Which icon to display in the message box
+ */
 declare enum MsgIcon {
   kMsgIconInfo = 0,
   kMsgIconQuestion = 1,
@@ -18,6 +21,9 @@ declare enum MsgIcon {
   kMsgIconStop = 3,
 }
 
+/**
+ * What set of buttons to use in the message box
+ */
 declare enum MsgKind {
   kMsgOk = 0,
   kMsgOkCancel = 1,
@@ -25,6 +31,9 @@ declare enum MsgKind {
   kMsgYesNoCancel = 3,
 }
 
+/**
+ * Which button was used to dismiss the message box
+ */
 declare enum MsgResult {
   kMsgResOk = 0,
   kMsgResCancel = 1,

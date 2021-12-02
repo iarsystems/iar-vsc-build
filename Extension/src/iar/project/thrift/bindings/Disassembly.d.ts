@@ -17,6 +17,9 @@ import DISASSEMBLY_SERVICE = ttypes.DISASSEMBLY_SERVICE
 import DisassembledLocation = ttypes.DisassembledLocation
 import HeartbeatService = require('./HeartbeatService');
 
+/**
+ * The Disassembly service retrieves assembler instructions for a specific memory range
+ */
 declare class Client extends HeartbeatService.Client {
   #output: thrift.TTransport;
   #pClass: thrift.TProtocol;
@@ -24,12 +27,24 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
+  /**
+   * Retrieve a list of disassembled instructions for a specific memory range.
+   */
   disassembleRange(_from: shared_ttypes.Location, _to: shared_ttypes.Location, context: shared_ttypes.ContextRef): Q.Promise<DisassembledLocation[]>;
 
+  /**
+   * Retrieve a list of disassembled instructions for a specific memory range.
+   */
   disassembleRange(_from: shared_ttypes.Location, _to: shared_ttypes.Location, context: shared_ttypes.ContextRef, callback?: (error: shared_ttypes.CSpyException, response: DisassembledLocation[])=>void): void;
 
+  /**
+   * This method is currently not implemented and will fail if called.
+   */
   disassembleLines(_from: shared_ttypes.Location, numLines: number, context: shared_ttypes.ContextRef): Q.Promise<DisassembledLocation[]>;
 
+  /**
+   * This method is currently not implemented and will fail if called.
+   */
   disassembleLines(_from: shared_ttypes.Location, numLines: number, context: shared_ttypes.ContextRef, callback?: (error: shared_ttypes.CSpyException, response: DisassembledLocation[])=>void): void;
 }
 

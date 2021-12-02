@@ -113,6 +113,17 @@ declare class Configuration {
 }
 
 /**
+ * Corresponds to a workspace on disk
+ */
+declare class WorkspaceContext {
+  public filename: string;
+
+    constructor(args?: { filename: string; });
+  read(input: Object): void;
+  write(input: Object): void;
+}
+
+/**
  * Corresponds to a project on disk
  */
 declare class ProjectContext {
@@ -135,8 +146,13 @@ declare class Node {
   public children: Node[];
   public type: NodeType;
   public path: string;
+  public isMfcEnabled: boolean;
+  public isExcludedFromBuild: boolean;
+  public hasLocalSettings: boolean;
+  public hasRelevantSettings: boolean;
+  public childrenHaveLocalSettings: boolean;
 
-    constructor(args?: { name: string; children: Node[]; type: NodeType; path: string; });
+    constructor(args?: { name: string; children: Node[]; type: NodeType; path: string; isMfcEnabled: boolean; isExcludedFromBuild: boolean; hasLocalSettings: boolean; hasRelevantSettings: boolean; childrenHaveLocalSettings: boolean; });
   read(input: Object): void;
   write(input: Object): void;
 }

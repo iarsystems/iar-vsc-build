@@ -8,7 +8,6 @@ import Thrift = thrift.Thrift;
 import Q = thrift.Q;
 import Int64 = require('node-int64');
 import shared_ttypes = require('./shared_types');
-import iarbuild_ttypes = require('./iarbuild_types');
 
 
 

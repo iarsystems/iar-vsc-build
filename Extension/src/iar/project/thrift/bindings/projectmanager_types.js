@@ -467,6 +467,56 @@ Configuration.prototype.write = function(output) {
   return;
 };
 
+var WorkspaceContext = module.exports.WorkspaceContext = function(args) {
+  this.filename = null;
+  if (args) {
+    if (args.filename !== undefined && args.filename !== null) {
+      this.filename = args.filename;
+    }
+  }
+};
+WorkspaceContext.prototype = {};
+WorkspaceContext.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true) {
+    var ret = input.readFieldBegin();
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid) {
+      case 1:
+      if (ftype == Thrift.Type.STRING) {
+        this.filename = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 0:
+        input.skip(ftype);
+        break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+WorkspaceContext.prototype.write = function(output) {
+  output.writeStructBegin('WorkspaceContext');
+  if (this.filename !== null && this.filename !== undefined) {
+    output.writeFieldBegin('filename', Thrift.Type.STRING, 1);
+    output.writeString(this.filename);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
 var ProjectContext = module.exports.ProjectContext = function(args) {
   this.filename = null;
   if (args) {
@@ -522,6 +572,11 @@ var Node = module.exports.Node = function(args) {
   this.children = null;
   this.type = null;
   this.path = null;
+  this.isMfcEnabled = null;
+  this.isExcludedFromBuild = null;
+  this.hasLocalSettings = null;
+  this.hasRelevantSettings = null;
+  this.childrenHaveLocalSettings = null;
   if (args) {
     if (args.name !== undefined && args.name !== null) {
       this.name = args.name;
@@ -534,6 +589,21 @@ var Node = module.exports.Node = function(args) {
     }
     if (args.path !== undefined && args.path !== null) {
       this.path = args.path;
+    }
+    if (args.isMfcEnabled !== undefined && args.isMfcEnabled !== null) {
+      this.isMfcEnabled = args.isMfcEnabled;
+    }
+    if (args.isExcludedFromBuild !== undefined && args.isExcludedFromBuild !== null) {
+      this.isExcludedFromBuild = args.isExcludedFromBuild;
+    }
+    if (args.hasLocalSettings !== undefined && args.hasLocalSettings !== null) {
+      this.hasLocalSettings = args.hasLocalSettings;
+    }
+    if (args.hasRelevantSettings !== undefined && args.hasRelevantSettings !== null) {
+      this.hasRelevantSettings = args.hasRelevantSettings;
+    }
+    if (args.childrenHaveLocalSettings !== undefined && args.childrenHaveLocalSettings !== null) {
+      this.childrenHaveLocalSettings = args.childrenHaveLocalSettings;
     }
   }
 };
@@ -585,6 +655,41 @@ Node.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 5:
+      if (ftype == Thrift.Type.BOOL) {
+        this.isMfcEnabled = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 6:
+      if (ftype == Thrift.Type.BOOL) {
+        this.isExcludedFromBuild = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 7:
+      if (ftype == Thrift.Type.BOOL) {
+        this.hasLocalSettings = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 8:
+      if (ftype == Thrift.Type.BOOL) {
+        this.hasRelevantSettings = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 9:
+      if (ftype == Thrift.Type.BOOL) {
+        this.childrenHaveLocalSettings = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -621,6 +726,31 @@ Node.prototype.write = function(output) {
   if (this.path !== null && this.path !== undefined) {
     output.writeFieldBegin('path', Thrift.Type.STRING, 4);
     output.writeString(this.path);
+    output.writeFieldEnd();
+  }
+  if (this.isMfcEnabled !== null && this.isMfcEnabled !== undefined) {
+    output.writeFieldBegin('isMfcEnabled', Thrift.Type.BOOL, 5);
+    output.writeBool(this.isMfcEnabled);
+    output.writeFieldEnd();
+  }
+  if (this.isExcludedFromBuild !== null && this.isExcludedFromBuild !== undefined) {
+    output.writeFieldBegin('isExcludedFromBuild', Thrift.Type.BOOL, 6);
+    output.writeBool(this.isExcludedFromBuild);
+    output.writeFieldEnd();
+  }
+  if (this.hasLocalSettings !== null && this.hasLocalSettings !== undefined) {
+    output.writeFieldBegin('hasLocalSettings', Thrift.Type.BOOL, 7);
+    output.writeBool(this.hasLocalSettings);
+    output.writeFieldEnd();
+  }
+  if (this.hasRelevantSettings !== null && this.hasRelevantSettings !== undefined) {
+    output.writeFieldBegin('hasRelevantSettings', Thrift.Type.BOOL, 8);
+    output.writeBool(this.hasRelevantSettings);
+    output.writeFieldEnd();
+  }
+  if (this.childrenHaveLocalSettings !== null && this.childrenHaveLocalSettings !== undefined) {
+    output.writeFieldBegin('childrenHaveLocalSettings', Thrift.Type.BOOL, 9);
+    output.writeBool(this.childrenHaveLocalSettings);
     output.writeFieldEnd();
   }
   output.writeFieldStop();

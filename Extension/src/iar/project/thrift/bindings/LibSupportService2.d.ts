@@ -12,6 +12,10 @@ import Int64 = require('node-int64');
 import ttypes = require('./libsupport_types');
 import LIBSUPPORT_SERVICE = ttypes.LIBSUPPORT_SERVICE
 
+/**
+ * This service redirects the I/O streams of the program being
+ * debugged by C-SPY towards the environment hosting C-SPY itself.
+ */
 declare class Client {
   #output: thrift.TTransport;
   #pClass: thrift.TProtocol;
@@ -29,8 +33,14 @@ declare class Client {
    */
   requestInputBinary(len: number, callback?: (error: void, response: string)=>void): void;
 
+  /**
+   * @deprecated, use requestInputBinary instead
+   */
   requestInput(len: number): Q.Promise<string>;
 
+  /**
+   * @deprecated, use requestInputBinary instead
+   */
   requestInput(len: number, callback?: (error: void, response: string)=>void): void;
 
   /**
@@ -43,8 +53,14 @@ declare class Client {
    */
   printOutputBinary(data: string, callback?: (error: void, response: void)=>void): void;
 
+  /**
+   * @deprecated, use printOutputBinary instead
+   */
   printOutput(data: string): Q.Promise<void>;
 
+  /**
+   * @deprecated, use printOutputBinary instead
+   */
   printOutput(data: string, callback?: (error: void, response: void)=>void): void;
 
   /**

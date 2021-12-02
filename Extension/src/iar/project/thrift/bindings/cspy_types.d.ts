@@ -298,10 +298,22 @@ declare class DebugSettings {
   write(input: Object): void;
 }
 
+/**
+ * The unique identifier for the Debugger service
+ */
 declare var DEBUGGER_SERVICE: string;
 
+/**
+ * The unique identifier for the Debugger Event Handler service
+ */
 declare var DEBUGEVENT_SERVICE: string;
 
+/**
+ * The unique identifier for the Context Manager service
+ */
 declare var CONTEXT_MANAGER_SERVICE: string;
 
+/**
+ * The unique identifier for the Memory service
+ */
 declare var MEMORY_SERVICE: string;

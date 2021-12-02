@@ -47,28 +47,80 @@ declare class Client extends HeartbeatService.Client {
 
   constructor(output: thrift.TTransport, pClass: { new(trans: thrift.TTransport): thrift.TProtocol });
 
+  /**
+   * Set the current inspection context. This is invoked for example when
+   * the user selects a stack frame in the Eclipse debug view.
+   */
   setInspectionContext(context: shared_ttypes.ContextRef): Q.Promise<void>;
 
+  /**
+   * Set the current inspection context. This is invoked for example when
+   * the user selects a stack frame in the Eclipse debug view.
+   */
   setInspectionContext(context: shared_ttypes.ContextRef, callback?: (error: void, response: void)=>void): void;
 
+  /**
+   * Try to locate the given context. This can be used to e.g. find
+   * what the "current inspection context" is looking at. This works
+   * by first converting the incoming context ref into a DkContext,
+   * and then convert that DkContext back into a context ref. This
+   * means that if e.g. the current inspection context does not
+   * refer to any known context, this method will return a "Unknown"
+   * context.
+   * 
+   * <p>NOTE: The C-SPY implementation of this method is fundamentally broken,
+   * and calling this method will cause an unconditional exception to
+   * be thrown. See ECL-2260 for more info. /JesperEs 2018-04-18
+   */
   findContext(context: shared_ttypes.ContextRef): Q.Promise<shared_ttypes.ContextRef>;
 
+  /**
+   * Try to locate the given context. This can be used to e.g. find
+   * what the "current inspection context" is looking at. This works
+   * by first converting the incoming context ref into a DkContext,
+   * and then convert that DkContext back into a context ref. This
+   * means that if e.g. the current inspection context does not
+   * refer to any known context, this method will return a "Unknown"
+   * context.
+   * 
+   * <p>NOTE: The C-SPY implementation of this method is fundamentally broken,
+   * and calling this method will cause an unconditional exception to
+   * be thrown. See ECL-2260 for more info. /JesperEs 2018-04-18
+   */
   findContext(context: shared_ttypes.ContextRef, callback?: (error: void, response: shared_ttypes.ContextRef)=>void): void;
 
+  /**
+   * Get the call stack of the given context.
+   */
   getStack(context: shared_ttypes.ContextRef, low: number, high: number): Q.Promise<shared_ttypes.ContextInfo[]>;
 
+  /**
+   * Get the call stack of the given context.
+   */
   getStack(context: shared_ttypes.ContextRef, low: number, high: number, callback?: (error: void, response: shared_ttypes.ContextInfo[])=>void): void;
 
   getStackDepth(context: shared_ttypes.ContextRef, maxDepth: number): Q.Promise<number>;
 
   getStackDepth(context: shared_ttypes.ContextRef, maxDepth: number, callback?: (error: void, response: number)=>void): void;
 
+  /**
+   * Return information about a context, such as source ranges and function name.
+   */
   getContextInfo(context: shared_ttypes.ContextRef): Q.Promise<shared_ttypes.ContextInfo>;
 
+  /**
+   * Return information about a context, such as source ranges and function name.
+   */
   getContextInfo(context: shared_ttypes.ContextRef, callback?: (error: void, response: shared_ttypes.ContextInfo)=>void): void;
 
+  /**
+   * Compare two context refs for equality.
+   */
   compareContexts(ctx1: shared_ttypes.ContextRef, ctx2: shared_ttypes.ContextRef): Q.Promise<boolean>;
 
+  /**
+   * Compare two context refs for equality.
+   */
   compareContexts(ctx1: shared_ttypes.ContextRef, ctx2: shared_ttypes.ContextRef, callback?: (error: void, response: boolean)=>void): void;
 
   getLocals(ctx: shared_ttypes.ContextRef): Q.Promise<shared_ttypes.Symbol[]>;
