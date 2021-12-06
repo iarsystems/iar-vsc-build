@@ -8,7 +8,6 @@ import * as Fs from "fs";
 import * as Path from "path";
 import { FsUtils } from "../../utils/fs";
 import { ListUtils, OsUtils } from "../../utils/utils";
-import { Platform } from "./platform";
 
 const ideSubPath = "common/bin/IarIdePm.exe";
 const builderSubPath = "common/bin/iarbuild" + (OsUtils.OsType.Windows === OsUtils.detectOsType() ? ".exe" : "");
@@ -17,12 +16,9 @@ export interface Workbench {
     readonly name: string;
     readonly path: Fs.PathLike;
     readonly idePath: Fs.PathLike;
-    readonly platforms: Platform[];
 }
 
 class IarWorkbench implements Workbench {
-    readonly platforms: Platform[];
-
     readonly path: Fs.PathLike;
     readonly idePath: Fs.PathLike;
 
@@ -39,8 +35,6 @@ class IarWorkbench implements Workbench {
         if (!this.isValid()) {
             throw new Error("Path does not point to a workspace!");
         }
-
-        this.platforms = Platform.collectPlatformsFrom(path, ["common", "install-info"]);
     }
 
     get name(): string {

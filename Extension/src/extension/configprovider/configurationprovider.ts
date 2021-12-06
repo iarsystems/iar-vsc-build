@@ -12,6 +12,11 @@ import { LanguageUtils } from "../../utils/utils";
 import { StaticConfigGenerator } from "./staticconfiggenerator";
 import { JsonConfigurationWriter } from "./jsonconfigurationwriter";
 import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
+import { Workbench } from "../../iar/tools/workbench";
+import { Config } from "../../iar/project/config";
+import * as Path from "path";
+import { IarOsUtils } from "../../../utils/osUtils";
+import { FsUtils } from "../../utils/fs";
 
 /**
  * Provides source file configurations for an IAR project to cpptools via the cpptools typescript api.
@@ -57,9 +62,9 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     readonly extensionId = "pluyckx.iar-vsc";
 
     private constructor(private readonly api: CppToolsApi, private readonly generator: DynamicConfigGenerator) {
-        UI.getInstance().compiler.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
+        // Note that changing the project will also trigger a config change
         UI.getInstance().config.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
-        UI.getInstance().project.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
+        UI.getInstance().workbench.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
         Settings.observeSetting(Settings.ExtensionSettingsField.Defines, this.onSettingsChanged.bind(this));
         Settings.observeSetting(Settings.ExtensionSettingsField.CStandard, this.onSettingsChanged.bind(this));
         Settings.observeSetting(Settings.ExtensionSettingsField.CppStandard, this.onSettingsChanged.bind(this));
@@ -136,9 +141,10 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     }
 
     private async generateFallbackConfigs() {
-        const compiler = UI.getInstance().compiler.model.selected;
-        const config = UI.getInstance().config.model.selected;
         const project = UI.getInstance().project.model.selected;
+        const config = UI.getInstance().config.model.selected;
+        const workbench = UI.getInstance().workbench.model.selected;
+        const compiler = config && workbench ? getCompilerForConfig(config, workbench) : undefined;
         this.fallbackConfigurationC   = await StaticConfigGenerator.generateConfiguration("c", config, project, compiler);
         this.fallbackConfigurationCpp = await StaticConfigGenerator.generateConfiguration("cpp", config, project, compiler);
         const mergedConfig = PartialSourceFileConfiguration.merge(this.fallbackConfigurationC, this.fallbackConfigurationCpp);
@@ -150,10 +156,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         await this.generator.cancelCurrentOperation();
 
         const workbench = UI.getInstance().workbench.model.selected;
-        const compiler = UI.getInstance().compiler.model.selected;
         const config = UI.getInstance().config.model.selected;
         const project = UI.getInstance().project.model.selected;
-        if (!workbench || !compiler || !config || !project) {
+        if (!workbench || !config || !project) {
+            return false;
+        }
+        const compiler = getCompilerForConfig(config, workbench);
+        if (!compiler) {
             return false;
         }
         try {
@@ -172,4 +181,23 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             }
         });
     }
+}
+
+/**
+ * Finds the compiler to use for the given config, and returns its path.
+ * May return undefined, e.g. if the workbench doesn't have the required target installed.
+ */
+function getCompilerForConfig(config: Config, workbench: Workbench): string | undefined {
+    const toolchainBinDir = Path.join(workbench.path.toString(), config.toolchainId.toLowerCase(), "bin");
+    const regex = "icc.*" + IarOsUtils.executableExtension();
+    const filter = FsUtils.createFilteredListDirectoryFilenameRegex(new RegExp(regex));
+    const compilerPaths = FsUtils.filteredListDirectory(toolchainBinDir, filter);
+    if (compilerPaths[0] !== undefined) {
+        if (compilerPaths.length > 1) {
+            console.error(`Found more than one compiler candidate for ${config.toolchainId} in ${workbench}.`);
+        }
+        return compilerPaths[0].toString();
+    }
+    console.log(`Didn't find a compiler for ${config.toolchainId} in ${workbench.path}.`);
+    return undefined;
 }

@@ -5,10 +5,7 @@
 
 
 import * as Fs from "fs";
-import * as Path from "path";
 import { Workbench } from "./workbench";
-import { Platform } from "./platform";
-import { Compiler } from "./compiler";
 
 type InvalidateHandler = (manager: ToolManager) => void;
 
@@ -21,8 +18,6 @@ export interface ToolManager {
     collectFrom(directory: Fs.PathLike): void;
 
     findWorkbenchContainingPath(path: Fs.PathLike): Workbench | undefined;
-    findWorkbenchesContainingCompiler(compiler: Compiler | string): Workbench[] | undefined;
-    findWorkbenchesContainingPlatform(platform: Platform | string): Workbench[] | undefined;
 }
 
 class IarToolManager implements ToolManager {
@@ -68,59 +63,6 @@ class IarToolManager implements ToolManager {
             }
 
             return workbench !== undefined;
-        });
-
-        return workbench;
-    }
-
-    findWorkbenchesContainingCompiler(compiler: Compiler | string): Workbench[] {
-        if (typeof compiler !== "string") {
-            const found = this.findWorkbenchContainingPath(compiler.path);
-            if (found) {
-                return [found];
-            } else {
-                return [];
-            }
-        }
-
-        const workbenches: Workbench[] = [];
-
-        this.workbenches_.forEach((wb) => {
-            wb.platforms.forEach((platform) => {
-                platform.compilers.forEach((c) => {
-                    const parsed = Path.parse(c.path.toString());
-
-                    if ((parsed.name === compiler) || (parsed.base === compiler)) {
-                        workbenches.push(wb);
-                    }
-                });
-            });
-        });
-
-        return workbenches;
-    }
-
-    findWorkbenchesContainingPlatform(platform: Platform | string): Workbench[] {
-        if (typeof platform !== "string") {
-            const result = this.findWorkbenchContainingPath(platform.path);
-
-            if (result) {
-                return [result];
-            } else {
-                return [];
-            }
-        }
-
-        const workbench: Workbench[] = [];
-
-        this.workbenches_.forEach((wb) => {
-            wb.platforms.forEach((p) => {
-                const parsed = Path.parse(p.path.toString());
-
-                if ((parsed.name === platform) || (parsed.base === platform)) {
-                    workbench.push(wb);
-                }
-            });
         });
 
         return workbench;

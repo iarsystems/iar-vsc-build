@@ -13,7 +13,6 @@ import { join } from "path";
 import { spawn } from "child_process";
 import * as readline from "readline";
 import { Readable } from "stream";
-import { Compiler } from "../../iar/tools/compiler";
 import { tmpdir } from "os";
 import * as Path from "path";
 import { OsUtils, LanguageUtils } from "../../utils/utils";
@@ -36,7 +35,7 @@ export class DynamicConfigGenerator {
      * and caches the results
      * @returns true if the operation succeded, false if the operation was canceled (and rejects on errors)
      */
-    public generateConfiguration(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<boolean> {
+    public generateConfiguration(workbench: Workbench, project: Project, compiler: string, config: Config): Promise<boolean> {
         // make sure we only run once at a time
         // this is probably safe since Node isnt multithreaded
         if (!this.runningPromise) {
@@ -70,7 +69,7 @@ export class DynamicConfigGenerator {
         this.output.dispose();
     }
 
-    private async generateConfigurationImpl(workbench: Workbench, project: Project, compiler: Compiler, config: Config): Promise<boolean> {
+    private async generateConfigurationImpl(workbench: Workbench, project: Project, compiler: string, config: Config): Promise<boolean> {
         let builderPath = join(workbench.path.toString(), "common/bin/iarbuild");
         if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
             builderPath += ".exe";
@@ -83,7 +82,6 @@ export class DynamicConfigGenerator {
 
         const compilerInvocations = await this.findCompilerInvocations(builderProc.stdout);
 
-        let hasIncorrectCompiler = false;
         const fileConfigs: Array<{includes: IncludePath[], defines: Define[]}> = [];
 
         for (let i = 0; i < compilerInvocations.length; i++) {
@@ -93,9 +91,8 @@ export class DynamicConfigGenerator {
                 this.output.appendLine("Skipping file of unsupported type: " + compInv[1]);
                 continue;
             }
-            if (Path.parse(compInv[0]).name !== compiler.name) {
+            if (Path.parse(compInv[0]).name !== Path.parse(compiler).name) {
                 this.output.appendLine(`WARN: Compiler name for ${compInv[1]} (${compInv[0]}) does not seem to match the selected compiler.`);
-                hasIncorrectCompiler = true;
                 continue;
             }
             try {
@@ -115,9 +112,6 @@ export class DynamicConfigGenerator {
                 this.putDefines(uri, fileConfig.defines);
             }
         });
-        if (hasIncorrectCompiler) {
-            Vscode.window.showWarningMessage("IAR: The selected compiler does not appear to match the one used by the project.");
-        }
         return Promise.resolve(true);
     }
 
@@ -189,10 +183,10 @@ export class DynamicConfigGenerator {
      * It is unadvised to run multiple instances of this function at the same time,
      * doing so may cause strange file collisions.  TODO: fix this by using a unique predef_macros file
      */
-    private generateConfigurationForFile(compiler: Compiler, compilerArgs: string[]): Promise<{includes: IncludePath[], defines: Define[]}> {
+    private generateConfigurationForFile(compiler: string, compilerArgs: string[]): Promise<{includes: IncludePath[], defines: Define[]}> {
         const macrosOutFile = join(tmpdir(), "iarvsc.predef_macros");
         const args = ["--IDE3", "--NCG", "--predef-macros", macrosOutFile].concat(compilerArgs);
-        const compilerProc = spawn(compiler.path.toString(), args);
+        const compilerProc = spawn(compiler, args);
         return new Promise((resolve, reject) => {
             compilerProc.on("error", (err) => {
                 this.output.appendLine("WARN: Compiler gave error: " + err);

@@ -25,7 +25,6 @@
   ],
   "activationEvents": [
     "onCommand:iar.selectWorkbench",
-    "onCommand:iar.selectCompiler",
     "onCommand:iar.selectProject",
     "onCommand:iar.selectConfiguration",
     "onCommand:iar.regenerateCppToolsConfig",
@@ -38,7 +37,6 @@
     "onCommand:iar.removeConfig",
     "onCommand:iar.reloadProject",
     "onCommand:iar-settings.workbench",
-    "onCommand:iar-settings.compiler",
     "onCommand:iar-settings.project-file",
     "onCommand:iar-settings.project-configuration",
     "workspaceContains:**/*.ewp"
@@ -49,11 +47,6 @@
       {
         "command": "iar.selectWorkbench",
         "title": "Select Workbench",
-        "category": "IAR"
-      },
-      {
-        "command": "iar.selectCompiler",
-        "title": "Select Compiler",
         "category": "IAR"
       },
       {
@@ -74,11 +67,6 @@
       {
         "command": "iar-settings.workbench",
         "title": "Get the selected workbench location",
-        "category": "IAR Settings"
-      },
-      {
-        "command": "iar-settings.compiler",
-        "title": "Get the selected compiler location",
         "category": "IAR Settings"
       },
       {

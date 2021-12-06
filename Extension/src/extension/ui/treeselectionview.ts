@@ -7,7 +7,6 @@
 import * as Vscode from "vscode";
 import { ListInputModel } from "../model/model";
 import { Workbench } from "../../iar/tools/workbench";
-import { Compiler } from "../../iar/tools/compiler";
 import { Project } from "../../iar/project/project";
 import { Config } from "../../iar/project/config";
 
@@ -31,7 +30,7 @@ class TreeTopNode extends TreeNode {
         name: string,
         collapsibleState: Vscode.TreeItemCollapsibleState = Vscode.TreeItemCollapsibleState.Expanded,
         public readonly commandToSet: string,
-        public readonly model: ListInputModel<Workbench | Compiler | Project | Config>,
+        public readonly model: ListInputModel<Workbench | Project | Config>,
         tooltip?: string,) {
         super(name, collapsibleState, tooltip);
     }
@@ -47,19 +46,16 @@ export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
     readonly onDidChangeTreeData: Vscode.Event<TreeNode | undefined> = this._onDidChangeTreeData.event;
 
     // Declaring this as a tuple rather than an array gives an extra bit of type safety
-    private readonly topNodes: [TreeTopNode, TreeTopNode, TreeTopNode, TreeTopNode];
-    private compilerVisible = false;
+    private readonly topNodes: [TreeTopNode, TreeTopNode, TreeTopNode];
 
     constructor(
         context: Vscode.ExtensionContext,
         workbenchModel: ListInputModel<Workbench>,
-        compilerModel: ListInputModel<Compiler>,
         projectModel: ListInputModel<Project>,
         configModel: ListInputModel<Config>,
     ) {
         this.topNodes = [
             new TreeTopNode("EW Installation", Vscode.TreeItemCollapsibleState.Expanded, "setWorkbench", workbenchModel, "Select EW installation"),
-            new TreeTopNode("Compiler", Vscode.TreeItemCollapsibleState.Expanded, "setCompiler", compilerModel, "Select compiler"),
             new TreeTopNode("Project", Vscode.TreeItemCollapsibleState.Expanded, "setProject", projectModel, "Select project"),
             new TreeTopNode("Configuration", Vscode.TreeItemCollapsibleState.Expanded, "setConfig", configModel, "Select build configuration"),
         ];
@@ -74,13 +70,6 @@ export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
                 node.model.select(indexToSet);
             }));
         });
-    }
-
-    setCompilerVisible(visible: boolean) {
-        if (visible !== this.compilerVisible) {
-            this.compilerVisible = visible;
-            this._onDidChangeTreeData.fire(undefined);
-        }
     }
 
     getTreeItem(element: TreeNode): Vscode.TreeItem | Thenable<Vscode.TreeItem> {
@@ -104,11 +93,7 @@ export class TreeSelectionView implements Vscode.TreeDataProvider<TreeNode> {
                 return [];
             }
         } else {
-            if (this.compilerVisible) {
-                return this.topNodes;
-            } else {
-                return [this.topNodes[0], this.topNodes[2], this.topNodes[3]];
-            }
+            return this.topNodes;
         }
     }
 }

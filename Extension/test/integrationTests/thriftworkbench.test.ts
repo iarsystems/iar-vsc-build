@@ -1,19 +1,13 @@
 import { ThriftWorkbench } from "../../src/iar/extendedworkbench";
-import { ToolManager } from "../../src/iar/tools/manager";
-import { Settings } from "../../src/extension/settings";
 import * as Assert from "assert";
 import { Workbench } from "../../src/iar/tools/workbench";
+import { IntegrationTestsCommon } from "./common";
 
 suite("Thrift workbench", function() {
     let workbench: Workbench;
 
     suiteSetup(() => {
-        const manager = ToolManager.createIarToolManager();
-        Settings.getIarInstallDirectories().forEach(directory => {
-            manager.collectFrom(directory);
-        });
-
-        const workbenches = manager.findWorkbenchesContainingPlatform("arm");
+        const workbenches = IntegrationTestsCommon.findWorkbenchesContainingTarget("arm");
         Assert(workbenches && workbenches.length > 0, "These tests require an ARM EW to run, but none was found.");
 
         const workbenchCandidate = workbenches?.find(wb => ThriftWorkbench.hasThriftSupport(wb) );

@@ -17,7 +17,5 @@ suite("Test toolmanager creation with filesystem", () => {
         });
 
         console.log(manager);
-        console.log(manager.findWorkbenchesContainingPlatform("arm"));
-        console.log(manager.findWorkbenchesContainingCompiler("iccavr.exe"));
     });
 });

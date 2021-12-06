@@ -9,7 +9,6 @@ import { IncludePath } from "./data/includepath";
 import { PreIncludePath } from "./data/preincludepath";
 import { Define } from "./data/define";
 import { Keyword } from "./data/keyword";
-import { Compiler } from "../../iar/tools/compiler";
 import { LanguageUtils } from "../../utils/utils";
 import * as Path from "path";
 import * as Os from "os";
@@ -28,7 +27,7 @@ import { FsUtils } from "../../utils/fs";
  */
 export namespace StaticConfigGenerator {
 
-    export async function generateConfiguration(language: LanguageUtils.Language, config?: Config, project?: Project, compiler?: Compiler): Promise<PartialSourceFileConfiguration> {
+    export async function generateConfiguration(language: LanguageUtils.Language, config?: Config, project?: Project, compiler?: string): Promise<PartialSourceFileConfiguration> {
         let defines: Define[] = [];
         let includepaths: IncludePath[] = [];
         let preincludes: PreIncludePath[] = [];
@@ -54,8 +53,7 @@ export namespace StaticConfigGenerator {
         };
     }
 
-    async function generateCompilerSpecifics(language: LanguageUtils.Language, compiler: Compiler): Promise<PartialSourceFileConfiguration> {
-        const cmd = compiler.path.toString();
+    async function generateCompilerSpecifics(language: LanguageUtils.Language, compiler: string): Promise<PartialSourceFileConfiguration> {
         const tmpFile = Path.join(Os.tmpdir(), "iarvsc.c");
         const tmpOutFile = Path.join(Os.tmpdir(), "iarvsc.predef_macros");
         const args = ["--IDE3", "--NCG", tmpFile, "--predef_macros", tmpOutFile];
@@ -88,7 +86,7 @@ export namespace StaticConfigGenerator {
 
         await fsPromises.writeFile(tmpFile, "");
 
-        const process = Process.spawnSync(cmd, args, { encoding: "utf8" });
+        const process = Process.spawnSync(compiler, args, { encoding: "utf8" });
 
         let defines: Define[] = [];
         if (await FsUtils.exists(tmpOutFile)) {
@@ -98,7 +96,7 @@ export namespace StaticConfigGenerator {
 
         // To force cpptools to recognize extended keywords we pretend they're compiler-defined macros
         // C syntax files are named <platform dir>/config/syntax_icc.cfg
-        const platformBasePath = Path.join(Path.dirname(compiler.path.toString()), "..");
+        const platformBasePath = Path.join(Path.dirname(compiler), "..");
         const filePath         = platformBasePath + "/config/syntax_icc.cfg";
         if (await FsUtils.exists(filePath)) {
             const keywords = Keyword.fromSyntaxFile(filePath);

@@ -6,13 +6,11 @@
 
 import * as Vscode from "vscode";
 import { CommandBase } from "./command";
-import { CompilerListModel } from "../model/selectcompiler";
-import { ConfigurationListModel } from "../model/selectconfiguration";
 import { IarConfigurationProvider } from "../configprovider/configurationprovider";
 
 class RegenerateCppToolsConfCommand extends CommandBase<void> {
 
-    constructor(_compilerModel: CompilerListModel, _configModel: ConfigurationListModel) {
+    constructor() {
         super("iar.regenerateCppToolsConfig");
     }
 
@@ -26,7 +24,7 @@ class RegenerateCppToolsConfCommand extends CommandBase<void> {
 }
 
 export namespace Command {
-    export function createRegenerateCppToolsConfig(compilerModel: CompilerListModel, configModel: ConfigurationListModel) {
-        return new RegenerateCppToolsConfCommand(compilerModel, configModel);
+    export function createRegenerateCppToolsConfig() {
+        return new RegenerateCppToolsConfCommand();
     }
 }

@@ -12,9 +12,7 @@ import { Settings } from "../settings";
 import { Command } from "../command/command";
 import { Command as RegenerateCommand } from "../command/regeneratecpptoolsconf";
 import { Workbench } from "../../iar/tools/workbench";
-import { CompilerListModel } from "../model/selectcompiler";
 import { ListInputModel } from "../model/model";
-import { Compiler } from "../../iar/tools/compiler";
 import { Project, LoadedProject, ExtendedProject } from "../../iar/project/project";
 import { ProjectListModel } from "../model/selectproject";
 import { Config } from "../../iar/project/config";
@@ -47,7 +45,6 @@ class Application {
     private readonly context: Vscode.ExtensionContext;
 
     readonly workbench: UI<Workbench>;
-    readonly compiler: UI<Compiler>;
     readonly config: UI<Config>;
     readonly project: UI<Project>;
 
@@ -69,8 +66,6 @@ class Application {
 
         // create different UIs
         this.workbench = this.createWorkbenchUi();
-        this.compiler = this.createCompilerUi();
-        this.hideHelper(this.compiler); // Should not be needed when using thrift PM
         this.project = this.createProjectUi();
         this.config = this.createConfigurationUi();
 
@@ -80,7 +75,6 @@ class Application {
 
         this.settingsTreeView = new TreeSelectionView(context,
             this.workbench.model,
-            this.compiler.model,
             this.project.model,
             this.config.model);
         Vscode.window.registerTreeDataProvider("iar-settings", this.settingsTreeView);
@@ -88,8 +82,7 @@ class Application {
         this.projectTreeView = new TreeProjectView(this.project.model, this.extendedProject, this.workbench.model, this.extendedWorkbench);
 
         // Create commands
-        this.generator = RegenerateCommand.createRegenerateCppToolsConfig(this.compiler.model as CompilerListModel,
-            this.config.model as ConfigurationListModel);
+        this.generator = RegenerateCommand.createRegenerateCppToolsConfig();
         this.generator.register(context);
 
         new SelectIarWorkspace().register(context);
@@ -111,7 +104,6 @@ class Application {
 
     public show(): void {
         this.showHelper(this.workbench);
-        this.showHelper(this.compiler);
         this.showHelper(this.project);
         this.showHelper(this.config);
     }
@@ -130,11 +122,6 @@ class Application {
         element.cmd.enabled = true;
     }
 
-    private hideHelper<T>(element: UI<T>) {
-        element.cmd.enabled = false;
-        element.ui.hide();
-    }
-
     private createWorkbenchUi(): UI<Workbench> {
         const model = new WorkbenchListModel(...this.toolManager.workbenches);
         const cmd = Command.createSelectWorkbenchCommand(model);
@@ -142,22 +129,6 @@ class Application {
 
         cmd.register(this.context);
         ui.label = "Workbench: ";
-        ui.defaultText = "None selected";
-
-        return {
-            model: model,
-            cmd: cmd,
-            ui: ui
-        };
-    }
-
-    private createCompilerUi(): UI<Compiler> {
-        const model = new CompilerListModel();
-        const cmd = Command.createSelectCompilerCommand(model);
-        const ui = SelectionView.createSelectionView(cmd, model, 4);
-
-        cmd.register(this.context);
-        ui.label = "Compiler: ";
         ui.defaultText = "None selected";
 
         return {
@@ -208,7 +179,6 @@ class Application {
 
     private selectCurrentSettings(): void {
         this.selectCurrentWorkbench();
-        this.selectCurrentCompiler();
         this.selectCurrentProject();
         this.selectCurrentConfiguration();
     }
@@ -227,23 +197,6 @@ class Application {
         } else {
             this.workbench.model.select(0);
         }
-    }
-
-    private selectCurrentCompiler(): void {
-        const currentCompiler = Settings.getCompiler();
-
-        if (currentCompiler) {
-            const currentCompilerPath = currentCompiler.toString();
-            const model = this.compiler.model as CompilerListModel;
-
-            if (!model.selectWhen(compiler => compiler.path === currentCompilerPath) && model.amount > 0) {
-                Vscode.window.showWarningMessage(`IAR: Can't find the compiler '${currentCompiler}' (defined in iar-vsc.json).`);
-                this.compiler.model.select(0);
-            }
-        } else {
-            this.compiler.model.select(0);
-        }
-
     }
 
     private selectCurrentProject(): void {
@@ -284,8 +237,6 @@ class Application {
         this.addProjectContentListeners();
 
         this.addWorkbenchModelListeners();
-        this.addCompilerModelListeners();
-
         this.addProjectModelListeners();
         this.addConfigurationModelListeners();
     }
@@ -315,12 +266,6 @@ class Application {
 
         model.addOnInvalidateHandler(() => {
             this.selectCurrentWorkbench();
-        });
-
-        model.addOnSelectedHandler(() => {
-            const compilerModel = this.compiler.model as CompilerListModel;
-
-            compilerModel.useCompilersFromWorkbench(model.selected);
         });
 
         model.addOnSelectedHandler(async workbench => {
@@ -355,14 +300,6 @@ class Application {
         });
     }
 
-    private addCompilerModelListeners(): void {
-        const model = this.compiler.model as CompilerListModel;
-
-        model.addOnInvalidateHandler(() => {
-            this.selectCurrentCompiler();
-        });
-    }
-
     private addProjectModelListeners(): void {
         const model = this.project.model as ProjectListModel;
 
@@ -378,16 +315,6 @@ class Application {
             const configModel = this.config.model as ConfigurationListModel;
 
             configModel.useConfigurationsFromProject(this.loadedProject.selected);
-        });
-
-        this.extendedProject.addOnSelectedHandler((_model, project) => {
-            if (project) {
-                this.hideHelper(this.compiler);
-                this.settingsTreeView.setCompilerVisible(false);
-            } else {
-                this.showHelper(this.compiler);
-                this.settingsTreeView.setCompilerVisible(true);
-            }
         });
     }
 

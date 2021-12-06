@@ -11,7 +11,6 @@ import { Settings } from "../settings";
 
 export enum GetSettingsCommand {
     Workbench = "iar-settings.workbench",
-    Compiler = "iar-settings.compiler",
     ProjectFile = "iar-settings.project-file",
     ProjectConfiguration = "iar-settings.project-configuration"
 }
@@ -42,7 +41,6 @@ class GetSettings implements Command<string | undefined> {
 export namespace GetSettingsCommand {
     export function initCommands(context: Vscode.ExtensionContext): void {
         initCommand(context, GetSettingsCommand.Workbench, Settings.LocalSettingsField.Workbench);
-        initCommand(context, GetSettingsCommand.Compiler, Settings.LocalSettingsField.Compiler);
         initCommand(context, GetSettingsCommand.ProjectFile, Settings.LocalSettingsField.Ewp);
         initCommand(context, GetSettingsCommand.ProjectConfiguration, Settings.LocalSettingsField.Configuration);
     }

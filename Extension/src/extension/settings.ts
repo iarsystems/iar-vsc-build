@@ -23,7 +23,6 @@ export namespace Settings {
 
     export enum LocalSettingsField {
         Workbench = "workbench",
-        Compiler = "compiler",
         Ewp = "ewp",
         Configuration = "configuration",
     }
@@ -58,12 +57,6 @@ export namespace Settings {
     }
     export function setWorkbench(path: Fs.PathLike) {
         setLocalSetting(LocalSettingsField.Workbench, path);
-    }
-    export function getCompiler(): string | undefined {
-        return getLocalSetting(LocalSettingsField.Compiler);
-    }
-    export function setCompiler(path: Fs.PathLike) {
-        setLocalSetting(LocalSettingsField.Compiler, path);
     }
     export function getEwpFile(): string | undefined {
         return getLocalSetting(LocalSettingsField.Ewp);

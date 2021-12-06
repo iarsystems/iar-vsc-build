@@ -3,37 +3,30 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Assert from "assert";
-import { ToolManager } from "../../src/iar/tools/manager";
-import { Settings } from "../../src/extension/settings";
 import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
 import { StaticConfigGenerator } from "../../src/extension/configprovider/staticconfiggenerator";
-import { Compiler } from "../../src/iar/tools/compiler";
 import { DynamicConfigGenerator } from "../../src/extension/configprovider/dynamicconfiggenerator";
 import { Workbench } from "../../src/iar/tools/workbench";
 import * as vscode from "vscode";
 import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "../../utils/testutils/testSandbox";
 import * as Path from "path";
+import { IarOsUtils } from "../../utils/osUtils";
 
 suite("Test source configuration providers", function() {
     this.timeout(0);
 
     let workbench: Workbench;
-    let armCompiler: Compiler;
+    let armCompiler: string;
     let sandbox: TestSandbox;
     let projectDir: string;
     let project: EwpFile;
 
     suiteSetup(() => {
-        const manager = ToolManager.createIarToolManager();
-        Settings.getIarInstallDirectories().forEach(directory => {
-            manager.collectFrom(directory);
-        });
-
-        const workbenches = manager.findWorkbenchesContainingPlatform("arm");
+        const workbenches = IntegrationTestsCommon.findWorkbenchesContainingTarget("arm");
         Assert(workbenches && workbenches.length > 0, "These tests require an ARM EW to run, but none was found.");
         workbench = workbenches[0]!;
-        armCompiler = workbench.platforms.find(p => p.path.toString().endsWith("arm"))!.compilers[0]!;
+        armCompiler = Path.join(workbench.path.toString(), "arm/bin/iccarm" + IarOsUtils.executableExtension());
 
         sandbox = new TestSandbox(IntegrationTestsCommon.PROJECT_ROOT);
         projectDir = sandbox.copyToSandbox(IntegrationTestsCommon.TEST_PROJECTS_DIR, "SourceConfigTests");

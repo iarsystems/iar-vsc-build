@@ -8,7 +8,6 @@ import * as Vscode from "vscode";
 import { Input } from "../ui/input";
 import { ListInputModel } from "../model/model";
 import { Workbench } from "../../iar/tools/workbench";
-import { Compiler } from "../../iar/tools/compiler";
 import { Project } from "../../iar/project/project";
 import { Config } from "../../iar/project/config";
 
@@ -114,10 +113,6 @@ export namespace Command {
 
     export function createSelectWorkbenchCommand(model: ListInputModel<Workbench>): Command<void> {
         return createInputCommand("iar.selectWorkbench", model);
-    }
-
-    export function createSelectCompilerCommand(model: ListInputModel<Compiler>): Command<void> {
-        return createInputCommand("iar.selectCompiler", model);
     }
 
     export function createSelectProjectCommand(model: ListInputModel<Project>): Command<void> {

@@ -24,7 +24,6 @@ export function activate(context: vscode.ExtensionContext) {
     UI.init(context, IarVsc.toolManager);
 
     SettingsMonitor.monitorWorkbench(UI.getInstance().workbench.model);
-    SettingsMonitor.monitorCompiler(UI.getInstance().compiler.model);
     SettingsMonitor.monitorProject(UI.getInstance().project.model);
     SettingsMonitor.monitorConfiguration(UI.getInstance().config.model);
     UI.getInstance().show();

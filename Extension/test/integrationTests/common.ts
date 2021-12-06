@@ -1,4 +1,7 @@
 import * as path from "path";
+import { Settings } from "../../src/extension/settings";
+import { ToolManager } from "../../src/iar/tools/manager";
+import * as fs from "fs";
 
 export namespace IntegrationTestsCommon {
     // Root folder of the extension project
@@ -9,4 +12,15 @@ export namespace IntegrationTestsCommon {
     export const TEST_PROJECT_NAME = "test_project.ewp";
     // Name of the only file in the test project
     export const TEST_PROJECT_SOURCE_FILE = "main.c";
+
+    export function findWorkbenchesContainingTarget(target: string) {
+        const manager = ToolManager.createIarToolManager();
+        Settings.getIarInstallDirectories().forEach(directory => {
+            manager.collectFrom(directory);
+        });
+
+        return manager.workbenches.filter(wb => {
+            return fs.existsSync(path.join(wb.path.toString(), target));
+        });
+    }
 }
