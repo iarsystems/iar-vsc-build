@@ -38,6 +38,13 @@ export namespace Define {
         return new StringDefine(identifier, value);
     }
 
+    // On the format myDef=42
+    export function fromString(str: string) {
+        // Note that null assertion is safe, even if there is no '='
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return fromIdentifierValuePair(str.split("=")[0]!, str.split("=")[1] ?? "");
+    }
+
     export function fromSourceFile(path: Fs.PathLike): Define[] {
         const buf = Fs.readFileSync(path.toString());
 

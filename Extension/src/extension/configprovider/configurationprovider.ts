@@ -145,6 +145,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         const includes = this.fileConfigs.allIncludes;
         let defines = this.fileConfigs.allDefines;
         defines = defines.concat(this.keywordDefines);
+        defines = defines.concat(Settings.getDefines().map(Define.fromString)); // user-defined extra macros
         const preincludes = this.fileConfigs.allPreincludes;
         this.fallbackConfig = { includes, defines, preincludes };
         await JsonConfigurationWriter.writeJsonConfiguration(this.fallbackConfig, this.name);
