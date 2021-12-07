@@ -103,7 +103,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
                 defines: stringDefines,
                 includePath: includes.map(i => i.absolutePath.toString()),
                 forcedInclude: [],
-                intelliSenseMode: "msvc-x64",
+                intelliSenseMode: "clang-arm",
                 standard: lang === "c" ? cStandard : cppStandard,
             };
             return {
