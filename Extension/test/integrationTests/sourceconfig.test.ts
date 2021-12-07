@@ -4,7 +4,6 @@
 
 import * as Assert from "assert";
 import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
-import { StaticConfigGenerator } from "../../src/extension/configprovider/staticconfiggenerator";
 import { DynamicConfigGenerator } from "../../src/extension/configprovider/dynamicconfiggenerator";
 import { Workbench } from "../../src/iar/tools/workbench";
 import * as vscode from "vscode";
@@ -31,6 +30,7 @@ suite("Test source configuration providers", function() {
         sandbox = new TestSandbox(IntegrationTestsCommon.PROJECT_ROOT);
         projectDir = sandbox.copyToSandbox(IntegrationTestsCommon.TEST_PROJECTS_DIR, "SourceConfigTests");
         project = new EwpFile(Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_NAME));
+        Assert(project.findConfiguration("Debug"), "Test project should have a Debug configuration");
     });
 
     suiteTeardown(() => {
@@ -38,36 +38,35 @@ suite("Test source configuration providers", function() {
     });
 
     test("Finds project wide configs", async() => {
-        const config = await StaticConfigGenerator.generateConfiguration("c", project.findConfiguration("Debug"), project, undefined);
-        Assert(config.includes.some(path => path.path.toString() === "my\\test\\include\\path"));
-        Assert(config.includes.some(path => path.path.toString() === "my/other/include/path"));
-        Assert(config.defines.some(define => define.identifier === "MY_SYMBOL" && define.value === "42"));
-        Assert(config.defines.some(define => define.identifier === "MY_SYMBOL2" && define.value === "\"test\""));
+        const config = await new DynamicConfigGenerator().generateConfiguration(workbench, project, armCompiler, project.findConfiguration("Debug")!);
+        Assert(config.allIncludes.some(path => path.path.toString() === "my\\test\\include\\path"));
+        Assert(config.allIncludes.some(path => path.path.toString() === "my/other/include/path"));
+        Assert(config.allDefines.some(define => define.identifier === "MY_SYMBOL" && define.value === "42"));
+        Assert(config.allDefines.some(define => define.identifier === "MY_SYMBOL2" && define.value === "\"test\""));
     });
 
     test("Finds compiler configs", async() => {
-        const config = await StaticConfigGenerator.generateConfiguration("c", undefined, undefined, armCompiler);
-        Assert(config.includes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]/)));
-        Assert(config.includes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]c[/\\]aarch32/)));
-        Assert(config.defines.some(define => define.identifier === "__thumb"));
-        Assert(config.defines.some(define => define.identifier === "__VERSION__"));
+        const config = await new DynamicConfigGenerator().generateConfiguration(workbench, project, armCompiler, project.findConfiguration("Debug")!);
+        Assert(config.allIncludes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]/)));
+        Assert(config.allIncludes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]c[/\\]aarch32/)));
+        Assert(config.allDefines.some(define => define.identifier === "__thumb"));
+        Assert(config.allDefines.some(define => define.identifier === "__VERSION__"));
     });
 
 
     test("Finds c++ configs", async() => {
-        const config = await StaticConfigGenerator.generateConfiguration("cpp", undefined, undefined, armCompiler);
-        Assert(config.includes.some(path => path.absolutePath.toString().endsWith("cpp")), "Does not include c++ header directory");
+        const config = await new DynamicConfigGenerator().generateConfiguration(workbench, project, armCompiler, project.findConfiguration("Debug")!);
+        Assert(config.allIncludes.some(path => path.absolutePath.toString().endsWith("cpp")), "Does not include c++ header directory");
         // Assumes this define is always there, but might not be if using an old c++ standard?
-        Assert(config.defines.some(define => define.identifier === "__cpp_constexpr"), "Does not include c++ defines");
+        Assert(config.allDefines.some(define => define.identifier === "__cpp_constexpr"), "Does not include c++ defines");
     });
 
     test("Finds file specific configs", async() => {
-        const generator = new DynamicConfigGenerator();
-        await generator.generateConfiguration(workbench, project, armCompiler, project.findConfiguration("Debug")!);
+        const config = await new DynamicConfigGenerator().generateConfiguration(workbench, project, armCompiler, project.findConfiguration("Debug")!);
         const projectFile = Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
-        const includes = generator.getIncludes(vscode.Uri.file(projectFile));
-        Assert.equal(includes.map(path => path.path), ["only/this/file"]);
-        const defines = generator.getDefines(vscode.Uri.file(projectFile));
-        Assert.equal(defines.map(def => def.identifier), ["FILE_SYMBOL"]);
+        const includes = config.getIncludes(vscode.Uri.file(projectFile).fsPath);
+        Assert.equal(includes!.map(path => path.path), ["only/this/file"]);
+        const defines = config.getDefines(vscode.Uri.file(projectFile).fsPath);
+        Assert.equal(defines!.map(def => def.identifier), ["FILE_SYMBOL"]);
     });
 });

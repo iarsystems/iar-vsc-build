@@ -5,7 +5,6 @@
 import { Project } from "../../iar/project/project";
 import { Workbench } from "../../iar/tools/workbench";
 import { Config } from "../../iar/project/config";
-import { ConfigurationCache, SimpleConfigurationCache } from "./configurationcache";
 import * as Vscode from "vscode";
 import { IncludePath } from "./data/includepath";
 import { Define } from "./data/define";
@@ -16,36 +15,32 @@ import { Readable } from "stream";
 import { tmpdir } from "os";
 import * as Path from "path";
 import { OsUtils, LanguageUtils } from "../../utils/utils";
+import { ConfigurationSet } from "./configurationset";
 
 /**
- * Generates/detects per-file configuration data (include paths/defines) for an entire project,
- * and caches them (in memory) for later retrieval.
- * This implementation relies on running mock builds of the entire project, and analyzing the compiler output.
- * Because of this, it is somewhat slow, but should be completely correct.
+ * Generates/detects per-file configuration data (include paths/defines) for an entire project.
+ * This implementation relies on running mock builds of the entire project (iarbuild -dryrun), and analyzing the compiler output.
  */
 export class DynamicConfigGenerator {
-    private runningPromise: Promise<boolean> | null = null;
+    private runningPromise: Promise<ConfigurationSet> | null = null;
     private shouldCancel = false;
-    private readonly cache: ConfigurationCache = new SimpleConfigurationCache();
     private readonly output: Vscode.OutputChannel = Vscode.window.createOutputChannel("Iar Config Generator");
 
 
     /**
-     * Generates configuration data for an entire project, using the supplied values,
-     * and caches the results
-     * @returns true if the operation succeded, false if the operation was canceled (and rejects on errors)
+     * Generates configuration data for an entire project, using the supplied values.
      */
-    public generateConfiguration(workbench: Workbench, project: Project, compiler: string, config: Config): Promise<boolean> {
+    public generateConfiguration(workbench: Workbench, project: Project, compiler: string, config: Config): Promise<ConfigurationSet> {
         // make sure we only run once at a time
         // this is probably safe since Node isnt multithreaded
         if (!this.runningPromise) {
             this.shouldCancel = false;
             this.runningPromise = this.generateConfigurationImpl(workbench, project, compiler, config).then(
-                (result: boolean) => {
+                result => {
                     this.runningPromise = null;
                     return result;
                 },
-                (err) => {
+                err => {
                     this.runningPromise = null;
                     return Promise.reject(err);
                 });
@@ -54,7 +49,7 @@ export class DynamicConfigGenerator {
     }
 
     /**
-     * Cancels any ongoing data generation.
+     * Cancels any ongoing data generation. Any unresolved promises will reject if sucessfully canceled.
      */
     public async cancelCurrentOperation(): Promise<void> {
         if (this.runningPromise) {
@@ -69,7 +64,7 @@ export class DynamicConfigGenerator {
         this.output.dispose();
     }
 
-    private async generateConfigurationImpl(workbench: Workbench, project: Project, compiler: string, config: Config): Promise<boolean> {
+    private async generateConfigurationImpl(workbench: Workbench, project: Project, compiler: string, config: Config): Promise<ConfigurationSet> {
         let builderPath = join(workbench.path.toString(), "common/bin/iarbuild");
         if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
             builderPath += ".exe";
@@ -82,7 +77,8 @@ export class DynamicConfigGenerator {
 
         const compilerInvocations = await this.findCompilerInvocations(builderProc.stdout);
 
-        const fileConfigs: Array<{includes: IncludePath[], defines: Define[]}> = [];
+        const incs: Map<string, IncludePath[]> = new Map();
+        const defs: Map<string, Define[]> = new Map();
 
         for (let i = 0; i < compilerInvocations.length; i++) {
             const compInv = compilerInvocations[i];
@@ -96,37 +92,18 @@ export class DynamicConfigGenerator {
                 continue;
             }
             try {
-                fileConfigs.push(await this.generateConfigurationForFile(compiler, compInv.slice(1)));
+                const { includes, defines } = await this.generateConfigurationForFile(compiler, compInv.slice(1));
+                const path = compInv[1];
+                incs.set(path, includes);
+                defs.set(path, defines);
             } catch {}
 
             if (this.shouldCancel) {
-                return Promise.resolve(false);
+                return Promise.reject(new Error("Canceled"));
             }
         }
 
-        fileConfigs.forEach((fileConfig, index) => {
-            const path = compilerInvocations[index]?.[1];
-            if (path !== undefined) {
-                const uri = Vscode.Uri.file(path);
-                this.putIncludes(uri, fileConfig.includes);
-                this.putDefines(uri, fileConfig.defines);
-            }
-        });
-        return Promise.resolve(true);
-    }
-
-    public getIncludes(file: Vscode.Uri): IncludePath[] {
-        return this.cache.getIncludes(file);
-    }
-    public getDefines(file: Vscode.Uri): Define[] {
-        return this.cache.getDefines(file);
-    }
-
-    private putIncludes(file: Vscode.Uri, includes: IncludePath[]) {
-        this.cache.putIncludes(file, includes);
-    }
-    private putDefines(file: Vscode.Uri, defines: Define[]) {
-        this.cache.putDefines(file, defines);
+        return Promise.resolve(new ConfigurationSet(incs, defs));
     }
 
     // parses output from builder to find the calls to a compiler (eg iccarm) and what arguments it uses

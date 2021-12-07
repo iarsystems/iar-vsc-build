@@ -9,7 +9,6 @@ import { UI } from "../ui/app";
 import { Settings } from "../settings";
 import { CancellationToken } from "vscode-jsonrpc";
 import { LanguageUtils } from "../../utils/utils";
-import { StaticConfigGenerator } from "./staticconfiggenerator";
 import { JsonConfigurationWriter } from "./jsonconfigurationwriter";
 import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
 import { Workbench } from "../../iar/tools/workbench";
@@ -17,10 +16,13 @@ import { Config } from "../../iar/project/config";
 import * as Path from "path";
 import { IarOsUtils } from "../../../utils/osUtils";
 import { FsUtils } from "../../utils/fs";
+import { ConfigurationSet } from "./configurationset";
+import { Keyword } from "./data/keyword";
+import { Define } from "./data/define";
 
 /**
- * Provides source file configurations for an IAR project to cpptools via the cpptools typescript api.
- * Uses a mix of a fast but imprecise config detection method and a slower but more accurate method.
+ * Provides source file configurations for an IAR project to cpptools via the cpptools typescript api
+ * and the c_cpp_properties.json file.
  */
 export class IarConfigurationProvider implements CustomConfigurationProvider {
     private static _instance: IarConfigurationProvider | undefined = undefined;
@@ -55,8 +57,12 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         this.onSettingsChanged();
     }
 
-    private fallbackConfigurationC: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
-    private fallbackConfigurationCpp: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
+    // Blanket config that we apply when we don't have a file-specific config (i.e. header files, or a file not in the project)
+    private fallbackConfig: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
+    // Configs for all source files in the project
+    private fileConfigs: ConfigurationSet = new ConfigurationSet(new Map(), new Map());
+    // To force cpptools to recognize extended keywords we pretend they're compiler-defined macros
+    private keywordDefines: Define[] = [];
 
     readonly name = "iar-vsc";
     readonly extensionId = "pluyckx.iar-vsc";
@@ -72,13 +78,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         this.api.registerCustomConfigurationProvider(this);
         // to provide configs as fast as possible at startup, do notifyReady as soon as fallback configs are ready,
         // and let the configs be updated when accurate configs are available
-        this.generateFallbackConfigs().then(() => {
+        this.generateSourceConfigs().then(_didChange => {
             this.api.notifyReady(this);
-            this.generateAccurateConfigs().then((didChange: boolean) => {
-                if (didChange) {
-                    this.api.didChangeCustomConfiguration(this);
-                }
-            });
         });
     }
 
@@ -93,18 +94,18 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
 
         return Promise.resolve(uris.map(uri => {
             const lang = LanguageUtils.determineLanguage(uri.fsPath);
-            const baseConfiguration = lang === "c" ? this.fallbackConfigurationC : this.fallbackConfigurationCpp;
-            const fileConfiguration = { includes: this.generator.getIncludes(uri), preIncludes: [], defines: this.generator.getDefines(uri) };
-            const mergedConfiguration = PartialSourceFileConfiguration.merge(baseConfiguration, fileConfiguration);
+            const includes = this.fileConfigs.getIncludes(uri.fsPath) ?? [];
+            let defines = this.fileConfigs.getDefines(uri.fsPath) ?? [];
+            defines = defines.concat(this.keywordDefines);
 
-            let stringDefines = mergedConfiguration.defines.map(d => d.makeString());
+            let stringDefines = defines.map(d => d.makeString());
             stringDefines = stringDefines.concat(Settings.getDefines()); // user-defined extra macros
 
             const config: SourceFileConfiguration = {
                 compilerPath: "",
                 defines: stringDefines,
-                includePath: mergedConfiguration.includes.map(i => i.absolutePath.toString()),
-                forcedInclude: mergedConfiguration.preIncludes.map(i => i.absolutePath.toString()),
+                includePath: includes.map(i => i.absolutePath.toString()),
+                forcedInclude: [],
                 intelliSenseMode: "msvc-x64",
                 standard: lang === "c" ? cStandard : cppStandard,
             };
@@ -118,15 +119,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         return Promise.resolve(true);
     }
     provideBrowseConfiguration(_token?: CancellationToken | undefined): Thenable<WorkspaceBrowseConfiguration> {
-        const mergedConfig = PartialSourceFileConfiguration.merge(this.fallbackConfigurationC, this.fallbackConfigurationCpp);
-        const result: WorkspaceBrowseConfiguration = {
-            browsePath: mergedConfig.includes.map(i => i.absolutePath.toString()),
+        return Promise.resolve({
+            browsePath: this.fallbackConfig.includes.map(i => i.absolutePath.toString()),
             compilerPath: "",
             compilerArgs: [],
             standard: Settings.getCStandard(),
             windowsSdkVersion: ""
-        };
-        return Promise.resolve(result);
+        });
     }
     canProvideBrowseConfigurationsPerFolder(_token?: CancellationToken | undefined): Thenable<boolean> {
         return Promise.resolve(false);
@@ -140,19 +139,18 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         this.generator.dispose();
     }
 
-    private async generateFallbackConfigs() {
-        const project = UI.getInstance().project.model.selected;
-        const config = UI.getInstance().config.model.selected;
-        const workbench = UI.getInstance().workbench.model.selected;
-        const compiler = config && workbench ? getCompilerForConfig(config, workbench) : undefined;
-        this.fallbackConfigurationC   = await StaticConfigGenerator.generateConfiguration("c", config, project, compiler);
-        this.fallbackConfigurationCpp = await StaticConfigGenerator.generateConfiguration("cpp", config, project, compiler);
-        const mergedConfig = PartialSourceFileConfiguration.merge(this.fallbackConfigurationC, this.fallbackConfigurationCpp);
-        await JsonConfigurationWriter.writeJsonConfiguration(mergedConfig, this.name);
+    private async generateFallbackConfig() {
+        // Simply take the sum of all file configs.
+        // It isn't perfect, but it doesn't need to be and there is no perfect solution AFAIK.
+        const includes = this.fileConfigs.allIncludes;
+        let defines = this.fileConfigs.allDefines;
+        defines = defines.concat(this.keywordDefines);
+        this.fallbackConfig = { includes, defines, preIncludes: []};
+        await JsonConfigurationWriter.writeJsonConfiguration(this.fallbackConfig, this.name);
     }
 
     // returns true if configs changed
-    private async generateAccurateConfigs(): Promise<boolean> {
+    private async generateSourceConfigs(): Promise<boolean> {
         await this.generator.cancelCurrentOperation();
 
         const workbench = UI.getInstance().workbench.model.selected;
@@ -166,16 +164,38 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             return false;
         }
         try {
-            return await this.generator.generateConfiguration(workbench, project, compiler, config);
+            this.fileConfigs = await this.generator.generateConfiguration(workbench, project, compiler, config);
+            return true;
         } catch (err) {
             Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err);
             return false;
         }
     }
 
+
+    async generateKeywordDefines() {
+        const workbench = UI.getInstance().workbench.model.selected;
+        const config = UI.getInstance().config.model.selected;
+        if (!workbench || !config) {
+            return;
+        }
+        const compiler = getCompilerForConfig(config, workbench);
+        if (!compiler) {
+            return;
+        }
+        // C syntax files are named <platform dir>/config/syntax_icc.cfg
+        const platformBasePath = Path.join(Path.dirname(compiler), "..");
+        const filePath         = platformBasePath + "/config/syntax_icc.cfg";
+        if (await FsUtils.exists(filePath)) {
+            const keywords = Keyword.fromSyntaxFile(filePath);
+            this.keywordDefines = keywords.map(kw => Keyword.toDefine(kw));
+        }
+    }
+
     private onSettingsChanged() {
-        this.generateFallbackConfigs();
-        this.generateAccurateConfigs().then(changed => {
+        this.generateKeywordDefines().then(async() => {
+            const changed = await this.generateSourceConfigs();
+            this.generateFallbackConfig();
             if (changed) {
                 this.api.didChangeCustomConfiguration(this);
             }
