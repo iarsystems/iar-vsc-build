@@ -91,8 +91,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
 
         return Promise.resolve(uris.map(uri => {
             const lang = LanguageUtils.determineLanguage(uri.fsPath);
-            const includes = this.fileConfigs.getIncludes(uri.fsPath) ?? [];
-            let defines = this.fileConfigs.getDefines(uri.fsPath) ?? [];
+            const includes = this.fileConfigs.getIncludes(uri.fsPath) ?? this.fallbackConfig.includes;
+            let defines = this.fileConfigs.getDefines(uri.fsPath) ?? this.fallbackConfig.defines;
             defines = defines.concat(this.keywordDefines);
 
             let stringDefines = defines.map(d => d.makeString());
