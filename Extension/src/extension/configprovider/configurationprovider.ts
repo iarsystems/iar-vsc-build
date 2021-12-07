@@ -76,11 +76,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         Settings.observeSetting(Settings.ExtensionSettingsField.CppStandard, this.onSettingsChanged.bind(this));
 
         this.api.registerCustomConfigurationProvider(this);
-        // to provide configs as fast as possible at startup, do notifyReady as soon as fallback configs are ready,
-        // and let the configs be updated when accurate configs are available
-        this.generateSourceConfigs().then(_didChange => {
-            this.api.notifyReady(this);
-        });
+        this.api.notifyReady(this);
+        this.onSettingsChanged();
     }
 
     // cpptools api methods
@@ -151,22 +148,17 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
 
     // returns true if configs changed
     private async generateSourceConfigs(): Promise<boolean> {
-        await this.generator.cancelCurrentOperation();
-
         const workbench = UI.getInstance().workbench.model.selected;
         const config = UI.getInstance().config.model.selected;
         const project = UI.getInstance().project.model.selected;
         if (!workbench || !config || !project) {
             return false;
         }
-        const compiler = getCompilerForConfig(config, workbench);
-        if (!compiler) {
-            return false;
-        }
         try {
-            this.fileConfigs = await this.generator.generateConfiguration(workbench, project, compiler, config);
+            this.fileConfigs = await this.generator.generateSourceConfigs(workbench, project, config);
             return true;
         } catch (err) {
+            // TODO: Show output window? Or link to it
             Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err);
             return false;
         }

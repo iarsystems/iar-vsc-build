@@ -10,13 +10,11 @@ import * as vscode from "vscode";
 import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "../../utils/testutils/testSandbox";
 import * as Path from "path";
-import { IarOsUtils } from "../../utils/osUtils";
 
 suite("Test source configuration providers", function() {
     this.timeout(0);
 
     let workbench: Workbench;
-    let armCompiler: string;
     let sandbox: TestSandbox;
     let projectDir: string;
     let project: EwpFile;
@@ -25,7 +23,6 @@ suite("Test source configuration providers", function() {
         const workbenches = IntegrationTestsCommon.findWorkbenchesContainingTarget("arm");
         Assert(workbenches && workbenches.length > 0, "These tests require an ARM EW to run, but none was found.");
         workbench = workbenches[0]!;
-        armCompiler = Path.join(workbench.path.toString(), "arm/bin/iccarm" + IarOsUtils.executableExtension());
 
         sandbox = new TestSandbox(IntegrationTestsCommon.PROJECT_ROOT);
         projectDir = sandbox.copyToSandbox(IntegrationTestsCommon.TEST_PROJECTS_DIR, "SourceConfigTests");
@@ -38,7 +35,7 @@ suite("Test source configuration providers", function() {
     });
 
     test("Finds project wide configs", async() => {
-        const config = await new DynamicConfigGenerator().generateConfiguration(workbench, project, armCompiler, project.findConfiguration("Debug")!);
+        const config = await new DynamicConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
         Assert(config.allIncludes.some(path => path.path.toString() === "my\\test\\include\\path"));
         Assert(config.allIncludes.some(path => path.path.toString() === "my/other/include/path"));
         Assert(config.allDefines.some(define => define.identifier === "MY_SYMBOL" && define.value === "42"));
@@ -46,7 +43,7 @@ suite("Test source configuration providers", function() {
     });
 
     test("Finds compiler configs", async() => {
-        const config = await new DynamicConfigGenerator().generateConfiguration(workbench, project, armCompiler, project.findConfiguration("Debug")!);
+        const config = await new DynamicConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
         Assert(config.allIncludes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]/)));
         Assert(config.allIncludes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]c[/\\]aarch32/)));
         Assert(config.allDefines.some(define => define.identifier === "__thumb"));
@@ -55,14 +52,14 @@ suite("Test source configuration providers", function() {
 
 
     test("Finds c++ configs", async() => {
-        const config = await new DynamicConfigGenerator().generateConfiguration(workbench, project, armCompiler, project.findConfiguration("Debug")!);
+        const config = await new DynamicConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
         Assert(config.allIncludes.some(path => path.absolutePath.toString().endsWith("cpp")), "Does not include c++ header directory");
         // Assumes this define is always there, but might not be if using an old c++ standard?
         Assert(config.allDefines.some(define => define.identifier === "__cpp_constexpr"), "Does not include c++ defines");
     });
 
     test("Finds file specific configs", async() => {
-        const config = await new DynamicConfigGenerator().generateConfiguration(workbench, project, armCompiler, project.findConfiguration("Debug")!);
+        const config = await new DynamicConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
         const projectFile = Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
         const includes = config.getIncludes(vscode.Uri.file(projectFile).fsPath);
         Assert.equal(includes!.map(path => path.path), ["only/this/file"]);

@@ -7,6 +7,7 @@
 import * as os from "os";
 import { PathLike } from "fs";
 import * as Path from "path";
+import { ChildProcess } from "child_process";
 
 
 export namespace ReplaceUtils {
@@ -104,5 +105,22 @@ export namespace LanguageUtils {
         } else {
             return undefined;
         }
+    }
+}
+
+export namespace ProcessUtils {
+    /**
+     * Waits for a process to exit. Rejects if the exit code is non-zero.
+     */
+    export function waitForExit(process: ChildProcess) {
+        return new Promise<void>((resolve, reject) => {
+            process.on("exit", code => {
+                if (code !== 0) {
+                    reject(new Error("Process exited with code: " + code));
+                } else {
+                    resolve();
+                }
+            });
+        });
     }
 }

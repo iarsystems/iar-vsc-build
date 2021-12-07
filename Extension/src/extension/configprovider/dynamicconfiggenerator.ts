@@ -9,109 +9,134 @@ import * as Vscode from "vscode";
 import { IncludePath } from "./data/includepath";
 import { Define } from "./data/define";
 import { join } from "path";
-import { spawn } from "child_process";
+import { spawn, spawnSync } from "child_process";
 import * as readline from "readline";
-import { Readable } from "stream";
 import { tmpdir } from "os";
 import * as Path from "path";
-import { OsUtils, LanguageUtils } from "../../utils/utils";
+import { LanguageUtils, ProcessUtils } from "../../utils/utils";
 import { ConfigurationSet } from "./configurationset";
+import * as fsPromises from "fs/promises";
+import { FsUtils } from "../../utils/fs";
+import { createHash } from "crypto";
+
+/**
+ * A method or strategy of generating source configuration for a project. This needs to be pluggable, since the IarBuild
+ * interface differs between EW versions.
+ * @param workbench The workbench to use
+ * @param project The project to generate source config for
+ * @param project The project configuration to generate source config for
+ * @param output A vscode output channel to print used feedback (e.g. compiler output to)
+ * @return The configurations for all files in the project.
+ */
+type ConfigGeneratorImpl = (workbench: Workbench, project: Project, config: Config, output: Vscode.OutputChannel) => Promise<ConfigurationSet>;
 
 /**
  * Generates/detects per-file configuration data (include paths/defines) for an entire project.
- * This implementation relies on running mock builds of the entire project (iarbuild -dryrun), and analyzing the compiler output.
  */
 export class DynamicConfigGenerator {
+    // Stores any running operation, so we don't run more than one at the same time
     private runningPromise: Promise<ConfigurationSet> | null = null;
-    private shouldCancel = false;
     private readonly output: Vscode.OutputChannel = Vscode.window.createOutputChannel("Iar Config Generator");
 
 
     /**
      * Generates configuration data for an entire project, using the supplied values.
+     * If any previous operation is still running, waits for it to finish first.
      */
-    public generateConfiguration(workbench: Workbench, project: Project, compiler: string, config: Config): Promise<ConfigurationSet> {
-        // make sure we only run once at a time
-        // this is probably safe since Node isnt multithreaded
-        if (!this.runningPromise) {
-            this.shouldCancel = false;
-            this.runningPromise = this.generateConfigurationImpl(workbench, project, compiler, config).then(
-                result => {
-                    this.runningPromise = null;
-                    return result;
+    public generateSourceConfigs(workbench: Workbench, project: Project, config: Config): Promise<ConfigurationSet> {
+        const builder = workbench.builderPath.toString();
+        // select how to generate configs for this workbench
+        const builderOutput = spawnSync(builder).stdout.toString(); // Spawn without args to get help list
+        let generator: ConfigGeneratorImpl;
+        if (builderOutput.includes("-jsondb")) { // Filifjonkan
+            generator = DynamicConfigGenerator.generateForFilifjonkan;
+        } else {
+            generator = DynamicConfigGenerator.generateForBeforeFilifjonkan;
+        }
+
+        const run = () => generator(workbench, project, config, this.output).then(
+            result => {
+                this.output.appendLine("Done!");
+                return result;
+            },
+            err => {
+                this.output.appendLine("Source configuration did not complete: " + err.message);
+                console.error(err);
+                return Promise.reject(err);
+            }
+        );
+        // make sure we only run one at a time
+        if (this.runningPromise) {
+            this.runningPromise = this.runningPromise.then(
+                // ignore the outcome of the previous operation, run the new one instead
+                _ => {
+                    return run();
                 },
-                err => {
-                    this.runningPromise = null;
-                    return Promise.reject(err);
-                });
+                _ => {
+                    return run();
+                }
+            );
+        } else {
+            this.runningPromise = run();
         }
         return this.runningPromise;
-    }
-
-    /**
-     * Cancels any ongoing data generation. Any unresolved promises will reject if sucessfully canceled.
-     */
-    public async cancelCurrentOperation(): Promise<void> {
-        if (this.runningPromise) {
-            this.shouldCancel = true;
-            try {
-                await this.runningPromise;
-            } catch { } // we don't care if this crashes, since it's canceled and we don't need the result
-        }
     }
 
     public dispose() {
         this.output.dispose();
     }
+}
 
-    private async generateConfigurationImpl(workbench: Workbench, project: Project, compiler: string, config: Config): Promise<ConfigurationSet> {
-        let builderPath = join(workbench.path.toString(), "common/bin/iarbuild");
-        if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
-            builderPath += ".exe";
+/**
+ * Actual source config implementations
+ */
+export namespace DynamicConfigGenerator {
+    /**
+     * Config generator for workbenches using IDE platform versions on or after filifjonkan.
+     * Uses the iarbuild -jsondb option to find compilation flags for each file, then calls {@link generateFromCompilerArgs}.
+     */
+    export const generateForFilifjonkan: ConfigGeneratorImpl = async(workbench, project, config, output): Promise<ConfigurationSet> => {
+        // Have iarbuild create the json compilation database
+        const jsonPath = Path.join(tmpdir(), "iar-jsondb.json");
+        if (await FsUtils.exists(jsonPath)) {
+            await fsPromises.unlink(jsonPath); // Delete json file to force iarbuild to regenerate it
         }
-        const builderProc = spawn(builderPath, [project.path.toString(), "-dryrun", config.name, "-log", "all"]);
+        output.appendLine("Generating compilation database...");
+        const builderProc = spawn(workbench.builderPath.toString(), [project.path.toString(), "-jsondb", config.name, "-output", jsonPath]);
+        builderProc.stdout.on("data", data => output.append(data.toString()));
         builderProc.on("error", (err) => {
-            this.output.appendLine(err.name + ": " + err.message);
             return Promise.reject(err);
         });
+        await ProcessUtils.waitForExit(builderProc);
 
-        const compilerInvocations = await this.findCompilerInvocations(builderProc.stdout);
-
-        const incs: Map<string, IncludePath[]> = new Map();
-        const defs: Map<string, Define[]> = new Map();
-
-        for (let i = 0; i < compilerInvocations.length; i++) {
-            const compInv = compilerInvocations[i];
-            if (compInv?.[0] === undefined || compInv[1] === undefined) continue;
-            if (LanguageUtils.determineLanguage(compInv[1]) === undefined) {
-                this.output.appendLine("Skipping file of unsupported type: " + compInv[1]);
+        // Parse the json file for compilation flags
+        const json = JSON.parse((await fsPromises.readFile(jsonPath)).toString());
+        const compilerInvocations = new Map<string, string[]>();
+        for (const fileObj of json) {
+            if (fileObj["type"] !== "COMPILER") {
                 continue;
             }
-            if (Path.parse(compInv[0]).name !== Path.parse(compiler).name) {
-                this.output.appendLine(`WARN: Compiler name for ${compInv[1]} (${compInv[0]}) does not seem to match the selected compiler.`);
-                continue;
-            }
-            try {
-                const { includes, defines } = await this.generateConfigurationForFile(compiler, compInv.slice(1));
-                const path = compInv[1];
-                incs.set(path, includes);
-                defs.set(path, defines);
-            } catch {}
-
-            if (this.shouldCancel) {
-                return Promise.reject(new Error("Canceled"));
-            }
+            compilerInvocations.set(fileObj["file"], fileObj["arguments"]);
         }
+        return generateFromCompilerArgs(compilerInvocations, output);
+    };
 
-        return Promise.resolve(new ConfigurationSet(incs, defs));
-    }
+    /**
+     * Config generator for workbenches using IDE platform versions prior to filifjonkan.
+     * Uses iarbuild -dryrun -log all, parsing the output to find compilation flags for each file, then calls {@link generateFromCompilerArgs}
+     */
+    export const generateForBeforeFilifjonkan: ConfigGeneratorImpl = async(workbench, project, config, output): Promise<ConfigurationSet> => {
+        const builderProc = spawn(workbench.builderPath.toString(), [project.path.toString(), "-dryrun", config.name, "-log", "all"]);
+        builderProc.on("error", (err) => {
+            return Promise.reject(err);
+        });
+        const exitPromise = ProcessUtils.waitForExit(builderProc);
 
-    // parses output from builder to find the calls to a compiler (eg iccarm) and what arguments it uses
-    private findCompilerInvocations(builderOutput: Readable): Promise<string[][]> {
-        return new Promise((resolve, _reject) => {
+        // Parse output from iarbuild to find all compiler invocations
+        const compInvs = await new Promise<string[][]>((resolve, _reject) => {
             const compilerInvocations: string[][] = [];
             const lineReader = readline.createInterface({
-                input: builderOutput,
+                input: builderProc.stdout,
             });
             lineReader.on("line", (line: string) => {
                 if (line.startsWith(">")) { // this is a compiler invocation
@@ -123,55 +148,96 @@ export class DynamicConfigGenerator {
                     const argDelimRegex = /"\s+"/;
                     let match: RegExpExecArray | null;
                     while ((match = argDelimRegex.exec(argsRaw)) !== null) {
-                        args.push(this.stripQuotes(argsRaw.slice(0, match.index)));
+                        args.push(stripQuotes(argsRaw.slice(0, match.index)));
                         argsRaw = argsRaw.slice(match.index + 1);
                     }
-                    args.push(this.stripQuotes(argsRaw));
+                    args.push(stripQuotes(argsRaw));
                     compilerInvocations.push(args);
                 } else if (line.match(/^Linking/)) { // usually the promise finishes here
                     lineReader.removeAllListeners();
                     resolve(compilerInvocations);
                     return;
                 }
-                this.output.appendLine(line);
+                output.appendLine(line);
             });
             lineReader.on("close", () => { // safeguard in case the builder crashes
-                this.output.appendLine("WARN: Builder closed without reaching linking stage.");
+                output.appendLine("WARN: Builder closed without reaching linking stage.");
                 lineReader.removeAllListeners();
                 resolve(compilerInvocations);
             });
-        });
-    }
+        }); /* new Promise */
+        await exitPromise; // Make sure iarbuild exits without error
 
-    private stripQuotes(str: string): string {
-        str = str.trim();
-        if (str.startsWith("\"")) {
-            str = str.slice(1);
+        // Find the filename of each compiler invocation, and add to the map
+        const compilerInvocationsMap = new Map<string, string[]>();
+        compInvs.forEach(compInv => {
+            if (compInv?.[0] === undefined || compInv[1] === undefined) return;
+            const file = compInv[1];
+            if (LanguageUtils.determineLanguage(file) === undefined) {
+                output.appendLine("Skipping file of unsupported type: " + file);
+                return;
+            }
+            // generateFromCompilerArgs expects the first arg to be an absolute path to a compiler
+            compInv[0] = Path.join(workbench.path.toString(), `${config.toolchainId.toLowerCase()}/bin/${compInv[0]}`);
+            compilerInvocationsMap.set(file, compInv);
+        });
+
+        return generateFromCompilerArgs(compilerInvocationsMap, output);
+    };
+
+    /**
+     * Generates source configs for a set of files from the arguments used to compile them. This invokes the compiler
+     * with some special flags to avoid code generation and output include paths/defines.
+     * @param compilerInvocations Maps files in the project to the compiler command line used to compile them
+     */
+    async function generateFromCompilerArgs(compilerInvocations: Map<string, string[]>, output: Vscode.OutputChannel): Promise<ConfigurationSet> {
+        output.appendLine("Generating source configuration...");
+        const incs: Map<string, IncludePath[]> = new Map();
+        const defs: Map<string, Define[]> = new Map();
+        const tmpDir = Path.join(tmpdir(), "iar-vsc-source-config");
+        if (!await FsUtils.exists(tmpDir)) {
+            await fsPromises.mkdir(tmpDir, {recursive: true});
         }
-        if (str.endsWith("\"")) {
-            str = str.slice(0, -1);
-        }
-        return str;
+
+        // A bit obscure, but the promises here are to generate it all in parallel
+        const promises: Promise<unknown>[] = [];
+        compilerInvocations.forEach((compInv, file) => {
+            promises.push((async() => {
+                if (compInv?.[0] === undefined) return;
+                const compiler = compInv[0];
+                try {
+                    const { includes, defines } = await generateConfigurationForFile(compiler, compInv.slice(1), tmpDir, output);
+                    incs.set(file, includes);
+                    defs.set(file, defines);
+                } catch {}
+
+                return Promise.resolve();
+            })());
+        });
+
+        await Promise.all(promises);
+        return Promise.resolve(new ConfigurationSet(incs, defs));
     }
 
     /**
-     * Generates config data for a single translation unit
+     * Generates config data for a single source file
      * by invoking the compiler with specific flags.
-     * It is unadvised to run multiple instances of this function at the same time,
-     * doing so may cause strange file collisions.  TODO: fix this by using a unique predef_macros file
      */
-    private generateConfigurationForFile(compiler: string, compilerArgs: string[]): Promise<{includes: IncludePath[], defines: Define[]}> {
-        const macrosOutFile = join(tmpdir(), "iarvsc.predef_macros");
+    function generateConfigurationForFile(compiler: string, compilerArgs: string[], tmpDir: string, output: Vscode.OutputChannel): Promise<{includes: IncludePath[], defines: Define[]}> {
+        if (compilerArgs[0] === undefined) {
+            return Promise.reject(new Error("Compiler args should contain at least a filename"));
+        }
+        // Hash the filename to avoid collisions when running in parallel
+        const macrosOutFile = join(tmpDir, createHash("md5").update(compilerArgs[0]).digest("hex") + ".predef_macros");
         const args = ["--IDE3", "--NCG", "--predef-macros", macrosOutFile].concat(compilerArgs);
         const compilerProc = spawn(compiler, args);
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             compilerProc.on("error", (err) => {
-                this.output.appendLine("WARN: Compiler gave error: " + err);
-                reject(err);
+                output.appendLine("WARN: Compiler gave error: " + err);
             });
             compilerProc.on("exit", code => {
                 if (code !== 0) {
-                    this.output.appendLine("WARN: Compiler gave non-zero exit code: " + code);
+                    output.appendLine("WARN: Compiler gave non-zero exit code: " + code);
                 }
             });
             const chunks: Buffer[] = [];
@@ -189,5 +255,16 @@ export class DynamicConfigGenerator {
             });
 
         });
+    }
+
+    function stripQuotes(str: string): string {
+        str = str.trim();
+        if (str.startsWith("\"")) {
+            str = str.slice(1);
+        }
+        if (str.endsWith("\"")) {
+            str = str.slice(0, -1);
+        }
+        return str;
     }
 }

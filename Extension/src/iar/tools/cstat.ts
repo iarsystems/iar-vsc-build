@@ -4,7 +4,7 @@
 
 
 
-import { OsUtils } from "../../utils/utils";
+import { OsUtils, ProcessUtils } from "../../utils/utils";
 import { ChildProcessWithoutNullStreams, spawn, spawnSync } from "child_process";
 import { join, dirname } from "path";
 import CsvParser = require("csv-parse/lib/sync");
@@ -80,15 +80,7 @@ export namespace CStat {
             onWrite?.(data.toString());
         });
 
-        await new Promise<void>((resolve, reject) => {
-            iarbuild.on("exit", (code) => {
-                if (code !== 0) {
-                    reject(new Error("C-STAT exited with code: " + code));
-                } else {
-                    resolve(); // C-STAT is done!
-                }
-            });
-        });
+        await ProcessUtils.waitForExit(iarbuild);
 
         onWrite?.("Reading C-STAT output.");
         return getAllWarnings(dbPath, extensionPath);

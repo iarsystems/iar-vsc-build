@@ -16,11 +16,13 @@ export interface Workbench {
     readonly name: string;
     readonly path: Fs.PathLike;
     readonly idePath: Fs.PathLike;
+    readonly builderPath: Fs.PathLike;
 }
 
 class IarWorkbench implements Workbench {
     readonly path: Fs.PathLike;
     readonly idePath: Fs.PathLike;
+    readonly builderPath: Fs.PathLike;
 
     /**
      * Create a new Workbench object based using a path.
@@ -31,6 +33,7 @@ class IarWorkbench implements Workbench {
     constructor(path: Fs.PathLike) {
         this.path = path;
         this.idePath = Path.join(this.path.toString(), ideSubPath);
+        this.builderPath = Path.join(this.path.toString(), builderSubPath);
 
         if (!this.isValid()) {
             throw new Error("Path does not point to a workspace!");
@@ -111,10 +114,10 @@ export namespace Workbench {
     }
 
     export function isValid(workbenchPath: Fs.PathLike): boolean {
-        const idePath = Path.join(workbenchPath.toString(), builderSubPath);
+        const builderPath = Path.join(workbenchPath.toString(), builderSubPath);
 
         try {
-            const stat = Fs.statSync(idePath);
+            const stat = Fs.statSync(builderPath);
 
             return stat.isFile();
         } catch (e) {
