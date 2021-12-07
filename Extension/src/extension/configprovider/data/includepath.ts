@@ -4,43 +4,10 @@
 
 import * as Path from "path";
 import * as Fs from "fs";
-import { XmlNode } from "../../../utils/XmlNode";
-import { IarXml } from "../../../utils/xml";
 
 export interface IncludePath {
     readonly path: Fs.PathLike;
     readonly absolutePath: Fs.PathLike;
-}
-
-export class XmlIncludePath implements IncludePath {
-    private readonly xmlData: XmlNode;
-    private readonly projectPath: Fs.PathLike;
-
-    constructor(xml: XmlNode, projectPath: Fs.PathLike) {
-        this.xmlData = xml;
-        this.projectPath = projectPath;
-
-        if (xml.tagName !== "state") {
-            throw new Error("Expected an xml element 'state' instead of '" + xml.tagName + "'.");
-        }
-    }
-
-    get path(): Fs.PathLike {
-        const path = this.xmlData.text;
-
-        if (path) {
-            return path;
-        } else {
-            return "";
-        }
-    }
-
-    get absolutePath(): Fs.PathLike {
-
-        const fullPath = this.path.toString().replace("$PROJ_DIR$", this.projectPath.toString());
-
-        return Path.resolve(fullPath);
-    }
 }
 
 export class StringIncludePath implements IncludePath {
@@ -68,31 +35,6 @@ export class StringIncludePath implements IncludePath {
 }
 
 export namespace IncludePath {
-    export function fromXmlData(xml: XmlNode, projectPath: Fs.PathLike): IncludePath[] {
-        const settings = IarXml.findSettingsFromConfig(xml, "/ICC.*/");
-
-        if (settings) {
-            const option = IarXml.findOptionFromSettings(settings, "/CCIncludePath/");
-
-            if (option) {
-                const states = option.getAllChildsByName("state");
-                const includePaths: IncludePath[] = [];
-
-                states.forEach(state => {
-                    const path = new XmlIncludePath(state, projectPath);
-
-                    if (path.path !== "") {
-                        includePaths.push(path);
-                    }
-                });
-
-                return includePaths;
-            }
-        }
-
-        return [];
-    }
-
     export function fromCompilerOutput(output: string): IncludePath[] {
         const includes: IncludePath[] = [];
 

@@ -5,8 +5,6 @@
 
 
 import * as Fs from "fs";
-import { XmlNode } from "../../../utils/XmlNode";
-import { IarXml } from "../../../utils/xml";
 
 export interface Define {
     readonly identifier: string;
@@ -15,65 +13,12 @@ export interface Define {
     makeString(): string;
 }
 
-enum DefinePart {
-    Identifier,
-    Value
-}
-
 abstract class BaseDefine implements Define {
     abstract identifier: string;
     abstract value: string | undefined;
     makeString(): string {
         const val = this.value ? this.value : "";
         return `${this.identifier}=${val}`;
-    }
-}
-
-class XmlDefine extends BaseDefine {
-    private readonly xmlData: XmlNode;
-
-    constructor(xml: XmlNode) {
-        super();
-        this.xmlData = xml;
-
-        if (xml.tagName !== "state") {
-            throw new Error("Expected an xml element 'state' instead of '" + xml.tagName + "'.");
-        } else {
-            const identifier = this.parse(DefinePart.Identifier);
-
-            if (!identifier || (identifier === "")) {
-                throw new Error("Empty define.");
-            }
-        }
-    }
-
-    get identifier(): string {
-        // The constructor does not allow an empty identifier
-        return this.parse(DefinePart.Identifier) as string;
-    }
-
-    get value(): string | undefined {
-        return this.parse(DefinePart.Value);
-    }
-
-    private parse(part: DefinePart): string | undefined {
-        const define = this.xmlData.text;
-
-        if (define) {
-            const parts = define.split("=", 2);
-
-            if (part === DefinePart.Identifier) {
-                if (parts.length >= 1) {
-                    return parts[0]?.trim();
-                }
-            } else if (part === DefinePart.Value) {
-                if (parts.length >= 2) {
-                    return parts[1]?.trim();
-                }
-            }
-        }
-
-        return undefined;
     }
 }
 
@@ -91,30 +36,6 @@ class StringDefine extends BaseDefine {
 export namespace Define {
     export function fromIdentifierValuePair(identifier: string, value: string): Define {
         return new StringDefine(identifier, value);
-    }
-
-    export function fromXml(configNode: XmlNode): Define[] {
-        const settings = IarXml.findSettingsFromConfig(configNode, "/ICC.*/");
-
-        if (settings) {
-            const option = IarXml.findOptionFromSettings(settings, "CCDefines");
-
-            if (option) {
-                const states = option.getAllChildsByName("state");
-                const defines: Define[] = [];
-
-                states.forEach(state => {
-                    try {
-                        defines.push(new XmlDefine(state));
-                    } catch (e) {
-                    }
-                });
-
-                return defines;
-            }
-        }
-
-        return [];
     }
 
     export function fromSourceFile(path: Fs.PathLike): Define[] {
