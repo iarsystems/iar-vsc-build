@@ -58,9 +58,9 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     }
 
     // Blanket config that we apply when we don't have a file-specific config (i.e. header files, or a file not in the project)
-    private fallbackConfig: PartialSourceFileConfiguration = {includes: [], preIncludes: [], defines: []};
+    private fallbackConfig: PartialSourceFileConfiguration = {includes: [], preincludes: [], defines: []};
     // Configs for all source files in the project
-    private fileConfigs: ConfigurationSet = new ConfigurationSet(new Map(), new Map());
+    private fileConfigs: ConfigurationSet = new ConfigurationSet(new Map(), new Map(), new Map());
     // To force cpptools to recognize extended keywords we pretend they're compiler-defined macros
     private keywordDefines: Define[] = [];
 
@@ -94,6 +94,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             const includes = this.fileConfigs.getIncludes(uri.fsPath) ?? this.fallbackConfig.includes;
             let defines = this.fileConfigs.getDefines(uri.fsPath) ?? this.fallbackConfig.defines;
             defines = defines.concat(this.keywordDefines);
+            const preincludes = this.fileConfigs.getPreincludes(uri.fsPath) ?? this.fallbackConfig.preincludes;
 
             let stringDefines = defines.map(d => d.makeString());
             stringDefines = stringDefines.concat(Settings.getDefines()); // user-defined extra macros
@@ -102,7 +103,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
                 compilerPath: "",
                 defines: stringDefines,
                 includePath: includes.map(i => i.absolutePath.toString()),
-                forcedInclude: [],
+                forcedInclude: preincludes.map(i => i.absolutePath.toString()),
                 intelliSenseMode: "clang-arm",
                 standard: lang === "c" ? cStandard : cppStandard,
             };
@@ -142,7 +143,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         const includes = this.fileConfigs.allIncludes;
         let defines = this.fileConfigs.allDefines;
         defines = defines.concat(this.keywordDefines);
-        this.fallbackConfig = { includes, defines, preIncludes: []};
+        const preincludes = this.fileConfigs.allPreincludes;
+        this.fallbackConfig = { includes, defines, preincludes };
         await JsonConfigurationWriter.writeJsonConfiguration(this.fallbackConfig, this.name);
     }
 

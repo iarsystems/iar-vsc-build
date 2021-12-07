@@ -18,6 +18,7 @@ import { ConfigurationSet } from "./configurationset";
 import * as fsPromises from "fs/promises";
 import { FsUtils } from "../../utils/fs";
 import { createHash } from "crypto";
+import { PreIncludePath, StringPreIncludePath } from "./data/preincludepath";
 
 /**
  * A method or strategy of generating source configuration for a project. This needs to be pluggable, since the IarBuild
@@ -118,7 +119,7 @@ export namespace ConfigGenerator {
             }
             compilerInvocations.set(fileObj["file"], fileObj["arguments"]);
         }
-        return generateFromCompilerArgs(compilerInvocations, output);
+        return generateFromCompilerArgs(compilerInvocations, project, output);
     };
 
     /**
@@ -182,7 +183,7 @@ export namespace ConfigGenerator {
             compilerInvocationsMap.set(file, compInv);
         });
 
-        return generateFromCompilerArgs(compilerInvocationsMap, output);
+        return generateFromCompilerArgs(compilerInvocationsMap, project, output);
     };
 
     /**
@@ -190,10 +191,11 @@ export namespace ConfigGenerator {
      * with some special flags to avoid code generation and output include paths/defines.
      * @param compilerInvocations Maps files in the project to the compiler command line used to compile them
      */
-    async function generateFromCompilerArgs(compilerInvocations: Map<string, string[]>, output: Vscode.OutputChannel): Promise<ConfigurationSet> {
+    async function generateFromCompilerArgs(compilerInvocations: Map<string, string[]>, project: Project, output: Vscode.OutputChannel): Promise<ConfigurationSet> {
         output.appendLine("Generating source configuration...");
         const incs: Map<string, IncludePath[]> = new Map();
         const defs: Map<string, Define[]> = new Map();
+        const preincs: Map<string, PreIncludePath[]> = new Map();
         const tmpDir = Path.join(tmpdir(), "iar-vsc-source-config");
         if (!await FsUtils.exists(tmpDir)) {
             await fsPromises.mkdir(tmpDir, {recursive: true});
@@ -205,8 +207,27 @@ export namespace ConfigGenerator {
             promises.push((async() => {
                 if (compInv?.[0] === undefined) return;
                 const compiler = compInv[0];
+
+                // There is no way to differentiate preincludes from regular includes from the compiler output, so parse them from the arguments instead
+                // Consume --preinclude arguments, add the rest to adjustedCompInv
+                const preincludes: PreIncludePath[] = [];
+                const adjustedCompInv: string[] = [];
+                while (compInv.length > 0) {
+                    const arg = compInv.shift();
+                    if (arg === undefined) continue;
+                    if (arg === "--preinclude") {
+                        const preIncPath = compInv.shift();
+                        if (preIncPath === undefined) continue;
+                        preincludes.push(new StringPreIncludePath(preIncPath, Path.dirname(project.path.toString())));
+                    } else {
+                        adjustedCompInv.push(arg);
+                    }
+                }
+                preincs.set(file, preincludes);
+
+                // Run compiler to get the rest
                 try {
-                    const { includes, defines } = await generateConfigurationForFile(compiler, compInv.slice(1), tmpDir, output);
+                    const { includes, defines } = await generateConfigurationForFile(compiler, adjustedCompInv.slice(1), tmpDir, output);
                     incs.set(file, includes);
                     defs.set(file, defines);
                 } catch {}
@@ -216,7 +237,7 @@ export namespace ConfigGenerator {
         });
 
         await Promise.all(promises);
-        return Promise.resolve(new ConfigurationSet(incs, defs));
+        return Promise.resolve(new ConfigurationSet(incs, defs, preincs));
     }
 
     /**

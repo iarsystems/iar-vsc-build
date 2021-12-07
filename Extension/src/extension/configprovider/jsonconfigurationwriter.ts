@@ -40,7 +40,7 @@ export namespace JsonConfigurationWriter {
             name: "IAR",
             defines: configuration.defines.map(d => d.makeString()),
             includePath: configuration.includes.map(i => i.absolutePath.toString()),
-            forcedInclude: configuration.preIncludes.map(i => i.absolutePath.toString()),
+            forcedInclude: configuration.preincludes.map(i => i.absolutePath.toString()),
             cStandard: Settings.getCStandard(),
             cppStandard: Settings.getCppStandard(),
             compilerPath: "",

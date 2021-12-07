@@ -13,6 +13,6 @@ import { Define } from "./define";
  */
 export interface PartialSourceFileConfiguration {
     includes: IncludePath[];
-    preIncludes: PreIncludePath[];
+    preincludes: PreIncludePath[];
     defines: Define[];
 }

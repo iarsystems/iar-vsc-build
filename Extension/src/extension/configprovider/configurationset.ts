@@ -5,42 +5,39 @@
 import { IncludePath } from "./data/includepath";
 import { Define } from "./data/define";
 import * as Path from "path";
-import { OsUtils } from "../../utils/utils";
+import { ListUtils, OsUtils } from "../../utils/utils";
+import { PreIncludePath } from "./data/preincludepath";
 
 /**
- * Stores source configuration (include paths/defines) for a set of files.
+ * Stores source configuration (include paths/defines/preincludes) for a set of files.
  */
 export class ConfigurationSet {
     private readonly includes: Map<string, IncludePath[]> = new Map();
     private readonly defines: Map<string, Define[]> = new Map();
+    private readonly preincludes: Map<string, PreIncludePath[]> = new Map();
 
     // Used as fallback values e.g. for headers
     private readonly _allIncludes: IncludePath[] = [];
     private readonly _allDefines: Define[] = [];
+    private readonly _allPreincludes: PreIncludePath[] = [];
 
-    constructor(includes: Map<string, IncludePath[]>, defines: Map<string, Define[]>) {
+    constructor(includes: Map<string, IncludePath[]>, defines: Map<string, Define[]>, preincludes: Map<string, PreIncludePath[]>) {
         // Normalize paths before we store them! This way it is safe to later look them up as strings
-        // We also want to store all distinct include paths/defines. Using hashmaps to detect collissions should make this O(n).
-        const foundIncludes: Record<string, boolean> = {};
+        // We also want to store all distinct include paths/defines/preincludes.
         includes.forEach((incs, file) => {
             this.includes.set(ConfigurationSet.normalizePath(file), incs);
-            incs.forEach(inc => {
-                if (!foundIncludes[inc.absolutePath.toString()]) {
-                    foundIncludes[inc.absolutePath.toString()] = true;
-                    this._allIncludes.push(inc);
-                }
-            });
         });
-        const foundDefines: Record<string, boolean> = {};
+        this._allIncludes = ListUtils.mergeUnique(inc => inc.absolutePath.toString(), ...includes.values());
+
         defines.forEach((defs, file) => {
             this.defines.set(ConfigurationSet.normalizePath(file), defs);
-            defs.forEach(def => {
-                if (!foundDefines[def.makeString()]) {
-                    foundDefines[def.makeString()] = true;
-                    this._allDefines.push(def);
-                }
-            });
         });
+        this._allDefines = ListUtils.mergeUnique(def => def.makeString(), ...defines.values());
+
+        preincludes.forEach((incs, file) => {
+            this.preincludes.set(ConfigurationSet.normalizePath(file), incs);
+        });
+        this._allPreincludes = ListUtils.mergeUnique(inc => inc.absolutePath.toString(), ...preincludes.values());
     }
 
     getIncludes(file: string): IncludePath[] | undefined {
@@ -49,12 +46,18 @@ export class ConfigurationSet {
     getDefines(file: string): Define[] | undefined {
         return this.defines.get(ConfigurationSet.normalizePath(file));
     }
+    getPreincludes(file: string): PreIncludePath[] | undefined {
+        return this.preincludes.get(ConfigurationSet.normalizePath(file));
+    }
 
     get allIncludes() {
         return this._allIncludes;
     }
     get allDefines() {
         return this._allDefines;
+    }
+    get allPreincludes() {
+        return this._allPreincludes;
     }
 
     private static normalizePath(path: string) {
