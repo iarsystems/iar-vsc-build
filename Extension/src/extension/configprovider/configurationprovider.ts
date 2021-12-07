@@ -52,8 +52,10 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
 
     /**
      * Forces the provider to regenerate configurations for all source files
+     * @param revealLog Wether to raise focus for the output channel showing the configuration generation logs
      */
-    public forceUpdate() {
+    public forceUpdate(revealLog = false) {
+        if (revealLog) this.generator.showOutputChannel();
         this.onSettingsChanged();
     }
 
@@ -160,8 +162,12 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             this.fileConfigs = await this.generator.generateSourceConfigs(workbench, project, config);
             return true;
         } catch (err) {
-            // TODO: Show output window? Or link to it
-            Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err);
+            // Show error msg with a button to see the logs
+            Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err, { title: "Show Output Window"}).then(res => {
+                if (res !== undefined) {
+                    this.generator.showOutputChannel();
+                }
+            });
             return false;
         }
     }

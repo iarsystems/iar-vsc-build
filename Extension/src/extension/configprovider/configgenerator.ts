@@ -33,12 +33,12 @@ type ConfigGeneratorImpl = (workbench: Workbench, project: Project, config: Conf
 
 /**
  * Generates/detects per-file configuration data (include paths/defines) for an entire project.
+ * Prints some output (e.g. from iarbuild) to a {@link Vscode.OutputChannel}.
  */
 export class ConfigGenerator {
     // Stores any running operation, so we don't run more than one at the same time
     private runningPromise: Promise<ConfigurationSet> | null = null;
     private readonly output: Vscode.OutputChannel = Vscode.window.createOutputChannel("Iar Config Generator");
-
 
     /**
      * Generates configuration data for an entire project, using the supplied values.
@@ -82,6 +82,14 @@ export class ConfigGenerator {
         }
         return this.runningPromise;
     }
+
+    /**
+     * Gives focus to the output channel in the UI (e.g. because an error occured that the user should see).
+     */
+    public showOutputChannel() {
+        this.output.show(true);
+    }
+
 
     public dispose() {
         this.output.dispose();
