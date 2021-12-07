@@ -4,7 +4,7 @@
 
 import * as Assert from "assert";
 import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
-import { DynamicConfigGenerator } from "../../src/extension/configprovider/dynamicconfiggenerator";
+import { ConfigGenerator } from "../../src/extension/configprovider/configgenerator";
 import { Workbench } from "../../src/iar/tools/workbench";
 import * as vscode from "vscode";
 import { IntegrationTestsCommon } from "./common";
@@ -35,7 +35,7 @@ suite("Test source configuration providers", function() {
     });
 
     test("Finds project wide configs", async() => {
-        const config = await new DynamicConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
+        const config = await new ConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
         Assert(config.allIncludes.some(path => path.path.toString() === "my\\test\\include\\path"));
         Assert(config.allIncludes.some(path => path.path.toString() === "my/other/include/path"));
         Assert(config.allDefines.some(define => define.identifier === "MY_SYMBOL" && define.value === "42"));
@@ -43,7 +43,7 @@ suite("Test source configuration providers", function() {
     });
 
     test("Finds compiler configs", async() => {
-        const config = await new DynamicConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
+        const config = await new ConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
         Assert(config.allIncludes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]/)));
         Assert(config.allIncludes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]c[/\\]aarch32/)));
         Assert(config.allDefines.some(define => define.identifier === "__thumb"));
@@ -52,14 +52,14 @@ suite("Test source configuration providers", function() {
 
 
     test("Finds c++ configs", async() => {
-        const config = await new DynamicConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
+        const config = await new ConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
         Assert(config.allIncludes.some(path => path.absolutePath.toString().endsWith("cpp")), "Does not include c++ header directory");
         // Assumes this define is always there, but might not be if using an old c++ standard?
         Assert(config.allDefines.some(define => define.identifier === "__cpp_constexpr"), "Does not include c++ defines");
     });
 
     test("Finds file specific configs", async() => {
-        const config = await new DynamicConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
+        const config = await new ConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
         const projectFile = Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
         const includes = config.getIncludes(vscode.Uri.file(projectFile).fsPath);
         Assert.equal(includes!.map(path => path.path), ["only/this/file"]);

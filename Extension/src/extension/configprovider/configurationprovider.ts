@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Vscode from "vscode";
-import { DynamicConfigGenerator } from "./dynamicconfiggenerator";
+import { ConfigGenerator } from "./configgenerator";
 import { CustomConfigurationProvider, getCppToolsApi, Version, CppToolsApi, SourceFileConfiguration, SourceFileConfigurationItem, WorkspaceBrowseConfiguration } from "vscode-cpptools";
 import { UI } from "../ui/app";
 import { Settings } from "../settings";
@@ -41,7 +41,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
                 IarConfigurationProvider._instance.dispose();
             }
 
-            const instance = new IarConfigurationProvider(api, new DynamicConfigGenerator());
+            const instance = new IarConfigurationProvider(api, new ConfigGenerator());
             IarConfigurationProvider._instance = instance;
             return true;
         } else {
@@ -67,7 +67,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     readonly name = "iar-vsc";
     readonly extensionId = "pluyckx.iar-vsc";
 
-    private constructor(private readonly api: CppToolsApi, private readonly generator: DynamicConfigGenerator) {
+    private constructor(private readonly api: CppToolsApi, private readonly generator: ConfigGenerator) {
         // Note that changing the project will also trigger a config change
         UI.getInstance().config.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
         UI.getInstance().workbench.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));

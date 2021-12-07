@@ -33,7 +33,7 @@ type ConfigGeneratorImpl = (workbench: Workbench, project: Project, config: Conf
 /**
  * Generates/detects per-file configuration data (include paths/defines) for an entire project.
  */
-export class DynamicConfigGenerator {
+export class ConfigGenerator {
     // Stores any running operation, so we don't run more than one at the same time
     private runningPromise: Promise<ConfigurationSet> | null = null;
     private readonly output: Vscode.OutputChannel = Vscode.window.createOutputChannel("Iar Config Generator");
@@ -49,9 +49,9 @@ export class DynamicConfigGenerator {
         const builderOutput = spawnSync(builder).stdout.toString(); // Spawn without args to get help list
         let generator: ConfigGeneratorImpl;
         if (builderOutput.includes("-jsondb")) { // Filifjonkan
-            generator = DynamicConfigGenerator.generateForFilifjonkan;
+            generator = ConfigGenerator.generateForFilifjonkan;
         } else {
-            generator = DynamicConfigGenerator.generateForBeforeFilifjonkan;
+            generator = ConfigGenerator.generateForBeforeFilifjonkan;
         }
 
         const run = () => generator(workbench, project, config, this.output).then(
@@ -90,7 +90,7 @@ export class DynamicConfigGenerator {
 /**
  * Actual source config implementations
  */
-export namespace DynamicConfigGenerator {
+export namespace ConfigGenerator {
     /**
      * Config generator for workbenches using IDE platform versions on or after filifjonkan.
      * Uses the iarbuild -jsondb option to find compilation flags for each file, then calls {@link generateFromCompilerArgs}.
