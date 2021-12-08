@@ -64,34 +64,4 @@ export namespace FsUtils {
             }
         };
     }
-
-    export function createFilteredListDirectoryDirectoryRegex(regex: RegExp): (fullpath: fs.PathLike) => boolean {
-        return (fullpath: fs.PathLike): boolean => {
-            const stat = fs.statSync(fullpath);
-
-            if (stat.isDirectory()) {
-                const parsedPath = path.parse(fullpath.toString());
-                const filename = parsedPath.base;
-
-                return regex.test(filename);
-            } else {
-                return false;
-            }
-        };
-    }
-
-    export function createFilteredListDirectoryBlacklist(blacklist: string[]): (fullpath: fs.PathLike) => boolean {
-        return (fullpath: fs.PathLike): boolean => {
-            const parsedPath = path.parse(fullpath.toString());
-            const base = parsedPath.base;
-
-            return blacklist.indexOf(base) === -1;
-        };
-    }
-
-    export function createNonFilteredListDirectory(): (fullpath: fs.PathLike) => boolean {
-        return (): boolean => {
-            return true;
-        };
-    }
 }

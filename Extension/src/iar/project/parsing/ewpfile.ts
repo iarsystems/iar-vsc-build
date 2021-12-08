@@ -13,10 +13,13 @@ import { Config } from "../config";
 import { XmlConfig } from "./xmlconfig";
 import { Logging } from "../../../utils/logging";
 
+/**
+ * A parsed ewp file. We don't support much functionality here; rather, advanced functionality is added via thrift.
+ */
 export class EwpFile implements LoadedProject {
     private readonly fileWatcher: Vscode.FileSystemWatcher;
     private xml: XmlNode;
-    private configurations_: Config[];
+    private _configurations: Config[];
 
     private readonly onChangedHandlers: ((project: LoadedProject) => void)[] = [];
 
@@ -25,7 +28,7 @@ export class EwpFile implements LoadedProject {
     constructor(path: Fs.PathLike) {
         this.path = path;
         this.xml = this.loadXml();
-        this.configurations_ = this.loadConfigurations();
+        this._configurations = this.loadConfigurations();
 
         this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString());
 
@@ -40,7 +43,7 @@ export class EwpFile implements LoadedProject {
     }
 
     get configurations(): ReadonlyArray<Config> {
-        return this.configurations_;
+        return this._configurations;
     }
 
     public onChanged(callback: (project: LoadedProject) => void): void {
@@ -53,15 +56,15 @@ export class EwpFile implements LoadedProject {
     public reload(): void {
         try {
             const oldXml = this.xml;
-            const oldConfigs = this.configurations_;
+            const oldConfigs = this._configurations;
 
             try {
                 // if loading the xml or configurations fail, restore old state.
                 this.xml = this.loadXml();
-                this.configurations_ = this.loadConfigurations();
+                this._configurations = this.loadConfigurations();
             } catch (e) {
                 this.xml = oldXml;
-                this.configurations_ = oldConfigs;
+                this._configurations = oldConfigs;
 
                 throw e;
             }
@@ -96,7 +99,7 @@ export class EwpFile implements LoadedProject {
     /**
      * Load the xml file. The `path` property should already be initialized!
      *
-     * We do not assing the result to `xml` directly because we have to disable
+     * We do not assign the result to `xml` directly because we have to disable
      * the lint check. We have to initialize `xml` in the constructor but we
      * like to create a helper function so we can reuse this code when reloading
      * the project file.

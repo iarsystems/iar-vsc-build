@@ -65,9 +65,7 @@ export namespace Workbench {
     export function collectWorkbenchesFrom(root: Fs.PathLike): Workbench[] {
         const workbenches = new Array<Workbench>();
 
-        const filter = FsUtils.createNonFilteredListDirectory();
-
-        const directories = FsUtils.filteredListDirectory(root, filter);
+        const directories = FsUtils.filteredListDirectory(root, () => true);
 
         directories.forEach(directory => {
             const workbench = create(directory);
