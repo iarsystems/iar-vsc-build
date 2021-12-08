@@ -85,7 +85,10 @@ export namespace BuildTasks {
             config
         ];
 
-        const extraArgs = Settings.getExtraBuildArguments();
+        let extraArgs = definition["extraBuildArguments"];
+        if (extraArgs === undefined || extraArgs.length === 0) {
+            extraArgs = Settings.getExtraBuildArguments();
+        }
         if (extraArgs.length !== 0) {
             args = args.concat(extraArgs);
         }
@@ -140,6 +143,7 @@ export namespace BuildTasks {
                 builder: "${command:iar-settings.workbench}/common/bin/iarbuild" + (OsUtils.detectOsType() === OsUtils.OsType.Windows ? ".exe" : ""),
                 project: "${command:iar-settings.project-file}",
                 config: "${command:iar-settings.project-configuration}",
+                extraBuildArguments: [],
                 problemMatcher: ["$iar-cc", "$iar-linker"]
             };
 

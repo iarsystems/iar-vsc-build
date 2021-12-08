@@ -372,6 +372,12 @@
           "label": {
             "type": "string",
             "description": "The name for the task that is shown when executing the built-in command `Run Tasks` of VS Code."
+          },
+          "extraBuildArguments": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Extra arguments to supply to IarBuild (e.g. [\"-parallel\", \"4\"]. Leave empty to use the extension settings.",
+            "default": []
           }
         },
         "required": [
