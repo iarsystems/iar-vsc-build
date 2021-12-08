@@ -5,17 +5,18 @@
 import { CommandBase } from "./command";
 import { IarConfigurationProvider } from "../configprovider/configurationprovider";
 
-class RegenerateCppToolsConfCommand extends CommandBase<void> {
+class RegenerateCppToolsConfCommand extends CommandBase<Promise<void>> {
 
     constructor() {
         super("iar.regenerateCppToolsConfig");
     }
 
-    executeImpl(): void {
+    executeImpl() {
         const provider = IarConfigurationProvider.instance;
         if (provider) {
-            provider.forceUpdate(true);
+            return provider.forceUpdate(true);
         }
+        return Promise.resolve();
     }
 }
 

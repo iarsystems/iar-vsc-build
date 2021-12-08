@@ -61,7 +61,7 @@ export class ConfigurationSet {
     }
 
     private static normalizePath(path: string) {
-        path = Path.format(Path.parse(Path.resolve(path)));
+        path = Path.resolve(path);
         if (OsUtils.detectOsType() === OsUtils.OsType.Windows) {
             path = path.toLowerCase();
         }

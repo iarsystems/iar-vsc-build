@@ -56,7 +56,14 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
      */
     public forceUpdate(revealLog = false) {
         if (revealLog) this.generator.showOutputChannel();
-        this.onSettingsChanged();
+        return this.onSettingsChanged();
+    }
+
+    /**
+     * Returns whether a file belongs to the current project. Exposed for testing purposes.
+     */
+    public isProjectFile(file: string) {
+        return this.fileConfigs.getIncludes(file) !== undefined;
     }
 
     // Blanket config that we apply when we don't have a file-specific config (i.e. header files, or a file not in the project)
@@ -71,8 +78,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
 
     private constructor(private readonly api: CppToolsApi, private readonly generator: ConfigGenerator) {
         // Note that changing the project will also trigger a config change
-        UI.getInstance().config.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
-        UI.getInstance().workbench.model.addOnSelectedHandler(this.onSettingsChanged.bind(this));
+        // Note that we do not return the promise from onSettingsChanged, because the model does not need to wait for it to finish
+        UI.getInstance().config.model.addOnSelectedHandler(() => {
+            this.onSettingsChanged();
+        });
+        UI.getInstance().workbench.model.addOnSelectedHandler(() => {
+            this.onSettingsChanged();
+        });
         Settings.observeSetting(Settings.ExtensionSettingsField.Defines, this.onSettingsChanged.bind(this));
         Settings.observeSetting(Settings.ExtensionSettingsField.CStandard, this.onSettingsChanged.bind(this));
         Settings.observeSetting(Settings.ExtensionSettingsField.CppStandard, this.onSettingsChanged.bind(this));
@@ -174,7 +186,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     }
 
 
-    async generateKeywordDefines() {
+    private async generateKeywordDefines() {
         const workbench = UI.getInstance().workbench.model.selected;
         const config = UI.getInstance().config.model.selected;
         if (!workbench || !config) {
@@ -193,14 +205,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         }
     }
 
-    private onSettingsChanged() {
-        this.generateKeywordDefines().then(async() => {
-            const changed = await this.generateSourceConfigs();
-            this.generateFallbackConfig();
-            if (changed) {
-                this.api.didChangeCustomConfiguration(this);
-            }
-        });
+    private async onSettingsChanged() {
+        await this.generateKeywordDefines();
+        const changed = await this.generateSourceConfigs();
+        this.generateFallbackConfig();
+        if (changed) {
+            this.api.didChangeCustomConfiguration(this);
+        }
     }
 }
 

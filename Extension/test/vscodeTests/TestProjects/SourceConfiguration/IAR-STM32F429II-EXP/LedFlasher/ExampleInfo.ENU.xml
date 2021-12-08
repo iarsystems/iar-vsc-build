@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<infocenter_data version="1.0">
+  <iar_name>LedFlasher</iar_name>                                                                <!--App-->
+  <iar_description>Shows basic usage of leds, buttons and timers with stm32f4xx</iar_description>
+  <iar_curdir>$CUR_DIR$</iar_curdir>
+</infocenter_data>
