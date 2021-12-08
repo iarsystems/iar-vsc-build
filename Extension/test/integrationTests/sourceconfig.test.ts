@@ -10,6 +10,7 @@ import * as vscode from "vscode";
 import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "../../utils/testutils/testSandbox";
 import * as Path from "path";
+import { OsUtils } from "../../utils/osUtils";
 
 suite("Test source configuration providers", function() {
     this.timeout(0);
@@ -36,20 +37,19 @@ suite("Test source configuration providers", function() {
 
     test("Finds project wide configs", async() => {
         const config = await new ConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
-        Assert(config.allIncludes.some(path => path.path.toString() === "my\\test\\include\\path"));
-        Assert(config.allIncludes.some(path => path.path.toString() === "my/other/include/path"));
+        Assert(config.allIncludes.some(path => OsUtils.pathsEqual(path.path.toString(), Path.join(projectDir, "inc"))));
         Assert(config.allDefines.some(define => define.identifier === "MY_SYMBOL" && define.value === "42"));
         Assert(config.allDefines.some(define => define.identifier === "MY_SYMBOL2" && define.value === "\"test\""));
+        Assert(config.allPreincludes.some(inc => inc.path === "preincluded.h"));
     });
 
     test("Finds compiler configs", async() => {
         const config = await new ConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
         Assert(config.allIncludes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]/)));
         Assert(config.allIncludes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]c[/\\]aarch32/)));
-        Assert(config.allDefines.some(define => define.identifier === "__thumb"));
+        Assert(config.allDefines.some(define => define.identifier === "__ARM_ARCH"));
         Assert(config.allDefines.some(define => define.identifier === "__VERSION__"));
     });
-
 
     test("Finds c++ configs", async() => {
         const config = await new ConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
@@ -62,8 +62,8 @@ suite("Test source configuration providers", function() {
         const config = await new ConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
         const projectFile = Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
         const includes = config.getIncludes(vscode.Uri.file(projectFile).fsPath);
-        Assert.equal(includes!.map(path => path.path), ["only/this/file"]);
+        Assert(includes!.some(path => OsUtils.pathsEqual(path.path.toString(), Path.join(projectDir, "inc2"))));
         const defines = config.getDefines(vscode.Uri.file(projectFile).fsPath);
-        Assert.equal(defines!.map(def => def.identifier), ["FILE_SYMBOL"]);
+        Assert(defines!.some(define => define.identifier === "FILE_SYMBOL"));
     });
 });
