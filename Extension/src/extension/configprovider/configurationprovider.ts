@@ -175,12 +175,14 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             this.fileConfigs = await this.generator.generateSourceConfigs(workbench, project, config);
             return true;
         } catch (err) {
-            // Show error msg with a button to see the logs
-            Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err, { title: "Show Output Window"}).then(res => {
-                if (res !== undefined) {
-                    this.generator.showOutputChannel();
-                }
-            });
+            if (err !== ConfigGenerator.CanceledError) {
+                // Show error msg with a button to see the logs
+                Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err, { title: "Show Output Window"}).then(res => {
+                    if (res !== undefined) {
+                        this.generator.showOutputChannel();
+                    }
+                });
+            }
             return false;
         }
     }

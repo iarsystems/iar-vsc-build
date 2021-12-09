@@ -19,6 +19,7 @@ import * as fsPromises from "fs/promises";
 import { FsUtils } from "../../utils/fs";
 import { createHash } from "crypto";
 import { PreIncludePath, StringPreIncludePath } from "./data/preincludepath";
+import { Mutex, E_CANCELED as MUTEX_CANCELED } from "async-mutex";
 
 /**
  * A method or strategy of generating source configuration for a project. This needs to be pluggable, since the IarBuild
@@ -36,16 +37,21 @@ type ConfigGeneratorImpl = (workbench: Workbench, project: Project, config: Conf
  * Prints some output (e.g. from iarbuild) to a {@link Vscode.OutputChannel}.
  */
 export class ConfigGenerator {
-    // Stores any running operation, so we don't run more than one at the same time
-    private runningPromise: Promise<ConfigurationSet> | null = null;
+    // Stores any running operation, so we don't run more than one at the same time. Essentially this creates a mutex lock.
+    private readonly mutex = new Mutex();
     private readonly output: Vscode.OutputChannel = Vscode.window.createOutputChannel("Iar Config Generator");
+
+    /** Thrown by {@link generateSourceConfigs} when it is canceled (i.e. superceded) */
+    public static CanceledError = MUTEX_CANCELED;
 
     /**
      * Generates configuration data for an entire project, using the supplied values.
-     * If any previous operation is still running, waits for it to finish first.
+     * If any previous call is still running, waits for it to finish first.
+     * While waiting, the call is canceled if a new call to this method is made.
      */
     public generateSourceConfigs(workbench: Workbench, project: Project, config: Config): Promise<ConfigurationSet> {
         const builder = workbench.builderPath.toString();
+
         // select how to generate configs for this workbench
         const builderOutput = spawnSync(builder).stdout.toString(); // Spawn without args to get help list
         let generator: ConfigGeneratorImpl;
@@ -66,21 +72,9 @@ export class ConfigGenerator {
                 return Promise.reject(err);
             }
         );
-        // make sure we only run one at a time
-        if (this.runningPromise) {
-            this.runningPromise = this.runningPromise.then(
-                // ignore the outcome of the previous operation, run the new one instead
-                _ => {
-                    return run();
-                },
-                _ => {
-                    return run();
-                }
-            );
-        } else {
-            this.runningPromise = run();
-        }
-        return this.runningPromise;
+        // cancel any other waiter
+        this.mutex.cancel();
+        return this.mutex.runExclusive(run);
     }
 
     /**
@@ -105,11 +99,12 @@ export namespace ConfigGenerator {
      * Uses the iarbuild -jsondb option to find compilation flags for each file, then calls {@link generateFromCompilerArgs}.
      */
     export const generateForFilifjonkan: ConfigGeneratorImpl = async(workbench, project, config, output): Promise<ConfigurationSet> => {
-        // Have iarbuild create the json compilation database
-        const jsonPath = Path.join(tmpdir(), "iar-jsondb.json");
+        // Avoid filename collisions between different vs code windows
+        const jsonPath = Path.join(tmpdir(), `iar-jsondb${createHash("md5").update(project.path.toString()).digest("hex")}.json`);
         if (await FsUtils.exists(jsonPath)) {
-            await fsPromises.unlink(jsonPath); // Delete json file to force iarbuild to regenerate it
+            await fsPromises.rm(jsonPath); // Delete json file to force iarbuild to regenerate it
         }
+        // Have iarbuild create the json compilation database
         output.appendLine("Generating compilation database...");
         const builderProc = spawn(workbench.builderPath.toString(), [project.path.toString(), "-jsondb", config.name, "-output", jsonPath]);
         builderProc.stdout.on("data", data => output.append(data.toString()));

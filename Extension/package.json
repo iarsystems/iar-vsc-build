@@ -496,8 +496,8 @@
   "devDependencies": {
     "@types/mocha": "^2.2.42",
     "@types/node": "^15.6.0",
-    "@types/vscode": "^1.33.0",
     "@types/uuid": "^8.3.1",
+    "@types/vscode": "^1.33.0",
     "@typescript-eslint/eslint-plugin": "^5.2.0",
     "@typescript-eslint/parser": "^5.2.0",
     "eslint": "^8.1.0",
@@ -510,9 +510,10 @@
   },
   "dependencies": {
     "@types/thrift": "^0.10.9",
+    "async-mutex": "^0.3.2",
     "child-exec": "1.0.0",
-    "fast-deep-equal": "2.0.1",
     "csv-parse": "4.8.8",
+    "fast-deep-equal": "2.0.1",
     "jsonc-parser": "1.0.0",
     "thrift": "^0.12.0",
     "uuid": "^8.3.2",
