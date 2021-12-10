@@ -42,11 +42,7 @@ export class ConfigurationListModel extends ListInputModelBase<Config> {
             configs = project.configurations;
         }
 
-        this.data = configs;
-        this.selectedIndex_ = undefined;
-
-        this.fireInvalidateEvent();
-        this.fireSelectionChanged();
+        this.set(...configs);
     }
 
     private getConfigurationAt(index: number): Config {

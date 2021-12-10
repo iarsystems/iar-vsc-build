@@ -19,7 +19,6 @@ import { Config } from "../../iar/project/config";
 import { ConfigurationListModel } from "../model/selectconfiguration";
 import { SelectIarWorkspace } from "../command/selectIarWorkspace";
 import { TreeSelectionView } from "./treeselectionview";
-import { IarConfigurationProvider } from "../configprovider/configurationprovider";
 import { TreeProjectView } from "./treeprojectview";
 import { CreateProjectCommand } from "../command/project/createproject";
 import { AddConfigCommand } from "../command/project/addconfig";
@@ -327,7 +326,7 @@ class Application {
     }
 
     private async loadProject() {
-        const prevProject = this.loadedProject.selected;
+        this.loadedProject.selectedPromise.then(proj => proj?.unload());
         const selectedProject = this.project.model.selected;
 
         if (selectedProject) {
@@ -342,12 +341,10 @@ class Application {
                 this.loadedProject.selected = new EwpFile(selectedProject.path);
                 this.extendedProject.selected = undefined;
             }
-            IarConfigurationProvider.instance?.forceUpdate();
         } else {
             this.loadedProject.selected = undefined;
             this.extendedProject.selected = undefined;
         }
-        prevProject?.unload();
     }
 
     private async loadExtendedProject(project: Project, exWorkbench: ExtendedWorkbench): Promise<ExtendedProject> {
