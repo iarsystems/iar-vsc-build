@@ -14,6 +14,7 @@ import { TestSandbox } from "../../utils/testutils/testSandbox";
 import { VscodeTestsUtils } from "./utils";
 import { readdir, rm } from "fs/promises";
 import { VscodeTestsSetup } from "./setup";
+import { FsUtils } from "../../src/utils/fs";
 
 export namespace Utils{
     export const EXTENSION_ROOT = path.join(path.resolve(__dirname), "../../../");
@@ -24,14 +25,8 @@ export namespace Utils{
     export const  REBUILD = "Iar Rebuild";
     export const  OPEN = "Iar Open";
 
-    export function assertFileExists(path: string) {
-        return fs.stat(path, (exists) => {
-            if (exists === null) {
-                return;
-            } else if (exists.code === "ENOENT") {
-                fail(`${path} is missing`);
-            }
-        });
+    export async function assertFileExists(path: string) {
+        assert(await FsUtils.exists(path), `Expected ${path} to exist`);
     }
 
 
@@ -82,6 +77,7 @@ suite("Test build extension", ()=>{
     let sandbox: TestSandbox;
 
     suiteSetup(async() => {
+        await VscodeTestsUtils.ensureExtensionIsActivated();
         VscodeTestsSetup.setup();
         sandbox = VscodeTestsSetup.sandbox!;
         // Remove any build results from previous runs
@@ -131,7 +127,8 @@ suite("Test build extension", ()=>{
         });
     });
 
-    test("Build project with all listed EW:s", async()=>{
+    test("Build project with all listed EW:s", async function() {
+        this.timeout(50000);
         const ewpFile = path.join(path.join(Utils.TEST_PROJECTS_ROOT, "BasicProject", "BasicProject.ewp"));
         const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
         let id = 1;

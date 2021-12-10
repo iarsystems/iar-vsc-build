@@ -28,6 +28,7 @@ suite("Test C-STAT", ()=>{
     let originalFilterLevel: string | undefined;
 
     suiteSetup(async() => {
+        await VscodeTestsUtils.ensureExtensionIsActivated();
         sandboxPath = VscodeTestsSetup.setup();
         originalFilterLevel = Vscode.workspace.getConfiguration("iarvsc").get("c-stat.filterLevel");
         // Remove all backup files, since too many backup files will cause iarbuild to fail
@@ -81,7 +82,8 @@ suite("Test C-STAT", ()=>{
     ];
 
     // Expected to time out until VSC-75 is fixed (a bug in the VS Code platform)
-    test("Run C-STAT on all listed EWs", async()=>{
+    test("Run C-STAT on all listed EWs", async function() {
+        this.timeout(50000);
         Vscode.workspace.getConfiguration("iarvsc").update("c-stat.filterLevel", "Low");
         const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
         if (Array.isArray(listedEws)) {

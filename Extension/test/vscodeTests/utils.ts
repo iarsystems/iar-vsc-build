@@ -4,6 +4,13 @@ import { UI } from "../../src/extension/ui/app";
 
 export namespace VscodeTestsUtils {
 
+    // Waits for the extension to be activated.
+    export async function ensureExtensionIsActivated() {
+        const ext = Vscode.extensions.getExtension("pluyckx.iar-vsc");
+        Assert(ext, "Extension is not installed, did its name change?");
+        await ext?.activate();
+    }
+
     // ---- Helpers for interacting with the extension configuration UI
 
     // Tags for working with the Iar GUI integration
@@ -40,8 +47,14 @@ export namespace VscodeTestsUtils {
         return Vscode.commands.executeCommand(listEntry.command.command, listEntry.command.arguments[0]);
     }
 
-    export function activateProject(projectLabel: string) {
-        return activateSomething(PROJECT, projectLabel);
+    export async function activateProject(projectLabel: string) {
+        if (UI.getInstance().project.model.selected?.name !== projectLabel) {
+            await Promise.all([
+                // Ensure the project has loaded and the configuration list belongs to the new project
+                VscodeTestsUtils.configurationChanged(),
+                activateSomething(PROJECT, projectLabel),
+            ]);
+        }
     }
 
     export function activateConfiguration(configurationTag: string) {
@@ -50,6 +63,25 @@ export namespace VscodeTestsUtils {
 
     export function activateWorkbench(ew: string) {
         return activateSomething(EW, ew);
+    }
+
+    // Waits until the configuration model changes. Useful e.g. after activating a project to ensure it has loaded completely.
+    export function configurationChanged() {
+        return new Promise<void>((resolve, reject) => {
+            let resolved = false;
+            UI.getInstance().config.model.addOnSelectedHandler(config => {
+                if (config !== undefined && !resolved) {
+                    resolved = true;
+                    resolve();
+                }
+            });
+            setTimeout(() => {
+                if (!resolved) {
+                    resolved = true;
+                    reject(new Error("Timed out waiting for configuration to change. Did the project never load?"));
+                }
+            }, 30000);
+        });
     }
 
     // ---- Helpers for running tasks
@@ -82,25 +114,25 @@ export namespace VscodeTestsUtils {
      * @param configuration
      * @returns
      */
-     export async function runTaskForProject(taskName: string, projectName: string, configuration: string) {
-         // To have the call to vscode.tasks working the activate calls needs to be awaited.
-         await activateProject(projectName);
-         await activateConfiguration(configuration);
+    export async function runTaskForProject(taskName: string, projectName: string, configuration: string) {
+        // To have the call to vscode.tasks working the activate calls needs to be awaited.
+        await activateProject(projectName);
+        await activateConfiguration(configuration);
 
-         // Fetch the tasks and execute the build task.
-         return Vscode.tasks.fetchTasks().then(async(listedTasks)=>{
-             // Locate the right task
-             const theTask = listedTasks.find((task)=>{
-                 return task.name === taskName;
-             });
-             Assert(theTask, "Failed to locate " + taskName);
+        // Fetch the tasks and execute the build task.
+        return Vscode.tasks.fetchTasks().then(async (listedTasks) => {
+            // Locate the right task
+            const theTask = listedTasks.find((task) => {
+                return task.name === taskName;
+            });
+            Assert(theTask, "Failed to locate " + taskName);
 
-             // Execute the task and wait for it to complete
-             await executeTask(theTask, (e)=>{
-                 return e.execution.task.name === taskName;
-             });
-         }, (reason)=>{
-             Assert.fail(reason);
-         });
-     }
+            // Execute the task and wait for it to complete
+            await executeTask(theTask, (e) => {
+                return e.execution.task.name === taskName;
+            });
+        }, (reason) => {
+            Assert.fail(reason);
+        });
+    }
 }

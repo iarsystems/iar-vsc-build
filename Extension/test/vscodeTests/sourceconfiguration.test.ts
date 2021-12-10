@@ -20,20 +20,23 @@ suite("Test Source Configuration (intelliSense)", ()=>{
     let originalUserDefines: string[];
 
     suiteSetup(async function() {
-        this.timeout(30000);
-        originalUserDefines = Settings.getDefines();
-        Vscode.workspace.getConfiguration("iarvsc").update("defines", [USER_DEFINE_1, USER_DEFINE_2]);
-        Vscode.workspace.getConfiguration("iarvsc").update("extraBuildArguments", ["-varfile", "LedFlasher.custom_argvars"]);
-
+        this.timeout(40000);
         const sandboxPath = VscodeTestsSetup.setup();
         projectDir = Path.join(sandboxPath, "SourceConfiguration/IAR-STM32F429II-EXP/LedFlasher");
         libDir = Path.join(sandboxPath, "SourceConfiguration/STM32F4xx_DSP_StdPeriph_Lib/Libraries");
 
         await VscodeTestsUtils.activateProject("LedFlasher");
-        // Calling this command ensures the extension has been activated and the source config generated before we continue
-        await Vscode.commands.executeCommand("iar.regenerateCppToolsConfig");
+        originalUserDefines = Settings.getDefines();
+        Vscode.workspace.getConfiguration("iarvsc").update("defines", [USER_DEFINE_1, USER_DEFINE_2]);
+
         const prov = IarConfigurationProvider.instance;
         Assert(prov, "Config provider should be initialized by now");
+        console.log("Starting");
+        // We need to wait for config provider to finish updating, but implementing a method
+        // for waiting for it is too much work (forceUpdate can be canceled by other parts of the extension).
+        // Instead just sleep for a long time.
+        await new Promise((res, _) => setTimeout(res, 10000));
+        await prov.forceUpdate();
         provider = prov;
     });
 
