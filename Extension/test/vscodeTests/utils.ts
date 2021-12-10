@@ -120,7 +120,7 @@ export namespace VscodeTestsUtils {
         await activateConfiguration(configuration);
 
         // Fetch the tasks and execute the build task.
-        return Vscode.tasks.fetchTasks().then(async (listedTasks) => {
+        return Vscode.tasks.fetchTasks().then(async(listedTasks) => {
             // Locate the right task
             const theTask = listedTasks.find((task) => {
                 return task.name === taskName;
