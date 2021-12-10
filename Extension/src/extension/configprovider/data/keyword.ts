@@ -24,8 +24,8 @@ export namespace Keyword {
      * Reads keywords from a platform syntax file (usually called syntax_icc.cfg)
      * @param path The path to the syntax file
      */
-    export function fromSyntaxFile(path: Fs.PathLike): Keyword[] {
-        const buf = Fs.readFileSync(path.toString());
+    export async function fromSyntaxFile(path: Fs.PathLike): Promise<Keyword[]> {
+        const buf = await Fs.promises.readFile(path.toString());
         const contents = buf.toString();
         return fromSyntaxFileContents(contents);
     }

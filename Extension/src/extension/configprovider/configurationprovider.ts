@@ -202,14 +202,17 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         const platformBasePath = Path.join(Path.dirname(compiler), "..");
         const filePath         = platformBasePath + "/config/syntax_icc.cfg";
         if (await FsUtils.exists(filePath)) {
-            const keywords = Keyword.fromSyntaxFile(filePath);
+            const keywords = await Keyword.fromSyntaxFile(filePath);
             this.keywordDefines = keywords.map(kw => Keyword.toDefine(kw));
         }
     }
 
     private async onSettingsChanged() {
-        await this.generateKeywordDefines();
-        const changed = await this.generateSourceConfigs();
+        let changed = false;
+        await Promise.all([
+            this.generateKeywordDefines(),
+            this.generateSourceConfigs().then(didChange => changed = didChange),
+        ]);
         this.generateFallbackConfig();
         if (changed) {
             this.api.didChangeCustomConfiguration(this);
