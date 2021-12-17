@@ -91,8 +91,9 @@ suite("Test build extension", ()=>{
 
     test("Load projects in directory", ()=>{
         const allProjects = VscodeTestsUtils.getEntries(VscodeTestsUtils.PROJECT);
-        VscodeTestsUtils.assertNodelistContains(allProjects, "BasicProject");
         VscodeTestsUtils.assertNodelistContains(allProjects, "BasicDebugging");
+        VscodeTestsUtils.assertNodelistContains(allProjects, "C-STATProject");
+        VscodeTestsUtils.assertNodelistContains(allProjects, "LedFlasher");
     });
 
     test("No backups in project list", ()=>{
@@ -129,7 +130,7 @@ suite("Test build extension", ()=>{
 
     test("Build project with all listed EW:s", async function() {
         this.timeout(50000);
-        const ewpFile = path.join(path.join(Utils.TEST_PROJECTS_ROOT, "BasicProject", "BasicProject.ewp"));
+        const ewpFile = path.join(path.join(Utils.EXTENSION_ROOT, "test/vscodeTests/BasicProject", "BasicProject.ewp"));
         const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
         let id = 1;
         if (Array.isArray(listedEws)) {
