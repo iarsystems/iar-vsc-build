@@ -106,8 +106,9 @@ declare class Toolchain {
 declare class Configuration {
   public name: string;
   public toolchainId: string;
+  public isDebug: boolean;
 
-    constructor(args?: { name: string; toolchainId: string; });
+    constructor(args?: { name: string; toolchainId: string; isDebug: boolean; });
   read(input: Object): void;
   write(input: Object): void;
 }

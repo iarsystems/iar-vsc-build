@@ -407,12 +407,16 @@ Toolchain.prototype.write = function(output) {
 var Configuration = module.exports.Configuration = function(args) {
   this.name = null;
   this.toolchainId = null;
+  this.isDebug = null;
   if (args) {
     if (args.name !== undefined && args.name !== null) {
       this.name = args.name;
     }
     if (args.toolchainId !== undefined && args.toolchainId !== null) {
       this.toolchainId = args.toolchainId;
+    }
+    if (args.isDebug !== undefined && args.isDebug !== null) {
+      this.isDebug = args.isDebug;
     }
   }
 };
@@ -441,6 +445,13 @@ Configuration.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 3:
+      if (ftype == Thrift.Type.BOOL) {
+        this.isDebug = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -460,6 +471,11 @@ Configuration.prototype.write = function(output) {
   if (this.toolchainId !== null && this.toolchainId !== undefined) {
     output.writeFieldBegin('toolchainId', Thrift.Type.STRING, 2);
     output.writeString(this.toolchainId);
+    output.writeFieldEnd();
+  }
+  if (this.isDebug !== null && this.isDebug !== undefined) {
+    output.writeFieldBegin('isDebug', Thrift.Type.BOOL, 3);
+    output.writeBool(this.isDebug);
     output.writeFieldEnd();
   }
   output.writeFieldStop();

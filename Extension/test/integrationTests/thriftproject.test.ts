@@ -42,9 +42,9 @@ suite("Thrift project", function() {
     });
 
     test("Managing configurations", async() => {
-        await project.addConfiguration(new Configuration({ name: "TestConfig", toolchainId: "ARM"}), false);
+        await project.addConfiguration(new Configuration({ name: "TestConfig", toolchainId: "ARM", isDebug: false }), false);
         Assert.equal(project.configurations.length, 3);
-        await project.removeConfiguration(new Configuration({ name: "TestConfig", toolchainId: "ARM"}));
+        await project.removeConfiguration(new Configuration({ name: "TestConfig", toolchainId: "ARM", isDebug: false }));
         Assert.equal(project.configurations.length, 2);
     });
 

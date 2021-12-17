@@ -56,7 +56,7 @@ export class AddConfigCommand extends ProjectCommand {
                 return;
             }
 
-            const newConfig: Configuration = new Configuration({ name, toolchainId: selectedTc.tc.id });
+            const newConfig: Configuration = new Configuration({ name, toolchainId: selectedTc.tc.id, isDebug });
             await project.addConfiguration(newConfig, isDebug);
 
             Vscode.window.showInformationMessage(`The configuration "${name}" has been added.`);

@@ -154,6 +154,16 @@ declare class Client extends HeartbeatService.Client {
   SaveEwpFile(project: ProjectContext, callback?: (error: ttypes.ProjectManagerError, response: void)=>void): void;
 
   /**
+   * Returns true is there is cached data that is not saved.
+   */
+  IsModified(project: ProjectContext): Q.Promise<boolean>;
+
+  /**
+   * Returns true is there is cached data that is not saved.
+   */
+  IsModified(project: ProjectContext, callback?: (error: void, response: boolean)=>void): void;
+
+  /**
    * Get existing project context given file path
    */
   GetProject(file_path: string): Q.Promise<ProjectContext>;
@@ -184,6 +194,16 @@ declare class Client extends HeartbeatService.Client {
   AddConfiguration(config: Configuration, project: ProjectContext, isDebug: boolean, callback?: (error: void, response: void)=>void): void;
 
   /**
+   * Does not save the project.
+   */
+  AddConfigurationNoSave(project: ProjectContext, config: Configuration, basedOnName: string): Q.Promise<void>;
+
+  /**
+   * Does not save the project.
+   */
+  AddConfigurationNoSave(project: ProjectContext, config: Configuration, basedOnName: string, callback?: (error: void, response: void)=>void): void;
+
+  /**
    * Remove a Configuration from a project given its name
    */
   RemoveConfiguration(configurationName: string, project: ProjectContext): Q.Promise<void>;
@@ -194,6 +214,16 @@ declare class Client extends HeartbeatService.Client {
   RemoveConfiguration(configurationName: string, project: ProjectContext, callback?: (error: void, response: void)=>void): void;
 
   /**
+   * Does not save the project.
+   */
+  RemoveConfigurationNoSave(project: ProjectContext, configurationName: string): Q.Promise<void>;
+
+  /**
+   * Does not save the project.
+   */
+  RemoveConfigurationNoSave(project: ProjectContext, configurationName: string, callback?: (error: void, response: void)=>void): void;
+
+  /**
    * Get all Configurations in a project
    */
   GetConfigurations(project: ProjectContext): Q.Promise<Configuration[]>;
@@ -202,6 +232,16 @@ declare class Client extends HeartbeatService.Client {
    * Get all Configurations in a project
    */
   GetConfigurations(project: ProjectContext, callback?: (error: void, response: Configuration[])=>void): void;
+
+  /**
+   * are put last in the order they are.
+   */
+  SetConfigurationsOrder(project: ProjectContext, configNames: string[]): Q.Promise<void>;
+
+  /**
+   * are put last in the order they are.
+   */
+  SetConfigurationsOrder(project: ProjectContext, configNames: string[], callback?: (error: void, response: void)=>void): void;
 
   /**
    * Get current configuration.
@@ -445,11 +485,15 @@ declare class Processor extends HeartbeatService.Processor {
   process_CreateEwpFile(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_LoadEwpFile(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_SaveEwpFile(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_IsModified(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_GetProject(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_CloseProject(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_AddConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_AddConfigurationNoSave(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_RemoveConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_RemoveConfigurationNoSave(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_GetConfigurations(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
+  process_SetConfigurationsOrder(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_GetCurrentConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_SetCurrentConfiguration(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
   process_GetRootNode(seqid: number, input: thrift.TProtocol, output: thrift.TProtocol): void;
