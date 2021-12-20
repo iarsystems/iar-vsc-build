@@ -182,11 +182,7 @@ export namespace CStat {
         case OsUtils.OsType.Windows:
             return "sqlite-v3.26.0-win32-x86.exe";
         case OsUtils.OsType.Linux:
-            if (OsUtils.detectArchitecture() === OsUtils.Architecture.x64) {
-                return "sqlite-v3.26.0-linux-x64";
-            } else {
-                return "sqlite-v3.26.0-linux-x86";
-            }
+            return "sqlite-v3.37.0-linux-x86";
         case OsUtils.OsType.Mac:
             return "sqlite-v3.26.0-osx-x86";
         default:
