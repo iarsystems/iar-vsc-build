@@ -51,11 +51,10 @@ suite("Thrift project", function() {
     test("Managing nodes", async() => {
         const rootNode = await project.getRootNode();
         Assert(rootNode);
-        const sourceNode = rootNode.children[0];
-        Assert(sourceNode);
-        Assert.equal(sourceNode.type, NodeType.File);
-        Assert.equal(sourceNode.name, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
-        Assert.equal(sourceNode.path, Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE));
+        const sourceNode = rootNode.children.find(node => node.name === IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
+        Assert(sourceNode, "No 'main.c' file found in project");
+        Assert.strictEqual(sourceNode.type, NodeType.File);
+        Assert.strictEqual(sourceNode.path, Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE));
         rootNode.children = [new Node({
             name: "TestGroup",
             children: [sourceNode],
@@ -71,10 +70,12 @@ suite("Thrift project", function() {
 
         const updatedRootNode = await project.getRootNode();
         Assert(updatedRootNode);
+        Assert.strictEqual(updatedRootNode.children.length, 1);
         const groupNode = rootNode.children[0];
         Assert(groupNode !== undefined);
-        Assert.equal(groupNode.type, NodeType.Group);
-        Assert.equal(groupNode.name, "TestGroup");
+        Assert.strictEqual(groupNode.type, NodeType.Group);
+        Assert.strictEqual(groupNode.name, "TestGroup");
+        Assert.strictEqual(groupNode.children[0]?.name, sourceNode.name);
     });
 
 });
