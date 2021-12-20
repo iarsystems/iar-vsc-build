@@ -157,7 +157,10 @@ export namespace ThriftServiceManager {
                 output?.append(data.toString());
                 console.log(data.toString());
             });
-            serviceRegistryProcess.on("exit", (code) => { console.log("asdfasdfasdfasdfasdfasf " + code); output?.appendLine(`Registry Exited (${code})`); reject(new Error("ServiceRegistry exited")) });
+            serviceRegistryProcess.on("exit", (code) => {
+                output?.appendLine(`Registry Exited (${code})`);
+                reject(new Error("ServiceRegistry exited"));
+            });
 
             setTimeout(() => reject(new Error("Service registry launch timed out")), 10000);
         }).catch(e => {
