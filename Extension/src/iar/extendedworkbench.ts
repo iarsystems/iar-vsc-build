@@ -28,6 +28,12 @@ export interface ExtendedWorkbench {
     createProject(path: Fs.PathLike): Promise<Project>;
 
     dispose(): Promise<void>;
+
+    /**
+     * Adds a callback to be called when the workbench backend crashes unexpectedly
+     * (i.e. when it exits without {@link dispose} having been called).
+     */
+    onCrash(handler: (code: number | null) => void): void;
 }
 
 /**
@@ -73,5 +79,9 @@ export class ThriftWorkbench implements ExtendedWorkbench {
         // TODO: should we keep track of loaded projects and unload them here?
         this.projectMgr.close();
         await this.serviceMgr.stop();
+    }
+
+    public onCrash(handler: (code: number | null) => void) {
+        this.serviceMgr.addCrashHandler(handler);
     }
 }

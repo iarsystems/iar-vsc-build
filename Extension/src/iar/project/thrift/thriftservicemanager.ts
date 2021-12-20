@@ -20,12 +20,17 @@ import { SERVICE_MANAGER_SERVICE } from "./bindings/ServiceManager_types";
 import { tmpdir } from "os";
 import { v4 as uuidv4 } from "uuid";
 
+/** Callback for when the service manager crashes */
+export type CrashHandler = (exitCode: number | null) => void;
+
 /**
  * Provides and manages thrift services for a workbench.
  */
 export class ThriftServiceManager {
     private static readonly SERVICE_LOOKUP_TIMEOUT = 1000;
     private static readonly REGISTRY_EXIT_TIMEOUT = 2000;
+    private readonly crashHandlers: CrashHandler[] = [];
+    private isExiting = false;
 
     /**
      * Create a new service manager from the given service registry.
@@ -33,6 +38,9 @@ export class ThriftServiceManager {
      * @param registryLocation The location of the service registry to use.
      */
     constructor(private readonly process: ChildProcess, private readonly registryLocation: ServiceLocation) {
+        process.on("exit", code => {
+            if (!this.isExiting) this.crashHandlers.forEach(handler => handler(code));
+        });
     }
 
     /**
@@ -42,6 +50,7 @@ export class ThriftServiceManager {
      * a service manager for the same workbench later, you may start a new one.
      */
     public async stop() {
+        this.isExiting = true;
         const serviceMgr = await this.findService(SERVICE_MANAGER_SERVICE, CSpyServiceManager);
         await serviceMgr.service.shutdown();
         serviceMgr.close();
@@ -55,6 +64,10 @@ export class ThriftServiceManager {
                 }, ThriftServiceManager.REGISTRY_EXIT_TIMEOUT);
             });
         }
+    }
+
+    public addCrashHandler(handler: CrashHandler) {
+        this.crashHandlers.push(handler);
     }
 
     /**
@@ -100,6 +113,7 @@ export namespace ThriftServiceManager {
      * @param workbench The workbench to use
      */
     export function fromWorkbench(workbench: Workbench): Promise<ThriftServiceManager> {
+        console.log("New service manager: " + workbench.name);
         if (!output) {
             output = Vscode.window.createOutputChannel("IarServiceManager");
         }
@@ -141,8 +155,9 @@ export namespace ThriftServiceManager {
 
             serviceRegistryProcess.stdout?.on("data", data => {
                 output?.append(data.toString());
+                console.log(data.toString());
             });
-            serviceRegistryProcess.on("exit", () => reject(new Error("ServiceRegistry exited")));
+            serviceRegistryProcess.on("exit", (code) => { console.log("asdfasdfasdfasdfasdfasf " + code); output?.appendLine(`Registry Exited (${code})`); reject(new Error("ServiceRegistry exited")) });
 
             setTimeout(() => reject(new Error("Service registry launch timed out")), 10000);
         }).catch(e => {

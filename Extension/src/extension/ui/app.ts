@@ -297,6 +297,14 @@ class Application {
         this.extendedWorkbench.addOnSelectedHandler((_model, _exWb) => {
             this.loadProject();
         });
+        this.extendedWorkbench.addOnSelectedHandler((_model, exWb) => {
+            if (exWb) {
+                exWb.onCrash(exitCode => {
+                    Vscode.window.showErrorMessage(`IAR: The project manager exited unexpectedly (code ${exitCode}). Try reloading the window or upgrading the project from Embedded Workbench.`);
+                    this.extendedWorkbench.selected = undefined;
+                });
+            }
+        });
     }
 
     private addProjectModelListeners(): void {
