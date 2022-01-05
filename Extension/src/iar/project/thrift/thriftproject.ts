@@ -19,6 +19,7 @@ export class ThriftProject implements ExtendedProject {
     private readonly fileWatcher: Vscode.FileSystemWatcher;
     // TODO: should maybe provide separate handlers for changes to specific data
     private readonly onChangedHandlers: ((project: LoadedProject) => void)[] = [];
+    private ignoreNextFileChange = false;
 
     constructor(public path:           Fs.PathLike,
                 public configurations: ReadonlyArray<Configuration>,
@@ -27,8 +28,11 @@ export class ThriftProject implements ExtendedProject {
         // TODO: this should probably be changed to some thrift-based listener
         this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString());
         this.fileWatcher.onDidChange(() => {
-            // this.reload();
-            // this.fireChangedEvent();
+            if (this.ignoreNextFileChange) {
+                this.ignoreNextFileChange = false;
+                return;
+            }
+            this.reload();
         });
     }
 
@@ -37,12 +41,14 @@ export class ThriftProject implements ExtendedProject {
     }
 
     public async removeConfiguration(config: Config): Promise<void> {
+        this.ignoreNextFileChange = true;
         await this.projectMgr.RemoveConfiguration(config.name, this.context);
         this.configurations = await this.projectMgr.GetConfigurations(this.context);
         this.fireChangedEvent();
     }
 
     public async addConfiguration(config: Config, isDebug: boolean): Promise<void> {
+        this.ignoreNextFileChange = true;
         await this.projectMgr.AddConfiguration(new Configuration({ ...config, isDebug } ), this.context, isDebug);
         this.configurations = await this.projectMgr.GetConfigurations(this.context);
         this.fireChangedEvent();
@@ -51,6 +57,7 @@ export class ThriftProject implements ExtendedProject {
         return Promise.resolve(this.projectMgr.GetRootNode(this.context));
     }
     public async setNode(node: Node): Promise<void> {
+        this.ignoreNextFileChange = true;
         await this.projectMgr.SetNode(this.context, node);
         this.fireChangedEvent();
     }
