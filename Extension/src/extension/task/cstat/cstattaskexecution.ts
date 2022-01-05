@@ -51,7 +51,10 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         this.writeEmitter.fire("Running C-STAT...\r\n");
 
         try {
-            let warnings = await CStat.runAnalysis(builderPath, projectPath, configName, this.extensionPath, (msg) => this.writeEmitter.fire(msg));
+            let warnings = await CStat.runAnalysis(builderPath, projectPath, configName, this.extensionPath, msg => {
+                msg = msg.replace(/(?<!\r)\n/g, "\r\n"); // VSC-82: vscode console prefers crlf, so replace all lf with crlf
+                this.writeEmitter.fire(msg);
+            });
             this.writeEmitter.fire("Analyzing output...\r\n");
             this.diagnostics.clear();
 
