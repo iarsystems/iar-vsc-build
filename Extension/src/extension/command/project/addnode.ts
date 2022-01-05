@@ -4,7 +4,6 @@
 
 
 
-import * as Fs from "fs";
 import * as Path from "path";
 import * as Vscode from "vscode";
 import { Node, NodeType } from "../../../iar/project/thrift/bindings/projectmanager_types";
@@ -28,22 +27,28 @@ export class AddFileCommand extends ProjectCommand {
 
     async execute(source: ProjectNode, project: ExtendedProject) {
         try {
+            const projectDir = Path.dirname(project.path.toString());
+            const uris = await Vscode.window.showOpenDialog({
+                canSelectFiles: true,
+                canSelectMany: false,
+                defaultUri: Vscode.Uri.file(projectDir),
+                filters: AddFileCommand.filePickerFilters,
+            });
+            if (!uris) {
+                return;
+            }
+            const uri = uris[0];
+            if (!uri) {
+                return;
+            }
+
+            const name = Path.basename(uri.fsPath);
+            const node = new Node({ children: [], name: name, type: NodeType.File, path: uri.fsPath, ...getNodeDefaults() });
+
             const rootNode = await project.getRootNode();
             // The source is either a FilesNode corresponding to a group, or the user clicked the top-level "Files"
             // item, in which case we should add to the root node
             const parent = source instanceof FilesNode ? source.iarNode : rootNode;
-
-            const name = await Vscode.window.showInputBox({ prompt: "Enter a name for the file", placeHolder: "my_src.c" });
-            if (!name) {
-                return;
-            }
-
-            const fullPath = Path.join(Path.dirname(project.path.toString()), name);
-            if (!Fs.existsSync(fullPath)) {
-                Fs.writeFileSync(fullPath, "");
-            }
-
-            const node = new Node({ children: [], name, type: NodeType.File, path: fullPath, ...getNodeDefaults() });
             await addNode(parent, node, project);
 
             Vscode.window.showInformationMessage(`The file "${name}" has been added to the project.`);
@@ -55,6 +60,19 @@ export class AddFileCommand extends ProjectCommand {
             }
         }
     }
+
+    // Same filters as used in EW
+    private static readonly filePickerFilters =
+        {
+            "Source Files": [ "c", "cpp", "cc", "h", "hpp", "s*", "msa", "asm", "vsp" ],
+            "C/C++ Files": [ "c", "cpp", "cc", "h", "hpp" ],
+            "C / C++ Source Files": [ "c", "cpp", "cc" ],
+            "C / C++ Header Files": [ "h", "hpp" ],
+            "Assembler Files": [ "s*", "msa", "asm" ],
+            "Library / Object Files": [ "r*", "a", "lib", "o" ],
+            "IAR Visual State Project Files": [ "vsp" ],
+            "All Files": [ "*" ],
+        };
 }
 
 /**
