@@ -40,4 +40,11 @@ export class TreeProjectView {
             }
         });
     }
+
+    /**
+     *! Only exposed for testing!
+     */
+    get _provider() {
+        return this.provider;
+    }
 }

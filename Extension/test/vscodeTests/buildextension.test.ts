@@ -50,7 +50,7 @@ export namespace Utils{
         return newProj;
     }
 
-    export function setupProject(id: number, target: string, ewpFile: string, sandbox: TestSandbox): any {
+    export function setupProject(id: number, target: string, ewpFile: string, sandbox: TestSandbox) {
         // The unique output folder
         const outputFolder = sandbox.copyToSandbox(path.dirname(ewpFile), "Test_" + target + "_" + id);
         // The unique name of the ewp-file.
@@ -146,6 +146,14 @@ suite("Test build extension", ()=>{
                     await VscodeTestsUtils.runTaskForProject(Utils.BUILD, path.basename(testEwp.ewp, ".ewp"), "Debug");
                     // Check that an output file has been created
                     await Utils.assertFileExists(path.join(testEwp.folder, "Debug", "Exe", path.basename(testEwp.ewp, ".ewp") + ".out"));
+                    // Check that warnings are parsed correctly
+                    // Doesn't seem like diagnostics are populated instantly after running tasks, so wait a bit
+                    await new Promise((p, _) => setTimeout(p, 2000));
+                    const srcFile = path.join(testEwp.folder, "main.c");
+                    const diagnostics = vscode.languages.getDiagnostics(vscode.Uri.file(srcFile));
+                    assert.strictEqual(diagnostics[0]?.message,  "variable \"unused\" was declared but never referenced");
+                    assert.deepStrictEqual(diagnostics[0]?.range, new vscode.Range(new vscode.Position(2, 0), new vscode.Position(2, 0)));
+                    assert.strictEqual(diagnostics[0]?.severity, vscode.DiagnosticSeverity.Warning);
                 }
             }
         }

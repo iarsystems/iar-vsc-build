@@ -113,7 +113,6 @@ export namespace ThriftServiceManager {
      * @param workbench The workbench to use
      */
     export function fromWorkbench(workbench: Workbench): Promise<ThriftServiceManager> {
-        console.log("New service manager: " + workbench.name);
         if (!output) {
             output = Vscode.window.createOutputChannel("IarServiceManager");
         }
@@ -155,7 +154,6 @@ export namespace ThriftServiceManager {
 
             serviceRegistryProcess.stdout?.on("data", data => {
                 output?.append(data.toString());
-                console.log(data.toString());
             });
             serviceRegistryProcess.on("exit", (code) => {
                 output?.appendLine(`Registry Exited (${code})`);
