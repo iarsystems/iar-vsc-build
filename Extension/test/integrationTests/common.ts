@@ -15,9 +15,7 @@ export namespace IntegrationTestsCommon {
 
     export function findWorkbenchesContainingTarget(target: string) {
         const manager = ToolManager.createIarToolManager();
-        Settings.getIarInstallDirectories().forEach(directory => {
-            manager.collectFrom(directory);
-        });
+        manager.collectFrom(Settings.getIarInstallDirectories());
 
         return manager.workbenches.filter(wb => {
             return fs.existsSync(path.join(wb.path.toString(), target));

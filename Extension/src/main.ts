@@ -44,9 +44,7 @@ export function deactivate() {
 function loadTools() {
     const roots = Settings.getIarInstallDirectories();
 
-    roots.forEach(path => {
-        IarVsc.toolManager.collectFrom(path);
-    });
+    IarVsc.toolManager.collectFrom(roots);
 
     if (IarVsc.toolManager.workbenches.length === 0) {
         vscode.window.showErrorMessage("IAR: Unable to find any IAR workbenches to use, you will need to configure this to use the extension (see [the documentation](https://iar-vsc.readthedocs.io/en/latest/pages/user_guide.html#extension-settings))");
