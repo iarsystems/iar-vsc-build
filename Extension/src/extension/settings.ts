@@ -48,27 +48,27 @@ export namespace Settings {
         return getSettingsFile()?.get(field);
     }
 
-    export function setLocalSetting(field: LocalSettingsField, path: Fs.PathLike) {
-        getSettingsFile()?.set(field, path.toString());
+    export function setLocalSetting(field: LocalSettingsField, value: string) {
+        getSettingsFile()?.set(field, value);
     }
 
     export function getWorkbench(): string | undefined {
         return getLocalSetting(LocalSettingsField.Workbench);
     }
     export function setWorkbench(path: Fs.PathLike) {
-        setLocalSetting(LocalSettingsField.Workbench, path);
+        setLocalSetting(LocalSettingsField.Workbench, path.toString());
     }
     export function getEwpFile(): string | undefined {
         return getLocalSetting(LocalSettingsField.Ewp);
     }
     export function setEwpFile(path: Fs.PathLike) {
-        setLocalSetting(LocalSettingsField.Ewp, path);
+        setLocalSetting(LocalSettingsField.Ewp, path.toString());
     }
     export function getConfiguration(): string | undefined {
         return getLocalSetting(LocalSettingsField.Configuration);
     }
-    export function setConfiguration(path: Fs.PathLike) {
-        setLocalSetting(LocalSettingsField.Configuration, path);
+    export function setConfiguration(name: string) {
+        setLocalSetting(LocalSettingsField.Configuration, name);
     }
 
     export function getDefines(): string[] {

@@ -321,6 +321,9 @@ class Application {
         this.loadedProject.addOnSelectedHandler(() => {
             const configModel = this.config.model as ConfigurationListModel;
 
+            // Clear stored config, since it is only valid for the old project
+            Settings.setConfiguration("");
+
             configModel.useConfigurationsFromProject(this.loadedProject.selected);
         });
     }
