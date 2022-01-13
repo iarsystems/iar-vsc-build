@@ -346,6 +346,7 @@
             "enum": [
               "build",
               "rebuild",
+              "clean",
               "open"
             ]
           },

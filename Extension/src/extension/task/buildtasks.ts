@@ -38,6 +38,15 @@ export namespace BuildTasks {
                 dstMap.set("Iar Rebuild", task);
             }
         }
+        if (dstMap.get("Iar Clean") === undefined) {
+            const task = generateTask("Iar Clean", "clean");
+
+            if (!task) {
+                showErrorFailedToCreateDefaultTask("Iar Clean", "clean");
+            } else {
+                dstMap.set("Iar Clean", task);
+            }
+        }
     }
 
     export function generateFromDefinition(definition: Vscode.TaskDefinition): Vscode.Task | undefined {
@@ -134,6 +143,8 @@ export namespace BuildTasks {
             return "-make";
         } else if (command === "rebuild") {
             return "-build";
+        } else if (command === "clean") {
+            return "-clean";
         } else {
             return undefined;
         }

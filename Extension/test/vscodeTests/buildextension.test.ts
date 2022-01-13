@@ -23,10 +23,14 @@ export namespace Utils{
     // Tags for the tasks that can be executed
     export const  BUILD = "Iar Build";
     export const  REBUILD = "Iar Rebuild";
+    export const  CLEAN = "Iar Clean";
     export const  OPEN = "Iar Open";
 
     export async function assertFileExists(path: string) {
         assert(await FsUtils.exists(path), `Expected ${path} to exist`);
+    }
+    export async function assertFileNotExists(path: string) {
+        assert(!(await FsUtils.exists(path)), `Expected ${path} not to exist`);
     }
 
 
@@ -116,7 +120,7 @@ suite("Test build extension", ()=>{
     } );
 
     test("Check IAR tasks exist", async()=>{
-        const taskToFind: string[] = [Utils.BUILD, Utils.REBUILD, Utils.OPEN];
+        const taskToFind: string[] = [Utils.BUILD, Utils.REBUILD, Utils.CLEAN, Utils.OPEN];
         // Needs to be awaited otherwise the fetchtasks does not return anything.
         await VscodeTestsUtils.activateProject("BasicDebugging");
 
@@ -128,7 +132,7 @@ suite("Test build extension", ()=>{
         });
     });
 
-    test("Build project with all listed EW:s", async function() {
+    test("Build and clean project with all listed EW:s", async function() {
         this.timeout(50000);
         const ewpFile = path.join(path.join(Utils.EXTENSION_ROOT, "test/vscodeTests/BasicProject", "BasicProject.ewp"));
         const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
@@ -145,7 +149,8 @@ suite("Test build extension", ()=>{
                     // Build the project.
                     await VscodeTestsUtils.runTaskForProject(Utils.BUILD, path.basename(testEwp.ewp, ".ewp"), "Debug");
                     // Check that an output file has been created
-                    await Utils.assertFileExists(path.join(testEwp.folder, "Debug", "Exe", path.basename(testEwp.ewp, ".ewp") + ".out"));
+                    const exeFile = path.join(testEwp.folder, "Debug", "Exe", path.basename(testEwp.ewp, ".ewp") + ".out");
+                    await Utils.assertFileExists(exeFile);
                     // Check that warnings are parsed correctly
                     // Doesn't seem like diagnostics are populated instantly after running tasks, so wait a bit
                     await new Promise((p, _) => setTimeout(p, 2000));
@@ -154,6 +159,10 @@ suite("Test build extension", ()=>{
                     assert.strictEqual(diagnostics[0]?.message,  "variable \"unused\" was declared but never referenced");
                     assert.deepStrictEqual(diagnostics[0]?.range, new vscode.Range(new vscode.Position(2, 0), new vscode.Position(2, 0)));
                     assert.strictEqual(diagnostics[0]?.severity, vscode.DiagnosticSeverity.Warning);
+
+                    // Clean the project.
+                    await VscodeTestsUtils.runTaskForProject(Utils.CLEAN, path.basename(testEwp.ewp, ".ewp"), "Debug");
+                    await Utils.assertFileNotExists(exeFile);
                 }
             }
         }
