@@ -4,7 +4,7 @@
 
 
 
-import { InputModel, SelectHandler } from "./model";
+export type ValueChangeHandler<T> = (value?: T) => void;
 
 /**
  * Stores a single object instance and notifies observers when the instance changes.
@@ -15,27 +15,25 @@ import { InputModel, SelectHandler } from "./model";
  * to actually change the value.
  * Observers are still only notified of _resolved_ values.
  */
-export class SingletonModel<T> implements InputModel<T> {
-    private _selected: T | undefined;
+export class SingletonModel<T> {
+    private _value: T | undefined;
     private _promise: Promise<T | undefined> | undefined;
 
-    private readonly handlers: SelectHandler<T>[] = [];
+    private readonly handlers: ValueChangeHandler<T>[] = [];
 
-    public readonly selectedText = "";
-
-    public addOnSelectedHandler(fn: SelectHandler<T>): void {
+    public addOnValueChangeHandler(fn: ValueChangeHandler<T>): void {
         this.handlers.push(fn);
     }
 
-    public get selected() {
-        return this._selected;
+    public get value() {
+        return this._value;
     }
 
-    public set selected(newSelected: T | undefined) {
-        this._selected = newSelected;
+    public set value(newValue: T | undefined) {
+        this._value = newValue;
         this._promise = undefined;
         this.handlers.forEach(handler => {
-            handler(this, this._selected);
+            handler(this._value);
         });
     }
 
@@ -44,15 +42,15 @@ export class SingletonModel<T> implements InputModel<T> {
      * value know that it will change soon, and lets them optionally wait for the new value.
      * Note that a rejected promise will set the selected value to undefined.
      */
-    public set selectedPromise(promise: Promise<T | undefined>) {
+    public set valuePromise(promise: Promise<T | undefined>) {
         this._promise = promise;
         promise.then(result => {
             if (this._promise === promise) {
-                this.selected = result;
+                this.value = result;
             }
         }).catch(() => {
             if (this._promise === promise) {
-                this.selected = undefined;
+                this.value = undefined;
             }
         });
     }
@@ -61,18 +59,18 @@ export class SingletonModel<T> implements InputModel<T> {
      * Gets the currently selected value as a promise. This is guaranteed to return the latest value,
      * even if it is in the process of changing when the method is called.
      */
-    public get selectedPromise(): Promise<T | undefined> {
+    public get valuePromise(): Promise<T | undefined> {
         const currentPromise = this._promise;
         if (!currentPromise) {
             // Nothing to wait for.
-            return Promise.resolve(this.selected);
+            return Promise.resolve(this.value);
         } else {
             // If the stored promise has changed while we waited for this one, wait for the new one instead.
             const returnIfPromiseUnchanged = (result: T | undefined) => {
                 if (this._promise === currentPromise) {
                     return result;
                 } else {
-                    return this.selectedPromise;
+                    return this.valuePromise;
                 }
             };
             return currentPromise.then(res => returnIfPromiseUnchanged(res)).

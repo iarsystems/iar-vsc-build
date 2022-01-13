@@ -36,7 +36,7 @@ export namespace Utils{
 
 
     export async function createProject(projName: string) {
-        const exWorkbench = await UI.getInstance().extendedWorkbench.selectedPromise;
+        const exWorkbench = await UI.getInstance().extendedWorkbench.valuePromise;
         if (!exWorkbench) {
             fail("Failed to get the active workbench");
         }

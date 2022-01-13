@@ -8,33 +8,33 @@ import { SingletonModel } from "../../src/extension/model/singletonmodel";
 suite("Test SingletonModel", () => {
     test("Synchronous SingletonModel", () => {
         const model = new SingletonModel<string>();
-        model.selected = "test";
-        Assert.equal(model.selected, "test");
+        model.value = "test";
+        Assert.equal(model.value, "test");
         let called = false;
-        model.addOnSelectedHandler((_model, value) => {
+        model.addOnValueChangeHandler(value => {
             Assert.equal(value, "test2");
             called = true;
         });
-        model.selected = "test2";
+        model.value = "test2";
         Assert(called);
     });
 
     test("Asynchronous SingletonModel", async() => {
         let model = new SingletonModel<string>();
-        model.selectedPromise = makeRejectedPromise();
-        Assert.equal(await model.selectedPromise, undefined);
-        Assert.equal(model.selected, undefined);
-        model.addOnSelectedHandler((_model, value) => Assert.equal(value, "test"));
-        model.selectedPromise = makeRejectedPromise();
-        model.selectedPromise = Promise.resolve("test");
-        Assert.equal(await model.selectedPromise, "test");
-        Assert.equal(model.selected, "test");
+        model.valuePromise = makeRejectedPromise();
+        Assert.equal(await model.valuePromise, undefined);
+        Assert.equal(model.value, undefined);
+        model.addOnValueChangeHandler(value => Assert.equal(value, "test"));
+        model.valuePromise = makeRejectedPromise();
+        model.valuePromise = Promise.resolve("test");
+        Assert.equal(await model.valuePromise, "test");
+        Assert.equal(model.value, "test");
 
         model = new SingletonModel<string>();
-        model.selectedPromise = Promise.resolve("test");
-        model.selectedPromise = Promise.resolve("test2");
-        Assert.equal(await model.selectedPromise, "test2");
-        Assert.equal(model.selected, "test2");
+        model.valuePromise = Promise.resolve("test");
+        model.valuePromise = Promise.resolve("test2");
+        Assert.equal(await model.valuePromise, "test2");
+        Assert.equal(model.value, "test2");
     });
 
     function makeRejectedPromise(): Promise<string> {

@@ -23,7 +23,7 @@ export class AddConfigCommand extends ProjectCommand {
 
     async execute(_source: ProjectNode, project: ExtendedProject): Promise<void> {
         try {
-            const exWorkbench = UI.getInstance().extendedWorkbench.selected;
+            const exWorkbench = UI.getInstance().extendedWorkbench.value;
             if (!exWorkbench) {
                 return;
             }

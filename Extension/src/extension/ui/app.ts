@@ -111,11 +111,11 @@ class Application {
     }
 
     public dispose(): void {
-        if (this.extendedProject.selected) {
-            this.extendedProject.selected.unload();
+        if (this.extendedProject.value) {
+            this.extendedProject.value.unload();
         }
-        if (this.extendedWorkbench.selected) {
-            this.extendedWorkbench.selected.dispose();
+        if (this.extendedWorkbench.value) {
+            this.extendedWorkbench.value.dispose();
         }
     }
 
@@ -254,7 +254,7 @@ class Application {
     private addProjectContentListeners(): void {
         const model = this.loadedProject;
 
-        model.addOnSelectedHandler((_model, project) => {
+        model.addOnValueChangeHandler(project => {
             project?.onChanged(() => {
                 const configModel = this.config.model as ConfigurationListModel;
 
@@ -271,11 +271,11 @@ class Application {
         });
 
         model.addOnSelectedHandler(async workbench => {
-            const prevExtWb = this.extendedWorkbench.selected;
+            const prevExtWb = this.extendedWorkbench.value;
             const selectedWb = workbench.selected;
 
             if (selectedWb) {
-                this.extendedWorkbench.selectedPromise = (async() => {
+                this.extendedWorkbench.valuePromise = (async() => {
                     if (ThriftWorkbench.hasThriftSupport(selectedWb)) {
                         try {
                             return await ThriftWorkbench.from(selectedWb);
@@ -290,21 +290,21 @@ class Application {
                     }
                 })();
                 // Make sure the workbench has finished loading before we continue (and dispose of the previous workbench)
-                await this.extendedWorkbench.selectedPromise;
+                await this.extendedWorkbench.valuePromise;
             } else {
-                this.extendedWorkbench.selected = undefined;
+                this.extendedWorkbench.value = undefined;
             }
             prevExtWb?.dispose();
         });
 
-        this.extendedWorkbench.addOnSelectedHandler((_model, _exWb) => {
+        this.extendedWorkbench.addOnValueChangeHandler(_exWb => {
             this.loadProject();
         });
-        this.extendedWorkbench.addOnSelectedHandler((_model, exWb) => {
+        this.extendedWorkbench.addOnValueChangeHandler(exWb => {
             if (exWb) {
                 exWb.onCrash(exitCode => {
                     Vscode.window.showErrorMessage(`IAR: The project manager exited unexpectedly (code ${exitCode}). Try reloading the window or upgrading the project from Embedded Workbench.`);
-                    this.extendedWorkbench.selected = undefined;
+                    this.extendedWorkbench.value = undefined;
                 });
             }
         });
@@ -321,16 +321,16 @@ class Application {
             this.loadProject();
         });
 
-        this.loadedProject.addOnSelectedHandler(() => {
+        this.loadedProject.addOnValueChangeHandler(() => {
             const configModel = this.config.model as ConfigurationListModel;
 
             // Clear stored config, since it is only valid for the old project
             Settings.setConfiguration("");
 
-            configModel.useConfigurationsFromProject(this.loadedProject.selected);
+            configModel.useConfigurationsFromProject(this.loadedProject.value);
         });
-        this.loadedProject.addOnSelectedHandler(() => {
-            this.isLoading.selected = false;
+        this.loadedProject.addOnValueChangeHandler(() => {
+            this.isLoading.value = false;
         });
     }
 
@@ -343,25 +343,25 @@ class Application {
     }
 
     private async loadProject() {
-        this.loadedProject.selectedPromise.then(proj => proj?.unload());
+        this.loadedProject.valuePromise.then(proj => proj?.unload());
         const selectedProject = this.project.model.selected;
 
         if (selectedProject) {
-            this.isLoading.selected = true;
-            const extendedWorkbench = await this.extendedWorkbench.selectedPromise;
+            this.isLoading.value = true;
+            const extendedWorkbench = await this.extendedWorkbench.valuePromise;
             if (this.workbench.model.selected && extendedWorkbench) {
                 const exProject = this.loadExtendedProject(selectedProject, extendedWorkbench);
 
-                this.extendedProject.selectedPromise = exProject;
-                this.loadedProject.selectedPromise = exProject.catch(() => new EwpFile(selectedProject.path));
-                await this.loadedProject.selectedPromise;
+                this.extendedProject.valuePromise = exProject;
+                this.loadedProject.valuePromise = exProject.catch(() => new EwpFile(selectedProject.path));
+                await this.loadedProject.valuePromise;
             } else {
-                this.loadedProject.selected = new EwpFile(selectedProject.path);
-                this.extendedProject.selected = undefined;
+                this.loadedProject.value = new EwpFile(selectedProject.path);
+                this.extendedProject.value = undefined;
             }
         } else {
-            this.loadedProject.selected = undefined;
-            this.extendedProject.selected = undefined;
+            this.loadedProject.value = undefined;
+            this.extendedProject.value = undefined;
         }
     }
 
