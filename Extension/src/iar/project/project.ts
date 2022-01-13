@@ -31,8 +31,6 @@ export interface ExtendedProject extends LoadedProject {
     addConfiguration(config: Config, isDebug: boolean): Promise<void>;
     getRootNode(): Promise<Node>;
     setNode(node: Node): Promise<void>;
-    // TODO: this may have to change in the future to provide a way to get output/results
-    build(config: Config): Promise<void>;
 }
 
 

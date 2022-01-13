@@ -14,7 +14,6 @@ import { IarTaskProvider } from "./extension/task/provider";
 import { GetSettingsCommand } from "./extension/command/getsettings";
 import { IarConfigurationProvider } from "./extension/configprovider/configurationprovider";
 import { CStatTaskProvider } from "./extension/task/cstat/cstattaskprovider";
-import { BuildTaskProvider } from "./extension/task/thriftbuild/buildtaskprovider";
 
 export function activate(context: vscode.ExtensionContext) {
     GetSettingsCommand.initCommands(context);
@@ -30,7 +29,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     IarConfigurationProvider.init();
     IarTaskProvider.register();
-    BuildTaskProvider.register();
     CStatTaskProvider.register(context);
 }
 

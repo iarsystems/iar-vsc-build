@@ -78,13 +78,6 @@ export class ThriftProject implements ExtendedProject {
         this.onChangedHandlers.push(callback);
     }
 
-    public async build(config: Config) {
-        if (!this.configurations.some(c => c.name === config.name)) {
-            throw new Error("Trying to build project with nonexistent configuration.");
-        }
-        await this.projectMgr.BuildProject(this.context, config.name);
-    }
-
     private fireChangedEvent() {
         this.onChangedHandlers.forEach(handler => handler(this));
     }
