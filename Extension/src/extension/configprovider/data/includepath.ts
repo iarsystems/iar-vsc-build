@@ -38,7 +38,7 @@ export namespace IncludePath {
     export function fromCompilerOutput(output: string): IncludePath[] {
         const includes: IncludePath[] = [];
 
-        let regex = /\$\$INC_BEGIN\s\$\$FILEPATH\s\"([^"]*)/g;
+        const regex = /\$\$INC_BEGIN\s\$\$FILEPATH\s"([^"]*)/g;
         let result: RegExpExecArray | null = null;
         do {
             result = regex.exec(output);
