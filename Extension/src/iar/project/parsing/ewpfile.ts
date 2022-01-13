@@ -11,7 +11,6 @@ import { LoadedProject } from "../project";
 import { XmlNode } from "../../../utils/XmlNode";
 import { Config } from "../config";
 import { XmlConfig } from "./xmlconfig";
-import { Logging } from "../../../utils/logging";
 
 /**
  * A parsed ewp file. We don't support much functionality here; rather, advanced functionality is added via thrift.
@@ -72,7 +71,7 @@ export class EwpFile implements LoadedProject {
             this.fireChanged();
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
-                Logging.getInstance().error("Failed to reload project: ", e.toString());
+                console.error("Failed to reload project: ", e.toString());
             }
         }
     }

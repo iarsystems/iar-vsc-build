@@ -7,7 +7,7 @@ all at once. See `ruby build.rb --help`.
 This is used internally at IAR for continous integration and is currently not usable outside of the
 company network.
 
-In order to rebuild the Apache Thrift extensions you will need a patched version of the Thrift compiler, 
+In order to rebuild the Apache Thrift extensions you will need a patched version of the Thrift compiler,
 which is currently not included in this folder (only the Jenkins server has it).
 
 Once built, you can run/debug the extension by opening this folder in VS Code and pressing `F5`.

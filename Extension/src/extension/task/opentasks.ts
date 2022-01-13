@@ -1,5 +1,3 @@
-// TODO: remove this comment once VSC-5 has been closed, it should remove all any:s in this file
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
@@ -7,9 +5,8 @@
 
 
 import * as Vscode from "vscode";
-import { isArray } from "util";
 import { IarExecution } from "./iarexecution";
-import { IarOsUtils } from "../../../utils/osUtils";
+import { Workbench } from "../../iar/tools/workbench";
 
 export interface OpenTaskDefinition {
     readonly label: string;
@@ -75,33 +72,12 @@ export namespace OpenTasks {
         return task;
     }
 
-    export function generateFromTasksJson(json: any, dst: Map<string, Vscode.Task>): void {
-        const tasks: any = json["tasks"];
-        let tasksAsArray: Array<any>;
-
-        if ((tasks === undefined) || !isArray(tasks)) {
-            return;
-        } else {
-            tasksAsArray = tasks as Array<any>;
-        }
-
-        tasksAsArray.forEach(taskDefinition => {
-            if (taskDefinition["type"] === "iar") {
-                const task = generateFromDefinition(taskDefinition);
-
-                if (task) {
-                    dst.set(taskDefinition["label"], task);
-                }
-            }
-        });
-    }
-
     function generateTask(label: string): Vscode.Task | undefined {
         const definition = {
             label: label,
             type: "iar",
             command: "open",
-            workbench: "${command:iar-settings.workbench}/common/bin/IarIdePm" + IarOsUtils.executableExtension(),
+            workbench: "${command:iar-settings.workbench}/" + Workbench.ideSubPath,
             workspace: "${command:iar.selectIarWorkspace}",
             problemMatcher: []
         };

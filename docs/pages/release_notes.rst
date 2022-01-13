@@ -5,6 +5,12 @@
 Release Notes
 =============
 
+1.3.0
+-----
+
+* Pull #74: New source file configuration system. This should be much more accurate than the previous one, and handles cases such as CMSIS headers, c++ files, variable expansion, external define files.
+* Pull #86: Fix a bug where workbenches were not detected on linux
+
 1.2.1
 -----
 

@@ -49,7 +49,6 @@ suite("Test source configuration providers", function() {
         Assert(config.allIncludes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]c[/\\]aarch32/)));
         Assert(config.allDefines.some(define => define.identifier === "__ARM_ARCH"));
         Assert(config.allDefines.some(define => define.identifier === "__VERSION__"));
-        Assert(config.allDefines.some(define => define.identifier === "__no_init")); // extended keywords should be macros
     });
 
     test("Finds c++ configs", async() => {

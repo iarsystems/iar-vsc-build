@@ -1,5 +1,3 @@
-// TODO: remove this comment once VSC-5 has been closed, it should remove all any:s in this file
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
@@ -7,9 +5,8 @@
 
 
 import * as Vscode from "vscode";
-import { isArray } from "util";
 import { Settings } from "../settings";
-import { OsUtils } from "../../utils/utils";
+import { Workbench } from "../../iar/tools/workbench";
 
 export interface BuildTaskDefinition {
     readonly label: string;
@@ -111,27 +108,6 @@ export namespace BuildTasks {
         return task;
     }
 
-    export function generateFromTasksJson(json: any, dst: Map<string, Vscode.Task>): void {
-        const tasks: any = json["tasks"];
-        let tasksAsArray: Array<any>;
-
-        if ((tasks === undefined) || !isArray(tasks)) {
-            return;
-        } else {
-            tasksAsArray = tasks as Array<any>;
-        }
-
-        tasksAsArray.forEach(taskDefinition => {
-            if (taskDefinition["type"] === "iar") {
-                const task = generateFromDefinition(taskDefinition);
-
-                if (task) {
-                    dst.set(taskDefinition["label"], task);
-                }
-            }
-        });
-    }
-
     function generateTask(label: string, command: string): Vscode.Task | undefined {
         const iarCommand = convertCommandToIarCommand(command);
 
@@ -140,7 +116,7 @@ export namespace BuildTasks {
                 label: label,
                 type: "iar",
                 command: command,
-                builder: "${command:iar-settings.workbench}/common/bin/iarbuild" + (OsUtils.detectOsType() === OsUtils.OsType.Windows ? ".exe" : ""),
+                builder: "${command:iar-settings.workbench}/" + Workbench.builderSubPath,
                 project: "${command:iar-settings.project-file}",
                 config: "${command:iar-settings.project-configuration}",
                 extraBuildArguments: [],

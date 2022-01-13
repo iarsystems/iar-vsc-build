@@ -25,9 +25,12 @@ export namespace Keyword {
      * @param path The path to the syntax file
      */
     export async function fromSyntaxFile(path: Fs.PathLike): Promise<Keyword[]> {
-        const buf = await Fs.promises.readFile(path.toString());
-        const contents = buf.toString();
-        return fromSyntaxFileContents(contents);
+        if (Fs.existsSync(path)) {
+            const buf = await Fs.promises.readFile(path.toString());
+            const contents = buf.toString();
+            return fromSyntaxFileContents(contents);
+        }
+        return [];
     }
 
     export function fromSyntaxFileContents(contents: string): Keyword[] {

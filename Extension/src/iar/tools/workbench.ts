@@ -53,6 +53,9 @@ class IarWorkbench implements Workbench {
 }
 
 export namespace Workbench {
+    export const ideSubPath = "common/bin/IarIdePm.exe";
+    export const builderSubPath = "common/bin/iarbuild" + (OsUtils.OsType.Windows === OsUtils.detectOsType() ? ".exe" : "");
+
     /**
      * Search for valid workbenches. The found workbenches are stored in the
      * Workbench class and are accessible using the static accessor functions.

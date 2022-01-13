@@ -21,8 +21,8 @@ import { Keyword } from "./data/keyword";
 import { Define } from "./data/define";
 
 /**
- * Provides source file configurations for an IAR project to cpptools via the cpptools typescript api
- * and the c_cpp_properties.json file.
+ * Provides source file configurations for an IAR project to cpptools via the cpptools typescript api.
+ * Also works without the api (e.g. for old versions of vscode/cpptools), in that case it only outputs the c_cpp_properties file
  */
 export class IarConfigurationProvider implements CustomConfigurationProvider {
     private static _instance: IarConfigurationProvider | undefined = undefined;
@@ -33,21 +33,18 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     /**
      * Initializes the configuration provider and registers it with the cpptools api
      */
-    public static async init(): Promise<boolean> {
+    public static async init() {
         const api = await getCppToolsApi(Version.v2);
 
-        if (api) {
-            if (IarConfigurationProvider._instance) {
-                IarConfigurationProvider._instance.dispose();
-            }
-
-            const instance = new IarConfigurationProvider(api, new ConfigGenerator());
-            IarConfigurationProvider._instance = instance;
-            return true;
-        } else {
+        if (!api) {
             Vscode.window.showWarningMessage("Cannot connect the IAR extension with the Microsoft CppTools extension. Falling back to the 'c_cpp_properties' json file.");
         }
-        return false;
+        if (IarConfigurationProvider._instance) {
+            IarConfigurationProvider._instance.dispose();
+        }
+
+        const instance = new IarConfigurationProvider(api, new ConfigGenerator());
+        IarConfigurationProvider._instance = instance;
     }
 
     /**
@@ -76,7 +73,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     readonly name = "iar-vsc";
     readonly extensionId = "pluyckx.iar-vsc";
 
-    private constructor(private readonly api: CppToolsApi, private readonly generator: ConfigGenerator) {
+    private constructor(private readonly api: CppToolsApi | undefined, private readonly generator: ConfigGenerator) {
         // Note that changing the project will also trigger a config change
         // Note that we do not return the promise from onSettingsChanged, because the model does not need to wait for it to finish
         UI.getInstance().config.model.addOnSelectedHandler(() => {
@@ -89,8 +86,10 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         Settings.observeSetting(Settings.ExtensionSettingsField.CStandard, this.onSettingsChanged.bind(this));
         Settings.observeSetting(Settings.ExtensionSettingsField.CppStandard, this.onSettingsChanged.bind(this));
 
-        this.api.registerCustomConfigurationProvider(this);
-        this.api.notifyReady(this);
+        if (this.api) {
+            this.api.registerCustomConfigurationProvider(this);
+            this.api.notifyReady(this);
+        }
         this.onSettingsChanged();
     }
 
@@ -147,7 +146,9 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     }
     dispose() {
         this.canProvideConfiguration = (): Thenable<boolean> => Promise.resolve(false);
-        this.api.dispose();
+        if (this.api) {
+            this.api.dispose();
+        }
         this.generator.dispose();
     }
 
@@ -214,7 +215,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             this.generateSourceConfigs().then(didChange => changed = didChange),
         ]);
         this.generateFallbackConfig();
-        if (changed) {
+        if (changed && this.api) {
             this.api.didChangeCustomConfiguration(this);
         }
     }

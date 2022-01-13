@@ -34,7 +34,7 @@ class StringDefine extends BaseDefine {
 }
 
 export namespace Define {
-    export function fromIdentifierValuePair(identifier: string, value: string): Define {
+    export function fromIdentifierValuePair(identifier: string, value: string | undefined): Define {
         return new StringDefine(identifier, value);
     }
 
@@ -46,9 +46,11 @@ export namespace Define {
     }
 
     export function fromSourceFile(path: Fs.PathLike): Define[] {
-        const buf = Fs.readFileSync(path.toString());
-
-        return fromSourceData(buf);
+        if (Fs.existsSync(path)) {
+            const buf = Fs.readFileSync(path.toString());
+            return fromSourceData(buf);
+        }
+        return [];
     }
 
     export function fromSourceData(buf: Buffer): Define[] {
