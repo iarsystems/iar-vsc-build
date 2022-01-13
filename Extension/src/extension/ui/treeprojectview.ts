@@ -5,7 +5,7 @@
 
 
 import * as Vscode from "vscode";
-import { ExtendedProject, Project } from "../../iar/project/project";
+import { ExtendedProject } from "../../iar/project/project";
 import { InputModel } from "../model/model";
 import { TreeProjectProvider, ProjectNode } from "./treeprojectprovider";
 import { Workbench } from "../../iar/tools/workbench";
@@ -18,27 +18,45 @@ import { ExtendedWorkbench } from "../../iar/extendedworkbench";
 export class TreeProjectView {
     private readonly provider: TreeProjectProvider = new TreeProjectProvider();
     private readonly view: Vscode.TreeView<ProjectNode>;
+    private hasExtendedWorkbench = false;
+    private isLoading = false;
 
-    constructor(projectModel: InputModel<Project>,
+    constructor(loadingModel: InputModel<boolean>,
         extProjectModel: InputModel<ExtendedProject>,
-        workbenchModel: InputModel<Workbench>,
+        private readonly workbenchModel: InputModel<Workbench>,
         extWorkbenchModel: InputModel<ExtendedWorkbench>) {
+
         this.view = Vscode.window.createTreeView("iar-project", { treeDataProvider: this.provider });
-        projectModel.addOnSelectedHandler((_model, project) => {
-            this.view.title =  "IAR Project" + (project ? ": " + project.name : "");
+        this.view.title = "IAR Project";
+        loadingModel.addOnSelectedHandler((_model, isLoading) => {
+            this.isLoading = isLoading === true;
+            this.updateMessage();
+            if (isLoading) {
+                this.provider.setProject(undefined);
+            }
         });
         extProjectModel.addOnSelectedHandler((_model, project) => {
+            this.view.description = project?.name;
             this.provider.setProject(project);
         });
         extWorkbenchModel.addOnSelectedHandler((_model, extWorkbench) => {
-            if (extWorkbench || !workbenchModel.selected) {
-                // no message - show welcome content from package.json if no project is loaded
-                this.view.message = undefined;
-            } else {
-                // Workbench loaded but no extended workbench means we can't manage/create projects, so tell the user that
-                this.view.message = "A newer workbench version is required to see and manage project contents.";
-            }
+            this.hasExtendedWorkbench = extWorkbench !== undefined;
+            this.updateMessage();
         });
+    }
+
+    private updateMessage() {
+        if (this.isLoading) {
+            if (this.hasExtendedWorkbench) {
+                this.view.message = "Loading...";
+            }
+        } else {
+            if (!this.hasExtendedWorkbench && this.workbenchModel.selected) {
+                this.view.message = "A newer workbench version is required to see and manage project contents.";
+            } else {
+                this.view.message = undefined;
+            }
+        }
     }
 
     /**

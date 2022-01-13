@@ -53,6 +53,8 @@ class Application {
     readonly extendedProject: SingletonModel<ExtendedProject>;
     // if the selected workbench has extended capabilities, it will be provided here
     readonly extendedWorkbench: SingletonModel<ExtendedWorkbench>;
+    // tells whether we are currently loading a project
+    readonly isLoading: SingletonModel<boolean>;
 
     readonly projectTreeView: TreeProjectView;
     readonly settingsTreeView: TreeSelectionView;
@@ -71,6 +73,7 @@ class Application {
         this.loadedProject = new SingletonModel<LoadedProject>();
         this.extendedProject = new SingletonModel<ExtendedProject>();
         this.extendedWorkbench = new SingletonModel<ExtendedWorkbench>();
+        this.isLoading = new SingletonModel<boolean>();
 
         this.settingsTreeView = new TreeSelectionView(context,
             this.workbench.model,
@@ -78,7 +81,7 @@ class Application {
             this.config.model);
         Vscode.window.registerTreeDataProvider("iar-settings", this.settingsTreeView);
 
-        this.projectTreeView = new TreeProjectView(this.project.model, this.extendedProject, this.workbench.model, this.extendedWorkbench);
+        this.projectTreeView = new TreeProjectView(this.isLoading, this.extendedProject, this.workbench.model, this.extendedWorkbench);
 
         // Create commands
         this.generator = RegenerateCommand.createRegenerateCppToolsConfig();
@@ -326,6 +329,9 @@ class Application {
 
             configModel.useConfigurationsFromProject(this.loadedProject.selected);
         });
+        this.loadedProject.addOnSelectedHandler(() => {
+            this.isLoading.selected = false;
+        });
     }
 
     private addConfigurationModelListeners(): void {
@@ -341,6 +347,7 @@ class Application {
         const selectedProject = this.project.model.selected;
 
         if (selectedProject) {
+            this.isLoading.selected = true;
             const extendedWorkbench = await this.extendedWorkbench.selectedPromise;
             if (this.workbench.model.selected && extendedWorkbench) {
                 const exProject = this.loadExtendedProject(selectedProject, extendedWorkbench);
