@@ -3,19 +3,19 @@ import * as Path from "path";
 import * as Assert from "assert";
 import { VscodeTestsUtils } from "./utils";
 import { VscodeTestsSetup } from "./setup";
-import { UI } from "../../src/extension/ui/app";
 import { ProjectNode } from "../../src/extension/ui/treeprojectprovider";
 import { OsUtils } from "../../utils/osUtils";
+import { IarVsc } from "../../src/extension/main";
 
 namespace Utils {
     export async function getNodes(parent?: ProjectNode) {
-        const provider = UI.getInstance().projectTreeView._provider;
+        const provider = IarVsc.projectTreeView._provider;
         const nodes = await provider.getChildren(parent);
         Assert(nodes);
         return nodes;
     }
     export function toTreeItems(nodes: ProjectNode[]) {
-        const provider = UI.getInstance().projectTreeView._provider;
+        const provider = IarVsc.projectTreeView._provider;
         return Promise.all(nodes.map(node => provider.getTreeItem(node)));
     }
 }

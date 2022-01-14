@@ -5,7 +5,7 @@ import { IarConfigurationProvider } from "../../src/extension/configprovider/con
 import { VscodeTestsUtils } from "./utils";
 import { VscodeTestsSetup } from "./setup";
 import { OsUtils } from "../../utils/osUtils";
-import { UI } from "../../src/extension/ui/app";
+import { ExtensionState } from "../../src/extension/extensionstate";
 import { SourceFileConfiguration } from "vscode-cpptools";
 import { Settings } from "../../src/extension/settings";
 
@@ -46,7 +46,7 @@ suite("Test Source Configuration (intelliSense)", ()=>{
 
     // All files in this project have the same config, so we can reuse the assertions
     function assertConfig(config: SourceFileConfiguration) {
-        const workbench = UI.getInstance().workbench.model.selected!;
+        const workbench = ExtensionState.getInstance().workbench.selected!;
         // Project config
         Assert(config.includePath.some(path => OsUtils.pathsEqual(path, projectDir)));
         Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(projectDir, "board"))));

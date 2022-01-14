@@ -5,7 +5,7 @@
 import * as Vscode from "vscode";
 import { ConfigGenerator } from "./configgenerator";
 import { CustomConfigurationProvider, getCppToolsApi, Version, CppToolsApi, SourceFileConfiguration, SourceFileConfigurationItem, WorkspaceBrowseConfiguration } from "vscode-cpptools";
-import { UI } from "../ui/app";
+import { ExtensionState } from "../extensionstate";
 import { Settings } from "../settings";
 import { CancellationToken } from "vscode-jsonrpc";
 import { LanguageUtils } from "../../utils/utils";
@@ -76,10 +76,10 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     private constructor(private readonly api: CppToolsApi | undefined, private readonly generator: ConfigGenerator) {
         // Note that changing the project will also trigger a config change
         // Note that we do not return the promise from onSettingsChanged, because the model does not need to wait for it to finish
-        UI.getInstance().config.model.addOnSelectedHandler(() => {
+        ExtensionState.getInstance().config.addOnSelectedHandler(() => {
             this.onSettingsChanged();
         });
-        UI.getInstance().workbench.model.addOnSelectedHandler(() => {
+        ExtensionState.getInstance().workbench.addOnSelectedHandler(() => {
             this.onSettingsChanged();
         });
         Settings.observeSetting(Settings.ExtensionSettingsField.Defines, this.onSettingsChanged.bind(this));
@@ -166,9 +166,9 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
 
     // returns true if configs changed
     private async generateSourceConfigs(): Promise<boolean> {
-        const workbench = UI.getInstance().workbench.model.selected;
-        const config = UI.getInstance().config.model.selected;
-        const project = UI.getInstance().project.model.selected;
+        const workbench = ExtensionState.getInstance().workbench.selected;
+        const config = ExtensionState.getInstance().config.selected;
+        const project = ExtensionState.getInstance().project.selected;
         if (!workbench || !config || !project) {
             return false;
         }
@@ -190,8 +190,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
 
 
     private async generateKeywordDefines() {
-        const workbench = UI.getInstance().workbench.model.selected;
-        const config = UI.getInstance().config.model.selected;
+        const workbench = ExtensionState.getInstance().workbench.selected;
+        const config = ExtensionState.getInstance().config.selected;
         if (!workbench || !config) {
             return;
         }

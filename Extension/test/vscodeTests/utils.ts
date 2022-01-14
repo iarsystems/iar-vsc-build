@@ -1,6 +1,7 @@
 import * as Assert from "assert";
 import * as Vscode from "vscode";
-import { UI } from "../../src/extension/ui/app";
+import { ExtensionState } from "../../src/extension/extensionstate";
+import { IarVsc } from "../../src/extension/main";
 
 export namespace VscodeTestsUtils {
 
@@ -28,7 +29,7 @@ export namespace VscodeTestsUtils {
     }
 
     export function getEntries(topNodeName: string) {
-        const theTree = UI.getInstance().settingsTreeView;
+        const theTree = IarVsc.settingsTreeView;
         const nodes = theTree.getChildren();
         if (Array.isArray(nodes)) {
             for (let i = 0; i < nodes.length; i++) {
@@ -48,7 +49,7 @@ export namespace VscodeTestsUtils {
     }
 
     export async function activateProject(projectLabel: string) {
-        if (UI.getInstance().project.model.selected?.name !== projectLabel) {
+        if (ExtensionState.getInstance().project.selected?.name !== projectLabel) {
             await Promise.all([
                 // Ensure the project has loaded and the configuration list belongs to the new project
                 VscodeTestsUtils.configurationChanged(),
@@ -69,7 +70,7 @@ export namespace VscodeTestsUtils {
     export function configurationChanged() {
         return new Promise<void>((resolve, reject) => {
             let resolved = false;
-            UI.getInstance().config.model.addOnSelectedHandler(config => {
+            ExtensionState.getInstance().config.addOnSelectedHandler(config => {
                 if (config !== undefined && !resolved) {
                     resolved = true;
                     resolve();

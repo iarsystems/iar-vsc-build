@@ -1,12 +1,11 @@
 
 import { fail, deepEqual } from "assert";
 import * as assert from "assert";
-import {UI} from "../../src/extension/ui/app";
+import {ExtensionState} from "../../src/extension/extensionstate";
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 import { Settings } from "../../src/extension/settings";
-import {ProjectListModel} from "../../src/extension/model/selectproject";
 import { TestUtils } from "../../utils/testutils/testUtils";
 import { Project } from "../../src/iar/project/project";
 import {IarUtils} from "../../utils/iarUtils";
@@ -36,7 +35,7 @@ export namespace Utils{
 
 
     export async function createProject(projName: string) {
-        const exWorkbench = await UI.getInstance().extendedWorkbench.valuePromise;
+        const exWorkbench = await ExtensionState.getInstance().extendedWorkbench.valuePromise;
         if (!exWorkbench) {
             fail("Failed to get the active workbench");
         }
@@ -50,7 +49,7 @@ export namespace Utils{
         const newProj = path.join(workspaces[0]!.uri.fsPath, projName);
         const proj = await exWorkbench.createProject(newProj);
 
-        (UI.getInstance().project.model as ProjectListModel).addProject(proj);
+        ExtensionState.getInstance().project.addProject(proj);
         return newProj;
     }
 
@@ -65,7 +64,7 @@ export namespace Utils{
         // Generate the ewp-file to work with.
         TestUtils.patchEwpFile(target, ewpFile, outputFile);
         // Add the ewp-file to the list of project.
-        (UI.getInstance().project.model as ProjectListModel).addProject(new Project(outputFile));
+        ExtensionState.getInstance().project.addProject(new Project(outputFile));
 
         // Remove the unpatched ewp from the sandbox
         fs.unlinkSync(path.join(outputFolder, path.basename(ewpFile)));

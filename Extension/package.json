@@ -41,7 +41,7 @@
     "onCommand:iar-settings.project-configuration",
     "workspaceContains:**/*.ewp"
   ],
-  "main": "./out/src/main",
+  "main": "./out/src/extension/main",
   "contributes": {
     "commands": [
       {

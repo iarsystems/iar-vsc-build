@@ -16,13 +16,8 @@ export enum GetSettingsCommand {
 }
 
 class GetSettings implements Command<string | undefined> {
-    enabled = true;
 
-    constructor(readonly command: GetSettingsCommand, private readonly field: Settings.LocalSettingsField) {
-    }
-
-    canExecute(): boolean {
-        return true;
+    constructor(readonly id: GetSettingsCommand, private readonly field: Settings.LocalSettingsField) {
     }
 
     execute(_autoTriggered: boolean): string | undefined {
@@ -30,7 +25,7 @@ class GetSettings implements Command<string | undefined> {
     }
 
     register(context: Vscode.ExtensionContext): void {
-        const cmd = Vscode.commands.registerCommand(this.command, (): string | undefined => {
+        const cmd = Vscode.commands.registerCommand(this.id, (): string | undefined => {
             return this.execute(false);
         }, this);
 
@@ -48,7 +43,5 @@ export namespace GetSettingsCommand {
     function initCommand(context: Vscode.ExtensionContext, command: GetSettingsCommand, field: Settings.LocalSettingsField): void {
         const cmd = new GetSettings(command, field);
         cmd.register(context);
-
-        Command.getCommandManager().add(cmd);
     }
 }

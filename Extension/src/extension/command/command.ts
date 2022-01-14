@@ -5,71 +5,52 @@
 
 
 import * as Vscode from "vscode";
-import { Input } from "../ui/input";
+import { Input, ListInput } from "../ui/listinput";
 import { ListInputModel } from "../model/model";
 import { Workbench } from "../../iar/tools/workbench";
 import { Project } from "../../iar/project/project";
 import { Config } from "../../iar/project/config";
 
 /**
- * A VS Code command. Produces a nice error message if called before the extension has been activated.
+ * A VS Code command.
  * @typeParam T the type of value the command returns
  */
 export interface Command<T> {
-    readonly command: string;
-    enabled: boolean;
+    readonly id: string;
 
-    canExecute(): boolean;
     execute(autoTriggered?: boolean): T | undefined;
     register(context: Vscode.ExtensionContext): void;
 }
 
 export abstract class CommandBase<T> implements Command<T> {
-    private enabled_: boolean;
-    readonly command: string;
+    readonly id: string;
 
-    constructor(command: string) {
-        this.command = command;
-        this.enabled_ = false;
-    }
-
-    get enabled(): boolean {
-        return this.enabled_;
-    }
-
-    set enabled(value: boolean) {
-        this.enabled_ = value;
-    }
-
-    canExecute(): boolean {
-        return true;
+    constructor(id: string) {
+        this.id = id;
     }
 
     execute(autoTriggered?: boolean): T | undefined {
-        if (this.enabled) {
-            return this.executeImpl(autoTriggered);
-        } else if (!autoTriggered) {
-            Vscode.window.showErrorMessage("Extension is not yet ready, cannot execute this command. Try again later.");
-        }
-        return undefined;
+        return this.executeImpl(autoTriggered);
     }
 
     register(context: Vscode.ExtensionContext): void {
-        const cmd = Vscode.commands.registerCommand(this.command, this.execute, this);
+        const cmd = Vscode.commands.registerCommand(this.id, this.execute, this);
         context.subscriptions.push(cmd);
-        this.enabled = true;
     }
 
     protected abstract executeImpl(autoTriggered?: boolean): T;
 }
 
-class CommandWithInput<T> extends CommandBase<void> {
+/**
+ * Prompts the user to select a value from the list model and updates the model's selected value
+ */
+export class ListSelectionCommand<T> extends CommandBase<void> {
     private readonly input: Input<T>;
 
-    constructor(command: string, model: ListInputModel<T>) {
-        super(command);
+    constructor(id: string, model: ListInputModel<T>) {
+        super(id);
 
-        this.input = Input.createListInput(model);
+        this.input = new ListInput(model);
     }
 
     executeImpl(_autoTriggered?: boolean): void {
@@ -78,56 +59,19 @@ class CommandWithInput<T> extends CommandBase<void> {
 }
 
 export namespace Command {
-
-    class CommandManager {
-        private readonly commands_: Command<unknown>[];
-
-        public constructor() {
-            this.commands_ = [];
-        }
-
-        public get commands(): Command<unknown>[] {
-            return this.commands_;
-        }
-
-        public add(command: Command<unknown>): void {
-            this.commands_.push(command);
-        }
-
-        public find(command: string): Command<unknown> | undefined {
-            return this.commands.find((value): boolean => {
-                if (value.command === command) {
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-        }
-    }
-
-    const manager = new CommandManager();
-
-    export function getCommandManager(): CommandManager {
-        return manager;
-    }
-
-    export function createSelectWorkbenchCommand(model: ListInputModel<Workbench>): Command<void> {
+    export function createSelectWorkbenchCommand(model: ListInputModel<Workbench>): ListSelectionCommand<Workbench> {
         return createInputCommand("iar.selectWorkbench", model);
     }
 
-    export function createSelectProjectCommand(model: ListInputModel<Project>): Command<void> {
+    export function createSelectProjectCommand(model: ListInputModel<Project>): ListSelectionCommand<Project> {
         return createInputCommand("iar.selectProject", model);
     }
 
-    export function createSelectConfigurationCommand(model: ListInputModel<Config>): Command<void> {
+    export function createSelectConfigurationCommand(model: ListInputModel<Config>): ListSelectionCommand<Config> {
         return createInputCommand("iar.selectConfiguration", model);
     }
 
-    function createInputCommand<T>(command: string, model: ListInputModel<T>): Command<void> {
-        const cmd = new CommandWithInput(command, model);
-
-        manager.add(cmd);
-
-        return cmd;
+    function createInputCommand<T>(command: string, model: ListInputModel<T>): ListSelectionCommand<T> {
+        return new ListSelectionCommand(command, model);
     }
 }

@@ -4,7 +4,7 @@
 
 import * as Vscode from "vscode";
 import { OsUtils } from "../../../utils/utils";
-import { UI } from "../../ui/app";
+import { ExtensionState } from "../../extensionstate";
 import { CStatTaskExecution } from "./cstattaskexecution";
 import { Workbench } from "../../../iar/tools/workbench";
 
@@ -121,15 +121,15 @@ class CStatProvider implements Vscode.TaskProvider {
     // Essentially the same as above, but without the command variables. We use these values as fallbacks for when
     // a property is missing from the task definition, but we're past the stage of resolving command variables.
     private getFallbackDefinition(label: string, action: "run" | "clear"): CStatTaskDefinition {
-        const workbench = UI.getInstance().workbench.model.selected?.path;
+        const workbench = ExtensionState.getInstance().workbench.selected?.path;
         if (!workbench) {
             throw new Error("Please select a workbench, or specify one in the task definition.");
         }
-        const project = UI.getInstance().project.model.selected?.path;
+        const project = ExtensionState.getInstance().project.selected?.path;
         if (!project) {
             throw new Error("Please select a project, or specify one in the task definition.");
         }
-        const config = UI.getInstance().config.model.selected?.name;
+        const config = ExtensionState.getInstance().config.selected?.name;
         if (!config) {
             throw new Error("Please select a project configuration, or specify one in the task definition.");
         }

@@ -5,7 +5,7 @@
 
 
 import * as Vscode from "vscode";
-import { UI } from "../../ui/app";
+import { ExtensionState } from "../../extensionstate";
 import { CommandBase } from "../command";
 
 export class ReloadProjectCommand extends CommandBase<Promise<void>> {
@@ -15,7 +15,7 @@ export class ReloadProjectCommand extends CommandBase<Promise<void>> {
     }
 
     async executeImpl(_autoTriggered?: boolean): Promise<void> {
-        const project = UI.getInstance().loadedProject.value;
+        const project = ExtensionState.getInstance().loadedProject.value;
         if (!project) {
             Vscode.window.showErrorMessage("IAR: No project is loaded.");
             return;

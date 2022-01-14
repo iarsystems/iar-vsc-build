@@ -4,7 +4,7 @@
 
 import * as Vscode from "vscode";
 import { ProjectNode } from "../../ui/treeprojectprovider";
-import { UI } from "../../ui/app";
+import { ExtensionState } from "../../extensionstate";
 import { ExtendedProject } from "../../../iar/project/project";
 
 /**
@@ -15,13 +15,9 @@ export abstract class ProjectCommand {
     constructor(public command: string) {
     }
 
-    canExecute(): boolean {
-        return true;
-    }
-
     register(context: Vscode.ExtensionContext): void {
         const cmd = Vscode.commands.registerCommand(this.command, (source): void | Promise<void> => {
-            const proj = UI.getInstance().extendedProject.value;
+            const proj = ExtensionState.getInstance().extendedProject.value;
             if (proj === undefined || source === undefined) {
                 return;
             }

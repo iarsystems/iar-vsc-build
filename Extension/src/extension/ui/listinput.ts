@@ -14,16 +14,7 @@ export interface Input<T> {
     selected(): T | undefined;
 }
 
-export namespace Input {
-
-    export function createListInput<T>(model: ListInputModel<T>): Input<T> {
-        const input = new ListInput(model);
-
-        return input;
-    }
-}
-
-class ListInput<T> implements Input<T> {
+export class ListInput<T> implements Input<T> {
     readonly model: ListInputModel<T>;
     private inputItemWrapper: InputItem[];
 

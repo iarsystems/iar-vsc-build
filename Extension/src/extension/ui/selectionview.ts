@@ -5,86 +5,37 @@
 
 
 import * as Vscode from "vscode";
-import { Command } from "../command/command";
+import { ListSelectionCommand } from "../command/command";
 import { InputModel } from "../model/model";
-
-export interface SelectionView<T> {
-    readonly controller: Command<unknown>;
-    readonly model: InputModel<T>;
-    defaultText: string;
-    label: string;
-
-    show(): void;
-    hide(): void;
-}
-
-class SelectionViewImpl<T> implements SelectionView<T> {
-    private ui: Vscode.StatusBarItem;
-    private defaultText_: string;
-    private label_: string;
-
-    readonly controller: Command<void>;
-    readonly model: InputModel<T>;
-
-    constructor(controller: Command<void>, model: InputModel<T>, priority?: number) {
-        this.controller = controller;
-        this.model = model;
-
-        this.model.addOnSelectedHandler(this.onSelectionChanged.bind(this));
-
-        this.ui = Vscode.window.createStatusBarItem(Vscode.StatusBarAlignment.Left, priority);
-        this.ui.command = this.controller.command;
-
-        this.label_ = "Select: ";
-        this.defaultText_ = "Nothing selected";
-    }
-
-    get label(): string {
-        return this.label_;
-    }
-
-    set label(value: string) {
-        if (this.label_ !== value) {
-            this.label_ = value;
-            this.updateText();
-        }
-    }
-
-    get defaultText(): string {
-        return this.defaultText_;
-    }
-
-    set defaultText(value: string) {
-        if (this.defaultText_ !== value) {
-            this.defaultText_ = value;
-            this.updateText();
-        }
-    }
-
-    public show() {
-        this.ui.show();
-    }
-
-    public hide() {
-        this.ui.hide();
-    }
-
-    private onSelectionChanged(): void {
-        this.updateText();
-    }
-
-    private updateText(): void {
-        if (this.model.selected) {
-            this.ui.text = this.label_ + this.model.selectedText;
-        } else {
-            this.ui.text = this.label_ + this.defaultText_;
-        }
-    }
-}
 
 export namespace SelectionView {
 
-    export function createSelectionView<T>(controller: Command<void>, model: InputModel<T>, priority?: number) {
-        return new SelectionViewImpl(controller, model, priority);
+    /**
+     * Creates a status bar button which shows a {@link ListInputModel}'s selected value.
+     * Pressing the button prompts the user to select a new value.
+     * @param command The command to call when pressing the button
+     * @param model The model to display
+     * @param label The label to show in front of the model's selected value
+     * @param priority Higher values will place the view more to the left in the status bar
+     */
+    export function createSelectionView<T>(command: ListSelectionCommand<T>,
+        model: InputModel<T>,
+        label: string,
+        priority?: number) {
+
+        const ui = Vscode.window.createStatusBarItem(Vscode.StatusBarAlignment.Left, priority);
+        ui.command = command.id;
+        ui.show();
+
+        const updateText = () => {
+            if (model.selected) {
+                ui.text = label + model.selectedText;
+            } else {
+                ui.text = label + "None selected";
+            }
+        };
+
+        model.addOnSelectedHandler(() => updateText());
+
     }
 }

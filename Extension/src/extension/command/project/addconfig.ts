@@ -10,7 +10,7 @@ import { Toolchain, Configuration } from "../../../iar/project/thrift/bindings/p
 import { ProjectNode } from "../../ui/treeprojectprovider";
 import { ConfirmationDialog } from "../../ui/confirmationdialog";
 import { ExtendedProject } from "../../../iar/project/project";
-import { UI } from "../../ui/app";
+import { ExtensionState } from "../../extensionstate";
 
 /**
  * This command adds a configuration to a project (using a thrift ProjectManager)
@@ -23,7 +23,7 @@ export class AddConfigCommand extends ProjectCommand {
 
     async execute(_source: ProjectNode, project: ExtendedProject): Promise<void> {
         try {
-            const exWorkbench = UI.getInstance().extendedWorkbench.value;
+            const exWorkbench = ExtensionState.getInstance().extendedWorkbench.value;
             if (!exWorkbench) {
                 return;
             }

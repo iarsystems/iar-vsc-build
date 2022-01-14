@@ -5,7 +5,7 @@
 
 
 import * as Vscode from "vscode";
-import { UI } from "../../ui/app";
+import { ExtensionState } from "../../extensionstate";
 import * as Path from "path";
 import { ProjectListModel } from "../../model/selectproject";
 import { CommandBase } from "../command";
@@ -21,10 +21,10 @@ export class CreateProjectCommand extends CommandBase<Promise<void>> {
 
     async executeImpl(_autoTriggered?: boolean | undefined) {
         try {
-            const exWorkbench = await UI.getInstance().extendedWorkbench.valuePromise;
+            const exWorkbench = await ExtensionState.getInstance().extendedWorkbench.valuePromise;
             if (!exWorkbench) {
                 throw new Error(
-                    UI.getInstance().workbench.model.selected ?
+                    ExtensionState.getInstance().workbench.selected ?
                         "The selected workbench does not support the operation." :
                         "No workbench selected.");
             }
@@ -47,7 +47,7 @@ export class CreateProjectCommand extends CommandBase<Promise<void>> {
             const path = Path.join(workspace.uri.fsPath, name);
             const proj = await exWorkbench.createProject(path);
 
-            (UI.getInstance().project.model as ProjectListModel).addProject(proj);
+            (ExtensionState.getInstance().project as ProjectListModel).addProject(proj);
 
             Vscode.window.showInformationMessage(`The project has been created as ${name}.`);
         } catch (e) {
