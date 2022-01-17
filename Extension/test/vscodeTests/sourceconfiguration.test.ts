@@ -31,7 +31,6 @@ suite("Test Source Configuration (intelliSense)", ()=>{
 
         const prov = IarConfigurationProvider.instance;
         Assert(prov, "Config provider should be initialized by now");
-        console.log("Starting");
         // We need to wait for config provider to finish updating, but implementing a method
         // for waiting for it is too much work (forceUpdate can be canceled by other parts of the extension).
         // Instead just sleep for a long time.

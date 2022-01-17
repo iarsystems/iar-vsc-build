@@ -29,9 +29,11 @@ class State {
     readonly project: ProjectListModel;
     readonly config: ConfigurationListModel;
 
-    // The currently loaded project, if any. Only one project can be loaded at a time.
+    // The currently loaded project, if any. Only one project can be loaded at a time. A project is loaded when:
+    // * The selected project (above) changes.
+    // * The selected workbench (above) changes.
     readonly loadedProject: AsyncObservable<LoadedProject>;
-    // If the selected project can also be loaded as an ExtendedProject (thrift-enabled), it will be provided here
+    // If the selected project can also be loaded as an ExtendedProject (majestix-enabled), it will be provided here
     readonly extendedProject: AsyncObservable<ExtendedProject>;
     // If the selected workbench has extended (majestix) capabilities, it will be provided here
     readonly extendedWorkbench: AsyncObservable<ExtendedWorkbench>;
@@ -39,23 +41,25 @@ class State {
     constructor(toolManager: ToolManager) {
         this.toolManager = toolManager;
 
-        this.workbench = new WorkbenchListModel(...[]);
-        this.coupleModelToSetting(this.workbench, Settings.LocalSettingsField.Workbench, workbench => workbench?.path.toString());
+        this.workbench = new WorkbenchListModel(...toolManager.workbenches);
 
         let projects: Project[] = [];
         if (Vscode.workspace.rootPath) {
             projects = Project.findProjectsIn(Vscode.workspace.rootPath, true);
         }
         this.project = new ProjectListModel(...projects);
-        this.coupleModelToSetting(this.project, Settings.LocalSettingsField.Ewp, project => project?.path.toString());
 
         this.config = new ConfigurationListModel(...[]);
-        this.coupleModelToSetting(this.config, Settings.LocalSettingsField.Configuration, config => config?.name);
 
         this.loadedProject = new AsyncObservable<LoadedProject>();
         this.extendedProject = new AsyncObservable<ExtendedProject>();
         this.extendedWorkbench = new AsyncObservable<ExtendedWorkbench>();
 
+
+
+        this.coupleModelToSetting(this.workbench, Settings.LocalSettingsField.Workbench, workbench => workbench?.path.toString());
+        this.coupleModelToSetting(this.project, Settings.LocalSettingsField.Ewp, project => project?.path.toString());
+        this.coupleModelToSetting(this.config, Settings.LocalSettingsField.Configuration, config => config?.name);
 
         this.addListeners();
     }
@@ -115,6 +119,8 @@ class State {
 
     private addProjectContentListeners(): void {
         this.loadedProject.onValueDidChange(project => {
+            // This is a little crude, but when the project changes there *may* have been a change in configurations,
+            // so update the model.
             project?.onChanged(() => {
                 this.config.set(...project.configurations);
             });
@@ -122,6 +128,7 @@ class State {
     }
 
     private addWorkbenchModelListeners(): void {
+        // Try to load thrift services for the new workbench
         this.workbench.addOnSelectedHandler(async workbench => {
             const prevExtWb = await this.extendedWorkbench.getValue();
             const selectedWb = workbench.selected;
@@ -141,17 +148,17 @@ class State {
                         return undefined;
                     }
                 })());
-                // Make sure the workbench has finished loading before we continue (and dispose of the previous workbench)
+                // Wait for workbench to finish loading
                 await this.extendedWorkbench.getValue();
             } else {
                 this.extendedWorkbench.setValue(undefined);
             }
+            // Unload the previous project and reload it with the new workbench. Only after can we dispose of the previous workbench.
+            await this.loadProject();
             prevExtWb?.dispose();
         });
 
-        this.extendedWorkbench.onValueDidChange(_exWb => {
-            this.loadProject();
-        });
+        // If workbench crashes, fall back to non-extended (non-thrift) functionality.
         this.extendedWorkbench.onValueDidChange(exWb => {
             if (exWb) {
                 exWb.onCrash(exitCode => {
@@ -172,7 +179,7 @@ class State {
         });
 
         this.loadedProject.onValueDidChange(project => {
-
+            // Once a project has loaded we know its configurations, so populate our list model with them
             this.config.useConfigurationsFromProject(project);
         });
     }
@@ -181,6 +188,8 @@ class State {
         // Nothing to do here
     }
 
+    // Loads a project using the appropriate method depending on whether an extended workbench
+    // is available. Any previously loaded project is unloaded.
     private async loadProject() {
         const prevProj = await this.loadedProject.getValue();
         prevProj?.unload();

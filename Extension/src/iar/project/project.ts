@@ -19,7 +19,7 @@ export class Project {
 }
 
 export interface LoadedProject extends Project {
-    readonly configurations: ReadonlyArray<Config>;
+    configurations: ReadonlyArray<Config>;
 
     onChanged(callback: (project: LoadedProject) => void): void;
     reload(): void | Promise<void>;

@@ -208,7 +208,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         }
     }
 
-    private async onSettingsChanged() {
+    private async onSettingsChanged(): Promise<void> {
         let changed = false;
         await Promise.all([
             this.generateKeywordDefines(),

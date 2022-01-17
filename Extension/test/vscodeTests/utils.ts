@@ -44,15 +44,15 @@ export namespace VscodeTestsUtils {
         const list = getEntries(entryLabel);
         const listEntry = assertNodelistContains(list, toActivate);
 
-        Assert(listEntry && listEntry.command && listEntry.command.arguments);
+        Assert(listEntry, `Expected ${entryLabel} ${toActivate}, found ${JSON.stringify(list)}`);
+        Assert(listEntry.command && listEntry.command.arguments);
         return Vscode.commands.executeCommand(listEntry.command.command, listEntry.command.arguments[0]);
     }
 
     export async function activateProject(projectLabel: string) {
         if (ExtensionState.getInstance().project.selected?.name !== projectLabel) {
             await Promise.all([
-                // Ensure the project has loaded and the configuration list belongs to the new project
-                VscodeTestsUtils.configurationChanged(),
+                VscodeTestsUtils.projectLoaded(),
                 activateSomething(PROJECT, projectLabel),
             ]);
         }
@@ -66,12 +66,12 @@ export namespace VscodeTestsUtils {
         return activateSomething(EW, ew);
     }
 
-    // Waits until the configuration model changes. Useful e.g. after activating a project to ensure it has loaded completely.
-    export function configurationChanged() {
+    // Waits until the loaded project changes. Useful e.g. after activating a project to ensure it has loaded completely.
+    export function projectLoaded() {
         return new Promise<void>((resolve, reject) => {
             let resolved = false;
-            ExtensionState.getInstance().config.addOnSelectedHandler(config => {
-                if (config !== undefined && !resolved) {
+            ExtensionState.getInstance().extendedProject.onValueDidChange((proj) => {
+                if (proj !== undefined && !resolved) {
                     resolved = true;
                     resolve();
                 }
@@ -79,7 +79,7 @@ export namespace VscodeTestsUtils {
             setTimeout(() => {
                 if (!resolved) {
                     resolved = true;
-                    reject(new Error("Timed out waiting for configuration to change. Did the project never load?"));
+                    reject(new Error("Timed out waiting for project to load."));
                 }
             }, 30000);
         });

@@ -76,10 +76,10 @@ export class AsyncObservable<T> {
     private setValueAndNotify(value: T | undefined) {
         this._value = value;
         this.promise = undefined;
-        this.promiseResolutions.forEach(resolve => resolve(value));
-        this.promiseResolutions = [];
         this.valueChangeHandlers.forEach(handler => {
             handler(this._value);
         });
+        this.promiseResolutions.forEach(resolve => resolve(value));
+        this.promiseResolutions = [];
     }
 }

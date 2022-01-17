@@ -69,7 +69,7 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
         this.selectedIndex_ = undefined;
         this.fireInvalidateEvent();
         // If the value wasn't already changed by an invalidate handler, notify that it's been changed
-        if (this.selected !== undefined) {
+        if (this.selected === undefined) {
             this.fireSelectionChanged(this.selected);
         }
     }
