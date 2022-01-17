@@ -32,24 +32,41 @@ export class TreeProjectView {
         projectModel.addOnSelectedHandler((_, project) => {
             this.view.description = project?.name;
         });
+
+        let isLoading = false;
+        let hasExtendedWb = false;
+        const updateMessage = () => {
+            if (isLoading) {
+                this.view.message = "Loading...";
+            } else {
+                if (!hasExtendedWb && workbenchModel.selected) {
+                    this.view.message = "This Embedded Workbench does not support editing projects from VS Code.";
+                } else {
+                    this.view.message = undefined;
+                }
+            }
+        };
+
         extProjectModel.onValueWillChange(() => {
-            this.view.message = "Loading...";
+            isLoading = true;
+            updateMessage();
             this.provider.setProject(undefined);
         });
         extProjectModel.onValueDidChange(project => {
+            isLoading = false;
             this.provider.setProject(project).then(() => {
-                this.view.message = undefined;
+                updateMessage();
             });
         });
         extWorkbenchModel.onValueWillChange(() => {
-            this.view.message = "Loading...";
+            isLoading = true;
+            updateMessage();
+            // this.view.message = "Loading...";
         });
         extWorkbenchModel.onValueDidChange(extWorkbench => {
-            if (!extWorkbench && workbenchModel.selected) {
-                this.view.message = "This Embedded Workbench does not support editing projects from VS Code.";
-            } else {
-                this.view.message = "Loading...";
-            }
+            isLoading = false;
+            hasExtendedWb = extWorkbench !== undefined;
+            updateMessage();
         });
     }
 
