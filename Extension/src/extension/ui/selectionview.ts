@@ -34,6 +34,7 @@ export namespace SelectionView {
                 ui.text = label + "None selected";
             }
         };
+        updateText();
 
         model.addOnSelectedHandler(() => updateText());
 

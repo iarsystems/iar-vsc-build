@@ -21,7 +21,7 @@ export class CreateProjectCommand extends CommandBase<Promise<void>> {
 
     async executeImpl(_autoTriggered?: boolean | undefined) {
         try {
-            const exWorkbench = await ExtensionState.getInstance().extendedWorkbench.valuePromise;
+            const exWorkbench = await ExtensionState.getInstance().extendedWorkbench.getValue();
             if (!exWorkbench) {
                 throw new Error(
                     ExtensionState.getInstance().workbench.selected ?

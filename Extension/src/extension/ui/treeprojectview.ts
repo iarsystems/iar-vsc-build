@@ -5,12 +5,12 @@
 
 
 import * as Vscode from "vscode";
-import { ExtendedProject } from "../../iar/project/project";
+import { ExtendedProject, Project } from "../../iar/project/project";
 import { TreeProjectProvider, ProjectNode } from "./treeprojectprovider";
 import { Workbench } from "../../iar/tools/workbench";
 import { ExtendedWorkbench } from "../../iar/extendedworkbench";
-import { SingletonModel } from "../model/singletonmodel";
 import { InputModel } from "../model/model";
+import { AsyncObservable } from "../model/asyncobservable";
 
 /**
  * Shows a view to the left of all files/groups in the project, and all configurations in the project.
@@ -19,45 +19,38 @@ import { InputModel } from "../model/model";
 export class TreeProjectView {
     private readonly provider: TreeProjectProvider = new TreeProjectProvider();
     private readonly view: Vscode.TreeView<ProjectNode>;
-    private hasExtendedWorkbench = false;
-    private isLoading = false;
 
-    constructor(loadingModel: SingletonModel<boolean>,
-        extProjectModel: SingletonModel<ExtendedProject>,
-        private readonly workbenchModel: InputModel<Workbench>,
-        extWorkbenchModel: SingletonModel<ExtendedWorkbench>) {
+    constructor(projectModel: InputModel<Project>,
+        extProjectModel: AsyncObservable<ExtendedProject>,
+        workbenchModel: InputModel<Workbench>,
+        extWorkbenchModel: AsyncObservable<ExtendedWorkbench>) {
 
         this.view = Vscode.window.createTreeView("iar-project", { treeDataProvider: this.provider });
         this.view.title = "IAR Project";
-        loadingModel.addOnValueChangeHandler(isLoading => {
-            this.isLoading = isLoading === true;
-            this.updateMessage();
-            if (isLoading) {
-                this.provider.setProject(undefined);
-            }
-        });
-        extProjectModel.addOnValueChangeHandler(project => {
-            this.view.description = project?.name;
-            this.provider.setProject(project);
-        });
-        extWorkbenchModel.addOnValueChangeHandler(extWorkbench => {
-            this.hasExtendedWorkbench = extWorkbench !== undefined;
-            this.updateMessage();
-        });
-    }
+        this.view.description = projectModel.selected?.name;
 
-    private updateMessage() {
-        if (this.isLoading) {
-            if (this.hasExtendedWorkbench) {
+        projectModel.addOnSelectedHandler((_, project) => {
+            this.view.description = project?.name;
+        });
+        extProjectModel.onValueWillChange(() => {
+            this.view.message = "Loading...";
+            this.provider.setProject(undefined);
+        });
+        extProjectModel.onValueDidChange(project => {
+            this.provider.setProject(project).then(() => {
+                this.view.message = undefined;
+            });
+        });
+        extWorkbenchModel.onValueWillChange(() => {
+            this.view.message = "Loading...";
+        });
+        extWorkbenchModel.onValueDidChange(extWorkbench => {
+            if (!extWorkbench && workbenchModel.selected) {
+                this.view.message = "This Embedded Workbench does not support editing projects from VS Code.";
+            } else {
                 this.view.message = "Loading...";
             }
-        } else {
-            if (!this.hasExtendedWorkbench && this.workbenchModel.selected) {
-                this.view.message = "A newer workbench version is required to see and manage project contents.";
-            } else {
-                this.view.message = undefined;
-            }
-        }
+        });
     }
 
     /**

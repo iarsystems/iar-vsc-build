@@ -16,8 +16,8 @@ export abstract class ProjectCommand {
     }
 
     register(context: Vscode.ExtensionContext): void {
-        const cmd = Vscode.commands.registerCommand(this.command, (source): void | Promise<void> => {
-            const proj = ExtensionState.getInstance().extendedProject.value;
+        const cmd = Vscode.commands.registerCommand(this.command, async(source): Promise<void> => {
+            const proj = await ExtensionState.getInstance().extendedProject.getValue();
             if (proj === undefined || source === undefined) {
                 return;
             }

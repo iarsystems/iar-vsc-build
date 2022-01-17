@@ -15,7 +15,7 @@ export class ReloadProjectCommand extends CommandBase<Promise<void>> {
     }
 
     async executeImpl(_autoTriggered?: boolean): Promise<void> {
-        const project = ExtensionState.getInstance().loadedProject.value;
+        const project = await ExtensionState.getInstance().loadedProject.getValue();
         if (!project) {
             Vscode.window.showErrorMessage("IAR: No project is loaded.");
             return;

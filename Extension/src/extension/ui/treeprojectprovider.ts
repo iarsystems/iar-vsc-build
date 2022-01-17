@@ -61,9 +61,9 @@ export class TreeProjectProvider implements Vscode.TreeDataProvider<ProjectNode>
         this.configsNode = { name: "Configurations", context: "configsroot" };
     }
 
-    public setProject(project: ExtendedProject | undefined) {
+    public async setProject(project: ExtendedProject | undefined) {
         if (project) {
-            this.updateData(project);
+            await this.updateData(project);
             project.onChanged(() => this.updateData(project));
         } else {
             this.rootNode = undefined;

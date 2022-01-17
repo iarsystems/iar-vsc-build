@@ -47,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
     IarVsc.settingsTreeView = new TreeSelectionView(context, workbenchModel, projectModel, configModel);
     vscode.window.registerTreeDataProvider("iar-settings", IarVsc.settingsTreeView);
     IarVsc.projectTreeView = new TreeProjectView(
-        ExtensionState.getInstance().isLoading,
+        projectModel,
         ExtensionState.getInstance().extendedProject,
         workbenchModel,
         ExtensionState.getInstance().extendedWorkbench
@@ -68,13 +68,13 @@ export function activate(context: vscode.ExtensionContext) {
     IarConfigurationProvider.init();
 }
 
-export function deactivate() {
+export async function deactivate() {
     if (IarConfigurationProvider.instance) {
         IarConfigurationProvider.instance.dispose();
     }
     IarTaskProvider.unregister();
     CStatTaskProvider.unRegister();
-    ExtensionState.getInstance().dispose();
+    await ExtensionState.getInstance().dispose();
 }
 
 function loadTools() {

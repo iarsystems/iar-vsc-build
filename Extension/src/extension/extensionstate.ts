@@ -10,9 +10,9 @@ import { ListInputModel } from "./model/model";
 import { Project, LoadedProject, ExtendedProject } from "../iar/project/project";
 import { ProjectListModel } from "./model/selectproject";
 import { ConfigurationListModel } from "./model/selectconfiguration";
-import { SingletonModel } from "./model/singletonmodel";
 import { EwpFile } from "../iar/project/parsing/ewpfile";
 import { ExtendedWorkbench, ThriftWorkbench } from "../iar/extendedworkbench";
+import { AsyncObservable } from "./model/asyncobservable";
 
 /**
  * Holds most extension-wide data, such as the selected workbench, project and configuration, and loaded project etc.
@@ -30,13 +30,11 @@ class State {
     readonly config: ConfigurationListModel;
 
     // The currently loaded project, if any. Only one project can be loaded at a time.
-    readonly loadedProject: SingletonModel<LoadedProject>;
+    readonly loadedProject: AsyncObservable<LoadedProject>;
     // If the selected project can also be loaded as an ExtendedProject (thrift-enabled), it will be provided here
-    readonly extendedProject: SingletonModel<ExtendedProject>;
+    readonly extendedProject: AsyncObservable<ExtendedProject>;
     // If the selected workbench has extended (majestix) capabilities, it will be provided here
-    readonly extendedWorkbench: SingletonModel<ExtendedWorkbench>;
-    // Tells whether we are currently loading a project
-    readonly isLoading: SingletonModel<boolean>;
+    readonly extendedWorkbench: AsyncObservable<ExtendedWorkbench>;
 
     constructor(toolManager: ToolManager) {
         this.toolManager = toolManager;
@@ -54,21 +52,22 @@ class State {
         this.config = new ConfigurationListModel(...[]);
         this.coupleModelToSetting(this.config, Settings.LocalSettingsField.Configuration, config => config?.name);
 
-        this.loadedProject = new SingletonModel<LoadedProject>();
-        this.extendedProject = new SingletonModel<ExtendedProject>();
-        this.extendedWorkbench = new SingletonModel<ExtendedWorkbench>();
-        this.isLoading = new SingletonModel<boolean>();
+        this.loadedProject = new AsyncObservable<LoadedProject>();
+        this.extendedProject = new AsyncObservable<ExtendedProject>();
+        this.extendedWorkbench = new AsyncObservable<ExtendedWorkbench>();
 
 
         this.addListeners();
     }
 
-    public dispose(): void {
-        if (this.extendedProject.value) {
-            this.extendedProject.value.unload();
+    public async dispose(): Promise<void> {
+        const extendedProject = await this.extendedProject.getValue();
+        if (extendedProject) {
+            extendedProject.unload();
         }
-        if (this.extendedWorkbench.value) {
-            this.extendedWorkbench.value.dispose();
+        const extendedWorkbench = await this.extendedWorkbench.getValue();
+        if (extendedWorkbench) {
+            await extendedWorkbench.dispose();
         }
     }
 
@@ -77,7 +76,7 @@ class State {
     // * When the list contents change, tries to restore the selected value from the file.
     // This means that selected values are remembered between sessions
     private coupleModelToSetting<T>(model: ListInputModel<T>, field: Settings.LocalSettingsField, toSettingsValue: (val: T | undefined) => string | undefined) {
-        model.addOnInvalidateHandler(() => {
+        const setFromStoredValue = () => {
             const settingsValue = Settings.getLocalSetting(field);
             if (settingsValue) {
                 if (!model.selectWhen(item => settingsValue === toSettingsValue(item)) && model.amount > 0) {
@@ -87,12 +86,16 @@ class State {
             } else {
                 model.select(0);
             }
-        });
+        };
+        model.addOnInvalidateHandler(() => setFromStoredValue());
         model.addOnSelectedHandler((_, value) => {
             if (value) {
                 Settings.setLocalSetting(field, toSettingsValue(value) ?? "");
             }
         });
+
+        // Do this once at startup so that previous values are loaded
+        setFromStoredValue();
     }
 
     private addListeners(): void {
@@ -111,7 +114,7 @@ class State {
     }
 
     private addProjectContentListeners(): void {
-        this.loadedProject.addOnValueChangeHandler(project => {
+        this.loadedProject.onValueDidChange(project => {
             project?.onChanged(() => {
                 this.config.set(...project.configurations);
             });
@@ -120,11 +123,11 @@ class State {
 
     private addWorkbenchModelListeners(): void {
         this.workbench.addOnSelectedHandler(async workbench => {
-            const prevExtWb = this.extendedWorkbench.value;
+            const prevExtWb = await this.extendedWorkbench.getValue();
             const selectedWb = workbench.selected;
 
             if (selectedWb) {
-                this.extendedWorkbench.valuePromise = (async() => {
+                this.extendedWorkbench.setWithPromise((async() => {
                     if (ThriftWorkbench.hasThriftSupport(selectedWb)) {
                         try {
                             return await ThriftWorkbench.from(selectedWb);
@@ -137,23 +140,23 @@ class State {
                     } else {
                         return undefined;
                     }
-                })();
+                })());
                 // Make sure the workbench has finished loading before we continue (and dispose of the previous workbench)
-                await this.extendedWorkbench.valuePromise;
+                await this.extendedWorkbench.getValue();
             } else {
-                this.extendedWorkbench.value = undefined;
+                this.extendedWorkbench.setValue(undefined);
             }
             prevExtWb?.dispose();
         });
 
-        this.extendedWorkbench.addOnValueChangeHandler(_exWb => {
+        this.extendedWorkbench.onValueDidChange(_exWb => {
             this.loadProject();
         });
-        this.extendedWorkbench.addOnValueChangeHandler(exWb => {
+        this.extendedWorkbench.onValueDidChange(exWb => {
             if (exWb) {
                 exWb.onCrash(exitCode => {
                     Vscode.window.showErrorMessage(`IAR: The project manager exited unexpectedly (code ${exitCode}). Try reloading the window or upgrading the project from Embedded Workbench.`);
-                    this.extendedWorkbench.value = undefined;
+                    this.extendedWorkbench.setValue(undefined);
                 });
             }
         });
@@ -161,17 +164,16 @@ class State {
 
     private addProjectModelListeners(): void {
         this.project.addOnSelectedHandler(() => {
+            // Clear stored config, since it is only valid for the old project
+            Settings.setConfiguration("");
+            this.config.set(...[]);
+
             this.loadProject();
         });
 
-        this.loadedProject.addOnValueChangeHandler(() => {
-            // Clear stored config, since it is only valid for the old project
-            Settings.setConfiguration("");
+        this.loadedProject.onValueDidChange(project => {
 
-            this.config.useConfigurationsFromProject(this.loadedProject.value);
-        });
-        this.loadedProject.addOnValueChangeHandler(() => {
-            this.isLoading.value = false;
+            this.config.useConfigurationsFromProject(project);
         });
     }
 
@@ -180,25 +182,25 @@ class State {
     }
 
     private async loadProject() {
-        this.loadedProject.valuePromise.then(proj => proj?.unload());
+        const prevProj = await this.loadedProject.getValue();
+        prevProj?.unload();
         const selectedProject = this.project.selected;
 
         if (selectedProject) {
-            this.isLoading.value = true;
-            const extendedWorkbench = await this.extendedWorkbench.valuePromise;
+            const extendedWorkbench = await this.extendedWorkbench.getValue();
             if (this.workbench.selected && extendedWorkbench) {
                 const exProject = this.loadExtendedProject(selectedProject, extendedWorkbench);
 
-                this.extendedProject.valuePromise = exProject;
-                this.loadedProject.valuePromise = exProject.catch(() => new EwpFile(selectedProject.path));
-                await this.loadedProject.valuePromise;
+                this.extendedProject.setWithPromise(exProject);
+                this.loadedProject.setWithPromise(exProject.catch(() => new EwpFile(selectedProject.path)));
+                await this.loadedProject.getValue();
             } else {
-                this.loadedProject.value = new EwpFile(selectedProject.path);
-                this.extendedProject.value = undefined;
+                this.loadedProject.setValue(new EwpFile(selectedProject.path));
+                this.extendedProject.setValue(undefined);
             }
         } else {
-            this.loadedProject.value = undefined;
-            this.extendedProject.value = undefined;
+            this.loadedProject.setValue(undefined);
+            this.extendedProject.setValue(undefined);
         }
     }
 
