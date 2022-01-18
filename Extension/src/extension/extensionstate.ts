@@ -130,7 +130,7 @@ class State {
     private addWorkbenchModelListeners(): void {
         // Try to load thrift services for the new workbench
         this.workbench.addOnSelectedHandler(async workbench => {
-            const prevExtWb = await this.extendedWorkbench.getValue();
+            const prevExtWb = this.extendedWorkbench.promise;
             const selectedWb = workbench.selected;
 
             if (selectedWb) {
@@ -155,7 +155,7 @@ class State {
             }
             // Unload the previous project and reload it with the new workbench. Only after can we dispose of the previous workbench.
             await this.loadProject();
-            prevExtWb?.dispose();
+            prevExtWb.then(extWb => extWb?.dispose());
         });
 
         // If workbench crashes, fall back to non-extended (non-thrift) functionality.
@@ -191,8 +191,7 @@ class State {
     // Loads a project using the appropriate method depending on whether an extended workbench
     // is available. Any previously loaded project is unloaded.
     private async loadProject() {
-        const prevProj = await this.loadedProject.getValue();
-        prevProj?.unload();
+        this.loadedProject.promise.then(project => project?.unload());
         const selectedProject = this.project.selected;
 
         if (selectedProject) {

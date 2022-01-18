@@ -69,9 +69,10 @@ export class ThriftProject implements ExtendedProject {
         this.fireChangedEvent();
     }
 
-    public async unload() {
-        await this.projectMgr.CloseProject(this.context);
+    public unload() {
         this.fileWatcher.dispose();
+        // note that we do not unload the project context from the project manager.
+        // it is owned by the ThriftWorkbench and will be unloaded when the workbench is disposed
     }
 
     public onChanged(callback: (project: LoadedProject) => void): void {
@@ -85,10 +86,8 @@ export class ThriftProject implements ExtendedProject {
 
 export namespace ThriftProject {
     // since constructors can't be async, we load the project async statically
-    export async function load(path: Fs.PathLike, pm: ProjectManager.Client): Promise<ThriftProject> {
-        const projectContext = await pm.LoadEwpFile(path.toString());
-        const configs        = await pm.GetConfigurations(projectContext);
-
-        return new ThriftProject(path, configs, pm, projectContext);
+    export async function fromContext(path: Fs.PathLike, pm: ProjectManager.Client, context: ProjectContext): Promise<ThriftProject> {
+        const configs        = await pm.GetConfigurations(context);
+        return new ThriftProject(path, configs, pm, context);
     }
 }

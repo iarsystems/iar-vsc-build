@@ -62,7 +62,6 @@
                 "--extensionTestsPath=${workspaceFolder}/out/test/vscodeTests",
                 "${workspaceFolder}/test-sandbox/UiTestProjects/"
             ],
-            "env": {"ew-setup-file":"/home/power/iar-vs-code/ewstages.properties"},
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
             ],
