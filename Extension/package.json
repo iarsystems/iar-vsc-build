@@ -134,7 +134,8 @@
       "iar-vsc": [
         {
           "id": "iar-settings",
-          "name": "IAR Extension Configuration"
+          "name": "Extension Configuration",
+          "type": "webview"
         },
         {
           "id": "iar-project",
@@ -511,6 +512,8 @@
   },
   "dependencies": {
     "@types/thrift": "^0.10.9",
+    "@vscode/codicons": "^0.0.27",
+    "@vscode/webview-ui-toolkit": "^0.8.5",
     "async-mutex": "^0.3.2",
     "child-exec": "1.0.0",
     "csv-parse": "4.8.8",

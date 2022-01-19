@@ -23,6 +23,7 @@ import { RemoveConfigCommand } from "./command/project/removeconfig";
 import { RemoveNodeCommand } from "./command/project/removenode";
 import { AddFileCommand, AddGroupCommand } from "./command/project/addnode";
 import { Command as RegenerateCommand } from "./command/regeneratecpptoolsconf";
+import { SettingsWebview } from "./ui/settingswebview";
 
 export function activate(context: vscode.ExtensionContext) {
     ExtensionState.init(IarVsc.toolManager);
@@ -44,8 +45,10 @@ export function activate(context: vscode.ExtensionContext) {
     const projectModel = ExtensionState.getInstance().project;
     const configModel = ExtensionState.getInstance().config;
 
+    IarVsc.settingsView = new SettingsWebview(context.extensionUri);
+    vscode.window.registerWebviewViewProvider(SettingsWebview.VIEW_TYPE, IarVsc.settingsView);
     IarVsc.settingsTreeView = new TreeSelectionView(context, workbenchModel, projectModel, configModel);
-    vscode.window.registerTreeDataProvider("iar-settings", IarVsc.settingsTreeView);
+    // vscode.window.registerTreeDataProvider("iar-settings", IarVsc.settingsTreeView);
     IarVsc.projectTreeView = new TreeProjectView(
         projectModel,
         ExtensionState.getInstance().extendedProject,
@@ -98,6 +101,7 @@ function createActivityBarButton<T, M extends ListInputModel<T>>(context: vscode
 export namespace IarVsc {
     export const toolManager = ToolManager.createIarToolManager();
     // exported mostly for testing purposes
+    export let settingsView: SettingsWebview;
     export let settingsTreeView: TreeSelectionView;
     export let projectTreeView: TreeProjectView;
 }
