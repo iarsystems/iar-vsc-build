@@ -13,6 +13,7 @@ import { ConfigurationListModel } from "./model/selectconfiguration";
 import { EwpFile } from "../iar/project/parsing/ewpfile";
 import { ExtendedWorkbench, ThriftWorkbench } from "../iar/extendedworkbench";
 import { AsyncObservable } from "./model/asyncobservable";
+import { BehaviorSubject } from "rxjs";
 
 /**
  * Holds most extension-wide data, such as the selected workbench, project and configuration, and loaded project etc.
@@ -37,6 +38,8 @@ class State {
     readonly extendedProject: AsyncObservable<ExtendedProject>;
     // If the selected workbench has extended (majestix) capabilities, it will be provided here
     readonly extendedWorkbench: AsyncObservable<ExtendedWorkbench>;
+    // Notifies whether a project or workbench is currently loading
+    readonly loading = new BehaviorSubject<boolean>(false);
 
     constructor(toolManager: ToolManager) {
         this.toolManager = toolManager;
@@ -136,6 +139,7 @@ class State {
             if (selectedWb) {
                 this.extendedWorkbench.setWithPromise((async() => {
                     if (ThriftWorkbench.hasThriftSupport(selectedWb)) {
+                        this.loading.next(true);
                         try {
                             return await ThriftWorkbench.from(selectedWb);
                         } catch (e) {
@@ -179,6 +183,7 @@ class State {
         });
 
         this.loadedProject.onValueDidChange(project => {
+            this.loading.next(false);
             // Once a project has loaded we know its configurations, so populate our list model with them
             this.config.useConfigurationsFromProject(project);
         });
@@ -195,6 +200,7 @@ class State {
         const selectedProject = this.project.selected;
 
         if (selectedProject) {
+            this.loading.next(true);
             const extendedWorkbench = await this.extendedWorkbench.getValue();
             if (this.workbench.selected && extendedWorkbench) {
                 const exProject = this.loadExtendedProject(selectedProject, extendedWorkbench);

@@ -11,6 +11,7 @@ import { Workbench } from "../../iar/tools/workbench";
 import { ExtendedWorkbench } from "../../iar/extendedworkbench";
 import { InputModel } from "../model/model";
 import { AsyncObservable } from "../model/asyncobservable";
+import { Subject } from "rxjs";
 
 /**
  * Shows a view to the left of all files/groups in the project, and all configurations in the project.
@@ -23,10 +24,10 @@ export class TreeProjectView {
     constructor(projectModel: InputModel<Project>,
         extProjectModel: AsyncObservable<ExtendedProject>,
         workbenchModel: InputModel<Workbench>,
-        extWorkbenchModel: AsyncObservable<ExtendedWorkbench>) {
+        extWorkbenchModel: AsyncObservable<ExtendedWorkbench>,
+        loading: Subject<boolean>) {
 
         this.view = Vscode.window.createTreeView("iar-project", { treeDataProvider: this.provider });
-        this.view.title = "IAR Project";
         this.view.description = projectModel.selected?.name;
 
         projectModel.addOnSelectedHandler((_, project) => {
@@ -47,24 +48,17 @@ export class TreeProjectView {
             }
         };
 
-        extProjectModel.onValueWillChange(() => {
-            isLoading = true;
+        loading.subscribe(load => {
+            isLoading = load;
             updateMessage();
             this.provider.setProject(undefined);
         });
         extProjectModel.onValueDidChange(project => {
-            isLoading = false;
             this.provider.setProject(project).then(() => {
                 updateMessage();
             });
         });
-        extWorkbenchModel.onValueWillChange(() => {
-            isLoading = true;
-            updateMessage();
-            // this.view.message = "Loading...";
-        });
         extWorkbenchModel.onValueDidChange(extWorkbench => {
-            isLoading = false;
             hasExtendedWb = extWorkbench !== undefined;
             updateMessage();
         });

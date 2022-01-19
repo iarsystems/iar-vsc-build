@@ -53,7 +53,8 @@ export function activate(context: vscode.ExtensionContext) {
         projectModel,
         ExtensionState.getInstance().extendedProject,
         workbenchModel,
-        ExtensionState.getInstance().extendedWorkbench
+        ExtensionState.getInstance().extendedWorkbench,
+        ExtensionState.getInstance().loading,
     );
     createActivityBarButton(context, workbenchModel, Command.createSelectWorkbenchCommand(workbenchModel), "Workbench: ", 5);
     createActivityBarButton(context, projectModel, Command.createSelectProjectCommand(projectModel), "Project: ", 3);

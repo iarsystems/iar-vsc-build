@@ -16,9 +16,7 @@ suite("Test AsyncObservable", () => {
 
     test("Async operations override others", async() => {
         const model = new AsyncObservable<string>();
-        let willChangeCallCount = 0;
         let didChangeCallCount = 0;
-        model.onValueWillChange(() => willChangeCallCount += 1 );
         model.onValueDidChange(val => {
             Assert.strictEqual(val, "test2");
             didChangeCallCount += 1;
@@ -28,7 +26,6 @@ suite("Test AsyncObservable", () => {
         model.setWithPromise(makeResolvedPromise("test2"));
 
         Assert.strictEqual(await model.getValue(), "test2");
-        Assert.strictEqual(willChangeCallCount, 2);
         Assert.strictEqual(didChangeCallCount, 1);
     });
 

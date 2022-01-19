@@ -11,7 +11,6 @@ export class AsyncObservable<T> {
     private _promise: Promise<T | undefined> | undefined;
 
     private readonly valueChangeHandlers: Callback<T | undefined>[] = [];
-    private readonly promiseChangeHandlers: Callback<void>[] = [];
     private promiseResolutions: Callback<T | undefined>[] = [];
 
     /**
@@ -19,14 +18,6 @@ export class AsyncObservable<T> {
      */
     public onValueDidChange(handler: Callback<T | undefined>): void {
         this.valueChangeHandlers.push(handler);
-    }
-    /**
-     * Adds a callback to run whenever a change operation begins for this value.
-     * This indicates that the value will change soon. Useful to e.g display to the user that
-     * something is loading.
-     */
-    public onValueWillChange(handler: Callback<void>): void {
-        this.promiseChangeHandlers.push(handler);
     }
 
     /**
@@ -48,8 +39,6 @@ export class AsyncObservable<T> {
                 this.setValueAndNotify(undefined);
             }
         });
-        // TODO: should we call this even if the promise is already resolved?
-        this.promiseChangeHandlers.forEach(handler => handler());
     }
 
     /**
