@@ -3,18 +3,18 @@ import * as Path from "path";
 import * as Assert from "assert";
 import { VscodeTestsUtils } from "./utils";
 import { VscodeTestsSetup } from "./setup";
-import { ProjectNode } from "../../src/extension/ui/treeprojectprovider";
+import { FilesNode } from "../../src/extension/ui/treeprojectprovider";
 import { OsUtils } from "../../utils/osUtils";
 import { IarVsc } from "../../src/extension/main";
 
 namespace Utils {
-    export async function getNodes(parent?: ProjectNode) {
+    export async function getNodes(parent?: FilesNode) {
         const provider = IarVsc.projectTreeView._provider;
         const nodes = await provider.getChildren(parent);
         Assert(nodes);
         return nodes;
     }
-    export function toTreeItems(nodes: ProjectNode[]) {
+    export function toTreeItems(nodes: FilesNode[]) {
         const provider = IarVsc.projectTreeView._provider;
         return Promise.all(nodes.map(node => provider.getTreeItem(node)));
     }
@@ -25,6 +25,7 @@ suite("Test Project View", ()=>{
     let libSrcDir: string;
 
     suiteSetup(async function() {
+        this.timeout(50000);
         await VscodeTestsUtils.ensureExtensionIsActivated();
         const sandboxPath = VscodeTestsSetup.setup();
         projectDir = Path.join(sandboxPath, "SourceConfiguration/IAR-STM32F429II-EXP/LedFlasher");
@@ -34,15 +35,7 @@ suite("Test Project View", ()=>{
     });
 
     test("Displays project files", async() => {
-        const nodes = await Utils.getNodes();
-        const items = await Utils.toTreeItems(nodes);
-        const filesIndex = items.findIndex(item => item.label === "Files");
-        const filesItem = items[filesIndex];
-        Assert(filesItem);
-        Assert.strictEqual(filesItem.contextValue, "filesroot");
-        Assert.strictEqual(filesItem.collapsibleState, Vscode.TreeItemCollapsibleState.Expanded);
-
-        const rootFileNodes = await Utils.getNodes(nodes[filesIndex]);
+        const rootFileNodes = await Utils.getNodes();
         Assert.strictEqual(rootFileNodes.length, 5);
         const rootFileItems = await Utils.toTreeItems(rootFileNodes);
         const mainItem = rootFileItems.find(item => item.label === "main.c");
@@ -62,23 +55,5 @@ suite("Test Project View", ()=>{
         Assert(gpioItem.resourceUri);
         Assert(OsUtils.pathsEqual(gpioItem.resourceUri.fsPath, Path.join(libSrcDir, "stm32f4xx_gpio.c")));
         Assert.strictEqual(gpioItem.collapsibleState, Vscode.TreeItemCollapsibleState.None);
-    });
-
-    test("Displays project configurations", async() => {
-        const nodes = await Utils.getNodes();
-        const items = await Utils.toTreeItems(nodes);
-        const configsIndex = items.findIndex(item => item.label === "Configurations");
-        const configsItem = items[configsIndex];
-        Assert(configsItem);
-        Assert.strictEqual(configsItem.contextValue, "configsroot");
-        Assert.strictEqual(configsItem.collapsibleState, Vscode.TreeItemCollapsibleState.Expanded);
-
-        const configNodes = await Utils.getNodes(nodes[configsIndex]);
-        Assert.strictEqual(configNodes.length, 1);
-        const configItems = await Utils.toTreeItems(configNodes);
-        const mainItem = configItems.find(item => item.label === "Flash Debug");
-        Assert(mainItem);
-        Assert(mainItem.description, "ARM");
-        Assert.strictEqual(mainItem.collapsibleState, Vscode.TreeItemCollapsibleState.None);
     });
 });

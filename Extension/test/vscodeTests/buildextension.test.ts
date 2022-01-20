@@ -93,28 +93,21 @@ suite("Test build extension", ()=>{
     });
 
     test("Load projects in directory", ()=>{
-        const allProjects = VscodeTestsUtils.getEntries(VscodeTestsUtils.PROJECT);
-        VscodeTestsUtils.assertNodelistContains(allProjects, "BasicDebugging");
-        VscodeTestsUtils.assertNodelistContains(allProjects, "C-STATProject");
-        VscodeTestsUtils.assertNodelistContains(allProjects, "LedFlasher");
+        const allProjects = ExtensionState.getInstance().project.projects;
+        assert(allProjects.some(config => config.name === "BasicDebugging"));
+        assert(allProjects.some(config => config.name === "C-STATProject"));
+        assert(allProjects.some(config => config.name === "LedFlasher"));
     });
 
     test("No backups in project list", ()=>{
-        const allProjects = VscodeTestsUtils.getEntries(VscodeTestsUtils.PROJECT);
-        if (Array.isArray(allProjects)) {
-            allProjects.forEach(project => {
-                if (project.label?.toString().startsWith("Backup ")) {
-                    fail("Backup files should not be included in the list of projects");
-                }
-            });
-        }
+        const allProjects = ExtensionState.getInstance().project.projects;
+        assert(!allProjects.some(project => project.name?.toString().startsWith("Backup ")), "Backup files should not be included in the list of projects");
     });
 
     test("Load all configurations", async()=>{
         await VscodeTestsUtils.activateProject("BasicDebugging").then(()=>{
-            const allConfigurations = VscodeTestsUtils.getEntries(VscodeTestsUtils.CONFIG);
-            VscodeTestsUtils.assertNodelistContains(allConfigurations, "Debug");
-            VscodeTestsUtils.assertNodelistContains(allConfigurations, "Release");
+            assert(ExtensionState.getInstance().config.configurations.some(config => config.name === "Debug"));
+            assert(ExtensionState.getInstance().config.configurations.some(config => config.name === "Release"));
         });
     } );
 
@@ -134,35 +127,32 @@ suite("Test build extension", ()=>{
     test("Build and clean project with all listed EW:s", async function() {
         this.timeout(50000);
         const ewpFile = path.join(path.join(Utils.EXTENSION_ROOT, "test/vscodeTests/BasicProject", "BasicProject.ewp"));
-        const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
+        const listedEws = ExtensionState.getInstance().workbench.workbenches;
         let id = 1;
-        if (Array.isArray(listedEws)) {
-            for (const ew of listedEws) {
-                assert.strictEqual(typeof ew.label, "string");
-                VscodeTestsUtils.activateWorkbench(ew.label as string);
-                // The tooltip is the absolute path to the current workbench. Read all the targets from the workbench.
-                const targets: string[] = IarUtils.getTargetsFromEwPath(ew.tooltip!.toString());
-                for (const target of targets) {
-                    // Generate a testproject to build using the generic template
-                    const testEwp = Utils.setupProject(id++, target.toUpperCase(), ewpFile, sandbox);
-                    // Build the project.
-                    await VscodeTestsUtils.runTaskForProject(Utils.BUILD, path.basename(testEwp.ewp, ".ewp"), "Debug");
-                    // Check that an output file has been created
-                    const exeFile = path.join(testEwp.folder, "Debug", "Exe", path.basename(testEwp.ewp, ".ewp") + ".out");
-                    await Utils.assertFileExists(exeFile);
-                    // Check that warnings are parsed correctly
-                    // Doesn't seem like diagnostics are populated instantly after running tasks, so wait a bit
-                    await new Promise((p, _) => setTimeout(p, 2000));
-                    const srcFile = path.join(testEwp.folder, "main.c");
-                    const diagnostics = vscode.languages.getDiagnostics(vscode.Uri.file(srcFile));
-                    assert.strictEqual(diagnostics[0]?.message,  "variable \"unused\" was declared but never referenced");
-                    assert.deepStrictEqual(diagnostics[0]?.range, new vscode.Range(new vscode.Position(2, 0), new vscode.Position(2, 0)));
-                    assert.strictEqual(diagnostics[0]?.severity, vscode.DiagnosticSeverity.Warning);
+        for (const ew of listedEws) {
+            VscodeTestsUtils.activateWorkbench(ew.name);
+            // The tooltip is the absolute path to the current workbench. Read all the targets from the workbench.
+            const targets: string[] = IarUtils.getTargetsFromEwPath(ew.path.toString());
+            for (const target of targets) {
+                // Generate a testproject to build using the generic template
+                const testEwp = Utils.setupProject(id++, target.toUpperCase(), ewpFile, sandbox);
+                // Build the project.
+                await VscodeTestsUtils.runTaskForProject(Utils.BUILD, path.basename(testEwp.ewp, ".ewp"), "Debug");
+                // Check that an output file has been created
+                const exeFile = path.join(testEwp.folder, "Debug", "Exe", path.basename(testEwp.ewp, ".ewp") + ".out");
+                await Utils.assertFileExists(exeFile);
+                // Check that warnings are parsed correctly
+                // Doesn't seem like diagnostics are populated instantly after running tasks, so wait a bit
+                await new Promise((p, _) => setTimeout(p, 2000));
+                const srcFile = path.join(testEwp.folder, "main.c");
+                const diagnostics = vscode.languages.getDiagnostics(vscode.Uri.file(srcFile));
+                assert.strictEqual(diagnostics[0]?.message,  "variable \"unused\" was declared but never referenced");
+                assert.deepStrictEqual(diagnostics[0]?.range, new vscode.Range(new vscode.Position(2, 0), new vscode.Position(2, 0)));
+                assert.strictEqual(diagnostics[0]?.severity, vscode.DiagnosticSeverity.Warning);
 
-                    // Clean the project.
-                    await VscodeTestsUtils.runTaskForProject(Utils.CLEAN, path.basename(testEwp.ewp, ".ewp"), "Debug");
-                    await Utils.assertFileNotExists(exeFile);
-                }
+                // Clean the project.
+                await VscodeTestsUtils.runTaskForProject(Utils.CLEAN, path.basename(testEwp.ewp, ".ewp"), "Debug");
+                await Utils.assertFileNotExists(exeFile);
             }
         }
     });
@@ -175,16 +165,12 @@ suite("Test build extension", ()=>{
         }
 
         // Get the list of selectable ew:s
-        const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
-        if (Array.isArray(listedEws)) {
-            // Check that the lists are the same.
-            deepEqual(configuredEws?.length, listedEws.length);
-            for (const configuredEw of configuredEws) {
-                const ewId: string = path.basename(configuredEw.toString());
-                VscodeTestsUtils.assertNodelistContains(listedEws, ewId);
-            }
-        } else {
-            fail("Failed to collect configurable workbenches.");
+        const listedEws = ExtensionState.getInstance().workbench.workbenches;
+        // Check that the lists are the same.
+        deepEqual(configuredEws?.length, listedEws.length);
+        for (const configuredEw of configuredEws) {
+            const ewId: string = path.basename(configuredEw.toString());
+            assert(listedEws.some(ew => ew.name === ewId));
         }
     });
 

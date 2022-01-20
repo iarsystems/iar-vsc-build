@@ -27,8 +27,6 @@ export interface LoadedProject extends Project {
 }
 
 export interface ExtendedProject extends LoadedProject {
-    removeConfiguration(config: Config): Promise<void>;
-    addConfiguration(config: Config, isDebug: boolean): Promise<void>;
     getRootNode(): Promise<Node>;
     setNode(node: Node): Promise<void>;
 }

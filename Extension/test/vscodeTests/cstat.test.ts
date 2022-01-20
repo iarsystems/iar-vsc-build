@@ -5,6 +5,7 @@ import { VscodeTestsUtils } from "./utils";
 import { OsUtils } from "../../utils/osUtils";
 import { readdir, unlink } from "fs/promises";
 import { VscodeTestsSetup } from "./setup";
+import { ExtensionState } from "../../src/extension/extensionstate";
 
 namespace Utils {
     export function assertDiagnosticEquals(actual: Vscode.Diagnostic, expected: Vscode.Diagnostic) {
@@ -91,69 +92,63 @@ suite("Test C-STAT", ()=>{
     test("Run C-STAT on all listed EWs", async function() {
         this.timeout(50000);
         Vscode.workspace.getConfiguration("iarvsc").update("c-stat.filterLevel", "Low");
-        const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
-        if (Array.isArray(listedEws)) {
-            console.log(listedEws);
-            for (const ew of listedEws) {
-                Assert.strictEqual(typeof ew.label, "string");
-                VscodeTestsUtils.activateWorkbench(ew.label as string);
+        const listedEws = ExtensionState.getInstance().workbench.workbenches;
+        console.log(listedEws);
+        for (const ew of listedEws) {
+            VscodeTestsUtils.activateWorkbench(ew.name);
 
-                // Make sure diagnostics are empty before we start
-                let diagnostics = getDiagnostics().flatMap(pair => pair[1]);
-                Assert.deepStrictEqual(diagnostics, [], "There were diagnostics before starting C-STAT task, check the test setup, or a previous test failed");
+            // Make sure diagnostics are empty before we start
+            let diagnostics = getDiagnostics().flatMap(pair => pair[1]);
+            Assert.deepStrictEqual(diagnostics, [], "There were diagnostics before starting C-STAT task, check the test setup, or a previous test failed");
 
-                await VscodeTestsUtils.runTaskForProject(ANALYSIS_TASK, TARGET_PROJECT, "Debug");
-                const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
-                Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only)");
-                const expectedPath = path.join(sandboxPath, TARGET_PROJECT, "main.c");
-                Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, expectedPath));
+            await VscodeTestsUtils.runTaskForProject(ANALYSIS_TASK, TARGET_PROJECT, "Debug");
+            const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
+            Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only)");
+            const expectedPath = path.join(sandboxPath, TARGET_PROJECT, "main.c");
+            Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, expectedPath));
 
-                diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
-                Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
-                diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-                expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-                diagnostics.forEach((diag, i) => {
-                    Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
-                });
+            diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
+            Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
+            diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+            expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+            diagnostics.forEach((diag, i) => {
+                Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
+            });
 
-                await VscodeTestsUtils.runTaskForProject(CLEAR_TASK, TARGET_PROJECT, "Debug");
-                diagnostics = getDiagnostics().flatMap(pair => pair[1]);
-                Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
-            }
+            await VscodeTestsUtils.runTaskForProject(CLEAR_TASK, TARGET_PROJECT, "Debug");
+            diagnostics = getDiagnostics().flatMap(pair => pair[1]);
+            Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
         }
     });
 
     test("Run C-STAT with configured tasks", async()=>{
         Vscode.workspace.getConfiguration("iarvsc").update("c-stat.filterLevel", "Low");
         const targetProject = "C-STATProject";
-        const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
-        if (Array.isArray(listedEws)) {
-            for (const ew of listedEws) {
-                Assert.strictEqual(typeof ew.label, "string");
-                VscodeTestsUtils.activateWorkbench(ew.label as string);
+        const listedEws = ExtensionState.getInstance().workbench.workbenches;
+        for (const ew of listedEws) {
+            VscodeTestsUtils.activateWorkbench(ew.name);
 
-                // Make sure diagnostics are empty before we start
-                let diagnostics = getDiagnostics().flatMap(pair => pair[1]);
-                Assert.deepStrictEqual(diagnostics, [], "There were diagnostics before starting C-STAT task, check the test setup, or a previous test failed");
+            // Make sure diagnostics are empty before we start
+            let diagnostics = getDiagnostics().flatMap(pair => pair[1]);
+            Assert.deepStrictEqual(diagnostics, [], "There were diagnostics before starting C-STAT task, check the test setup, or a previous test failed");
 
-                await VscodeTestsUtils.runTaskForProject(ANALYSIS_TASK_CONFIGURED, targetProject, "Debug");
-                const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
-                Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only)");
-                const expectedPath = path.join(sandboxPath, targetProject, "main.c");
-                Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, expectedPath));
+            await VscodeTestsUtils.runTaskForProject(ANALYSIS_TASK_CONFIGURED, targetProject, "Debug");
+            const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
+            Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only)");
+            const expectedPath = path.join(sandboxPath, targetProject, "main.c");
+            Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, expectedPath));
 
-                diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
-                Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
-                diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-                expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-                diagnostics.forEach((diag, i) => {
-                    Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
-                });
+            diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
+            Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
+            diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+            expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+            diagnostics.forEach((diag, i) => {
+                Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
+            });
 
-                await VscodeTestsUtils.runTaskForProject(CLEAR_TASK_CONFIGURED, targetProject, "Debug");
-                diagnostics = getDiagnostics().flatMap(pair => pair[1]);
-                Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
-            }
+            await VscodeTestsUtils.runTaskForProject(CLEAR_TASK_CONFIGURED, targetProject, "Debug");
+            diagnostics = getDiagnostics().flatMap(pair => pair[1]);
+            Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
         }
     });
     const expectedDiagnosticsHigh: Vscode.Diagnostic[] = [
@@ -165,35 +160,32 @@ suite("Test C-STAT", ()=>{
         const targetProject = "C-STATProject";
         Vscode.workspace.getConfiguration("iarvsc").update("c-stat.filterLevel", "High");
 
-        const listedEws = VscodeTestsUtils.getEntries(VscodeTestsUtils.EW);
-        if (Array.isArray(listedEws)) {
-            for (const ew of listedEws) {
-                Assert.strictEqual(typeof ew.label, "string");
-                VscodeTestsUtils.activateWorkbench(ew.label as string);
+        const listedEws = ExtensionState.getInstance().workbench.workbenches;
+        for (const ew of listedEws) {
+            VscodeTestsUtils.activateWorkbench(ew.name);
 
-                // Make sure diagnostics are empty before we start
-                let diagnostics = getDiagnostics().flatMap(pair => pair[1]);
-                Assert.deepStrictEqual(diagnostics, [], "There were diagnostics before starting C-STAT task, check the test setup, or a previous test failed");
+            // Make sure diagnostics are empty before we start
+            let diagnostics = getDiagnostics().flatMap(pair => pair[1]);
+            Assert.deepStrictEqual(diagnostics, [], "There were diagnostics before starting C-STAT task, check the test setup, or a previous test failed");
 
-                // TODO: CHANGE TASK NAME BACK
-                await VscodeTestsUtils.runTaskForProject(ANALYSIS_TASK_CONFIGURED, targetProject, "Debug");
-                const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
-                Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only)");
-                const expectedPath = path.join(sandboxPath, targetProject, "main.c");
-                Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, expectedPath));
+            // TODO: CHANGE TASK NAME BACK
+            await VscodeTestsUtils.runTaskForProject(ANALYSIS_TASK_CONFIGURED, targetProject, "Debug");
+            const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
+            Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only)");
+            const expectedPath = path.join(sandboxPath, targetProject, "main.c");
+            Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, expectedPath));
 
-                diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
-                Assert.strictEqual(diagnostics.length, expectedDiagnosticsHigh.length, "Actual and expected diagnostics are not the same length");
-                diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-                expectedDiagnosticsHigh.sort((a, b) => a.message < b.message ? -1 : 1);
-                diagnostics.forEach((diag, i) => {
-                    Utils.assertDiagnosticEquals(diag, expectedDiagnosticsHigh[i]!);
-                });
+            diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
+            Assert.strictEqual(diagnostics.length, expectedDiagnosticsHigh.length, "Actual and expected diagnostics are not the same length");
+            diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+            expectedDiagnosticsHigh.sort((a, b) => a.message < b.message ? -1 : 1);
+            diagnostics.forEach((diag, i) => {
+                Utils.assertDiagnosticEquals(diag, expectedDiagnosticsHigh[i]!);
+            });
 
-                await VscodeTestsUtils.runTaskForProject(CLEAR_TASK_CONFIGURED, targetProject, "Debug");
-                diagnostics = getDiagnostics().flatMap(pair => pair[1]);
-                Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
-            }
+            await VscodeTestsUtils.runTaskForProject(CLEAR_TASK_CONFIGURED, targetProject, "Debug");
+            diagnostics = getDiagnostics().flatMap(pair => pair[1]);
+            Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
         }
     });
 });

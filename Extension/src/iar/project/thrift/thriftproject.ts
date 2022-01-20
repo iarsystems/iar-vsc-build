@@ -10,7 +10,6 @@ import * as Path from "path";
 import * as ProjectManager from "./bindings/ProjectManager";
 import { LoadedProject, ExtendedProject } from "../project";
 import { Configuration, ProjectContext, Node } from "./bindings/projectmanager_types";
-import { Config } from "../config";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.
@@ -40,19 +39,6 @@ export class ThriftProject implements ExtendedProject {
         return Path.parse(this.path.toString()).name;
     }
 
-    public async removeConfiguration(config: Config): Promise<void> {
-        this.ignoreNextFileChange = true;
-        await this.projectMgr.RemoveConfiguration(config.name, this.context);
-        this.configurations = await this.projectMgr.GetConfigurations(this.context);
-        this.fireChangedEvent();
-    }
-
-    public async addConfiguration(config: Config, isDebug: boolean): Promise<void> {
-        this.ignoreNextFileChange = true;
-        await this.projectMgr.AddConfiguration(new Configuration({ ...config, isDebug } ), this.context, isDebug);
-        this.configurations = await this.projectMgr.GetConfigurations(this.context);
-        this.fireChangedEvent();
-    }
     public getRootNode(): Promise<Node> {
         return Promise.resolve(this.projectMgr.GetRootNode(this.context));
     }

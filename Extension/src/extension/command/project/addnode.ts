@@ -7,7 +7,7 @@
 import * as Path from "path";
 import * as Vscode from "vscode";
 import { Node, NodeType } from "../../../iar/project/thrift/bindings/projectmanager_types";
-import { FilesNode, ProjectNode } from "../../ui/treeprojectprovider";
+import { FilesNode } from "../../ui/treeprojectprovider";
 import { ProjectCommand } from "./projectcommand";
 import { ExtendedProject } from "../../../iar/project/project";
 
@@ -25,7 +25,7 @@ export class AddFileCommand extends ProjectCommand {
         super("iar.addFile");
     }
 
-    async execute(source: ProjectNode, project: ExtendedProject) {
+    async execute(source: FilesNode | undefined, project: ExtendedProject) {
         try {
             const projectDir = Path.dirname(project.path.toString());
             const uris = await Vscode.window.showOpenDialog({
@@ -46,9 +46,7 @@ export class AddFileCommand extends ProjectCommand {
             const node = new Node({ children: [], name: name, type: NodeType.File, path: uri.fsPath, ...getNodeDefaults() });
 
             const rootNode = await project.getRootNode();
-            // The source is either a FilesNode corresponding to a group, or the user clicked the top-level "Files"
-            // item, in which case we should add to the root node
-            const parent = source instanceof FilesNode ? source.iarNode : rootNode;
+            const parent = source === undefined ? rootNode : source.iarNode;
             await addNode(parent, node, project);
 
             Vscode.window.showInformationMessage(`The file "${name}" has been added to the project.`);
@@ -83,12 +81,10 @@ export class AddGroupCommand extends ProjectCommand {
         super("iar.addGroup");
     }
 
-    async execute(source: ProjectNode, project: ExtendedProject) {
+    async execute(source: FilesNode | undefined, project: ExtendedProject) {
         try {
             const rootNode = await project.getRootNode();
-            // The source is either a FilesNode corresponding to a group, or the user clicked the top-level "Files"
-            // item, in which case we should add to the root node
-            const parent = source instanceof FilesNode ? source.iarNode : rootNode;
+            const parent = source === undefined ? rootNode : source.iarNode;
 
             const name = await Vscode.window.showInputBox({ prompt: "Enter a name for the group", placeHolder: "MyGroup" });
             if (!name) {

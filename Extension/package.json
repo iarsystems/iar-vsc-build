@@ -33,8 +33,6 @@
     "onCommand:iar.addFile",
     "onCommand:iar.addGroup",
     "onCommand:iar.removeNode",
-    "onCommand:iar.addConfig",
-    "onCommand:iar.removeConfig",
     "onCommand:iar.reloadProject",
     "onCommand:iar-settings.workbench",
     "onCommand:iar-settings.project-file",
@@ -98,18 +96,6 @@
         "icon": "$(trash)"
       },
       {
-        "command": "iar.addConfig",
-        "title": "Add configuration",
-        "category": "IAR",
-        "icon": "$(add)"
-      },
-      {
-        "command": "iar.removeConfig",
-        "title": "Remove configuration from project",
-        "category": "IAR",
-        "icon": "$(trash)"
-      },
-      {
         "command": "iar.reloadProject",
         "title": "Reload project",
         "category": "IAR",
@@ -139,7 +125,8 @@
         },
         {
           "id": "iar-project",
-          "name": "IAR Project"
+          "name": "Files",
+          "contextualTitle": "IAR Project"
         }
       ]
     },
@@ -151,6 +138,15 @@
         },
         {
           "command": "iar.reloadProject",
+          "when": "view == iar-project"
+        },
+        {
+          "command": "iar.addFile",
+          "when": "view == iar-project",
+          "group": "navigation"
+        },
+        {
+          "command": "iar.addGroup",
           "when": "view == iar-project",
           "group": "navigation"
         }
@@ -163,22 +159,12 @@
         },
         {
           "command": "iar.addGroup",
-          "when": "view == iar-project && viewItem == group || viewItem == filesroot",
+          "when": "view == iar-project && viewItem == group",
           "group": "inline"
         },
         {
           "command": "iar.addFile",
-          "when": "view == iar-project && viewItem == group || viewItem == filesroot",
-          "group": "inline"
-        },
-        {
-          "command": "iar.removeConfig",
-          "when": "view == iar-project && viewItem == configuration",
-          "group": "inline"
-        },
-        {
-          "command": "iar.addConfig",
-          "when": "view == iar-project && viewItem == configsroot",
+          "when": "view == iar-project && viewItem == group",
           "group": "inline"
         }
       ],
@@ -193,14 +179,6 @@
         },
         {
           "command": "iar.removeNode",
-          "when": "false"
-        },
-        {
-          "command": "iar.addConfig",
-          "when": "false"
-        },
-        {
-          "command": "iar.removeConfig",
           "when": "false"
         }
       ]
@@ -377,7 +355,9 @@
           },
           "extraBuildArguments": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "Extra arguments to supply to IarBuild (e.g. [\"-parallel\", \"4\"]. Leave empty to use the extension settings.",
             "default": []
           }

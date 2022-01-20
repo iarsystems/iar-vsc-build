@@ -1,7 +1,6 @@
 import * as Assert from "assert";
 import * as Vscode from "vscode";
 import { ExtensionState } from "../../src/extension/extensionstate";
-import { IarVsc } from "../../src/extension/main";
 
 export namespace VscodeTestsUtils {
 
@@ -14,56 +13,32 @@ export namespace VscodeTestsUtils {
 
     // ---- Helpers for interacting with the extension configuration UI
 
-    // Tags for working with the Iar GUI integration
-    export const EW = "EW Installation";
-    export const PROJECT = "Project";
-    export const CONFIG = "Configuration";
-
-    export function assertNodelistContains(treeItems: Vscode.ProviderResult<Vscode.TreeItem[]>, labelToFind: string ) {
-        if (Array.isArray(treeItems)) {
-            return treeItems.find(item => {
-                return item.label?.toString().startsWith(labelToFind);
-            });
-        }
-        Assert.fail("Failed to locate item with label: " + labelToFind);
-    }
-
-    export function getEntries(topNodeName: string) {
-        const theTree = IarVsc.settingsTreeView;
-        const nodes = theTree.getChildren();
-        if (Array.isArray(nodes)) {
-            for (let i = 0; i < nodes.length; i++) {
-                if (nodes[i]!.label === topNodeName) {
-                    return theTree.getChildren(nodes[i]);
-                }
-            }
-        }
-        Assert.fail("Failed to locate: " + topNodeName);
-    }
-    export function activateSomething(entryLabel: string, toActivate: string) {
-        const list = getEntries(entryLabel);
-        const listEntry = assertNodelistContains(list, toActivate);
-
-        Assert(listEntry, `Expected ${entryLabel} ${toActivate}, found ${JSON.stringify(list)}`);
-        Assert(listEntry.command && listEntry.command.arguments);
-        return Vscode.commands.executeCommand(listEntry.command.command, listEntry.command.arguments[0]);
-    }
 
     export async function activateProject(projectLabel: string) {
         if (ExtensionState.getInstance().project.selected?.name !== projectLabel) {
             await Promise.all([
                 VscodeTestsUtils.projectLoaded(),
-                activateSomething(PROJECT, projectLabel),
+                ExtensionState.getInstance().project.selectWhen(project => project.name === projectLabel),
             ]);
         }
     }
 
-    export function activateConfiguration(configurationTag: string) {
-        return activateSomething(CONFIG, configurationTag);
+    export async function activateConfiguration(configurationTag: string) {
+        if (ExtensionState.getInstance().config.selected?.name !== configurationTag) {
+            await Promise.all([
+                VscodeTestsUtils.projectLoaded(),
+                ExtensionState.getInstance().config.selectWhen(config => config.name === configurationTag),
+            ]);
+        }
     }
 
-    export function activateWorkbench(ew: string) {
-        return activateSomething(EW, ew);
+    export async function activateWorkbench(ew: string) {
+        if (ExtensionState.getInstance().workbench.selected?.name !== ew) {
+            await Promise.all([
+                VscodeTestsUtils.projectLoaded(),
+                ExtensionState.getInstance().workbench.selectWhen(workbench => workbench.name === ew),
+            ]);
+        }
     }
 
     // Waits until the loaded project changes. Useful e.g. after activating a project to ensure it has loaded completely.

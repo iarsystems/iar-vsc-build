@@ -11,15 +11,9 @@ import { GetSettingsCommand } from "./command/getsettings";
 import { IarConfigurationProvider } from "./configprovider/configurationprovider";
 import { CStatTaskProvider } from "./task/cstat/cstattaskprovider";
 import { TreeProjectView } from "./ui/treeprojectview";
-import { TreeSelectionView } from "./ui/treeselectionview";
-import { ListInputModel } from "./model/model";
-import { Command, ListSelectionCommand } from "./command/command";
-import { SelectionView } from "./ui/selectionview";
 import { SelectIarWorkspace } from "./command/selectIarWorkspace";
 import { CreateProjectCommand } from "./command/project/createproject";
 import { ReloadProjectCommand } from "./command/project/reloadproject";
-import { AddConfigCommand } from "./command/project/addconfig";
-import { RemoveConfigCommand } from "./command/project/removeconfig";
 import { RemoveNodeCommand } from "./command/project/removenode";
 import { AddFileCommand, AddGroupCommand } from "./command/project/addnode";
 import { Command as RegenerateCommand } from "./command/regeneratecpptoolsconf";
@@ -34,8 +28,6 @@ export function activate(context: vscode.ExtensionContext) {
     new SelectIarWorkspace().register(context);
     new CreateProjectCommand().register(context);
     new ReloadProjectCommand().register(context);
-    new AddConfigCommand().register(context);
-    new RemoveConfigCommand().register(context);
     new RemoveNodeCommand().register(context);
     new AddFileCommand().register(context);
     new AddGroupCommand().register(context);
@@ -47,7 +39,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     IarVsc.settingsView = new SettingsWebview(context.extensionUri);
     vscode.window.registerWebviewViewProvider(SettingsWebview.VIEW_TYPE, IarVsc.settingsView);
-    IarVsc.settingsTreeView = new TreeSelectionView(context, workbenchModel, projectModel, configModel);
     // vscode.window.registerTreeDataProvider("iar-settings", IarVsc.settingsTreeView);
     IarVsc.projectTreeView = new TreeProjectView(
         projectModel,
@@ -56,9 +47,6 @@ export function activate(context: vscode.ExtensionContext) {
         ExtensionState.getInstance().extendedWorkbench,
         ExtensionState.getInstance().loading,
     );
-    createActivityBarButton(context, workbenchModel, Command.createSelectWorkbenchCommand(workbenchModel), "Workbench: ", 5);
-    createActivityBarButton(context, projectModel, Command.createSelectProjectCommand(projectModel), "Project: ", 3);
-    createActivityBarButton(context, configModel, Command.createSelectConfigurationCommand(configModel), "Config: ", 2);
 
     // --- find and add workbenches
     loadTools();
@@ -92,17 +80,9 @@ function loadTools() {
 
 }
 
-// Creates a status bar button allowing the user to select between items in the given list model. See {@link SelectionView}.
-function createActivityBarButton<T, M extends ListInputModel<T>>(context: vscode.ExtensionContext, model: M, cmd: ListSelectionCommand<T>, label: string, priority: number) {
-    cmd.register(context);
-    SelectionView.createSelectionView(cmd, model, label, priority);
-}
-
-
 export namespace IarVsc {
     export const toolManager = ToolManager.createIarToolManager();
     // exported mostly for testing purposes
     export let settingsView: SettingsWebview;
-    export let settingsTreeView: TreeSelectionView;
     export let projectTreeView: TreeProjectView;
 }

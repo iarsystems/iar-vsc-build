@@ -2,7 +2,7 @@ import * as Assert from "assert";
 import * as Path from "path";
 import { ThriftWorkbench } from "../../src/iar/extendedworkbench";
 import { Project } from "../../src/iar/project/project";
-import { Configuration, Node, NodeType } from "../../src/iar/project/thrift/bindings/projectmanager_types";
+import { Node, NodeType } from "../../src/iar/project/thrift/bindings/projectmanager_types";
 import { ThriftProject } from "../../src/iar/project/thrift/thriftproject";
 import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "../../utils/testutils/testSandbox";
@@ -39,13 +39,6 @@ suite("Thrift project", function() {
     });
     teardown(async() => {
         await project?.unload();
-    });
-
-    test("Managing configurations", async() => {
-        await project.addConfiguration(new Configuration({ name: "TestConfig", toolchainId: "ARM", isDebug: false }), false);
-        Assert.equal(project.configurations.length, 3);
-        await project.removeConfiguration(new Configuration({ name: "TestConfig", toolchainId: "ARM", isDebug: false }));
-        Assert.equal(project.configurations.length, 2);
     });
 
     test("Managing nodes", async() => {
