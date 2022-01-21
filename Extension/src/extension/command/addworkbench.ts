@@ -11,6 +11,7 @@ import { OsUtils } from "../../../utils/osUtils";
 /**
  * Opens a file picker dialog and lets the user add a new folder containing workbench installations.
  * That folder will then be scanned to find workbenches to use.
+ * Returns true if a folder containing any workbenches was successfully added.
  */
 export class AddWorkbenchCommand extends CommandBase<Promise<boolean>> {
 

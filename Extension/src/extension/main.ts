@@ -39,11 +39,10 @@ export function activate(context: vscode.ExtensionContext) {
     // --- initialize custom GUI
     const workbenchModel = ExtensionState.getInstance().workbench;
     const projectModel = ExtensionState.getInstance().project;
-    // const configModel = ExtensionState.getInstance().config;
+    const configModel = ExtensionState.getInstance().config;
 
-    IarVsc.settingsView = new SettingsWebview(context.extensionUri);
+    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, projectModel, configModel, addWorkbenchCmd, ExtensionState.getInstance().loading);
     vscode.window.registerWebviewViewProvider(SettingsWebview.VIEW_TYPE, IarVsc.settingsView);
-    // vscode.window.registerTreeDataProvider("iar-settings", IarVsc.settingsTreeView);
     IarVsc.projectTreeView = new TreeProjectView(
         projectModel,
         ExtensionState.getInstance().extendedProject,

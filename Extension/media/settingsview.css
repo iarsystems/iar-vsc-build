@@ -1,0 +1,54 @@
+#documentation-link {
+    position: absolute;
+    bottom: 1em;
+}
+#config-spinner {
+    margin-top: .6em;
+}
+.section {
+    margin-bottom: 3em;
+}
+.dropdown {
+    width: 100%;
+}
+.dropdown-label {
+    margin-bottom: .1em;
+}
+
+.dropdown-container {
+    display: flex;
+    width: 100%;
+}
+
+.dropdown-container .dropdown-icon {
+    flex-grow: 0;
+    display: inline;
+    position: relative;
+    top: 6px;
+    margin-right: 10px;
+}
+
+.dropdown-container .dropdown2 {
+    flex-grow: 1;
+    margin-right: 1.0em;
+    margin-bottom: 0.7em;
+}
+
+
+.description {
+    opacity: 0.5;
+    display: none;
+}
+
+#workbench-error {
+    color: var(--vscode-errorForeground);
+    display: flex;
+    align-items: center;
+}
+#workbench-error[hidden] {
+    display: none;
+}
+
+#workbench-error *:first-child {
+    margin-right: .3em;
+}
