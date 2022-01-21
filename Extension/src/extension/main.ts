@@ -35,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
     // --- initialize custom GUI
     const workbenchModel = ExtensionState.getInstance().workbench;
     const projectModel = ExtensionState.getInstance().project;
-    const configModel = ExtensionState.getInstance().config;
+    // const configModel = ExtensionState.getInstance().config;
 
     IarVsc.settingsView = new SettingsWebview(context.extensionUri);
     vscode.window.registerWebviewViewProvider(SettingsWebview.VIEW_TYPE, IarVsc.settingsView);

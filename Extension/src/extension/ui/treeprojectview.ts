@@ -6,7 +6,7 @@
 
 import * as Vscode from "vscode";
 import { ExtendedProject, Project } from "../../iar/project/project";
-import { TreeProjectProvider, ProjectNode } from "./treeprojectprovider";
+import { FilesNode, TreeProjectProvider } from "./treeprojectprovider";
 import { Workbench } from "../../iar/tools/workbench";
 import { ExtendedWorkbench } from "../../iar/extendedworkbench";
 import { InputModel } from "../model/model";
@@ -19,7 +19,7 @@ import { Subject } from "rxjs";
  */
 export class TreeProjectView {
     private readonly provider: TreeProjectProvider = new TreeProjectProvider();
-    private readonly view: Vscode.TreeView<ProjectNode>;
+    private readonly view: Vscode.TreeView<FilesNode>;
 
     constructor(projectModel: InputModel<Project>,
         extProjectModel: AsyncObservable<ExtendedProject>,
