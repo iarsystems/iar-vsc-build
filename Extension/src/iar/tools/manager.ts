@@ -15,7 +15,7 @@ export interface ToolManager {
     addInvalidateListener(handler: InvalidateHandler): void;
 
     add(...workbenches: Workbench[]): void;
-    collectFrom(directories: Fs.PathLike[]): void;
+    collectFrom(directories: Fs.PathLike[]): Workbench[];
 
     findWorkbenchContainingPath(path: Fs.PathLike): Workbench | undefined;
 }
@@ -44,7 +44,11 @@ class IarToolManager implements ToolManager {
         }
     }
 
-    collectFrom(directories: Fs.PathLike[]): void {
+    /**
+     * Looks for workbenches in the given directories and adds all workbenches found.
+     * The found workbenches are also returned.
+     */
+    collectFrom(directories: Fs.PathLike[]): Workbench[] {
         let workbenches: Workbench[] = [];
         directories.forEach(directory => {
             const workbench = Workbench.create(directory);
@@ -56,6 +60,7 @@ class IarToolManager implements ToolManager {
             }
         });
         this.add(...workbenches);
+        return workbenches;
     }
 
     findWorkbenchContainingPath(path: Fs.PathLike): Workbench | undefined {

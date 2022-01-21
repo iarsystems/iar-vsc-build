@@ -29,6 +29,7 @@
     "onCommand:iar.selectConfiguration",
     "onCommand:iar.regenerateCppToolsConfig",
     "onCommand:iar.selectIarWorkspace",
+    "onCommand:iar.addWorkbench",
     "onCommand:iar.createProject",
     "onCommand:iar.addFile",
     "onCommand:iar.addGroup",
@@ -100,6 +101,11 @@
         "title": "Reload project",
         "category": "IAR",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "iar.addWorkbench",
+        "title": "Add an Embedded Workbench installation",
+        "category": "IAR"
       },
       {
         "command": "iar.createProject",
@@ -208,7 +214,7 @@
             "type": "string"
           },
           "description": "Root path where IAR installs its applications.",
-          "scope": "machine-overridable",
+          "scope": "machine",
           "default": [
             "C:\\Program Files\\IAR Systems",
             "C:\\Program Files (x86)\\IAR Systems"
