@@ -115,6 +115,13 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         this.view.webview.html = Rendering.getWebviewContent(this.view.webview, this.extensionUri, this.isLoading, this.workbenches, this.projects, this.configs);
     }
 
+    // ! Exposed for testing only. Selects a specific option from a dropdown.
+    selectFromDropdown(dropdown: DropdownIds, index: number) {
+        if (this.view === undefined) {
+            throw new Error("View is not attached");
+        }
+        this.view.webview.postMessage({subject: "select", target: dropdown, index: index});
+    }
 }
 
 /**

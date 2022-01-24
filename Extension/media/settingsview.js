@@ -36,4 +36,20 @@ function main() {
     addWorkbenchLink.addEventListener("click", function() {
         vscode.postMessage({ subject: MessageSubject.AddWorkbench, index: 0 });
     });
+
+    // For testing purposes. Allows sending messages to select specific entries from dropdowns
+    window.addEventListener("message", event => {
+        const message = event.data;
+        if (message["subject"] === "select") {
+            const target = document.getElementById(message["target"]);
+            target.selectedIndex = message["index"];
+            triggerEvent(target, "change");
+        }
+    });
 }
+
+function triggerEvent(elem, eventName) {
+    const event = document.createEvent('HTMLEvents');
+    event.initEvent(eventName, true, false);
+    elem.dispatchEvent(event);
+};
