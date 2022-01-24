@@ -14,6 +14,11 @@ enum MessageSubject {
     ConfigSelected = "Config",
     AddWorkbench = "AddWorkbench",
 }
+export enum DropdownIds {
+    Workbench = "workbench",
+    Project = "project",
+    Configuration = "config",
+}
 
 /**
  * A webview in the side panel that lets the user select which workbench, project and configuration to use.
@@ -153,15 +158,32 @@ namespace Rendering {
         <!-- ${renderCount++} -->
         <div class="section">
             <p>Embedded Workbench Installation:</p>
-            ${getDropdown(workbenches, "workbench", "No workbench", "tools")}
+            <div class="dropdown-container">
+                <span class="codicon codicon-tools dropdown-icon"></span>
+                <vscode-dropdown id="${DropdownIds.Workbench}" class="dropdown" ${workbenches.amount === 0 ? "disabled" : ""}>
+                    ${getDropdownOptions(workbenches, "No workbench")}
+                    <vscode-divider></vscode-divider>
+                    <vscode-option>Add Workbench...</vscode-option>
+                </vscode-dropdown>
+            </div>
             <div id="workbench-error" ${workbenches.amount > 0 ? "hidden" : ""}>
                 <span>No workbench found.</span><vscode-link id="link-add">Add Workbench</vscode-link>
             </div>
         </div>
         <div class="section">
                 <p>Select a project and configuration to use:</p>
-                ${getDropdown(projects, "project", "No projects",       "symbol-method")}
-                ${getDropdown(configs,  "config",  "No configurations", "settings-gear", isLoading)}
+                <div class="dropdown-container">
+                    <span class="codicon codicon-symbol-method dropdown-icon"></span>
+                    <vscode-dropdown id="${DropdownIds.Project}" class="dropdown" ${projects.amount === 0 ? "disabled" : ""}>
+                        ${getDropdownOptions(projects, "No projects")}
+                    </vscode-dropdown>
+                </div>
+                <div class="dropdown-container">
+                    <span class="codicon codicon-settings-gear dropdown-icon"></span>
+                    <vscode-dropdown id="${DropdownIds.Configuration}" class="dropdown" ${configs.amount === 0 || isLoading ? "disabled" : ""}>
+                        ${getDropdownOptions(configs, "No configurations")}
+                    </vscode-dropdown>
+                </div>
             <vscode-progress-ring id="config-spinner" ${isLoading ? "" : "hidden"}></vscode-progress-ring>
         </div>
 
@@ -183,18 +205,5 @@ namespace Rendering {
             </vscode-option>`;
         }
         return html;
-    }
-
-    function getDropdown<T>(model: ListInputModel<T>, id: string, emptyMsg: string, iconId: string, disabled?: boolean): string {
-        return /*html*/`
-            <div class="dropdown-container">
-                <span class="codicon codicon-${iconId} dropdown-icon"></span>
-                <vscode-dropdown id="${id}" class="dropdown2" ${model.amount === 0 || disabled ? "disabled" : ""}>
-                    ${getDropdownOptions(model, emptyMsg)}
-                    <vscode-divider></vscode-divider>
-                    <vscode-option>Add Workbench...</vscode-option>
-                </vscode-dropdown>
-            </div>
-        `;
     }
 }

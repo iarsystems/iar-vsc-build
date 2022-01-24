@@ -8,9 +8,6 @@
 .section {
     margin-bottom: 3em;
 }
-.dropdown {
-    width: 100%;
-}
 .dropdown-label {
     margin-bottom: .1em;
 }
@@ -28,7 +25,7 @@
     margin-right: 10px;
 }
 
-.dropdown-container .dropdown2 {
+.dropdown-container .dropdown {
     flex-grow: 1;
     margin-right: 1.0em;
     margin-bottom: 0.7em;
