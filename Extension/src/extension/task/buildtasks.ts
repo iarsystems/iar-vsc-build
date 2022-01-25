@@ -88,7 +88,8 @@ export namespace BuildTasks {
         let args = [
             project,
             iarCommand,
-            config
+            config,
+            "-log", "info" // VSC-124 This gives the same verbosity as EW
         ];
 
         let extraArgs = definition["extraBuildArguments"];
