@@ -106,8 +106,8 @@ export namespace Settings {
     }
 
     function generateSettingsFilePath(): Fs.PathLike | undefined  {
-        const folders = Vscode.workspace.workspaceFolders as Vscode.WorkspaceFolder[];
-        if (folders[0] !== undefined) {
+        const folders = Vscode.workspace.workspaceFolders;
+        if (folders !== undefined && folders[0] !== undefined) {
             const folder = folders[0].uri.fsPath;
             return Path.join(folder, ".vscode", "iar-vsc.json");
         }
