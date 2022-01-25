@@ -13,10 +13,10 @@ export namespace ConfirmationDialog {
      * @returns undefined if the prompt was canceled, otherwise a boolean for the response
      */
     export async function show(prompt: string): Promise<boolean | undefined> {
-        const response = await Vscode.window.showQuickPick(["Yes", "No"], { placeHolder: prompt });
+        const response = await Vscode.window.showWarningMessage(prompt, { modal: true, detail: "This action is irreversible." }, { title: "Yes" }, {title: "No", isCloseAffordance: true });
         if (!response) {
             return Promise.resolve(undefined);
         }
-        return Promise.resolve(response === "Yes");
+        return Promise.resolve(response.title === "Yes");
     }
 }
