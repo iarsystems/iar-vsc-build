@@ -36,6 +36,7 @@ export class TreeProjectView {
 
         let isLoading = false;
         let hasExtendedWb = false;
+        let projectIsEmpty = false;
         const updateMessage = () => {
             if (isLoading) {
                 this.view.message = "Loading...";
@@ -43,7 +44,11 @@ export class TreeProjectView {
                 if (!hasExtendedWb && workbenchModel.selected) {
                     this.view.message = "This Embedded Workbench does not support editing projects from VS Code.";
                 } else {
-                    this.view.message = undefined;
+                    if (projectIsEmpty) {
+                        this.view.message = "There are no files in the project";
+                    } else {
+                        this.view.message = undefined;
+                    }
                 }
             }
         };
@@ -60,6 +65,10 @@ export class TreeProjectView {
         });
         extWorkbenchModel.onValueDidChange(extWorkbench => {
             hasExtendedWb = extWorkbench !== undefined;
+            updateMessage();
+        });
+        this.provider.isEmpty.subscribe(isEmpty => {
+            projectIsEmpty = isEmpty;
             updateMessage();
         });
     }

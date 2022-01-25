@@ -7,6 +7,7 @@
 import * as Vscode from "vscode";
 import { Node, NodeType } from "../../iar/project/thrift/bindings/projectmanager_types";
 import { ExtendedProject } from "../../iar/project/project";
+import { BehaviorSubject } from "rxjs";
 
 // A node showing a file or file group i.e. a {@link Node}
 export class FilesNode {
@@ -26,6 +27,8 @@ export class FilesNode {
  * Provider for a tree of all files/groups in the project.
  */
 export class TreeProjectProvider implements Vscode.TreeDataProvider<FilesNode> {
+    readonly isEmpty = new BehaviorSubject<boolean>(false);
+
     private readonly _onDidChangeTreeData = new Vscode.EventEmitter<FilesNode | undefined>();
     readonly onDidChangeTreeData: Vscode.Event<FilesNode | undefined> = this._onDidChangeTreeData.event;
 
@@ -72,6 +75,7 @@ export class TreeProjectProvider implements Vscode.TreeDataProvider<FilesNode> {
 
     private async updateData(project: ExtendedProject) {
         this.rootNode = await project.getRootNode();
+        this.isEmpty.next(this.rootNode.children.length === 0);
         this._onDidChangeTreeData.fire(undefined);
     }
 
