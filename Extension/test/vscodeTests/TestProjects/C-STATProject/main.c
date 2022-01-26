@@ -16,10 +16,12 @@ int main()
     int sum = 0;
     sum = addOne(sum);
 
-    printf("sum = %d local = %d\n",sum,local); 
+    printf("sum = %d local = %d\n",sum,local);
 
     int a = 0;
+    //cstat -MISRAC*
     if (a) { a = *bad_fun(); }
+    //cstat +MISRAC*
     char arr[4];
     arr[4] = a;
 }

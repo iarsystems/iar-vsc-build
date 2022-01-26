@@ -11,7 +11,7 @@ import CsvParser = require("csv-parse/lib/sync");
 import * as Fs from "fs";
 
 /**
- * Functions for interacting with C-STAT
+ * Functions for interacting with C-STAT (i.e. running it via iarbuild and reading warnings)
  */
 export namespace CStat {
 
@@ -28,6 +28,7 @@ export namespace CStat {
         severity: CStatWarningSeverity;
         checkId: string;
     }
+    type CStatWarningWithHash = CStatWarning & { hash: string };
 
     // Names of relevant columns in the 'warnings' table of the cstat db
     enum CStatWarningField {
@@ -36,7 +37,7 @@ export namespace CStat {
         COLUMN = "column_num",
         MSG = "msg",
         SEVERITY = "severity",
-        // TRACE = "encoded_trace",
+        HASH = "warning_hash",
     }
     const fieldsToLoad: string[] = Object.values(CStatWarningField);
 
@@ -112,14 +113,19 @@ export namespace CStat {
         }
 
         const sqlProc = spawn(sqliteBinPath, [dbPath, "-csv"]); // we want csv output for easier parsing
-        const warnings = await getWarningsFromTable(sqlProc, "warnings");
-        const linkWarnings = await getWarningsFromTable(sqlProc, "link_warnings");
+        let warnings = await getWarningsFromTable(sqlProc, "warnings");
+        let linkWarnings = await getWarningsFromTable(sqlProc, "link_warnings");
+        const suppressedWarnings = await getSuppressedWarningsFromTable(sqlProc);
         sqlProc.kill();
+
+        // We could sort the arrays and use a better algorithm, but it's probably not worth it
+        warnings     =     warnings.filter(warning => !suppressedWarnings.some(hash => hash === warning.hash));
+        linkWarnings = linkWarnings.filter(warning => !suppressedWarnings.some(hash => hash === warning.hash));
 
         return warnings.concat(linkWarnings);
     }
 
-    function getWarningsFromTable(sqlProc: ChildProcessWithoutNullStreams, tableName: string): Promise<CStatWarning[]> {
+    function getWarningsFromTable(sqlProc: ChildProcessWithoutNullStreams, tableName: string): Promise<CStatWarningWithHash[]> {
         return new Promise((resolve, reject) => {
             sqlProc.stdin.write(`SELECT sql FROM sqlite_master WHERE type IS 'table' AND name IS '${tableName}';\n`);
             sqlProc.stdout.once("data", tableData => {
@@ -151,20 +157,21 @@ export namespace CStat {
                 }); /* stdout.once() */
             }); /* stdout.once() */
 
-            sqlProc.stderr.on("data", data => {
+            sqlProc.stderr.once("data", data => {
                 reject(data.toString());
             });
         });
     }
 
-    function parseWarning(warnRow: string[]): CStatWarning {
+    function parseWarning(warnRow: string[]): CStatWarningWithHash {
         const file     = warnRow[fieldsToLoad.indexOf(CStatWarningField.FILE_NAME)];
         const line     = warnRow[fieldsToLoad.indexOf(CStatWarningField.LINE)];
         const col      = warnRow[fieldsToLoad.indexOf(CStatWarningField.COLUMN)];
         const message  = warnRow[fieldsToLoad.indexOf(CStatWarningField.MSG)];
         const severity = warnRow[fieldsToLoad.indexOf(CStatWarningField.SEVERITY)];
+        const hash     = warnRow[fieldsToLoad.indexOf(CStatWarningField.HASH)];
         const checkId  = warnRow[warnRow.length - 1];
-        if (!file || !line || !col || !message || !severity || !checkId) {
+        if (!file || !line || !col || !message || !severity || !hash || !checkId) {
             throw new Error("One or more fields missing from row: " + warnRow.toString());
         }
         return {
@@ -173,8 +180,39 @@ export namespace CStat {
             col: Number(col),
             message: message,
             severity: SeverityStringToSeverityEnum(severity),
+            hash: hash,
             checkId: checkId,
         };
+    }
+
+    // returns a list of hashes, each corresponding to a warning that is suppressed
+    function getSuppressedWarningsFromTable(sqlProc: ChildProcessWithoutNullStreams): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            sqlProc.stdin.write(`SELECT Count(*) FROM warnings_meta;\n`);
+            sqlProc.stdout.once("data", data => {
+                const expectedRows = Number(data.toString());
+
+                if (expectedRows > 0) {
+                    const query = `SELECT ${CStatWarningField.HASH} FROM warnings_meta;\n`;
+                    sqlProc.stdin.write(query);
+                    let output = "";
+                    sqlProc.stdout.on("data", data => {
+                        output += data.toString();
+                        const hashes = output.split("\n").filter(line => line.trim().length > 0);
+                        if (hashes.length === expectedRows) {
+                            resolve(hashes);  // We are done
+                        }
+                    });
+                } else {
+                    resolve([]);
+                }
+
+            }); /* stdout.once() */
+
+            sqlProc.stderr.once("data", data => {
+                reject(data.toString());
+            });
+        });
     }
 
     function getSqliteBinaryName(): string | null {
