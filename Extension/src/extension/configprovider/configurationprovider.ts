@@ -9,7 +9,6 @@ import { ExtensionState } from "../extensionstate";
 import { Settings } from "../settings";
 import { CancellationToken } from "vscode-jsonrpc";
 import { LanguageUtils } from "../../utils/utils";
-import { JsonConfigurationWriter } from "./jsonconfigurationwriter";
 import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
 import { Workbench } from "../../iar/tools/workbench";
 import { Config } from "../../iar/project/config";
@@ -152,7 +151,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         this.generator.dispose();
     }
 
-    private async generateFallbackConfig() {
+    private generateFallbackConfig() {
         // Simply take the sum of all file configs.
         // It isn't perfect, but it doesn't need to be and there is no perfect solution AFAIK.
         const includes = this.fileConfigs.allIncludes;
@@ -161,7 +160,6 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         defines = defines.concat(Settings.getDefines().map(Define.fromString)); // user-defined extra macros
         const preincludes = this.fileConfigs.allPreincludes;
         this.fallbackConfig = { includes, defines, preincludes };
-        await JsonConfigurationWriter.writeJsonConfiguration(this.fallbackConfig, this.name);
     }
 
     // returns true if configs changed
