@@ -47,8 +47,8 @@ class State {
         this.workbench = new WorkbenchListModel(...toolManager.workbenches);
 
         let projects: Project[] = [];
-        if (Vscode.workspace.rootPath) {
-            projects = Project.findProjectsIn(Vscode.workspace.rootPath, true);
+        if (Vscode.workspace.workspaceFolders !== undefined) {
+            projects = Vscode.workspace.workspaceFolders.flatMap(folder => Project.findProjectsIn(folder.uri.fsPath, true));
         }
         this.project = new ProjectListModel(...projects);
 

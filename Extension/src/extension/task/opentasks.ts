@@ -5,7 +5,6 @@
 
 
 import * as Vscode from "vscode";
-import { IarExecution } from "./iarexecution";
 import { Workbench } from "../../iar/tools/workbench";
 
 export interface OpenTaskDefinition {
@@ -57,11 +56,13 @@ export namespace OpenTasks {
             return undefined;
         }
 
-        const process = new IarExecution(
-            workbench,
+        // Make sure to quote all arguments
+        const process = new Vscode.ShellExecution(
+            { value: workbench, quoting: Vscode.ShellQuoting.Strong },
             [
-                workspace
-            ]
+                { value: workspace, quoting: Vscode.ShellQuoting.Strong }
+            ],
+            {}
         );
 
         const task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);

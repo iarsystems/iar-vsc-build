@@ -22,23 +22,19 @@ export class SelectIarWorkspace extends CommandBase<Promise<string | undefined>>
 
     executeImpl(_autoTriggered: boolean): Promise<string | undefined> {
         // TODO: support multi-root workspaces
-        if (Vscode.workspace.rootPath) {
-            const workspaceFolder = Vscode.workspace.rootPath;
-
+        if (Vscode.workspace.workspaceFolders) {
             const filter = FsUtils.createFilteredListDirectoryFilenameRegex(/\.*\.eww/);
-            const files = FsUtils.walkAndFind(workspaceFolder, true, filter);
-
-            const workspacePaths: string[] = [];
-
-            files.forEach(file => {
-                const relativePath = Path.relative(workspaceFolder.toString(), file.toString());
-                workspacePaths.push(relativePath);
+            const fileCandidates = Vscode.workspace.workspaceFolders.flatMap(workspaceFolder => {
+                return FsUtils.walkAndFind(workspaceFolder.uri.fsPath, true, filter);
             });
 
-            if (workspacePaths.length > 1) {
-                return ThenableToPromise(Vscode.window.showQuickPick(workspacePaths));
-            } else if (workspacePaths.length === 1) {
-                return Promise.resolve(workspacePaths[0]);
+            if (fileCandidates.length > 1) {
+                const options = fileCandidates.map(file => {
+                    return { label: Path.basename(file.toString()), detail: file.toString() };
+                });
+                return ThenableToPromise(Vscode.window.showQuickPick(options).then(option => option?.detail));
+            } else if (fileCandidates.length === 1) {
+                return Promise.resolve(fileCandidates[0]?.toString());
             } else {
                 Vscode.window.showErrorMessage("No IAR Workspaces found.");
                 return Promise.resolve(undefined);
