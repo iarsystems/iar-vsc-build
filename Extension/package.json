@@ -38,6 +38,8 @@
     "onCommand:iar-settings.workbench",
     "onCommand:iar-settings.project-file",
     "onCommand:iar-settings.project-configuration",
+    "onView:iar-settings",
+    "onView:iar-project",
     "workspaceContains:**/*.ewp"
   ],
   "main": "./out/src/extension/main",
