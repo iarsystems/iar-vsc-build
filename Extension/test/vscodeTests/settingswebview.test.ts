@@ -27,8 +27,7 @@ suite("Test Clicking Settings View", ()=>{
     test("Clicking workbench updates model", async() => {
         const workbenchModel = ExtensionState.getInstance().workbench;
         if (workbenchModel.amount < 2) {
-            console.error("This test can only run with at least two workbenches.");
-            return;
+            Assert.fail("This test requires at least two workbenches.");
         }
 
         let indexToSelect = -1;

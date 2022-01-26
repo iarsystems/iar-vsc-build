@@ -82,20 +82,20 @@ suite("Test settings view", () => {
         dropdownIds.forEach(id => {
             const dropdown = document.getElementById(id);
             Assert(dropdown);
-            Assert.strictEqual(dropdown.getAttribute("disabled"), ""); // should be disabled
+            Assert.strictEqual(dropdown.getAttribute("disabled"), "", `Dropdown '${id}' should be disabled`);
         });
     });
 
     test("Shows error on no workbenches", () => {
         const workbenchError = document.getElementById("workbench-error");
         Assert(workbenchError);
-        Assert.strictEqual(workbenchError.getAttribute("hidden"), null); // should be visible
+        Assert.strictEqual(workbenchError.getAttribute("hidden"), null, "Error message should be visible");
         Assert(workbenchError.textContent?.includes("No workbench found"));
     });
 
     test("Populates dropdowns", () => {
         workbenchModel.set(
-            { name: "Embedded Workbench 9.0", path: "/path/Embedded Workench 9.0", idePath: "", builderPath: "" },
+            { name: "Embedded Workbench 9.0", path: "/path/Embedded Workbench 9.0", idePath: "", builderPath: "" },
             { name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "" }
         );
         workbenchModel.select(2);
@@ -108,13 +108,13 @@ suite("Test settings view", () => {
         const assertDropdownMatchesModel = function<T>(dropdownId: string, model: ListInputModel<T>)  {
             const dropdown = document.getElementById(dropdownId);
             Assert(dropdown);
-            Assert.strictEqual(dropdown.getAttribute("disabled"), null); // should be enabled
+            Assert.strictEqual(dropdown.getAttribute("disabled"), null, `Dropdown '${dropdownId}' should be enabled`);
             const options = dropdown.children;
             Assert.strictEqual(options.length, model.amount);
             for (let i = 0; i < options.length; i++) {
-                Assert.strictEqual(options.item(i)?.tagName, "VSCODE-OPTION");
-                Assert.strictEqual(options.item(i)?.textContent?.trim(), model.label(i));
-                Assert.strictEqual(options.item(i)?.getAttribute("selected"), model.selectedIndex === i ? "" : null);
+                Assert.strictEqual(options.item(i)?.tagName, "VSCODE-OPTION", `Incorrect option ${i}`);
+                Assert.strictEqual(options.item(i)?.textContent?.trim(), model.label(i), `Incorrect option ${i}`);
+                Assert.strictEqual(options.item(i)?.getAttribute("selected"), model.selectedIndex === i ? "" : null, `Incorrect option ${i}`);
             }
         };
         assertDropdownMatchesModel(DropdownIds.Project, projectModel);
@@ -123,12 +123,12 @@ suite("Test settings view", () => {
         // test workbench dropdown separately, since it has an additional option
         const dropdown = document.getElementById(DropdownIds.Workbench);
         Assert(dropdown);
-        Assert.strictEqual(dropdown.getAttribute("disabled"), null); // should be enabled
+        Assert.strictEqual(dropdown.getAttribute("disabled"), null, "Workbench dropdown should be enabled");
         const options = dropdown.children;
         for (let i = 0; i < workbenchModel.amount; i++) {
-            Assert.strictEqual(options.item(i)?.tagName, "VSCODE-OPTION");
-            Assert.strictEqual(options.item(i)?.textContent?.trim(), workbenchModel.label(i));
-            Assert.strictEqual(options.item(i)?.getAttribute("selected"), workbenchModel.selectedIndex === i ? "" : null);
+            Assert.strictEqual(options.item(i)?.tagName, "VSCODE-OPTION", `Incorrect option ${i}`);
+            Assert.strictEqual(options.item(i)?.textContent?.trim(), workbenchModel.label(i), `Incorrect option ${i}`);
+            Assert.strictEqual(options.item(i)?.getAttribute("selected"), workbenchModel.selectedIndex === i ? "" : null, `Incorrect option ${i}`);
         }
         Assert.strictEqual(options.item(workbenchModel.amount)?.tagName, "VSCODE-DIVIDER");
         Assert.strictEqual(options.item(workbenchModel.amount + 1)?.tagName, "VSCODE-OPTION");
@@ -141,22 +141,22 @@ suite("Test settings view", () => {
         {
             const configs = document.getElementById(DropdownIds.Configuration);
             Assert(configs);
-            Assert.strictEqual(configs.getAttribute("disabled"), null); // should be enabled
+            Assert.strictEqual(configs.getAttribute("disabled"), null, "Dropdown should be enabled");
 
             const spinner = document.getElementsByTagName("VSCODE-PROGRESS-RING").item(0);
             Assert(spinner);
-            Assert.strictEqual(spinner.getAttribute("hidden"), ""); // should be hidden
+            Assert.strictEqual(spinner.getAttribute("hidden"), "", "Spinner should be hidden");
         }
         loading.next(true);
         updateDocument();
         {
             const configs = document.getElementById(DropdownIds.Configuration);
             Assert(configs);
-            Assert.strictEqual(configs.getAttribute("disabled"), ""); // should be disabled
+            Assert.strictEqual(configs.getAttribute("disabled"), "", "Dropdown should be disabled");
 
             const spinner = document.getElementsByTagName("VSCODE-PROGRESS-RING").item(0);
             Assert(spinner);
-            Assert.strictEqual(spinner.getAttribute("hidden"), null); // should be visible
+            Assert.strictEqual(spinner.getAttribute("hidden"), null, "Spinner should be visible");
         }
     });
 
