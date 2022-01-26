@@ -125,7 +125,9 @@ class State {
             // This is a little crude, but when the project changes there *may* have been a change in configurations,
             // so update the model.
             project?.onChanged(() => {
-                this.config.set(...project.configurations);
+                if (project.name === this.project.selected?.name) {
+                    this.config.set(...project.configurations);
+                }
             });
         });
     }
