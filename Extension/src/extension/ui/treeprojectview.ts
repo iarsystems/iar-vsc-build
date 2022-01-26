@@ -27,7 +27,7 @@ export class TreeProjectView {
         extWorkbenchModel: AsyncObservable<ExtendedWorkbench>,
         loading: Subject<boolean>) {
 
-        this.view = Vscode.window.createTreeView("iar-project", { treeDataProvider: this.provider });
+        this.view = Vscode.window.createTreeView("iar-project", { treeDataProvider: this.provider, showCollapseAll: true });
         this.view.description = projectModel.selected?.name;
 
         projectModel.addOnSelectedHandler((_, project) => {
