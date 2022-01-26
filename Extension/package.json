@@ -80,7 +80,7 @@
       },
       {
         "command": "iar.addFile",
-        "title": "Add file here",
+        "title": "Add file(s) here",
         "category": "IAR",
         "icon": "$(new-file)"
       },

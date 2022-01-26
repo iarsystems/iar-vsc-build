@@ -12,11 +12,6 @@ import { ProjectCommand } from "./projectcommand";
 import { ExtendedProject } from "../../../iar/project/project";
 
 
-function addNode(parent: Node, newNode: Node, project: ExtendedProject): Promise<void> {
-    parent.children.push(newNode);
-    return project.setNode(parent);
-}
-
 /**
  * This command adds a file to a project (using a thrift ProjectManager)
  */
@@ -30,26 +25,23 @@ export class AddFileCommand extends ProjectCommand {
             const projectDir = Path.dirname(project.path.toString());
             const uris = await Vscode.window.showOpenDialog({
                 canSelectFiles: true,
-                canSelectMany: false,
+                canSelectMany: true,
                 defaultUri: Vscode.Uri.file(projectDir),
                 filters: AddFileCommand.filePickerFilters,
             });
-            if (!uris) {
+            if (uris === undefined || uris.length === 0) {
                 return;
             }
-            const uri = uris[0];
-            if (!uri) {
-                return;
-            }
-
-            const name = Path.basename(uri.fsPath);
-            const node = new Node({ children: [], name: name, type: NodeType.File, path: uri.fsPath, ...getNodeDefaults() });
 
             const rootNode = await project.getRootNode();
             const parent = source === undefined ? rootNode : source.iarNode;
-            await addNode(parent, node, project);
 
-            Vscode.window.showInformationMessage(`The file "${name}" has been added to the project.`);
+            uris.forEach(uri => {
+                const name = Path.basename(uri.fsPath);
+                parent.children.push(new Node({ children: [], name: name, type: NodeType.File, path: uri.fsPath, ...getNodeDefaults() }));
+            });
+
+            await project.setNode(parent);
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
                 Vscode.window.showErrorMessage("Unable to add file: " + e.toString());
@@ -93,9 +85,8 @@ export class AddGroupCommand extends ProjectCommand {
 
             const fullPath = Path.join(Path.dirname(project.path.toString()), name);
             const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath, ...getNodeDefaults() });
-            await addNode(parent, node, project);
-
-            Vscode.window.showInformationMessage(`The group "${name}" has been added to the project.`);
+            parent.children.push(node);
+            await project.setNode(parent);
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
                 Vscode.window.showErrorMessage("Unable to add group: " + e.toString());
