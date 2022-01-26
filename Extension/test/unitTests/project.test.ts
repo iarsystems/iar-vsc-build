@@ -14,9 +14,9 @@ suite("Test project parser", () => {
         if (!project) {
             Assert.fail("Project.createProjectFrom returned undefined");
         }
-        Assert.equal(project!.configurations.length, 2);
-        Assert.equal(project!.configurations[0]!.name, "Debug");
-        Assert.equal(project!.configurations[1]!.name, "Release");
-        Assert.equal(project!.name, "test_project");
+        Assert.strictEqual(project!.configurations.length, 2);
+        Assert.strictEqual(project!.configurations[0]!.name, "Debug");
+        Assert.strictEqual(project!.configurations[1]!.name, "Release");
+        Assert.strictEqual(project!.name, "test_project");
     });
 });

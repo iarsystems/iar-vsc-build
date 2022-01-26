@@ -1,5 +1,5 @@
 
-import { fail, deepEqual } from "assert";
+import { fail } from "assert";
 import * as assert from "assert";
 import {ExtensionState} from "../../src/extension/extensionstate";
 import * as vscode from "vscode";
@@ -167,7 +167,7 @@ suite("Test build extension", ()=>{
         // Get the list of selectable ew:s
         const listedEws = ExtensionState.getInstance().workbench.workbenches;
         // Check that the lists are the same.
-        deepEqual(configuredEws?.length, listedEws.length);
+        assert.deepStrictEqual(configuredEws?.length, listedEws.length);
         for (const configuredEw of configuredEws) {
             const ewId: string = path.basename(configuredEw.toString());
             assert(listedEws.some(ew => ew.name === ewId));

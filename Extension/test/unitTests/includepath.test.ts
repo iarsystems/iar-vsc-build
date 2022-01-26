@@ -29,8 +29,8 @@ $$TOOL_BEGIN $$VERSION "3" $$MSG_BEGIN $$MSG_POS "0" "0" "0" "0" $$TYPE "2" $$TX
 
             const includepaths = IncludePath.fromCompilerOutput(output);
 
-            Assert.equal(includepaths.length, 1);
-            Assert.equal(includepaths[0]!.path, __dirname);
+            Assert.strictEqual(includepaths.length, 1);
+            Assert.strictEqual(includepaths[0]!.path, __dirname);
         });
     });
 });

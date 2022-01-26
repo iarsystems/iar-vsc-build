@@ -12,9 +12,9 @@ suite("Test define parsers", () => {
 
             const define = Define.fromSourceContent(line);
 
-            Assert.equal(define.length, 1);
-            Assert.equal(define[0]!.identifier, "DEBUG");
-            Assert.equal(define[0]!.value, undefined);
+            Assert.strictEqual(define.length, 1);
+            Assert.strictEqual(define[0]!.identifier, "DEBUG");
+            Assert.strictEqual(define[0]!.value, undefined);
         });
 
         test("Empty value define with trailing spaces", () => {
@@ -22,9 +22,9 @@ suite("Test define parsers", () => {
 
             const define = Define.fromSourceContent(line);
 
-            Assert.equal(define.length, 1);
-            Assert.equal(define[0]!.identifier, "DEBUG");
-            Assert.equal(define[0]!.value, undefined);
+            Assert.strictEqual(define.length, 1);
+            Assert.strictEqual(define[0]!.identifier, "DEBUG");
+            Assert.strictEqual(define[0]!.value, undefined);
         });
 
         test("Define with value", () => {
@@ -32,9 +32,9 @@ suite("Test define parsers", () => {
 
             const define = Define.fromSourceContent(line);
 
-            Assert.equal(define.length, 1);
-            Assert.equal(define[0]!.identifier, "DEBUG");
-            Assert.equal(define[0]!.value, "1");
+            Assert.strictEqual(define.length, 1);
+            Assert.strictEqual(define[0]!.identifier, "DEBUG");
+            Assert.strictEqual(define[0]!.value, "1");
         });
 
         test("Define with more complex value", () => {
@@ -42,9 +42,9 @@ suite("Test define parsers", () => {
 
             const define = Define.fromSourceContent(line);
 
-            Assert.equal(define.length, 1);
-            Assert.equal(define[0]!.identifier, "Complex_define");
-            Assert.equal(define[0]!.value, "(1 + 5) * 10UL");
+            Assert.strictEqual(define.length, 1);
+            Assert.strictEqual(define[0]!.identifier, "Complex_define");
+            Assert.strictEqual(define[0]!.value, "(1 + 5) * 10UL");
         });
 
         test("Remove extra spaces in define", () => {
@@ -52,9 +52,9 @@ suite("Test define parsers", () => {
 
             const define = Define.fromSourceContent(line);
 
-            Assert.equal(define.length, 1);
-            Assert.equal(define[0]!.identifier, "Complex_define");
-            Assert.equal(define[0]!.value, "( 1 + 5 ) * 10UL");
+            Assert.strictEqual(define.length, 1);
+            Assert.strictEqual(define[0]!.identifier, "Complex_define");
+            Assert.strictEqual(define[0]!.value, "( 1 + 5 ) * 10UL");
         });
 
         test("Macro", () => {
@@ -62,9 +62,9 @@ suite("Test define parsers", () => {
 
             const define = Define.fromSourceContent(line);
 
-            Assert.equal(define.length, 1);
-            Assert.equal(define[0]!.identifier, "SUM(a, b)");
-            Assert.equal(define[0]!.value, "(a + b)");
+            Assert.strictEqual(define.length, 1);
+            Assert.strictEqual(define[0]!.identifier, "SUM(a, b)");
+            Assert.strictEqual(define[0]!.value, "(a + b)");
         });
 
         test("Macro with additional spaces", () => {
@@ -72,9 +72,9 @@ suite("Test define parsers", () => {
 
             const define = Define.fromSourceContent(line);
 
-            Assert.equal(define.length, 1);
-            Assert.equal(define[0]!.identifier, "SUM(a, b)");
-            Assert.equal(define[0]!.value, "( a + b )");
+            Assert.strictEqual(define.length, 1);
+            Assert.strictEqual(define[0]!.identifier, "SUM(a, b)");
+            Assert.strictEqual(define[0]!.value, "( a + b )");
         });
 
         test("Multiline define source", () => {
@@ -86,16 +86,16 @@ suite("Test define parsers", () => {
 
             const defines = Define.fromSourceContent(lines);
 
-            Assert.equal(defines.length, 3);
+            Assert.strictEqual(defines.length, 3);
 
-            Assert.equal(defines[0]!.identifier, "DEBUG");
-            Assert.equal(defines[0]!.value, undefined);
+            Assert.strictEqual(defines[0]!.identifier, "DEBUG");
+            Assert.strictEqual(defines[0]!.value, undefined);
 
-            Assert.equal(defines[1]!.identifier, "SOME_CONSTANT_FORMULA");
-            Assert.equal(defines[1]!.value, "2 * PI");
+            Assert.strictEqual(defines[1]!.identifier, "SOME_CONSTANT_FORMULA");
+            Assert.strictEqual(defines[1]!.value, "2 * PI");
 
-            Assert.equal(defines[2]!.identifier, "AREA(l, h)");
-            Assert.equal(defines[2]!.value, "(l * h)");
+            Assert.strictEqual(defines[2]!.identifier, "AREA(l, h)");
+            Assert.strictEqual(defines[2]!.value, "(l * h)");
         });
     });
 });

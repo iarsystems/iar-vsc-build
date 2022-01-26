@@ -12,7 +12,7 @@ suite("XmlNode validation", () => {
 
             const node = new XmlNode(xml);
 
-            assert.equal(node.tagName, "root");
+            assert.strictEqual(node.tagName, "root");
         });
     });
 
@@ -23,7 +23,7 @@ suite("XmlNode validation", () => {
 
             const node = new XmlNode(xml);
 
-            assert.equal(node.text, text);
+            assert.strictEqual(node.text, text);
         });
 
         test("Node has no text", () => {
@@ -31,7 +31,7 @@ suite("XmlNode validation", () => {
 
             const node = new XmlNode(xml);
 
-            assert.equal(node.text, undefined);
+            assert.strictEqual(node.text, undefined);
         });
 
 
@@ -40,7 +40,7 @@ suite("XmlNode validation", () => {
 
             const node = new XmlNode(xml);
 
-            assert.equal(node.text, undefined);
+            assert.strictEqual(node.text, undefined);
         });
     });
 
@@ -52,7 +52,7 @@ suite("XmlNode validation", () => {
 
             const unexistendChild = node.getFirstChildByName("unknownChild");
 
-            assert.equal(unexistendChild, undefined);
+            assert.strictEqual(unexistendChild, undefined);
         });
 
         test("Has one satisfying child", () => {
@@ -63,14 +63,14 @@ suite("XmlNode validation", () => {
             let child1 = node.getFirstChildByName("child1");
             let child2 = node.getFirstChildByName("child2");
 
-            assert.notEqual(child1, undefined);
-            assert.notEqual(child2, undefined);
+            assert.notStrictEqual(child1, undefined);
+            assert.notStrictEqual(child2, undefined);
 
             child1 = child1 as XmlNode; // we are sure child1 is not undefined
             child2 = child2 as XmlNode; // we are sure child2 is not undefined
 
-            assert.equal(child1.tagName, "child1");
-            assert.equal(child2.tagName, "child2");
+            assert.strictEqual(child1.tagName, "child1");
+            assert.strictEqual(child2.tagName, "child2");
         });
 
         test("Has multiple satisfying children", () => {
@@ -80,11 +80,11 @@ suite("XmlNode validation", () => {
 
             let first = node.getFirstChildByName("child1");
 
-            assert.notEqual(first, undefined);
+            assert.notStrictEqual(first, undefined);
 
             first = first as XmlNode; // we are sure first is not undefined
 
-            assert.equal(first.text, "1");
+            assert.strictEqual(first.text, "1");
         });
     });
 
@@ -96,7 +96,7 @@ suite("XmlNode validation", () => {
 
             const unexistendChild = node.getAllChildsByName("unknownChild");
 
-            assert.equal(unexistendChild.length, 0);
+            assert.strictEqual(unexistendChild.length, 0);
         });
 
         test("Has one satisfying child", () => {
@@ -107,13 +107,13 @@ suite("XmlNode validation", () => {
             const child1 = node.getAllChildsByName("child1");
             const child2 = node.getAllChildsByName("child2");
 
-            assert.equal(child1.length, 1);
-            assert.equal(child2.length, 1);
+            assert.strictEqual(child1.length, 1);
+            assert.strictEqual(child2.length, 1);
 
-            assert.equal(child1[0]!.tagName, "child1");
-            assert.equal(child2[0]!.tagName, "child2");
-            assert.equal(child1[0]!.text, undefined);
-            assert.equal(child2[0]!.text, "1");
+            assert.strictEqual(child1[0]!.tagName, "child1");
+            assert.strictEqual(child2[0]!.tagName, "child2");
+            assert.strictEqual(child1[0]!.text, undefined);
+            assert.strictEqual(child2[0]!.text, "1");
         });
 
         test("Has multiple satisfying children", () => {
@@ -123,11 +123,11 @@ suite("XmlNode validation", () => {
 
             const children = node.getAllChildsByName("child1");
 
-            assert.equal(children.length, 2);
-            assert.equal(children[0]!.tagName, "child1");
-            assert.equal(children[1]!.tagName, "child1");
-            assert.equal(children[0]!.text, "1");
-            assert.equal(children[1]!.text, "2");
+            assert.strictEqual(children.length, 2);
+            assert.strictEqual(children[0]!.tagName, "child1");
+            assert.strictEqual(children[1]!.tagName, "child1");
+            assert.strictEqual(children[0]!.text, "1");
+            assert.strictEqual(children[1]!.text, "2");
         });
     });
 
@@ -139,7 +139,7 @@ suite("XmlNode validation", () => {
 
             const unexistendChild = node.getFirstChildByType("text");
 
-            assert.equal(unexistendChild, undefined);
+            assert.strictEqual(unexistendChild, undefined);
         });
 
         test("Has one satisfying child", () => {
@@ -149,11 +149,11 @@ suite("XmlNode validation", () => {
 
             let child1 = node.getFirstChildByType("element");
 
-            assert.notEqual(child1, undefined);
+            assert.notStrictEqual(child1, undefined);
 
             child1 = child1 as XmlNode; // we are sure child1 is not undefined
 
-            assert.equal(child1.tagName, "child1");
+            assert.strictEqual(child1.tagName, "child1");
         });
 
         test("Has multiple satisfying children", () => {
@@ -164,14 +164,14 @@ suite("XmlNode validation", () => {
             let first = node.getFirstChildByType("element");
             let text = node.getFirstChildByType("text");
 
-            assert.notEqual(first, undefined);
-            assert.notEqual(text, undefined);
+            assert.notStrictEqual(first, undefined);
+            assert.notStrictEqual(text, undefined);
 
             first = first as XmlNode; // we are sure first is not undefined
             text = text as XmlNode; // we are sure text is not undefined
 
-            assert.equal(first.tagName, "child1");
-            assert.equal(text.text, "text");
+            assert.strictEqual(first.tagName, "child1");
+            assert.strictEqual(text.text, "text");
         });
     });
 
@@ -183,7 +183,7 @@ suite("XmlNode validation", () => {
 
             const unexistendChild = node.getAllChildsByType("unknownType");
 
-            assert.equal(unexistendChild.length, 0);
+            assert.strictEqual(unexistendChild.length, 0);
         });
 
         test("Has one satisfying child", () => {
@@ -193,10 +193,10 @@ suite("XmlNode validation", () => {
 
             const child1 = node.getAllChildsByType("element");
 
-            assert.equal(child1.length, 1);
+            assert.strictEqual(child1.length, 1);
 
-            assert.equal(child1[0]!.tagName, "child1");
-            assert.equal(child1[0]!.text, undefined);
+            assert.strictEqual(child1[0]!.tagName, "child1");
+            assert.strictEqual(child1[0]!.text, undefined);
         });
 
         test("Has multiple satisfying children", () => {
@@ -207,14 +207,14 @@ suite("XmlNode validation", () => {
             const children = node.getAllChildsByType("element");
             const text = node.getAllChildsByType("text");
 
-            assert.equal(children.length, 2);
-            assert.equal(children[0]!.tagName, "child1");
-            assert.equal(children[1]!.tagName, "child2");
-            assert.equal(children[0]!.text, "1");
-            assert.equal(children[1]!.text, "2");
+            assert.strictEqual(children.length, 2);
+            assert.strictEqual(children[0]!.tagName, "child1");
+            assert.strictEqual(children[1]!.tagName, "child2");
+            assert.strictEqual(children[0]!.text, "1");
+            assert.strictEqual(children[1]!.text, "2");
 
-            assert.equal(text.length, 1);
-            assert.equal(text[0]!.text, "some text");
+            assert.strictEqual(text.length, 1);
+            assert.strictEqual(text[0]!.text, "some text");
         });
     });
 });
