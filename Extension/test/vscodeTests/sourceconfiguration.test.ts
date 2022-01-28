@@ -55,8 +55,11 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         Assert(config.defines.some(define => define === "USE_STDPERIPH_DRIVER=1"));
         Assert(config.defines.some(define => define === "STM32F429X=1"));
         Assert(config.defines.some(define => define === "HSE_VALUE=8000000"));
-        Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/cmsis/core/include"))));
-        Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/cmsis/dsp/include"))));
+        // cmsis is not available on linux
+        if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
+            Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/cmsis/core/include"))));
+            Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/cmsis/dsp/include"))));
+        }
 
         // Compiler config
         Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/inc"))));
