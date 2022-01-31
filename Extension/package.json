@@ -120,7 +120,7 @@
         {
           "id": "iar-vsc",
           "title": "IAR for Visual Studio Code",
-          "icon": "images/logo.png"
+          "icon": "images/logo-transparent.svg"
         }
       ]
     },
