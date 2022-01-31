@@ -16,7 +16,6 @@ import { CreateProjectCommand } from "./command/project/createproject";
 import { ReloadProjectCommand } from "./command/project/reloadproject";
 import { RemoveNodeCommand } from "./command/project/removenode";
 import { AddFileCommand, AddGroupCommand } from "./command/project/addnode";
-import { Command as RegenerateCommand } from "./command/regeneratecpptoolsconf";
 import { SettingsWebview } from "./ui/settingswebview";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Command } from "./command/command";
@@ -26,7 +25,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     // --- create and register commands
     GetSettingsCommand.initCommands(context);
-    RegenerateCommand.createRegenerateCppToolsConfig().register(context);
     new SelectIarWorkspace().register(context);
     new CreateProjectCommand().register(context);
     new ReloadProjectCommand().register(context);

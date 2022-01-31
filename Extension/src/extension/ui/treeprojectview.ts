@@ -61,6 +61,8 @@ export class TreeProjectView {
         extProjectModel.onValueDidChange(project => {
             this.provider.setProject(project).then(() => {
                 updateMessage();
+                // Enable/disable the 'add file/group' buttons on this view
+                Vscode.commands.executeCommand("setContext", "iarvsc.extendedProjectLoaded", project !== undefined);
             });
         });
         extWorkbenchModel.onValueDidChange(extWorkbench => {

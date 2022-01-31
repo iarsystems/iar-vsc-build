@@ -5,11 +5,16 @@
   "version": "2.0.0",
   "publisher": "pluyckx",
   "icon": "images/logo.png",
+  "galleryBanner": {
+    "color": "#ffe000",
+    "theme": "light"
+  },
   "preview": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/pluyckx/iar-vsc.git"
   },
+	"homepage": "https://www.iar.com/",
   "engines": {
     "vscode": "^1.33.0"
   },
@@ -19,15 +24,19 @@
   "keywords": [
     "IAR",
     "ARM",
-    "AVR",
-    "STM8",
-    "Embedded"
+    "Embedded",
+    "Embedded Workbench",
+    "IoT",
+    "build",
+    "c",
+    "c++",
+    "cpp",
+    "multi-root ready"
   ],
   "activationEvents": [
     "onCommand:iar.selectWorkbench",
     "onCommand:iar.selectProject",
     "onCommand:iar.selectConfiguration",
-    "onCommand:iar.regenerateCppToolsConfig",
     "onCommand:iar.selectIarWorkspace",
     "onCommand:iar.addWorkbench",
     "onCommand:iar.createProject",
@@ -58,11 +67,6 @@
       {
         "command": "iar.selectConfiguration",
         "title": "Select Configuration",
-        "category": "IAR"
-      },
-      {
-        "command": "iar.regenerateCppToolsConfig",
-        "title": "Reload project configuration",
         "category": "IAR"
       },
       {
@@ -134,6 +138,7 @@
         {
           "id": "iar-project",
           "name": "Files",
+          "type": "tree",
           "contextualTitle": "IAR Project"
         }
       ]
@@ -141,21 +146,17 @@
     "menus": {
       "view/title": [
         {
-          "command": "iar.regenerateCppToolsConfig",
-          "when": "view == iar-settings"
-        },
-        {
           "command": "iar.reloadProject",
           "when": "view == iar-project"
         },
         {
           "command": "iar.addFile",
-          "when": "view == iar-project",
+          "when": "view == iar-project && iarvsc.extendedProjectLoaded",
           "group": "navigation"
         },
         {
           "command": "iar.addGroup",
-          "when": "view == iar-project",
+          "when": "view == iar-project && iarvsc.extendedProjectLoaded",
           "group": "navigation"
         }
       ],
@@ -194,7 +195,7 @@
     "viewsWelcome": [
       {
         "view": "iar-project",
-        "contents": "When an IAR project is loaded, you can see and manage its contents here.\n[Create new project](command:iar.createProject)"
+        "contents": "When an IAR project is loaded, you can see and manage its contents here."
       }
     ],
     "grammars": [
@@ -208,14 +209,14 @@
       }
     ],
     "configuration": {
-      "title": "IAR",
+      "title": "IAR for Visual Studio Code",
       "properties": {
         "iarvsc.iarInstallDirectories": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Root path where IAR installs its applications.",
+          "description": "Paths to search for IAR Embedded Workbench installations.",
           "scope": "machine",
           "default": [
             "C:\\Program Files\\IAR Systems",
@@ -224,13 +225,9 @@
         },
         "iarvsc.defines": {
           "type": "array",
-          "description": "A list of defines to use which are not listed in the project xml or compiler output. You can for example define here compiler intrisics, like __max, __min, __eeprom, .... example __max: add `__max(a, b)=` to this list.",
+          "description": "A list of additional defines to use for intellisense, which are not listed in the project file or defined by the compiler. Note that this does not affect building.",
           "default": [
-            "_Pragma(x)=",
-            "__eeprom=",
-            "__flash=",
-            "__no_init=",
-            "__root="
+            "_Pragma(x)="
           ]
         },
         "iarvsc.cStandard": {
@@ -240,7 +237,7 @@
             "c99",
             "c11"
           ],
-          "description": "The c standard to use in the config tool configuration.",
+          "description": "The c standard to use for intellisense.",
           "default": "c11"
         },
         "iarvsc.cppStandard": {
@@ -252,7 +249,7 @@
             "c++14",
             "c++17"
           ],
-          "description": "The c++ standard to use in the config tool configuration.",
+          "description": "The c++ standard to use for intellisense.",
           "default": "c++14"
         },
         "iarvsc.c-stat.filterLevel": {
@@ -270,29 +267,10 @@
           "type": "boolean",
           "default": false
         },
-        "iarvsc.outFile": {
-          "type": "string",
-          "description": "Currently not used, but will be used in the future to generate launch configurations.",
-          "default": ""
-        },
-        "iarvsc.gdb": {
-          "type": "string",
-          "markdownDescription": "The path to the gdb debugger to use. In case the executable is not on the `PATH` environment, you have to specify the full path.",
-          "default": "arm-none-eabi-gdb.exe"
-        },
-        "iarvsc.gdbServer": {
-          "type": "string",
-          "markdownDescription": "The path to the gdb server to use. In case the executable is not on the `PATH` environment, you have to specify the full path.",
-          "default": "JLinkGDBServerCL.exe"
-        },
-        "iarvsc.device": {
-          "type": "string",
-          "markdownDescription": "The name of the target microcontroller",
-          "default": "undefined"
-        },
         "iarvsc.extraBuildArguments": {
           "type": "array",
-          "markdownDescription": "Extra command line arguments to supply to IarBuild.exe.",
+          "markdownDescription": "Extra command line arguments to supply to iarbuild (e.g. [\"-parallel\", \"4\"].",
+          "items": { "type": "string" },
           "default": []
         }
       }
@@ -329,7 +307,7 @@
         "properties": {
           "command": {
             "type": "string",
-            "description": "The command to use for the IarBuild.exe command",
+            "description": "The command, or \"mode\", to run iarbuild with.",
             "enum": [
               "build",
               "rebuild",
@@ -339,54 +317,40 @@
           },
           "project": {
             "type": "string",
-            "description": "The path to the project file"
+            "description": "The project (.ewp) file to use.",
+            "format": "uri"
           },
           "config": {
             "type": "string",
-            "description": "The configuration in the project file to use"
+            "description": "The project configuration to use."
           },
           "workbench": {
             "type": "string",
-            "description": "Path to the workbench to use"
+            "description": "The Embedded Workbench to use."
           },
           "builder": {
             "type": "string",
-            "description": "Path to the builder to use"
+            "description": "The iarbuild executable to run."
           },
           "workspace": {
             "type": "string",
-            "description": "The path to the workspace file to use"
+            "description": "The workspace file to open (for the 'open' command)."
           },
           "label": {
             "type": "string",
-            "description": "The name for the task that is shown when executing the built-in command `Run Tasks` of VS Code."
+            "description": "The name for this task. Will be shown in the VS Code UI."
           },
           "extraBuildArguments": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Extra arguments to supply to IarBuild (e.g. [\"-parallel\", \"4\"]. Leave empty to use the extension settings.",
+            "description": "Extra arguments to supply to iarbuild (e.g. [\"-parallel\", \"4\"]. Leave empty to use the extension settings.",
             "default": []
           }
         },
         "required": [
-          "command"
-        ]
-      },
-      {
-        "type": "iar-thrift",
-        "properties": {
-          "config": {
-            "type": "string",
-            "description": "The configuration in the project file to use"
-          },
-          "label": {
-            "type": "string",
-            "description": "The name for the task that is shown when executing the built-in command `Run Tasks` of VS Code."
-          }
-        },
-        "required": [
+          "label",
           "command"
         ]
       },
@@ -395,7 +359,7 @@
         "properties": {
           "label": {
             "type": "string",
-            "description": "The name for the task that is shown when executing the built-in command `Run Tasks` of VS Code."
+            "description": "The name for this task. Will be shown in the VS Code UI."
           },
           "action": {
             "type": "string",
@@ -403,72 +367,24 @@
               "run",
               "clear"
             ],
-            "description": "What to do when running the task (generate warnings or clear them)"
+            "description": "What to do when running the task (generate warnings or clear them)."
           },
           "project": {
             "type": "string",
-            "description": "The path to the project file"
+            "description": "The project (.ewp) file to use."
           },
           "config": {
             "type": "string",
-            "description": "The configuration in the project file to use"
+            "description": "The project configuration to use."
           },
           "builder": {
             "type": "string",
-            "description": "Path to the builder to use"
+            "description": "The iarbuild executable to run."
           }
         },
         "required": [
           "label",
           "action"
-        ]
-      }
-    ],
-    "debuggers": [
-      {
-        "type": "IAR: gdb server",
-        "configurationSnippets": [
-          {
-            "label": "IAR: Debug using gdb server",
-            "description": "Description",
-            "body": {
-              "name": "Debug GDBServer",
-              "type": "cppdbg",
-              "request": "launch",
-              "program": "Absolute path to the out file.",
-              "stopAtEntry": true,
-              "cwd": "${${workspaceFolder}workspaceFolder}",
-              "externalConsole": true,
-              "MIMode": "gdb",
-              "miDebuggerPath": "${${c}config:iarvsc.gdb}",
-              "debugServerPath": "${${c}config:iarvsc.gdbServer}",
-              "debugServerArgs": "-if swd -singlerun -strict -endian little -speed auto -port 3333 -device ${${c}config:iarvsc.device} -vd -strict -halt",
-              "serverStarted": "Connected\\\\ to\\\\ target",
-              "serverLaunchTimeout": 5000,
-              "filterStderr": false,
-              "filterStdout": true,
-              "setupCommands": [
-                {
-                  "text": "target remote localhost:3333"
-                },
-                {
-                  "text": "monitor flash breakpoints = 1"
-                },
-                {
-                  "text": "monitor flash download = 1"
-                },
-                {
-                  "text": "monitor reset"
-                },
-                {
-                  "text": "load \\\\\"Path to the out file.\\\\\""
-                },
-                {
-                  "text": "monitor reset"
-                }
-              ]
-            }
-          }
         ]
       }
     ]
@@ -479,8 +395,8 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
+		"package": "vsce package",
     "watch": "tsc -watch -p ./",
-    "test": "npm run compile && node ./node_modules/vscode/bin/test",
     "lint": "eslint . --ext .ts"
   },
   "devDependencies": {
@@ -506,11 +422,9 @@
     "@vscode/codicons": "^0.0.27",
     "@vscode/webview-ui-toolkit": "^0.8.5",
     "async-mutex": "^0.3.2",
-    "child-exec": "1.0.0",
     "csv-parse": "4.8.8",
     "fast-deep-equal": "2.0.1",
     "jsdom": "^19.0.0",
-    "jsonc-parser": "1.0.0",
     "rxjs": "^7.5.2",
     "sanitize-html": "^2.6.1",
     "thrift": "^0.12.0",
