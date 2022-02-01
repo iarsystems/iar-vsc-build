@@ -14,9 +14,9 @@
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
             "outFiles": [
-                "${workspaceFolder}/Extension/out/**/*.js"
+                "${workspaceFolder}/Extension/dist/**/*.js"
             ],
-            "preLaunchTask": "npm: watch"
+            "preLaunchTask": "npm: webpack-watch"
         },
         {
             "name": "Extension Tests",
@@ -30,7 +30,7 @@
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
             ],
-            "preLaunchTask": "npm: watch",
+            "preLaunchTask": "npm: test-compile",
             "presentation": {
                 "group": "Tests",
             }
@@ -47,7 +47,7 @@
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
             ],
-            "preLaunchTask": "npm: watch",
+            "preLaunchTask": "npm: test-compile",
             "presentation": {
                 "group": "Tests",
             }
@@ -65,7 +65,7 @@
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
             ],
-            "preLaunchTask": "npm: watch",
+            "preLaunchTask": "npm: test-compile",
             "presentation": {
                 "group": "Tests",
             }
@@ -82,7 +82,7 @@
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
             ],
-            "preLaunchTask": "npm: watch",
+            "preLaunchTask": "npm: test-compile",
             "presentation": {
                 "group": "Tests",
             }

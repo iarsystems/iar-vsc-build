@@ -14,7 +14,7 @@
     "type": "git",
     "url": "https://github.com/pluyckx/iar-vsc.git"
   },
-	"homepage": "https://www.iar.com/",
+  "homepage": "https://www.iar.com/",
   "engines": {
     "vscode": "^1.33.0"
   },
@@ -51,7 +51,7 @@
     "onView:iar-project",
     "workspaceContains:**/*.ewp"
   ],
-  "main": "./out/src/extension/main",
+  "main": "./dist/main",
   "contributes": {
     "commands": [
       {
@@ -270,7 +270,9 @@
         "iarvsc.extraBuildArguments": {
           "type": "array",
           "markdownDescription": "Extra command line arguments to supply to iarbuild (e.g. [\"-parallel\", \"4\"].",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": []
         }
       }
@@ -393,11 +395,12 @@
     "ms-vscode.cpptools"
   ],
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-		"package": "vsce package",
-    "watch": "tsc -watch -p ./",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "vscode:prepublish": "npm run package",
+    "webpack": "webpack --mode development",
+    "webpack-watch": "webpack --mode development --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "test-compile": "npm run webpack && tsc -p ./"
   },
   "devDependencies": {
     "@types/jsdom": "^16.2.14",
@@ -413,9 +416,12 @@
     "java-properties": "^1.0.2",
     "mocha": "^9.0.1",
     "mocha-junit-reporter": "^2.0.2",
+    "ts-loader": "^9.2.6",
     "tslint": "^5.8.0",
     "typescript": "^4.3.0",
-    "vscode-test": "^1.3.0"
+    "vscode-test": "^1.3.0",
+    "webpack": "^5.68.0",
+    "webpack-cli": "^4.9.2"
   },
   "dependencies": {
     "@types/thrift": "^0.10.9",
@@ -428,6 +434,7 @@
     "rxjs": "^7.5.2",
     "sanitize-html": "^2.6.1",
     "thrift": "^0.12.0",
+    "utf-8-validate": "^5.0.8",
     "uuid": "^8.3.2",
     "vscode-cpptools": "^5.0.0",
     "vscode-jsonrpc": "^3.0.0",

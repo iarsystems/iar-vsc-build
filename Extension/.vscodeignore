@@ -1,5 +1,15 @@
-**/*.ts
-**/tsconfig.json
-**/tslint.json
-**/test/
-build.rb
+# Ignore everything
+*
+*/**
+
+# Include only the files that should be in the .vsix
+!dist/main.js
+!README.md
+!CHANGELOG.md
+!LICENSE
+!media/**/*
+!syntaxes/**/*
+!images/**/*
+!sqlite-bin/**/*
+!node_modules/@vscode/codicons/dist/*
+!node_modules/@vscode/webview-ui-toolkit/dist/**/*

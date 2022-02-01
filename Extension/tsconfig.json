@@ -21,7 +21,8 @@
         "strictFunctionTypes": true, /* Stricter type checks for function parameters */
         "noImplicitOverride": true, /* Force use of 'override' keyword */
         "noPropertyAccessFromIndexSignature": true, /* Report errors when accessing nonexistent fields */
-        "noUncheckedIndexedAccess": true /* Add 'undefined' to the type returned from indexed accesses */
+        "noUncheckedIndexedAccess": true, /* Add 'undefined' to the type returned from indexed accesses */
+        "isolatedModules": true, /* Recommended when using bundlers */
     },
     "exclude": [
         "node_modules",

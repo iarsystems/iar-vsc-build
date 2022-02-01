@@ -1,4 +1,5 @@
 Extension/out
+Extension/dist
 Extension/node_modules
 Extension/test-sandbox
 Extension/*.vsix
