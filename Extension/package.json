@@ -389,6 +389,60 @@
           "action"
         ]
       }
+    ],
+    "walkthroughs": [
+      {
+        "id": "iar-vsc",
+        "description": "Learn how to build and edit IAR Embedded Workbench projects",
+        "featuredFor": [
+          "**/*.ewp"
+        ],
+        "title": "Get started with developing IAR projects",
+        "steps": [
+          {
+            "id": "load",
+            "title": "Load a project",
+            "description": "Test",
+            "completionEvents": [
+              "onView:iar-settings"
+            ],
+            "media": {
+              "markdown": "README.md"
+            }
+          },
+          {
+            "id": "build",
+            "title": "Build your project",
+            "completionEvents": [
+              "onView:iar-settings"
+            ],
+            "media": {
+              "markdown": "README.md"
+            }
+          },
+          {
+            "id": "cstat",
+            "title": "Analyze your project with C-STAT",
+            "description": "Test",
+            "completionEvents": [
+              "onStepSelected"
+            ],
+            "media": {
+              "markdown": "README.md"
+            }
+          },
+          {
+            "id": "project",
+            "title": "Add files to your project",
+            "completionEvents": [
+              "onView:iar-project"
+            ],
+            "media": {
+              "markdown": "README.md"
+            }
+          }
+        ]
+      }
     ]
   },
   "extensionDependencies": [
@@ -428,6 +482,7 @@
     "@vscode/codicons": "^0.0.27",
     "@vscode/webview-ui-toolkit": "^0.8.5",
     "async-mutex": "^0.3.2",
+    "bufferutil": "^4.0.6",
     "csv-parse": "4.8.8",
     "fast-deep-equal": "2.0.1",
     "jsdom": "^19.0.0",
