@@ -19,6 +19,8 @@ import * as CSpyServiceManager from "./bindings/CSpyServiceManager";
 import { SERVICE_MANAGER_SERVICE } from "./bindings/ServiceManager_types";
 import { tmpdir } from "os";
 import { v4 as uuidv4 } from "uuid";
+import { PROJECTMANAGER_ID } from "./bindings/projectmanager_types";
+import * as ProjectManager from "./bindings/ProjectManager";
 
 /** Callback for when the service manager crashes */
 export type CrashHandler = (exitCode: number | null) => void;
@@ -161,6 +163,19 @@ export namespace ThriftServiceManager {
             });
 
             setTimeout(() => reject(new Error("Service registry launch timed out")), 10000);
+        }).then(async(serviceManager) => {
+            // VSC-4 there is a small window between the service registry creating the location file,
+            // and it starting the project manager service. Poll the service registry for the project manager service
+            // and only return once the service has been started.
+            for (let i = 0; i < 10; i++) {
+                try {
+                    await serviceManager.findService(PROJECTMANAGER_ID, ProjectManager);
+                    return serviceManager;
+                } catch (e) {
+                    await new Promise((res, _) => setTimeout(res, i*100));
+                }
+            }
+            return Promise.reject(new Error("Project manager service did not start."));
         }).catch(e => {
             serviceRegistryProcess?.kill(); throw e;
         }).finally(() => fs.unwatchFile(locationFile));
