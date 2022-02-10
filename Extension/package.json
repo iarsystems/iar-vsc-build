@@ -51,7 +51,7 @@
     "onView:iar-project",
     "workspaceContains:**/*.ewp"
   ],
-  "main": "./dist/main",
+  "main": "./out/src/extension/main.js",
   "contributes": {
     "commands": [
       {
