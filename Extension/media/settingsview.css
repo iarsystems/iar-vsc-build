@@ -1,7 +1,11 @@
-#documentation-link {
+#footer {
     position: absolute;
     bottom: 1em;
 }
+#footer .link {
+    display: block;
+}
+
 #config-spinner {
     margin-top: .6em;
 }

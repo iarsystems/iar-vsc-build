@@ -13,6 +13,7 @@ enum MessageSubject {
     ProjectSelected = "Project",
     ConfigSelected = "Config",
     AddWorkbench = "AddWorkbench",
+    OpenSettings = "OpenSettings",
 }
 export enum DropdownIds {
     Workbench = "workbench",
@@ -100,6 +101,9 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
                 }
                 break;
             }
+            case MessageSubject.OpenSettings:
+                vscode.commands.executeCommand("workbench.action.openSettings", "@ext:pluyckx.iar-vsc");
+                break;
             default:
                 console.error("Settings view got unknown subject: " + message.subject);
                 break;
@@ -195,8 +199,11 @@ namespace Rendering {
             <vscode-progress-ring id="config-spinner" ${isLoading ? "" : "hidden"}></vscode-progress-ring>
         </div>
 
-        <!-- TODO: Change this url -->
-        <vscode-link href="https://iar-vsc.readthedocs.io/en/latest/index.html" id="documentation-link">IAR: View Documentation (TODO: change url!)</vscode-link>
+        <div id="footer">
+            <vscode-link id="settings-link" class="link">Open Settings</vscode-link>
+            <!-- TODO: Change this url -->
+            <vscode-link href="https://iar-vsc.readthedocs.io/en/latest/index.html" id="documentation-link" class="link">View Documentation (TODO: change url!)</vscode-link>
+        </div>
     </body>
     </html>`;
     }

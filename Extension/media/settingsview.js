@@ -6,6 +6,7 @@ const MessageSubject = {
     ProjectSelected: "Project",
     ConfigSelected: "Config",
     AddWorkbench: "AddWorkbench",
+    OpenSettings: "OpenSettings",
 }
 
 const vscode = acquireVsCodeApi();
@@ -35,6 +36,11 @@ function main() {
     const addWorkbenchLink = document.getElementById("link-add");
     addWorkbenchLink.addEventListener("click", function() {
         vscode.postMessage({ subject: MessageSubject.AddWorkbench, index: 0 });
+    });
+
+    const openSettingsLink = document.getElementById("settings-link");
+    openSettingsLink.addEventListener("click", function() {
+        vscode.postMessage({ subject: MessageSubject.OpenSettings, index: 0 });
     });
 
     // For testing purposes. Allows sending messages to select specific entries from dropdowns
