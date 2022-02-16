@@ -19,8 +19,9 @@ import { AddFileCommand, AddGroupCommand } from "./command/project/addnode";
 import { SettingsWebview } from "./ui/settingswebview";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Command } from "./command/command";
+import { BuildExtensionApi } from "../../utils/buildExtension";
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     ExtensionState.init(IarVsc.toolManager);
 
     // --- create and register commands
@@ -59,6 +60,22 @@ export function activate(context: vscode.ExtensionContext) {
 
     // -- start cpptools interface
     IarConfigurationProvider.init();
+
+    return {
+        getSelectedWorkbench() {
+            return Promise.resolve(ExtensionState.getInstance().workbench.selected?.path.toString());
+        },
+        getSelectedConfiguration() {
+            return Promise.resolve(ExtensionState.getInstance().config.selected?.name);
+        },
+        async getLoadedProject() {
+            const project = await ExtensionState.getInstance().loadedProject.getValue();
+            return project?.path.toString();
+        },
+        getCSpyCommandline(_projectPath, _configuration) {
+            return Promise.reject(new Error("Not implemented"));
+        },
+    };
 }
 
 export async function deactivate() {
