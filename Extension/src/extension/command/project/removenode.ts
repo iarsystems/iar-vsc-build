@@ -23,7 +23,8 @@ export class RemoveNodeCommand extends ProjectCommand {
         const typeString = source.iarNode.type === NodeType.File ? "file" : "group";
         try {
             const toRemove = source.iarNode;
-            const shouldRemove = await ConfirmationDialog.show(`Are you sure you want to remove ${typeString} "${toRemove.name}"?`);
+            const promptText = `Are you sure you want to remove ${typeString} "${toRemove.name}" from the project?`;
+            const shouldRemove = await ConfirmationDialog.show(promptText, source.iarNode.type === NodeType.File ? "The file will remain on disk." : undefined);
             if (!shouldRemove) {
                 return;
             }
