@@ -12,7 +12,6 @@ import { IarConfigurationProvider } from "./configprovider/configurationprovider
 import { CStatTaskProvider } from "./task/cstat/cstattaskprovider";
 import { TreeProjectView } from "./ui/treeprojectview";
 import { SelectIarWorkspace } from "./command/selectIarWorkspace";
-import { CreateProjectCommand } from "./command/project/createproject";
 import { ReloadProjectCommand } from "./command/project/reloadproject";
 import { RemoveNodeCommand } from "./command/project/removenode";
 import { AddFileCommand, AddGroupCommand } from "./command/project/addnode";
@@ -20,6 +19,7 @@ import { SettingsWebview } from "./ui/settingswebview";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Command } from "./command/command";
 import { BuildExtensionApi } from "../../utils/buildExtension";
+import { OsUtils } from "../../utils/osUtils";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     ExtensionState.init(IarVsc.toolManager);
@@ -27,7 +27,6 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     // --- create and register commands
     GetSettingsCommand.initCommands(context);
     new SelectIarWorkspace().register(context);
-    new CreateProjectCommand().register(context);
     new ReloadProjectCommand().register(context);
     new RemoveNodeCommand().register(context);
     new AddFileCommand().register(context);

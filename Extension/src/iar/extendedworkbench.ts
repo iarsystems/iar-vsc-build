@@ -25,7 +25,6 @@ export interface ExtendedWorkbench {
     getToolchains(): Promise<Toolchain[]>;
 
     loadProject(project: Project): Promise<ExtendedProject>;
-    createProject(path: Fs.PathLike): Promise<Project>;
 
     dispose(): Promise<void>;
 
@@ -75,16 +74,6 @@ export class ThriftWorkbench implements ExtendedWorkbench {
             contextPromise.catch(() => this.loadedContexts.delete(project.path.toString()));
         }
         return contextPromise.then(context => ThriftProject.fromContext(project.path, this.projectMgr.service, context));
-    }
-
-    public async createProject(path: Fs.PathLike) {
-        if (Fs.existsSync(path)) {
-            return Promise.reject(new Error(`The file '${path}' already exists.`));
-        }
-        const context = await this.projectMgr.service.CreateEwpFile(path.toString());
-        const project = new Project(context.filename);
-        await this.projectMgr.service.CloseProject(context);
-        return project;
     }
 
     public async dispose() {

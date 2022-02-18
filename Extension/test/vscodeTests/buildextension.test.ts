@@ -32,27 +32,6 @@ export namespace Utils{
         assert(!(await FsUtils.exists(path)), `Expected ${path} not to exist`);
     }
 
-
-
-    export async function createProject(projName: string) {
-        const exWorkbench = await ExtensionState.getInstance().extendedWorkbench.getValue();
-        if (!exWorkbench) {
-            fail("Failed to get the active workbench");
-        }
-
-        // Locate the Test folder in the workspace.
-        const workspaces = vscode.workspace.workspaceFolders;
-        if (!workspaces) {
-            fail("Failed to list the folders in the workspace: This test requires a workspace");
-        }
-
-        const newProj = path.join(workspaces[0]!.uri.fsPath, projName);
-        const proj = await exWorkbench.createProject(newProj);
-
-        ExtensionState.getInstance().project.addProject(proj);
-        return newProj;
-    }
-
     export function setupProject(id: number, target: string, ewpFile: string, sandbox: TestSandbox) {
         // The unique output folder
         const outputFolder = sandbox.copyToSandbox(path.dirname(ewpFile), "Test_" + target + "_" + id);

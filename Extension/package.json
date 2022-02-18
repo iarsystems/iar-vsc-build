@@ -39,7 +39,6 @@
     "onCommand:iar.selectConfiguration",
     "onCommand:iar.selectIarWorkspace",
     "onCommand:iar.addWorkbench",
-    "onCommand:iar.createProject",
     "onCommand:iar.addFile",
     "onCommand:iar.addGroup",
     "onCommand:iar.removeNode",
@@ -111,11 +110,6 @@
       {
         "command": "iar.addWorkbench",
         "title": "Add an Embedded Workbench installation",
-        "category": "IAR"
-      },
-      {
-        "command": "iar.createProject",
-        "title": "Create a new IAR project",
         "category": "IAR"
       }
     ],
