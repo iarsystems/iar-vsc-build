@@ -280,7 +280,7 @@
           "items": {
             "type": "string"
           },
-          "default": []
+          "default": ["-parallel", "4"]
         }
       }
     },
@@ -354,7 +354,7 @@
             "items": {
               "type": "string"
             },
-            "description": "Extra arguments to supply to iarbuild (e.g. [\"-parallel\", \"4\"]. Leave empty to use the extension settings.",
+            "description": "Extra arguments to supply to iarbuild (e.g. [\"-parallel\", \"8\"]). Leave empty to use the extension settings.",
             "default": []
           }
         },
@@ -389,6 +389,14 @@
           "builder": {
             "type": "string",
             "description": "The iarbuild executable to run."
+          },
+          "extraBuildArguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Extra arguments to supply to iarbuild (e.g. [\"-parallel\", \"8\"]). Leave empty to use the extension settings.",
+            "default": []
           }
         },
         "required": [

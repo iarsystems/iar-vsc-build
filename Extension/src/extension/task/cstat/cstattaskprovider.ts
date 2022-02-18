@@ -32,6 +32,7 @@ export interface CStatTaskDefinition {
     builder: string;
     project: string;
     config: string;
+    extraBuildArguments: string[];
 }
 
 /**
@@ -98,6 +99,7 @@ class CStatProvider implements Vscode.TaskProvider {
             builder: "${command:iar-settings.workbench}/" + Workbench.builderSubPath,
             project: "${command:iar-settings.project-file}",
             config: "${command:iar-settings.project-configuration}",
+            extraBuildArguments: [],
         };
         return definition;
     }
@@ -109,6 +111,8 @@ class CStatProvider implements Vscode.TaskProvider {
             const definition = resolvedDefinition as CStatTaskDefinition;
             for (const property in fallbackDefinition) {
                 if (!definition[property as keyof CStatTaskDefinition]) {
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
                     definition[property as keyof CStatTaskDefinition] = fallbackDefinition[property as keyof CStatTaskDefinition];
                 }
             }
@@ -140,6 +144,7 @@ class CStatProvider implements Vscode.TaskProvider {
             builder: `${workbench}/common/bin/iarbuild` + (OsUtils.detectOsType() === OsUtils.OsType.Windows ? ".exe" : ""),
             project: project.toString(),
             config: config,
+            extraBuildArguments: [],
         };
         return definition;
     }

@@ -20,6 +20,7 @@ import { FsUtils } from "../../utils/fs";
 import { createHash } from "crypto";
 import { PreIncludePath, StringPreIncludePath } from "./data/preincludepath";
 import { Mutex, E_CANCELED as MUTEX_CANCELED } from "async-mutex";
+import { Settings } from "../settings";
 
 /**
  * A method or strategy of generating source configuration for a project. This needs to be pluggable, since the IarBuild
@@ -106,7 +107,8 @@ export namespace ConfigGenerator {
         }
         // Have iarbuild create the json compilation database
         output.appendLine("Generating compilation database...");
-        const builderProc = spawn(workbench.builderPath.toString(), [project.path.toString(), "-jsondb", config.name, "-output", jsonPath]);
+        const extraArgs = Settings.getExtraBuildArguments();
+        const builderProc = spawn(workbench.builderPath.toString(), [project.path.toString(), "-jsondb", config.name, "-output", jsonPath].concat(extraArgs));
         builderProc.stdout.on("data", data => output.append(data.toString()));
         builderProc.on("error", (err) => {
             return Promise.reject(err);
@@ -130,7 +132,8 @@ export namespace ConfigGenerator {
      * Uses iarbuild -dryrun -log all, parsing the output to find compilation flags for each file, then calls {@link generateFromCompilerArgs}
      */
     export const generateForBeforeFilifjonkan: ConfigGeneratorImpl = async(workbench, project, config, output): Promise<ConfigurationSet> => {
-        const builderProc = spawn(workbench.builderPath.toString(), [project.path.toString(), "-dryrun", config.name, "-log", "all"]);
+        const extraArgs = Settings.getExtraBuildArguments();
+        const builderProc = spawn(workbench.builderPath.toString(), [project.path.toString(), "-dryrun", config.name, "-log", "all"].concat(extraArgs));
         builderProc.on("error", (err) => {
             return Promise.reject(err);
         });

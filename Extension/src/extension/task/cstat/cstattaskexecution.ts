@@ -45,11 +45,12 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         const projectPath = this.definition.project;
         const configName = this.definition.config;
         const builderPath = this.definition.builder;
+        const extraArgs = this.definition.extraBuildArguments;
 
         this.writeEmitter.fire("Running C-STAT...\r\n");
 
         try {
-            let warnings = await CStat.runAnalysis(builderPath, projectPath, configName, this.extensionPath, msg => {
+            let warnings = await CStat.runAnalysis(builderPath, projectPath, configName, this.extensionPath, extraArgs, msg => {
                 msg = msg.replace(/(?<!\r)\n/g, "\r\n"); // VSC-82: vscode console prefers crlf, so replace all lf with crlf
                 this.writeEmitter.fire(msg);
             });
