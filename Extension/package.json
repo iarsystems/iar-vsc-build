@@ -235,10 +235,11 @@
           "enum": [
             "c89",
             "c99",
-            "c11"
+            "c11",
+            "c17"
           ],
           "description": "The c standard to use for intellisense.",
-          "default": "c11"
+          "default": "c17"
         },
         "iarvsc.cppStandard": {
           "type": "string",
@@ -250,7 +251,7 @@
             "c++17"
           ],
           "description": "The c++ standard to use for intellisense.",
-          "default": "c++14"
+          "default": "c++17"
         },
         "iarvsc.c-stat.filterLevel": {
           "description": "C-STAT warnings with a lower severity than this are filtered out.",
