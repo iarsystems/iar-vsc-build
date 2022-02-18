@@ -189,6 +189,18 @@
         {
           "command": "iar.removeNode",
           "when": "false"
+        },
+        {
+          "command": "iar-settings.workbench",
+          "when": "false"
+        },
+        {
+          "command": "iar-settings.project-file",
+          "when": "false"
+        },
+        {
+          "command": "iar-settings.project-configuration",
+          "when": "false"
         }
       ]
     },
