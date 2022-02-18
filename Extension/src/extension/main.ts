@@ -19,7 +19,6 @@ import { SettingsWebview } from "./ui/settingswebview";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Command } from "./command/command";
 import { BuildExtensionApi } from "../../utils/buildExtension";
-import { OsUtils } from "../../utils/osUtils";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     ExtensionState.init(IarVsc.toolManager);
