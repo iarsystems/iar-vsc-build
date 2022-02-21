@@ -17,34 +17,40 @@ export interface BuildTaskDefinition {
     readonly config: string;
 }
 
+enum TaskNames {
+    Build = "Build Project",
+    Rebuild = "Rebuild Project",
+    Clean = "Clean Project",
+}
+
 export namespace BuildTasks {
     export function generateTasks(dstMap: Map<string, Vscode.Task>): void {
-        if (dstMap.get("Iar Build") === undefined) {
-            const task = generateTask("Iar Build", "build");
+        if (dstMap.get(TaskNames.Build) === undefined) {
+            const task = generateTask(TaskNames.Build, "build");
 
             if (!task) {
-                showErrorFailedToCreateDefaultTask("Iar Build", "build");
+                showErrorFailedToCreateDefaultTask(TaskNames.Build, "build");
             } else {
-                dstMap.set("Iar Build", task);
+                dstMap.set(TaskNames.Build, task);
             }
         }
 
-        if (dstMap.get("Iar Rebuild") === undefined) {
-            const task = generateTask("Iar Rebuild", "rebuild");
+        if (dstMap.get(TaskNames.Rebuild) === undefined) {
+            const task = generateTask(TaskNames.Rebuild, "rebuild");
 
             if (!task) {
-                showErrorFailedToCreateDefaultTask("Iar Rebuild", "rebuild");
+                showErrorFailedToCreateDefaultTask(TaskNames.Rebuild, "rebuild");
             } else {
-                dstMap.set("Iar Rebuild", task);
+                dstMap.set(TaskNames.Rebuild, task);
             }
         }
-        if (dstMap.get("Iar Clean") === undefined) {
-            const task = generateTask("Iar Clean", "clean");
+        if (dstMap.get(TaskNames.Clean) === undefined) {
+            const task = generateTask(TaskNames.Clean, "clean");
 
             if (!task) {
-                showErrorFailedToCreateDefaultTask("Iar Clean", "clean");
+                showErrorFailedToCreateDefaultTask(TaskNames.Clean, "clean");
             } else {
-                dstMap.set("Iar Clean", task);
+                dstMap.set(TaskNames.Clean, task);
             }
         }
     }
@@ -100,11 +106,11 @@ export namespace BuildTasks {
             args = args.concat(extraArgs);
         }
 
-        // Make sure to quote all arguments
+        // Make sure to escape all arguments
         const process = new Vscode.ShellExecution(
-            { value: builder, quoting: Vscode.ShellQuoting.Strong },
+            { value: builder, quoting: Vscode.ShellQuoting.Escape },
             args.map(arg => {
-                return { value: arg, quoting: Vscode.ShellQuoting.Strong };
+                return { value: arg, quoting: Vscode.ShellQuoting.Escape };
             }),
             {}
         );

@@ -5,6 +5,7 @@
 
 
 import * as Vscode from "vscode";
+import { OsUtils } from "../../../utils/osUtils";
 import { Workbench } from "../../iar/tools/workbench";
 
 export interface OpenTaskDefinition {
@@ -15,20 +16,31 @@ export interface OpenTaskDefinition {
     readonly workspace: string;
 }
 
+const OPEN_TASK_NAME = "Open Workspace in Embedded Workbench";
+
 export namespace OpenTasks {
     export function generateTasks(dstMap: Map<string, Vscode.Task>): void {
-        if (dstMap.get("Iar Open") === undefined) {
-            const task = generateTask("Iar Open");
+        if (OsUtils.detectOsType() !== OsUtils.OsType.Windows) {
+            return; // VSC-216 We don't have a linux workbech GUI
+        }
+
+        if (dstMap.get(OPEN_TASK_NAME) === undefined) {
+            const task = generateTask(OPEN_TASK_NAME);
 
             if (!task) {
-                showErrorFailedToCreateDefaultTask("Iar Open", "open");
+                showErrorFailedToCreateDefaultTask(OPEN_TASK_NAME, "open");
             } else {
-                dstMap.set("Iar Open", task);
+                dstMap.set(OPEN_TASK_NAME, task);
             }
         }
     }
 
     export function generateFromDefinition(definition: Vscode.TaskDefinition): Vscode.Task | undefined {
+        if (OsUtils.detectOsType() !== OsUtils.OsType.Windows) {
+            Vscode.window.showErrorMessage("Opening a workspace is only supported on windows.");
+            return; // VSC-216 We don't have a linux workbech GUI
+        }
+
         const command = definition["command"];
         const workspace = definition["workspace"];
         const label = definition["label"];
@@ -56,11 +68,11 @@ export namespace OpenTasks {
             return undefined;
         }
 
-        // Make sure to quote all arguments
+        // Make sure to escape all arguments
         const process = new Vscode.ShellExecution(
-            { value: workbench, quoting: Vscode.ShellQuoting.Strong },
+            { value: workbench, quoting: Vscode.ShellQuoting.Escape },
             [
-                { value: workspace, quoting: Vscode.ShellQuoting.Strong }
+                { value: workspace, quoting: Vscode.ShellQuoting.Escape }
             ],
             {}
         );
