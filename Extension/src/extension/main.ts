@@ -32,6 +32,9 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     new AddGroupCommand().register(context);
     const addWorkbenchCmd = new AddWorkbenchCommand(IarVsc.toolManager);
     addWorkbenchCmd.register(context);
+    Command.createSelectWorkbenchCommand(ExtensionState.getInstance().workbench).register(context);
+    Command.createSelectProjectCommand(ExtensionState.getInstance().project).register(context);
+    Command.createSelectConfigurationCommand(ExtensionState.getInstance().config).register(context);
 
     // --- initialize custom GUI
     const workbenchModel = ExtensionState.getInstance().workbench;
