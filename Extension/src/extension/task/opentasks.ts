@@ -16,7 +16,7 @@ export interface OpenTaskDefinition {
     readonly workspace: string;
 }
 
-const OPEN_TASK_NAME = "Open Workspace in Embedded Workbench";
+const OPEN_TASK_NAME = "Open Workspace in IAR Embedded Workbench";
 
 export namespace OpenTasks {
     export function generateTasks(dstMap: Map<string, Vscode.Task>): void {

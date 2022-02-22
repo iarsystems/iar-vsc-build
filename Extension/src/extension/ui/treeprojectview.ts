@@ -42,7 +42,7 @@ export class TreeProjectView {
                 this.view.message = "Loading...";
             } else {
                 if (!hasExtendedWb && workbenchModel.selected) {
-                    this.view.message = "This Embedded Workbench does not support editing projects from VS Code.";
+                    this.view.message = "This IAR Embedded Workbench does not support editing projects from VS Code.";
                 } else {
                     if (projectIsEmpty) {
                         this.view.message = "There are no files in the project";

@@ -168,7 +168,7 @@ class State {
         this.extendedWorkbench.onValueDidChange(exWb => {
             if (exWb) {
                 exWb.onCrash(exitCode => {
-                    Vscode.window.showErrorMessage(`IAR: The project manager exited unexpectedly (code ${exitCode}). Try reloading the window or upgrading the project from Embedded Workbench.`);
+                    Vscode.window.showErrorMessage(`IAR: The project manager exited unexpectedly (code ${exitCode}). Try reloading the window or upgrading the project from IAR Embedded Workbench.`);
                     this.extendedWorkbench.setValue(undefined);
                 });
             }

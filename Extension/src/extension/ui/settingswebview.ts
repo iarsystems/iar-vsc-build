@@ -169,7 +169,7 @@ namespace Rendering {
         <!-- This lets us reset the dropdowns' selected values to match the models, by redrawing the view. -->
         <!-- ${renderCount++} -->
         <div class="section">
-            <p>Embedded Workbench Installation:</p>
+            <p>IAR Embedded Workbench Installation:</p>
             <div class="dropdown-container">
                 <span class="codicon codicon-tools dropdown-icon"></span>
                 <vscode-dropdown id="${DropdownIds.Workbench}" class="dropdown" ${workbenches.amount === 0 ? "disabled" : ""}>

@@ -24,7 +24,7 @@ export class AddWorkbenchCommand extends CommandBase<Promise<boolean>> {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
-            title: "Select an Embedded Workbench installation folder"
+            title: "Select an IAR Embedded Workbench installation folder"
         });
         if (!uris) {
             return false;
@@ -46,7 +46,7 @@ export class AddWorkbenchCommand extends CommandBase<Promise<boolean>> {
 
         const foundWorkbenches = this.toolManager.collectFrom([uri.fsPath]);
         if (foundWorkbenches.length === 0) {
-            vscode.window.showErrorMessage("Could not find any workbenches in that folder. Please choose the root folder of an Embedded Workbench installation (e.g. D:/IAR Systems/Embedded Workbench 9.0/), or its parent.");
+            vscode.window.showErrorMessage("Could not find any workbenches in that folder. Please choose the root folder of an IAR Embedded Workbench installation (e.g. D:/IAR Systems/Embedded Workbench 9.0/), or its parent.");
             return false;
         }
         vscode.window.showInformationMessage("Found " + foundWorkbenches.map(wb => `'${wb.name}'`).join(", "));
