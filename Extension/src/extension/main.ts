@@ -19,6 +19,8 @@ import { SettingsWebview } from "./ui/settingswebview";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Command } from "./command/command";
 import { BuildExtensionApi } from "../../utils/buildExtension";
+import { OsUtils } from "../../utils/osUtils";
+import { Project } from "../iar/project/project";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     ExtensionState.init(IarVsc.toolManager);
@@ -62,6 +64,18 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     // -- start cpptools interface
     IarConfigurationProvider.init();
 
+    // Watch for creating/deleting projects in the workspace
+    IarVsc.ewpFilesWatcher = vscode.workspace.createFileSystemWatcher("**/*.ewp", false, true, false);
+    IarVsc.ewpFilesWatcher.onDidCreate(uri => {
+        ExtensionState.getInstance().project.addProject(new Project(uri.fsPath));
+    });
+    IarVsc.ewpFilesWatcher.onDidDelete(uri => {
+        const toRemove = ExtensionState.getInstance().project.projects.find(project => OsUtils.pathsEqual(project.path.toString(), uri.fsPath));
+        if (toRemove) {
+            ExtensionState.getInstance().project.removeProject(toRemove);
+        }
+    });
+
     return {
         getSelectedWorkbench() {
             return Promise.resolve(ExtensionState.getInstance().workbench.selected?.path.toString());
@@ -80,6 +94,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
 }
 
 export async function deactivate() {
+    IarVsc.ewpFilesWatcher?.dispose();
     if (IarConfigurationProvider.instance) {
         IarConfigurationProvider.instance.dispose();
     }
@@ -107,4 +122,5 @@ export namespace IarVsc {
     // exported mostly for testing purposes
     export let settingsView: SettingsWebview;
     export let projectTreeView: TreeProjectView;
+    export let ewpFilesWatcher: vscode.FileSystemWatcher;
 }

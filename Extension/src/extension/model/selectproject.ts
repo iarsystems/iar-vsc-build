@@ -38,6 +38,13 @@ export class ProjectListModel extends ListInputModelBase<Project> {
         this.data = this.data.concat([project]);
         this.fireInvalidateEvent();
     }
+    removeProject(project: Project) {
+        const index = this.data.indexOf(project);
+        if (index !== -1) {
+            this.data.splice(index, 1);
+            this.fireInvalidateEvent();
+        }
+    }
 
     private getProjectAt(index: number): Project {
         const result = this.data[index];
