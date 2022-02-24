@@ -58,10 +58,11 @@ export namespace Utils{
 suite("Test build extension", ()=>{
 
     let sandbox: TestSandbox;
+    let sandboxPath: string;
 
     suiteSetup(async() => {
         await VscodeTestsUtils.ensureExtensionIsActivated();
-        VscodeTestsSetup.setup();
+        sandboxPath = VscodeTestsSetup.setup();
         sandbox = VscodeTestsSetup.sandbox!;
         // Remove any build results from previous runs
         const nodes = await readdir(sandbox.path);
@@ -157,4 +158,16 @@ suite("Test build extension", ()=>{
         }
     });
 
+    test("Check that creating/deleting projects updates extension state", async()=>{
+        const projectPath = path.join(sandboxPath, "dummyProject.ewp");
+        fs.writeFileSync(projectPath, "");
+        // Give vs code time to react
+        await new Promise((p, _) => setTimeout(p, 1000));
+        assert(ExtensionState.getInstance().project.projects.some(project => project.name === "dummyProject"), "The created project was not added to the project list");
+
+        fs.unlinkSync(projectPath);
+        // Give vs code time to react
+        await new Promise((p, _) => setTimeout(p, 1000));
+        assert(!ExtensionState.getInstance().project.projects.some(project => project.name === "dummyProject"), "The created project was not removed from the project list");
+    });
 });
