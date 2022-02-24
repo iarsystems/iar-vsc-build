@@ -168,35 +168,37 @@ namespace Rendering {
         <!-- A hacky way to make the html different every draw, and thus force vs code to redraw the view. -->
         <!-- This lets us reset the dropdowns' selected values to match the models, by redrawing the view. -->
         <!-- ${renderCount++} -->
-        <div class="section">
-            <p>IAR Embedded Workbench Installation:</p>
-            <div class="dropdown-container">
-                <span class="codicon codicon-tools dropdown-icon"></span>
-                <vscode-dropdown id="${DropdownIds.Workbench}" class="dropdown" ${workbenches.amount === 0 ? "disabled" : ""}>
-                    ${getDropdownOptions(workbenches, "No workbench")}
-                    <vscode-divider></vscode-divider>
-                    <vscode-option>Add Workbench...</vscode-option>
-                </vscode-dropdown>
-            </div>
-            <div id="workbench-error" ${workbenches.amount > 0 ? "hidden" : ""}>
-                <span>No workbench found.</span><vscode-link id="link-add">Add Workbench</vscode-link>
-            </div>
-        </div>
-        <div class="section">
-                <p>Select a project and configuration to use:</p>
+        <div id="contents">
+            <div class="section">
+                <p>IAR Embedded Workbench Installation:</p>
                 <div class="dropdown-container">
-                    <span class="codicon codicon-symbol-method dropdown-icon"></span>
-                    <vscode-dropdown id="${DropdownIds.Project}" class="dropdown" ${projects.amount === 0 ? "disabled" : ""}>
-                        ${getDropdownOptions(projects, "No projects")}
+                    <span class="codicon codicon-tools dropdown-icon"></span>
+                    <vscode-dropdown id="${DropdownIds.Workbench}" class="dropdown" ${workbenches.amount === 0 ? "disabled" : ""}>
+                        ${getDropdownOptions(workbenches, "No workbench")}
+                        <vscode-divider></vscode-divider>
+                        <vscode-option>Add Workbench...</vscode-option>
                     </vscode-dropdown>
                 </div>
-                <div class="dropdown-container">
-                    <span class="codicon codicon-settings-gear dropdown-icon"></span>
-                    <vscode-dropdown id="${DropdownIds.Configuration}" class="dropdown" ${configs.amount === 0 || isLoading ? "disabled" : ""}>
-                        ${getDropdownOptions(configs, "No configurations")}
-                    </vscode-dropdown>
+                <div id="workbench-error" ${workbenches.amount > 0 ? "hidden" : ""}>
+                    <span>No workbench found.</span><vscode-link id="link-add">Add Workbench</vscode-link>
                 </div>
-            <vscode-progress-ring id="config-spinner" ${isLoading ? "" : "hidden"}></vscode-progress-ring>
+            </div>
+            <div class="section">
+                    <p>Select a project and configuration to use:</p>
+                    <div class="dropdown-container">
+                        <span class="codicon codicon-symbol-method dropdown-icon"></span>
+                        <vscode-dropdown id="${DropdownIds.Project}" class="dropdown" ${projects.amount === 0 ? "disabled" : ""}>
+                            ${getDropdownOptions(projects, "No projects")}
+                        </vscode-dropdown>
+                    </div>
+                    <div class="dropdown-container">
+                        <span class="codicon codicon-settings-gear dropdown-icon"></span>
+                        <vscode-dropdown id="${DropdownIds.Configuration}" class="dropdown" ${configs.amount === 0 || isLoading ? "disabled" : ""}>
+                            ${getDropdownOptions(configs, "No configurations")}
+                        </vscode-dropdown>
+                    </div>
+                <vscode-progress-ring id="config-spinner" ${isLoading ? "" : "hidden"}></vscode-progress-ring>
+            </div>
         </div>
 
         <div id="footer">
