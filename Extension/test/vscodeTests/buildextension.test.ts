@@ -21,10 +21,10 @@ export namespace Utils{
     export const TEST_PROJECTS_ROOT = path.join(EXTENSION_ROOT, "test/vscodeTests/TestProjects");
 
     // Tags for the tasks that can be executed
-    export const  BUILD = "Iar Build";
-    export const  REBUILD = "Iar Rebuild";
-    export const  CLEAN = "Iar Clean";
-    export const  OPEN = "Iar Open";
+    export const BUILD = "Build Project";
+    export const REBUILD = "Rebuild Project";
+    export const CLEAN = "Clean Project";
+    export const OPEN = "Open Workspace in IAR Embedded Workbench";
 
     export async function assertFileExists(path: string) {
         assert(await FsUtils.exists(path), `Expected ${path} to exist`);
