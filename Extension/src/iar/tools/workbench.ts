@@ -89,7 +89,11 @@ export namespace Workbench {
      */
     export function mergeUnique(...lists: Array<Workbench>[]): Workbench[] {
         const fnKey = (item: Workbench): string => {
-            return item.path.toString();
+            const path = Path.normalize(item.path.toString());
+            if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
+                return path.toLowerCase();
+            }
+            return path;
         };
 
         return ListUtils.mergeUnique(fnKey, ...lists);

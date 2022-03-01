@@ -6,6 +6,8 @@
 
 import * as Fs from "fs";
 import { Workbench } from "./workbench";
+import * as Registry from "winreg";
+import { OsUtils } from "../../utils/utils";
 
 type InvalidateHandler = (manager: ToolManager) => void;
 
@@ -15,7 +17,7 @@ export interface ToolManager {
     addInvalidateListener(handler: InvalidateHandler): void;
 
     add(...workbenches: Workbench[]): void;
-    collectFrom(directories: Fs.PathLike[]): Workbench[];
+    collectWorkbenches(directories: Fs.PathLike[]): Promise<Workbench[]>;
 
     findWorkbenchContainingPath(path: Fs.PathLike): Workbench | undefined;
 }
@@ -38,17 +40,22 @@ class IarToolManager implements ToolManager {
 
     add(...workbenches: Workbench[]): void {
         if (workbenches.length > 0) {
+            const prevLength = this.workbenches.length;
             this.workbenches_ = Workbench.mergeUnique(this.workbenches_, workbenches);
 
-            this.fireInvalidateEvent();
+            if (this.workbenches_.length !== prevLength) {
+                this.workbenches_.sort((a, b) => a.name.toString().localeCompare(b.name.toString()));
+                this.fireInvalidateEvent();
+            }
         }
     }
 
     /**
      * Looks for workbenches in the given directories and adds all workbenches found.
+     * On windows, also looks in the windows registry for workbenches.
      * The found workbenches are also returned.
      */
-    collectFrom(directories: Fs.PathLike[]): Workbench[] {
+    async collectWorkbenches(directories: Fs.PathLike[]): Promise<Workbench[]> {
         let workbenches: Workbench[] = [];
         directories.forEach(directory => {
             const workbench = Workbench.create(directory);
@@ -59,6 +66,10 @@ class IarToolManager implements ToolManager {
                 workbenches = workbenches.concat(Workbench.collectWorkbenchesFrom(directory));
             }
         });
+        if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
+            workbenches = workbenches.concat(await IarToolManager.collectFromWindowsRegistry());
+        }
+
         this.add(...workbenches);
         return workbenches;
     }
@@ -81,6 +92,49 @@ class IarToolManager implements ToolManager {
         this.invalidateHandlers.forEach(handler => {
             handler(this);
         });
+    }
+
+    private static async collectFromWindowsRegistry(): Promise<Workbench[]> {
+        const keys = [
+            "\\SOFTWARE\\IAR Systems\\Embedded Workbench\\5.0\\Locations",
+            "\\SOFTWARE\\Wow6432Node\\IAR Systems\\Embedded Workbench\\5.0\\Locations",
+        ];
+        const paths: string[][] = await Promise.all(keys.map(key => {
+            return new Promise<string[]>((resolve, reject) => {
+                const regKey = new Registry({
+                    hive: Registry.HKLM,
+                    key: key,
+                });
+                regKey.keys((err, locationKeys) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    const found: string[] = [];
+                    locationKeys.forEach(locationKey => {
+                        locationKey.get("InstallPath", (err, value) => {
+                            if (err) {
+                                console.error(err);
+                                found.push("");
+                            } else {
+                                found.push(value.value);
+                            }
+                            if (found.length === locationKeys.length) {
+                                resolve(found);
+                            }
+                        });
+                    });
+                });
+            });
+        }));
+        const workbenches: Workbench[] = [];
+        paths.flat().forEach(path => {
+            const wb = Workbench.create(path);
+            if (wb !== undefined) {
+                workbenches.push(wb);
+            }
+        });
+        return workbenches;
     }
 }
 

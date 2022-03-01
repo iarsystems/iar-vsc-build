@@ -12,7 +12,7 @@ suite("Test toolmanager creation with filesystem", () => {
            create something like a filesystem simulator using stubbing, but that
            is a lot of work for now. */
         const manager = ToolManager.createIarToolManager();
-        manager.collectFrom(Settings.getIarInstallDirectories());
+        manager.collectWorkbenches(Settings.getIarInstallDirectories());
 
         console.log(manager);
     });

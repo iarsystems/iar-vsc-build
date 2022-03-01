@@ -106,8 +106,7 @@ export async function deactivate() {
 async function loadTools(addWorkbenchCommand?: Command<unknown>) {
     const roots = Settings.getIarInstallDirectories();
 
-    IarVsc.toolManager.collectFrom(roots);
-
+    await IarVsc.toolManager.collectWorkbenches(roots);
     if (IarVsc.toolManager.workbenches.length === 0 && addWorkbenchCommand) {
         const response = await vscode.window.showErrorMessage("IAR: Unable to find any IAR Embedded Workbenches to use. You must locate one before you can use this extension.", "Add Workbench");
         if (response === "Add Workbench") {
