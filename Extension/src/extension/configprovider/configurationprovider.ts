@@ -70,7 +70,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     private keywordDefines: Define[] = [];
 
     readonly name = "iar-vsc";
-    readonly extensionId = "pluyckx.iar-vsc";
+    readonly extensionId = "iarsystems.iar-vsc";
 
     private constructor(private readonly api: CppToolsApi | undefined, private readonly generator: ConfigGenerator) {
         // Note that changing the project will also trigger a config change

@@ -1,9 +1,9 @@
 {
   "name": "iar-vsc",
-  "displayName": "IAR For Visual Studio Code",
+  "displayName": "IAR Build",
   "description": "Develop IAR projects with intellisense, C-STAT and build support.",
   "version": "2.0.0",
-  "publisher": "pluyckx",
+  "publisher": "iarsystems",
   "icon": "images/logo.png",
   "galleryBanner": {
     "color": "#ffe000",
@@ -117,7 +117,7 @@
       "activitybar": [
         {
           "id": "iar-vsc",
-          "title": "IAR for Visual Studio Code",
+          "title": "IAR Build",
           "icon": "images/logo-transparent.svg"
         }
       ]
@@ -215,7 +215,7 @@
       }
     ],
     "configuration": {
-      "title": "IAR for Visual Studio Code",
+      "title": "IAR Build",
       "properties": {
         "iarvsc.iarInstallDirectories": {
           "type": "array",
