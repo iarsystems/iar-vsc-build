@@ -9,10 +9,10 @@
 			"project": "${command:iar-settings.project-file}",
 			"config": "${command:iar-settings.project-configuration}",
 			"linux": {
-				"builder": "${command:iar-settings.workbench}/common/bin/iarbuild",
+				"builder": "${command:iar-settings.toolchain}/common/bin/iarbuild",
 			},
 			"windows": {
-				"builder": "${command:iar-settings.workbench}/common/bin/iarbuild.exe",
+				"builder": "${command:iar-settings.toolchain}/common/bin/iarbuild.exe",
 			},
 			"problemMatcher": []
 		},
@@ -23,10 +23,10 @@
 			"project": "${command:iar-settings.project-file}",
 			"config": "${command:iar-settings.project-configuration}",
 			"linux": {
-				"builder": "${command:iar-settings.workbench}/common/bin/iarbuild",
+				"builder": "${command:iar-settings.toolchain}/common/bin/iarbuild",
 			},
 			"windows": {
-				"builder": "${command:iar-settings.workbench}/common/bin/iarbuild.exe",
+				"builder": "${command:iar-settings.toolchain}/common/bin/iarbuild.exe",
 			},
 			"problemMatcher": []
 		},
