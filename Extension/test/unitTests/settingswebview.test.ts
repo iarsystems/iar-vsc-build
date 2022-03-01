@@ -90,7 +90,7 @@ suite("Test settings view", () => {
         const workbenchError = document.getElementById("workbench-error");
         Assert(workbenchError);
         Assert.strictEqual(workbenchError.getAttribute("hidden"), null, "Error message should be visible");
-        Assert(workbenchError.textContent?.includes("No workbench found"));
+        Assert(workbenchError.textContent?.includes("No IAR toolchain installations found."));
     });
 
     test("Populates dropdowns", () => {
@@ -132,7 +132,7 @@ suite("Test settings view", () => {
         }
         Assert.strictEqual(options.item(workbenchModel.amount)?.tagName, "VSCODE-DIVIDER");
         Assert.strictEqual(options.item(workbenchModel.amount + 1)?.tagName, "VSCODE-OPTION");
-        Assert.strictEqual(options.item(workbenchModel.amount + 1)?.textContent?.trim(), "Add Workbench...");
+        Assert.strictEqual(options.item(workbenchModel.amount + 1)?.textContent?.trim(), "Add Toolchain...");
     });
 
     test("Reacts to loading projects", () => {
