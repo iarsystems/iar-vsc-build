@@ -17,7 +17,7 @@ export interface ToolManager {
     addInvalidateListener(handler: InvalidateHandler): void;
 
     add(...workbenches: Workbench[]): void;
-    collectWorkbenches(directories: Fs.PathLike[]): Promise<Workbench[]>;
+    collectWorkbenches(directories: Fs.PathLike[], useRegistry?: boolean): Promise<Workbench[]>;
 
     findWorkbenchContainingPath(path: Fs.PathLike): Workbench | undefined;
 }
@@ -52,10 +52,10 @@ class IarToolManager implements ToolManager {
 
     /**
      * Looks for workbenches in the given directories and adds all workbenches found.
-     * On windows, also looks in the windows registry for workbenches.
      * The found workbenches are also returned.
+     * @param useRegistry If true, on windows, also looks in the windows registry for workbenches.
      */
-    async collectWorkbenches(directories: Fs.PathLike[]): Promise<Workbench[]> {
+    async collectWorkbenches(directories: Fs.PathLike[], useRegistry?: boolean): Promise<Workbench[]> {
         let workbenches: Workbench[] = [];
         directories.forEach(directory => {
             const workbench = Workbench.create(directory);
@@ -66,7 +66,7 @@ class IarToolManager implements ToolManager {
                 workbenches = workbenches.concat(Workbench.collectWorkbenchesFrom(directory));
             }
         });
-        if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
+        if (useRegistry && OsUtils.OsType.Windows === OsUtils.detectOsType()) {
             workbenches = workbenches.concat(await IarToolManager.collectFromWindowsRegistry());
         }
 

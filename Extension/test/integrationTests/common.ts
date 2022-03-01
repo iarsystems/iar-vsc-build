@@ -13,9 +13,9 @@ export namespace IntegrationTestsCommon {
     // Name of the only file in the test project
     export const TEST_PROJECT_SOURCE_FILE = "main.c";
 
-    export function findWorkbenchesContainingTarget(target: string) {
+    export async function findWorkbenchesContainingTarget(target: string) {
         const manager = ToolManager.createIarToolManager();
-        manager.collectWorkbenches(Settings.getIarInstallDirectories());
+        await manager.collectWorkbenches(Settings.getIarInstallDirectories(), false);
 
         return manager.workbenches.filter(wb => {
             return fs.existsSync(path.join(wb.path.toString(), target));

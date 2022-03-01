@@ -15,7 +15,7 @@ suite("Thrift project", function() {
     let projectPath: string;
 
     suiteSetup(async() => {
-        const workbenches = IntegrationTestsCommon.findWorkbenchesContainingTarget("arm");
+        const workbenches = await IntegrationTestsCommon.findWorkbenchesContainingTarget("arm");
         Assert(workbenches && workbenches.length > 0, "These tests require an ARM EW to run, but none was found.");
 
         const workbenchCandidate = workbenches?.find(wb => ThriftWorkbench.hasThriftSupport(wb) );
