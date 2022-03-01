@@ -90,7 +90,7 @@ export namespace OpenTasks {
             label: label,
             type: "iar",
             command: "open",
-            workbench: "${command:iar-settings.workbench}/" + Workbench.ideSubPath,
+            workbench: "${command:iar-settings.toolchain}/" + Workbench.ideSubPath,
             workspace: "${command:iar.selectIarWorkspace}",
             problemMatcher: []
         };

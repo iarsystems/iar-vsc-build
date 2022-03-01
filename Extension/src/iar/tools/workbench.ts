@@ -12,6 +12,10 @@ import { ListUtils, OsUtils } from "../../utils/utils";
 const ideSubPath = "common/bin/IarIdePm.exe";
 const builderSubPath = "common/bin/iarbuild" + (OsUtils.OsType.Windows === OsUtils.detectOsType() ? ".exe" : "");
 
+/**
+ * An IAR toolchain (Embedded Workbench or Build Tools). To the user, this is refered to as a toolchain.
+ * Note that they are not the related to the thrift Toolchain type.
+ */
 export interface Workbench {
     readonly name: string;
     readonly path: Fs.PathLike;
@@ -36,7 +40,7 @@ class IarWorkbench implements Workbench {
         this.builderPath = Path.join(this.path.toString(), builderSubPath);
 
         if (!this.isValid()) {
-            throw new Error("Path does not point to a workspace!");
+            throw new Error("Path does not point to a an IAR Embedded Workbench or IAR Build Tools installation.");
         }
     }
 

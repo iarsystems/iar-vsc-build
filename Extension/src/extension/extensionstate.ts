@@ -146,7 +146,7 @@ class State {
                             return await ThriftWorkbench.from(selectedWb);
                         } catch (e) {
                             if (typeof e === "string" || e instanceof Error) {
-                                Vscode.window.showErrorMessage(`IAR: Error initiating workbench backend. Some functionality may be unavailable (${e.toString()}).`);
+                                Vscode.window.showErrorMessage(`Error initiating IAR toolchain backend. Some functionality may be unavailable (${e.toString()}).`);
                             }
                             return undefined;
                         }
@@ -168,7 +168,7 @@ class State {
         this.extendedWorkbench.onValueDidChange(exWb => {
             if (exWb) {
                 exWb.onCrash(exitCode => {
-                    Vscode.window.showErrorMessage(`IAR: The project manager exited unexpectedly (code ${exitCode}). Try reloading the window or upgrading the project from IAR Embedded Workbench.`);
+                    Vscode.window.showErrorMessage(`The IAR project manager exited unexpectedly (code ${exitCode}). Try reloading the window or upgrading the project from IAR Embedded Workbench.`);
                     this.extendedWorkbench.setValue(undefined);
                 });
             }

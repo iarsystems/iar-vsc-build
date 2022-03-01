@@ -16,7 +16,7 @@ import { OsUtils } from "../../../utils/osUtils";
 export class AddWorkbenchCommand extends CommandBase<Promise<boolean>> {
 
     constructor(private readonly toolManager: ToolManager) {
-        super("iar.addWorkbench");
+        super("iar.addToolchain");
     }
 
     async executeImpl() {
@@ -24,7 +24,7 @@ export class AddWorkbenchCommand extends CommandBase<Promise<boolean>> {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
-            title: "Select an IAR Embedded Workbench installation folder"
+            title: "Select an IAR toolchain (IAR Embedded Workbench or IAR Build Tools) installation folder"
         });
         if (!uris) {
             return false;
@@ -46,7 +46,7 @@ export class AddWorkbenchCommand extends CommandBase<Promise<boolean>> {
 
         const foundWorkbenches = await this.toolManager.collectWorkbenches([uri.fsPath]);
         if (foundWorkbenches.length === 0) {
-            vscode.window.showErrorMessage("Could not find any workbenches in that folder. Please choose the root folder of an IAR Embedded Workbench installation (e.g. D:/IAR Systems/Embedded Workbench 9.0/), or its parent.");
+            vscode.window.showErrorMessage("Could not find any IAR toolchains in that folder. Please choose the root folder of an IAR Embedded Workbench or IAR Build Tools installation (e.g. D:/IAR Systems/Embedded Workbench 9.0/).");
             return false;
         }
         vscode.window.showInformationMessage("Found " + foundWorkbenches.map(wb => `'${wb.name}'`).join(", "));

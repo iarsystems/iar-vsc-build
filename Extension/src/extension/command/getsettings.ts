@@ -10,7 +10,7 @@ import { Command } from "./command";
 import { Settings } from "../settings";
 
 export enum GetSettingsCommand {
-    Workbench = "iar-settings.workbench",
+    Workbench = "iar-settings.toolchain",
     ProjectFile = "iar-settings.project-file",
     ProjectConfiguration = "iar-settings.project-configuration"
 }

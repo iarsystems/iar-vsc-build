@@ -34,16 +34,16 @@
     "multi-root ready"
   ],
   "activationEvents": [
-    "onCommand:iar.selectWorkbench",
+    "onCommand:iar.selectToolchain",
     "onCommand:iar.selectProject",
     "onCommand:iar.selectConfiguration",
     "onCommand:iar.selectIarWorkspace",
-    "onCommand:iar.addWorkbench",
+    "onCommand:iar.addToolchain",
     "onCommand:iar.addFile",
     "onCommand:iar.addGroup",
     "onCommand:iar.removeNode",
     "onCommand:iar.reloadProject",
-    "onCommand:iar-settings.workbench",
+    "onCommand:iar-settings.toolchain",
     "onCommand:iar-settings.project-file",
     "onCommand:iar-settings.project-configuration",
     "onView:iar-settings",
@@ -54,8 +54,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "iar.selectWorkbench",
-        "title": "Select Workbench",
+        "command": "iar.selectToolchain",
+        "title": "Select Toolchain",
         "category": "IAR"
       },
       {
@@ -69,8 +69,8 @@
         "category": "IAR"
       },
       {
-        "command": "iar-settings.workbench",
-        "title": "Get the selected workbench location",
+        "command": "iar-settings.toolchain",
+        "title": "Get the selected toolchain location",
         "category": "IAR Settings"
       },
       {
@@ -108,8 +108,8 @@
         "icon": "$(refresh)"
       },
       {
-        "command": "iar.addWorkbench",
-        "title": "Add an Embedded Workbench installation",
+        "command": "iar.addToolchain",
+        "title": "Add an IAR Embedded Workbench or IAR Build Tools installation",
         "category": "IAR"
       }
     ],
@@ -185,7 +185,7 @@
           "when": "false"
         },
         {
-          "command": "iar-settings.workbench",
+          "command": "iar-settings.toolchain",
           "when": "false"
         },
         {
@@ -222,7 +222,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Paths to search for IAR Embedded Workbench installations. This can be used to manually locate installations that are not found automatically.",
+          "description": "Paths to search for IAR toolchain (IAR Embedded Workbench or IAR Build Tools) installations. This can be used to manually locate installations that are not found automatically.",
           "scope": "machine",
           "default": [
             "C:\\Program Files\\IAR Systems",
@@ -335,7 +335,7 @@
           },
           "workbench": {
             "type": "string",
-            "description": "The Embedded Workbench to use."
+            "description": "The IAR Embedded Workbench IDE to use to open workspaces."
           },
           "builder": {
             "type": "string",

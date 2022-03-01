@@ -22,7 +22,7 @@ export namespace Settings {
     }
 
     export enum LocalSettingsField {
-        Workbench = "workbench",
+        Workbench = "toolchain",
         Ewp = "ewp",
         Configuration = "configuration",
     }
@@ -153,7 +153,7 @@ export namespace Settings {
 interface LocalSettings {
     ewp?: string;
     compiler?: string;
-    workbench?: string;
+    toolchain?: string;
     configuration?: string;
 }
 

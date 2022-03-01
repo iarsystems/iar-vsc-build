@@ -170,21 +170,21 @@ namespace Rendering {
         <!-- ${renderCount++} -->
         <div id="contents">
             <div class="section">
-                <p>IAR Embedded Workbench Installation:</p>
+                <p>IAR Embedded Workbench or IAR Build Tools installation:</p>
                 <div class="dropdown-container">
                     <span class="codicon codicon-tools dropdown-icon"></span>
                     <vscode-dropdown id="${DropdownIds.Workbench}" class="dropdown" ${workbenches.amount === 0 ? "disabled" : ""}>
-                        ${getDropdownOptions(workbenches, "No workbench")}
+                        ${getDropdownOptions(workbenches, "No IAR toolchains")}
                         <vscode-divider></vscode-divider>
-                        <vscode-option>Add Workbench...</vscode-option>
+                        <vscode-option>Add Toolchain...</vscode-option>
                     </vscode-dropdown>
                 </div>
                 <div id="workbench-error" ${workbenches.amount > 0 ? "hidden" : ""}>
-                    <span>No workbench found.</span><vscode-link id="link-add">Add Workbench</vscode-link>
+                    <span>No IAR toolchain installations found.</span><vscode-link id="link-add">Add Toolchain</vscode-link>
                 </div>
             </div>
             <div class="section">
-                    <p>Select a project and configuration to use:</p>
+                    <p>Active Project and Configuration:</p>
                     <div class="dropdown-container">
                         <span class="codicon codicon-symbol-method dropdown-icon"></span>
                         <vscode-dropdown id="${DropdownIds.Project}" class="dropdown" ${projects.amount === 0 ? "disabled" : ""}>

@@ -60,7 +60,7 @@ export class ListSelectionCommand<T> extends CommandBase<void> {
 
 export namespace Command {
     export function createSelectWorkbenchCommand(model: ListInputModel<Workbench>): ListSelectionCommand<Workbench> {
-        return createInputCommand("iar.selectWorkbench", model);
+        return createInputCommand("iar.selectToolchain", model);
     }
 
     export function createSelectProjectCommand(model: ListInputModel<Project>): ListSelectionCommand<Project> {
