@@ -3,21 +3,20 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Vscode from "vscode";
-import { ConfigGenerator } from "./configgenerator";
 import { CustomConfigurationProvider, getCppToolsApi, Version, CppToolsApi, SourceFileConfiguration, SourceFileConfigurationItem, WorkspaceBrowseConfiguration } from "vscode-cpptools";
 import { ExtensionState } from "../extensionstate";
 import { Settings } from "../settings";
 import { CancellationToken } from "vscode-jsonrpc";
 import { LanguageUtils } from "../../utils/utils";
-import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
 import { Workbench } from "../../iar/tools/workbench";
 import { Config } from "../../iar/project/config";
 import * as Path from "path";
 import { IarOsUtils } from "../../../utils/osUtils";
 import { FsUtils } from "../../utils/fs";
-import { ConfigurationSet } from "./configurationset";
 import { Keyword } from "./data/keyword";
 import { Define } from "./data/define";
+import { ConfigurationSet } from "./configurationset";
+import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
 
 /**
  * Provides source file configurations for an IAR project to cpptools via the cpptools typescript api.
@@ -42,16 +41,23 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             IarConfigurationProvider._instance.dispose();
         }
 
-        const instance = new IarConfigurationProvider(api, new ConfigGenerator());
+        const instance = new IarConfigurationProvider(api);
         IarConfigurationProvider._instance = instance;
     }
+
+    readonly name = "IAR Build";
+    readonly extensionId = "iarsystems.iar-vsc";
+
+
+    private readonly output: Vscode.OutputChannel = Vscode.window.createOutputChannel("IAR Config Generator");
+    private currentConfiguration: ConfigurationSet | undefined = undefined;
 
     /**
      * Forces the provider to regenerate configurations for all source files
      * @param revealLog Wether to raise focus for the output channel showing the configuration generation logs
      */
     public forceUpdate(revealLog = false) {
-        if (revealLog) this.generator.showOutputChannel();
+        if (revealLog) this.output.show(true);
         return this.onSettingsChanged();
     }
 
@@ -59,20 +65,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
      * Returns whether a file belongs to the current project. Exposed for testing purposes.
      */
     public isProjectFile(file: string) {
-        return this.fileConfigs.getIncludes(file) !== undefined;
+        return this.currentConfiguration?.isFileInProject(file) ?? false;
     }
 
-    // Blanket config that we apply when we don't have a file-specific config (i.e. header files, or a file not in the project)
-    private fallbackConfig: PartialSourceFileConfiguration = {includes: [], preincludes: [], defines: []};
-    // Configs for all source files in the project
-    private fileConfigs: ConfigurationSet = new ConfigurationSet(new Map(), new Map(), new Map());
     // To force cpptools to recognize extended keywords we pretend they're compiler-defined macros
     private keywordDefines: Define[] = [];
 
-    readonly name = "iar-vsc";
-    readonly extensionId = "iarsystems.iar-vsc";
-
-    private constructor(private readonly api: CppToolsApi | undefined, private readonly generator: ConfigGenerator) {
+    private constructor(private readonly api: CppToolsApi | undefined) {
         // Note that changing the project will also trigger a config change
         // Note that we do not return the promise from onSettingsChanged, because the model does not need to wait for it to finish
         ExtensionState.getInstance().config.addOnSelectedHandler(() => {
@@ -93,44 +92,71 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     }
 
     // cpptools api methods
-    canProvideConfiguration(uri: Vscode.Uri, _token?: CancellationToken | undefined): Thenable<boolean> {
+    canProvideConfiguration(uri: Vscode.Uri, _token?: CancellationToken | undefined): Promise<boolean> {
         const lang = LanguageUtils.determineLanguage(uri.fsPath);
-        return Promise.resolve(lang !== undefined);
+        return Promise.resolve(lang !== undefined && this.currentConfiguration !== undefined);
     }
-    provideConfigurations(uris: Vscode.Uri[], _token?: CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
+    async provideConfigurations(uris: Vscode.Uri[], _token?: CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
         const cStandard = Settings.getCStandard();
         const cppStandard = Settings.getCppStandard();
+        if (this.currentConfiguration === undefined) {
+            return [];
+        }
 
-        return Promise.resolve(uris.map(uri => {
-            const lang = LanguageUtils.determineLanguage(uri.fsPath);
-            const includes = this.fileConfigs.getIncludes(uri.fsPath) ?? this.fallbackConfig.includes;
-            let defines = this.fileConfigs.getDefines(uri.fsPath) ?? this.fallbackConfig.defines;
-            defines = defines.concat(this.keywordDefines);
-            const preincludes = this.fileConfigs.getPreincludes(uri.fsPath) ?? this.fallbackConfig.preincludes;
+        const results = await Promise.allSettled(uris.map(async(uri) => {
+            if (!this.currentConfiguration) {
+                return Promise.reject(new Error("No intellisense configuration loaded"));
+            }
+            try {
+                let partialConfig: PartialSourceFileConfiguration;
+                if (!this.currentConfiguration.isFileInProject(uri.fsPath)) {
+                    partialConfig = this.currentConfiguration.getFallbackConfiguration();
+                } else {
+                    partialConfig = await this.currentConfiguration.getConfigurationFor(uri.fsPath);
+                }
+                const includes = partialConfig.includes;
+                let defines = partialConfig.defines;
+                defines = defines.concat(this.keywordDefines);
+                const preincludes = partialConfig.preincludes;
 
-            let stringDefines = defines.map(d => d.makeString());
-            stringDefines = stringDefines.concat(Settings.getDefines()); // user-defined extra macros
+                let stringDefines = defines.map(d => d.makeString());
+                stringDefines = stringDefines.concat(Settings.getDefines()); // user-defined extra macros
+                const lang = LanguageUtils.determineLanguage(uri.fsPath);
 
-            const config: SourceFileConfiguration = {
-                compilerPath: "",
-                defines: stringDefines,
-                includePath: includes.map(i => i.absolutePath.toString()),
-                forcedInclude: preincludes.map(i => i.absolutePath.toString()),
-                intelliSenseMode: "clang-arm",
-                standard: lang === "c" ? cStandard : cppStandard,
-            };
-            return {
-                uri: uri,
-                configuration: config,
-            };
+                const config: SourceFileConfiguration = {
+                    compilerPath: "",
+                    defines: stringDefines,
+                    includePath: includes.map(i => i.absolutePath.toString()),
+                    forcedInclude: preincludes.map(i => i.absolutePath.toString()),
+                    intelliSenseMode: "clang-arm",
+                    standard: lang === "c" ? cStandard : cppStandard,
+                };
+                return {
+                    uri: uri,
+                    configuration: config,
+                };
+            } catch (e) {
+                console.log(e);
+                throw e;
+            }
         }));
+        const configs: SourceFileConfigurationItem[] = [];
+        results.forEach(res => {
+            if (res.status === "fulfilled") {
+                configs.push(res.value);
+            }
+        });
+        this.api?.didChangeCustomBrowseConfiguration(this);
+        return configs;
     }
     canProvideBrowseConfiguration(_token?: CancellationToken | undefined): Thenable<boolean> {
         return Promise.resolve(true);
     }
-    provideBrowseConfiguration(_token?: CancellationToken | undefined): Thenable<WorkspaceBrowseConfiguration> {
+    provideBrowseConfiguration(_token?: CancellationToken | undefined): Promise<WorkspaceBrowseConfiguration> {
+        const config = this.currentConfiguration?.getFallbackConfiguration();
+        const includes = config?.includes.concat(config.preincludes ?? []) ?? [];
         return Promise.resolve({
-            browsePath: this.fallbackConfig.includes.map(i => i.absolutePath.toString()),
+            browsePath: includes?.map(inc => inc.absolutePath.toString()),
             compilerPath: "",
             compilerArgs: [],
             standard: Settings.getCStandard(),
@@ -144,22 +170,11 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         return Promise.resolve(null);
     }
     dispose() {
-        this.canProvideConfiguration = (): Thenable<boolean> => Promise.resolve(false);
+        this.canProvideConfiguration = () => Promise.resolve(false);
         if (this.api) {
             this.api.dispose();
         }
-        this.generator.dispose();
-    }
-
-    private generateFallbackConfig() {
-        // Simply take the sum of all file configs.
-        // It isn't perfect, but it doesn't need to be and there is no perfect solution AFAIK.
-        const includes = this.fileConfigs.allIncludes;
-        let defines = this.fileConfigs.allDefines;
-        defines = defines.concat(this.keywordDefines);
-        defines = defines.concat(Settings.getDefines().map(Define.fromString)); // user-defined extra macros
-        const preincludes = this.fileConfigs.allPreincludes;
-        this.fallbackConfig = { includes, defines, preincludes };
+        this.output.dispose();
     }
 
     // returns true if configs changed
@@ -171,17 +186,16 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             return false;
         }
         try {
-            this.fileConfigs = await this.generator.generateSourceConfigs(workbench, project, config);
+            this.currentConfiguration = await ConfigurationSet.loadFromProject(project, config, workbench, this.output);
             return true;
         } catch (err) {
-            if (err !== ConfigGenerator.CanceledError) {
-                // Show error msg with a button to see the logs
-                Vscode.window.showErrorMessage("IAR: Failed to load project configuration: " + err, { title: "Show Output Window"}).then(res => {
-                    if (res !== undefined) {
-                        this.generator.showOutputChannel();
-                    }
-                });
-            }
+            this.currentConfiguration = undefined;
+            // Show error msg with a button to see the logs
+            Vscode.window.showErrorMessage("IAR: Failed to generate intellisense configuration: " + err, { title: "Show Output Window"}).then(res => {
+                if (res !== undefined) {
+                    this.output.show(false);
+                }
+            });
             return false;
         }
     }
@@ -212,9 +226,9 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             this.generateKeywordDefines(),
             this.generateSourceConfigs().then(didChange => changed = didChange),
         ]);
-        this.generateFallbackConfig();
         if (changed && this.api) {
             this.api.didChangeCustomConfiguration(this);
+            this.api.didChangeCustomBrowseConfiguration(this);
         }
     }
 }

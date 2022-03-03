@@ -6,8 +6,9 @@
 
 import * as Fs from "fs";
 import * as Path from "path";
+import { OsUtils } from "../../../utils/osUtils";
 import { FsUtils } from "../../utils/fs";
-import { ListUtils, OsUtils } from "../../utils/utils";
+import { ListUtils } from "../../utils/utils";
 
 const ideSubPath = "common/bin/IarIdePm.exe";
 const builderSubPath = "common/bin/iarbuild" + (OsUtils.OsType.Windows === OsUtils.detectOsType() ? ".exe" : "");
@@ -93,11 +94,7 @@ export namespace Workbench {
      */
     export function mergeUnique(...lists: Array<Workbench>[]): Workbench[] {
         const fnKey = (item: Workbench): string => {
-            const path = Path.normalize(item.path.toString());
-            if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
-                return path.toLowerCase();
-            }
-            return path;
+            return OsUtils.normalizePath(item.path.toString());
         };
 
         return ListUtils.mergeUnique(fnKey, ...lists);

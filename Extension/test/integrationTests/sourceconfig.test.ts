@@ -4,13 +4,12 @@
 
 import * as Assert from "assert";
 import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
-import { ConfigGenerator } from "../../src/extension/configprovider/configgenerator";
 import { Workbench } from "../../src/iar/tools/workbench";
-import * as vscode from "vscode";
 import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "../../utils/testutils/testSandbox";
 import * as Path from "path";
 import { OsUtils } from "../../utils/osUtils";
+import { ConfigurationSet } from "../../src/extension/configprovider/configurationset";
 
 suite("Test source configuration providers", function() {
     this.timeout(0);
@@ -35,35 +34,48 @@ suite("Test source configuration providers", function() {
         project.unload();
     });
 
-    test("Finds project wide configs", async() => {
-        const config = await new ConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
-        Assert(config.allIncludes.some(path => OsUtils.pathsEqual(path.path.toString(), Path.join(projectDir, "inc"))));
-        Assert(config.allDefines.some(define => define.identifier === "MY_SYMBOL" && define.value === "42"));
-        Assert(config.allDefines.some(define => define.identifier === "MY_SYMBOL2" && define.value === "\"test\""));
-        Assert(config.allPreincludes.some(inc => inc.path === "preincluded.h"));
+    test("Finds project-wide configs", async() => {
+        // This file has no overriden settings, so it should use the project-defined include paths etc.
+        const projectFile = Path.join(projectDir, "util.c");
+        const configSet = await ConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench);
+        await configSet.getConfigurationFor(projectFile);
+        const config = configSet.getFallbackConfiguration();
+        Assert(config.includes.some(path => OsUtils.pathsEqual(path.path.toString(), Path.join(projectDir, "inc"))), `Includes were: ${config.includes.map(i => i.absolutePath.toString())}`);
+        Assert(config.defines.some(define => define.identifier === "MY_SYMBOL" && define.value === "42"));
+        Assert(config.defines.some(define => define.identifier === "MY_SYMBOL2" && define.value === "\"test\""));
+        Assert(config.preincludes.some(inc => inc.path === "preincluded.h"));
     });
 
     test("Finds compiler configs", async() => {
-        const config = await new ConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
-        Assert(config.allIncludes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]/)));
-        Assert(config.allIncludes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]c[/\\]aarch32/)));
-        Assert(config.allDefines.some(define => define.identifier === "__ARM_ARCH"));
-        Assert(config.allDefines.some(define => define.identifier === "__VERSION__"));
+        // Any file would work here
+        const projectFile = Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
+        const configSet = await ConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench);
+        // Load a file so there is a valid browse config
+        await configSet.getConfigurationFor(projectFile);
+        const config = configSet.getFallbackConfiguration();
+        Assert(config.includes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]/)));
+        Assert(config.includes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]c[/\\]aarch32/)));
+        Assert(config.defines.some(define => define.identifier === "__ARM_ARCH"));
+        Assert(config.defines.some(define => define.identifier === "__VERSION__"));
     });
 
     test("Finds c++ configs", async() => {
-        const config = await new ConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
-        Assert(config.allIncludes.some(path => path.absolutePath.toString().endsWith("cpp")), "Does not include c++ header directory");
+        // This file uses c++ settings
+        const projectFile = Path.join(projectDir, "cpp.cpp");
+        const configSet = await ConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench);
+        // Load a file so there is a valid browse config
+        await configSet.getConfigurationFor(projectFile);
+        const config = configSet.getFallbackConfiguration();
+        Assert(config.includes.some(path => path.absolutePath.toString().endsWith("cpp")), `Does not include c++ header directory. Includes were: ${config.includes.map(i => i.absolutePath.toString())}`);
         // Assumes this define is always there, but might not be if using an old c++ standard?
-        Assert(config.allDefines.some(define => define.identifier === "__cpp_constexpr"), "Does not include c++ defines");
+        Assert(config.defines.some(define => define.identifier === "__cpp_constexpr"), "Does not include c++ defines");
     });
 
     test("Finds file specific configs", async() => {
-        const config = await new ConfigGenerator().generateSourceConfigs(workbench, project, project.findConfiguration("Debug")!);
+        // This file has overriden include paths and defines
         const projectFile = Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
-        const includes = config.getIncludes(vscode.Uri.file(projectFile).fsPath);
-        Assert(includes!.some(path => OsUtils.pathsEqual(path.path.toString(), Path.join(projectDir, "inc2"))));
-        const defines = config.getDefines(vscode.Uri.file(projectFile).fsPath);
-        Assert(defines!.some(define => define.identifier === "FILE_SYMBOL"));
+        const config = await (await ConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench)).getConfigurationFor(projectFile);
+        Assert(config.includes!.some(path => OsUtils.pathsEqual(path.path.toString(), Path.join(projectDir, "inc2"))));
+        Assert(config.defines!.some(define => define.identifier === "FILE_SYMBOL"));
     });
 });

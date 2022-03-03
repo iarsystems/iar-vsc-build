@@ -44,7 +44,7 @@ export class AddWorkbenchCommand extends CommandBase<Promise<boolean>> {
             return false;
         }
 
-        const foundWorkbenches = await this.toolManager.collectWorkbenches([uri.fsPath]);
+        const foundWorkbenches = await this.toolManager.collectWorkbenches([uri.fsPath], false);
         if (foundWorkbenches.length === 0) {
             vscode.window.showErrorMessage("Could not find any IAR toolchains in that folder. Please choose the root folder of an IAR Embedded Workbench or IAR Build Tools installation (e.g. D:/IAR Systems/Embedded Workbench 9.0/).");
             return false;
