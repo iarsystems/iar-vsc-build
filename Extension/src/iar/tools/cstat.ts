@@ -21,6 +21,7 @@ export namespace CStat {
         MEDIUM = 1,
         HIGH = 2,
     }
+    interface TraceEntry { file: string, line: number, message: string }
     export interface CStatWarning {
         file: string;
         line: number;
@@ -28,6 +29,7 @@ export namespace CStat {
         message: string;
         severity: CStatWarningSeverity;
         checkId: string;
+        trace: TraceEntry[];
     }
     type CStatWarningWithHash = CStatWarning & { hash: string };
 
@@ -39,6 +41,7 @@ export namespace CStat {
         MSG = "msg",
         SEVERITY = "severity",
         HASH = "warning_hash",
+        TRACE = "encoded_trace",
     }
     const fieldsToLoad: string[] = Object.values(CStatWarningField);
 
@@ -66,7 +69,7 @@ export namespace CStat {
         if (output.includes("-cstat_cmds")) { // Filifjonkan
             dbPath = join(dirname(projectPath), configurationName, "C-STAT", "cstat.db");
         } else {
-            onWrite?.("Detected pre-9.X workbench.");
+            onWrite?.("Detected pre-9.X toolchain.");
             dbPath = join(dirname(projectPath), configurationName, "Obj", "cstat.db");
         }
 
@@ -175,9 +178,24 @@ export namespace CStat {
         const message  = warnRow[fieldsToLoad.indexOf(CStatWarningField.MSG)];
         const severity = warnRow[fieldsToLoad.indexOf(CStatWarningField.SEVERITY)];
         const hash     = warnRow[fieldsToLoad.indexOf(CStatWarningField.HASH)];
+        const trace    = warnRow[fieldsToLoad.indexOf(CStatWarningField.TRACE)];
         const checkId  = warnRow[warnRow.length - 1];
         if (!file || !line || !col || !message || !severity || !hash || !checkId) {
             throw new Error("One or more fields missing from row: " + warnRow.toString());
+        }
+        const traces: TraceEntry[] = [];
+        if (trace) {
+            // trace format: (cfg,fn,file,line,depth,typ,text). We only need file, line and text
+            const reg = new RegExp(/\('(.*?)','(.*?)','(.*?)','(.*?)','(.*?)','(.*?)','(.*?)'\)/g);
+            const match = [...trace.matchAll(reg)];
+            if (match) {
+                match.forEach(m => {
+                    const fields = m;
+                    if (fields[3] && fields[4] && fields[7]) {
+                        traces.push({ file: fields[3], line: Number(fields[4]), message: fields[7]});
+                    }
+                });
+            }
         }
         return {
             file: file,
@@ -187,6 +205,7 @@ export namespace CStat {
             severity: SeverityStringToSeverityEnum(severity),
             hash: hash,
             checkId: checkId,
+            trace: traces,
         };
     }
 

@@ -127,7 +127,7 @@ class CStatProvider implements Vscode.TaskProvider {
     private getFallbackDefinition(label: string, action: "run" | "clear"): CStatTaskDefinition {
         const workbench = ExtensionState.getInstance().workbench.selected?.path;
         if (!workbench) {
-            throw new Error("Please select a workbench, or specify one in the task definition.");
+            throw new Error("Please select a toolchain, or specify one in the task definition.");
         }
         const project = ExtensionState.getInstance().project.selected?.path;
         if (!project) {

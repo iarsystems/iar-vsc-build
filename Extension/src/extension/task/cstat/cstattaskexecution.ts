@@ -97,16 +97,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     }
 
     private static warningToDiagnostic(warning: CStat.CStatWarning): Vscode.Diagnostic {
-        // VS Code uses zero-based lines/cols, C-STAT is one-based, so we need to correct for this.
-        // Also, C-STAT seems to use (0,0) for msgs without a position, so we need to make sure
-        // not to put these at (-1,-1) in VS Code (it doesn't like that).
-        if (warning.line === 0) {
-            warning.line = 1;
-        }
-        if (warning.col === 0) {
-            warning.col = 1;
-        }
-        const pos = new Vscode.Position(warning.line - 1, warning.col - 1);
+        const pos = this.makePosition(warning.line, warning.col);
         const range = new Vscode.Range(pos, pos);
 
         let severity = Vscode.DiagnosticSeverity.Warning;
@@ -121,7 +112,17 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
                 : "High";
 
         const diagnostic = new Vscode.Diagnostic(range, warning.message, severity);
+        diagnostic.relatedInformation = warning.trace.map(traceItem => {
+            return new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(traceItem.file), this.makePosition(traceItem.line, 1)), traceItem.message);
+        });
         diagnostic.source = warning.checkId + ` [${severityString}]`;
         return diagnostic;
+    }
+    private static makePosition(cstatLine: number, cstatCol: number): Vscode.Position {
+        // C-STAT uses 1-based lines/cols and VS Code 0-based.
+        // HOWEVER, C-STAT uses line/col 0 to indicate file-global warnings, so make sure these aren't placed at line/col -1
+        const line = Math.max(cstatLine - 1, 0);
+        const col = Math.max(cstatCol - 1, 0);
+        return new Vscode.Position(line, col);
     }
 }
