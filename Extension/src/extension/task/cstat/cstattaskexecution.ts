@@ -11,6 +11,7 @@ import { Workbench } from "../../../iar/tools/workbench";
 import { EwpFile } from "../../../iar/project/parsing/ewpfile";
 import { spawnSync } from "child_process";
 import { ExtensionState } from "../../extensionstate";
+import { Settings } from "../../settings";
 
 /**
  * Executes a c-stat task, i.e. generates and clears C-STAT warnings and displays them in vs code.
@@ -71,7 +72,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             this.writeEmitter.fire("Analyzing output...\r\n");
             this.diagnostics.clear();
 
-            const filterString = Vscode.workspace.getConfiguration("iarvsc").get<string>("c-stat.filterLevel");
+            const filterString = Settings.getCstatFilterLevel();
             const filterLevel = filterString ?
                 CStat.SeverityStringToSeverityEnum(filterString)
                 : CStat.CStatWarningSeverity.LOW;
@@ -119,7 +120,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             const ireportPath = Path.join(toolchain, config.toolchainId.toLowerCase(), "bin/ireport" + IarOsUtils.executableExtension());
 
             await CStatReport.generateHTMLReport(ireportPath, outputDir, Path.basename(projectPath, ".ewp"), outFile, full, this.write.bind(this));
-            if (Vscode.workspace.getConfiguration("iarvsc").get<string>("c-stat.autoOpenReports")) {
+            if (Settings.getCstatAutoOpenReports()) {
                 await Vscode.env.openExternal(Vscode.Uri.file(outFile));
             }
         } catch (e) {
@@ -173,7 +174,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         const range = new Vscode.Range(pos, pos);
 
         let severity = Vscode.DiagnosticSeverity.Warning;
-        if (Vscode.workspace.getConfiguration("iarvsc").get<boolean>("c-StatDisplayLowSeverityWarningsAsHints")) {
+        if (Settings.getCstatDisplayLowSeverityWarningsAsHints()) {
             if (warning.severity === CStat.CStatWarningSeverity.LOW) {
                 severity = Vscode.DiagnosticSeverity.Hint;
             }

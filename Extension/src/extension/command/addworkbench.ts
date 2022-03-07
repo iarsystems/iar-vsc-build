@@ -52,7 +52,7 @@ export class AddWorkbenchCommand extends CommandBase<Promise<boolean>> {
         vscode.window.showInformationMessage("Found " + foundWorkbenches.map(wb => `'${wb.name}'`).join(", "));
 
         installDirs.push(uri.fsPath);
-        vscode.workspace.getConfiguration("iarvsc").update(Settings.ExtensionSettingsField.IarInstallDirectories, installDirs, true);
+        Settings.setIarInstallDirectories(installDirs);
         return true;
     }
 }

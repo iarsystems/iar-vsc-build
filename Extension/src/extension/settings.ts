@@ -19,6 +19,9 @@ export namespace Settings {
         CppStandard = "cppStandard",
         ExtraBuildArguments = "extraBuildArguments",
         IarInstallDirectories = "iarInstallDirectories",
+        CstatFilterLevel = "c-stat.filterLevel",
+        CstatDisplayLowSeverityWarningsAsHints = "c-stat.displayLowSeverityWarningsAsHints",
+        CstatAutoOpenReports = "c-stat.autoOpenReports",
     }
 
     export enum LocalSettingsField {
@@ -42,6 +45,9 @@ export namespace Settings {
     export function getIarInstallDirectories(): Fs.PathLike[] {
         const directories = Vscode.workspace.getConfiguration(section).get(ExtensionSettingsField.IarInstallDirectories);
         return (directories ?? []) as string[];
+    }
+    export function setIarInstallDirectories(installDirs: Fs.PathLike[]): Thenable<void> {
+        return Vscode.workspace.getConfiguration(section).update(ExtensionSettingsField.IarInstallDirectories, installDirs, true);
     }
 
     export function getLocalSetting(field: LocalSettingsField): string | undefined {
@@ -102,7 +108,28 @@ export namespace Settings {
     }
 
     export function getExtraBuildArguments(): Array<string> {
-        return Vscode.workspace.getConfiguration(section).get(ExtensionSettingsField.ExtraBuildArguments) as Array<string>;
+        const args = Vscode.workspace.getConfiguration(section).get(ExtensionSettingsField.ExtraBuildArguments);
+        if (args) {
+            return args as string[];
+        } else {
+            return [];
+        }
+    }
+
+    export function getCstatFilterLevel(): "Low" | "Medium" | "High" {
+        const lvl = Vscode.workspace.getConfiguration(section).get<string>(ExtensionSettingsField.CstatFilterLevel);
+        if (lvl === "Low" || lvl === "Medium" || lvl === "High") {
+            return lvl;
+        }
+        return "Low";
+    }
+    export function getCstatDisplayLowSeverityWarningsAsHints(): boolean {
+        const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.CstatDisplayLowSeverityWarningsAsHints);
+        return val ?? false;
+    }
+    export function getCstatAutoOpenReports(): boolean {
+        const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.CstatAutoOpenReports);
+        return val ?? false;
     }
 
     function generateSettingsFilePath(): Fs.PathLike | undefined  {
