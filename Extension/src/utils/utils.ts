@@ -4,7 +4,6 @@
 
 
 
-import * as os from "os";
 import { PathLike } from "fs";
 import * as Path from "path";
 import { ChildProcess } from "child_process";
@@ -26,45 +25,6 @@ export namespace ListUtils {
         });
 
         return Array.from(result.values());
-    }
-}
-
-export namespace OsUtils {
-    export enum OsType {
-        Windows,
-        Linux,
-        Mac
-    }
-    export function detectOsType(): OsType {
-        const platform = os.platform();
-        switch (platform) {
-        case "win32":
-            return OsType.Windows;
-        case "linux":
-            return OsType.Linux;
-        case "darwin":
-            return OsType.Mac;
-        default:
-            console.error("Unknown platform " + platform);
-            return OsType.Linux;
-        }
-    }
-
-    export enum Architecture {
-        x64,
-        x32,
-    }
-    export function detectArchitecture(): Architecture {
-        const arch = os.arch();
-        switch (arch) {
-        case "x64":
-            return Architecture.x64;
-        case "x32":
-            return Architecture.x32;
-        default:
-            console.error("Unsupported architecture " + arch);
-            return Architecture.x64;
-        }
     }
 }
 

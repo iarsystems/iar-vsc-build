@@ -10,7 +10,6 @@ import { Workbench } from "../../tools/workbench";
 import { spawn, ChildProcess } from "child_process";
 import * as path from "path";
 import * as fs from "fs";
-import { OsUtils } from "../../../utils/utils";
 import { ServiceLocation, Transport, Protocol } from "./bindings/ServiceRegistry_types";
 import { ThriftClient } from "./thriftclient";
 
@@ -21,6 +20,7 @@ import { tmpdir } from "os";
 import { v4 as uuidv4 } from "uuid";
 import { PROJECTMANAGER_ID } from "./bindings/projectmanager_types";
 import * as ProjectManager from "./bindings/ProjectManager";
+import { OsUtils } from "../../../../utils/osUtils";
 
 /** Callback for when the service manager crashes */
 export type CrashHandler = (exitCode: number | null) => void;
@@ -40,7 +40,7 @@ export class ThriftServiceManager {
      * @param registryLocation The location of the service registry to use.
      */
     constructor(private readonly process: ChildProcess, private readonly registryLocation: ServiceLocation) {
-        process.on("exit", code => {
+        process.once("exit", code => {
             if (!this.isExiting) this.crashHandlers.forEach(handler => handler(code));
         });
     }
@@ -159,10 +159,18 @@ export namespace ThriftServiceManager {
             });
             serviceRegistryProcess.on("exit", (code) => {
                 output?.appendLine(`Registry Exited (${code})`);
-                reject(new Error("ServiceRegistry exited"));
+                if (!resolved) {
+                    resolved = true;
+                    reject(new Error("ServiceRegistry exited"));
+                }
             });
 
-            setTimeout(() => reject(new Error("Service registry launch timed out")), 10000);
+            setTimeout(() => {
+                if (!resolved) {
+                    resolved = true;
+                    reject(new Error("Service registry launch timed out"));
+                }
+            }, 20000);
         }).then(async(serviceManager) => {
             // VSC-4 there is a small window between the service registry creating the location file,
             // and it starting the project manager service. Poll the service registry for the project manager service

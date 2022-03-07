@@ -4,12 +4,13 @@
 
 
 
-import { OsUtils, ProcessUtils } from "../../utils/utils";
+import { ProcessUtils } from "../../utils/utils";
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { join } from "path";
 import CsvParser = require("csv-parse/lib/sync");
 import * as Fs from "fs";
 import { Settings } from "../../extension/settings";
+import { OsUtils } from "../../../utils/osUtils";
 
 /**
  * Functions for interacting with C-STAT (i.e. running it via iarbuild and reading warnings)

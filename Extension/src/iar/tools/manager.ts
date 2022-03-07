@@ -7,7 +7,7 @@
 import * as Fs from "fs";
 import { Workbench } from "./workbench";
 import * as Registry from "winreg";
-import { OsUtils } from "../../utils/utils";
+import { OsUtils } from "../../../utils/osUtils";
 
 type InvalidateHandler = (manager: ToolManager) => void;
 
