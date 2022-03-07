@@ -3,10 +3,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Vscode from "vscode";
-import { OsUtils } from "../../../utils/utils";
 import { ExtensionState } from "../../extensionstate";
 import { CStatTaskExecution } from "./cstattaskexecution";
-import { Workbench } from "../../../iar/tools/workbench";
 
 export namespace CStatTaskProvider {
     let taskProvider: Vscode.Disposable | undefined = undefined;
@@ -28,8 +26,8 @@ export namespace CStatTaskProvider {
 export interface CStatTaskDefinition {
     label: string;
     type: string;
-    action: string;
-    builder: string;
+    action: "run" | "clear" | "report-full" | "report-summary";
+    toolchain: string;
     project: string;
     config: string;
     extraBuildArguments: string[];
@@ -52,9 +50,13 @@ class CStatProvider implements Vscode.TaskProvider {
 
     provideTasks(): Vscode.ProviderResult<Vscode.Task[]> {
         const tasks: Vscode.Task[] = [];
-        const taskVariants: Array<[string, "run" | "clear"]> =
-            [["Run C-STAT Analysis", "run"],
-                ["Clear C-STAT Diagnostics", "clear"]];
+        const taskVariants: Array<[string, "run" | "clear" | "report-full" | "report-summary"]> =
+            [
+                ["Run C-STAT Analysis", "run"],
+                ["Clear C-STAT Diagnostics", "clear"],
+                ["Generate Full HTML Report", "report-full"],
+                ["Generate HTML Summary", "report-summary"],
+            ];
         for (const [label, action] of taskVariants) {
             const definition = this.getDefaultTaskDefinition(label, action);
             const execution = this.getExecution();
@@ -71,7 +73,7 @@ class CStatProvider implements Vscode.TaskProvider {
         if (!action) {
             this.showErrorMissingField("action", label);
             return undefined;
-        } else if (action !== "run" && action !== "clear") {
+        } else if (!["run", "clear", "report-full", "report-summary"].includes(action)) {
             return undefined;
         }
 
@@ -91,12 +93,12 @@ class CStatProvider implements Vscode.TaskProvider {
         }
     }
 
-    private getDefaultTaskDefinition(label: string, action: "run" | "clear"): CStatTaskDefinition {
+    private getDefaultTaskDefinition(label: string, action: "run" | "clear" | "report-full" | "report-summary"): CStatTaskDefinition {
         const definition: CStatTaskDefinition = {
             label: label,
             type: "iar-cstat",
             action: action,
-            builder: "${command:iar-settings.toolchain}/" + Workbench.builderSubPath,
+            toolchain: "${command:iar-settings.toolchain}",
             project: "${command:iar-settings.project-file}",
             config: "${command:iar-settings.project-configuration}",
             extraBuildArguments: [],
@@ -124,7 +126,7 @@ class CStatProvider implements Vscode.TaskProvider {
 
     // Essentially the same as above, but without the command variables. We use these values as fallbacks for when
     // a property is missing from the task definition, but we're past the stage of resolving command variables.
-    private getFallbackDefinition(label: string, action: "run" | "clear"): CStatTaskDefinition {
+    private getFallbackDefinition(label: string, action: "run" | "clear" | "report-full" | "report-summary"): CStatTaskDefinition {
         const workbench = ExtensionState.getInstance().workbench.selected?.path;
         if (!workbench) {
             throw new Error("Please select a toolchain, or specify one in the task definition.");
@@ -141,7 +143,7 @@ class CStatProvider implements Vscode.TaskProvider {
             label: label,
             type: "iar-cstat",
             action: action,
-            builder: `${workbench}/common/bin/iarbuild` + (OsUtils.detectOsType() === OsUtils.OsType.Windows ? ".exe" : ""),
+            toolchain: workbench.toString(),
             project: project.toString(),
             config: config,
             extraBuildArguments: [],

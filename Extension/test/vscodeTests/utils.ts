@@ -95,6 +95,9 @@ export namespace VscodeTestsUtils {
         await activateProject(projectName);
         await activateConfiguration(configuration);
 
+        return runTask(taskName);
+    }
+    export function runTask(taskName: string) {
         // Fetch the tasks and execute the build task.
         return Vscode.tasks.fetchTasks().then(async(listedTasks) => {
             // Locate the right task

@@ -5,8 +5,8 @@
 
 
 import { OsUtils, ProcessUtils } from "../../utils/utils";
-import { ChildProcessWithoutNullStreams, spawn, spawnSync } from "child_process";
-import { join, dirname } from "path";
+import { ChildProcessWithoutNullStreams, spawn } from "child_process";
+import { join } from "path";
 import CsvParser = require("csv-parse/lib/sync");
 import * as Fs from "fs";
 import { Settings } from "../../extension/settings";
@@ -52,26 +52,26 @@ export namespace CStat {
      * @param builderPath path to the IarBuild to use
      * @param projectPath path to the project to run for
      * @param configurationName name of the project configuration
+     * @param cstatOutputDir path to where cstat output is placed for this configuration
      * @param extensionPath path to the root of this extension
      * @param extraBuildArguments extra arguments to pass to iarbuild. If empty, the extension settings are used instead.
      * @param onWrite an output channel for writing logs and other messages while running
      */
-    export async function runAnalysis(builderPath: string, projectPath: string, configurationName: string,
-        extensionPath: string, extraBuildArguments: string[], onWrite?: (msg: string) => void): Promise<CStatWarning[]> {
+    export async function runAnalysis(
+        builderPath: string,
+        projectPath: string,
+        configurationName: string,
+        cstatOutputDir: string,
+        extensionPath: string,
+        extraBuildArguments: string[],
+        onWrite?: (msg: string) => void
+    ): Promise<CStatWarning[]> {
 
         if (!Fs.existsSync(builderPath)) {
             return Promise.reject(new Error(`The builder ${builderPath} does not exists.`));
         }
 
-        // Try to guess where the cstat db will be created. This is the best we can do without parsing the .ewt file ourselves.
-        const output = spawnSync(builderPath).stdout.toString(); // Spawn without args to get help list
-        let dbPath: string;
-        if (output.includes("-cstat_cmds")) { // Filifjonkan
-            dbPath = join(dirname(projectPath), configurationName, "C-STAT", "cstat.db");
-        } else {
-            onWrite?.("Detected pre-9.X toolchain.");
-            dbPath = join(dirname(projectPath), configurationName, "Obj", "cstat.db");
-        }
+        const dbPath: string = join(cstatOutputDir, "cstat.db");
 
         // It seems we need to delete the db and regenerate it every time to get around
         // some weird behaviour where the db keeps references to files outside the project
@@ -250,5 +250,32 @@ export namespace CStat {
         default:
             return null;
         }
+    }
+}
+
+/** Functions for invoking ireport for generating HTML reports */
+export namespace CStatReport {
+    export function generateHTMLReport(ireportPath: string, cstatOutputDir: string, projectName: string, outputPath: string, full: boolean, onWrite?: (msg: string) => void): Promise<void> {
+        const args = [
+            "--xml_mode",
+            "--db",
+            join(cstatOutputDir, "cstat.db"),
+            "--project",
+            projectName,
+            "--output",
+            outputPath
+        ];
+        if (full) {
+            args.push("--full");
+        }
+
+        if (!Fs.existsSync(ireportPath)) {
+            return Promise.reject(new Error(`The program ${ireportPath} does not exists.`));
+        }
+        const ireport = spawn(ireportPath, args);
+        ireport.stdout.on("data", data => {
+            onWrite?.(data.toString());
+        });
+        return ProcessUtils.waitForExit(ireport);
     }
 }

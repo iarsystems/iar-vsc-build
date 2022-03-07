@@ -29,6 +29,7 @@ export interface LoadedProject extends Project {
 export interface ExtendedProject extends LoadedProject {
     getRootNode(): Promise<Node>;
     setNode(node: Node): Promise<void>;
+    getCStatOutputDirectory(config: string): Promise<string>;
 }
 
 

@@ -4,7 +4,13 @@
 
 import * as Vscode from "vscode";
 import { CStatTaskDefinition } from "./cstattaskprovider";
-import { CStat } from "../../../iar/tools/cstat";
+import { CStat, CStatReport } from "../../../iar/tools/cstat";
+import { IarOsUtils, OsUtils } from "../../../../utils/osUtils";
+import * as Path from "path";
+import { Workbench } from "../../../iar/tools/workbench";
+import { EwpFile } from "../../../iar/project/parsing/ewpfile";
+import { spawnSync } from "child_process";
+import { ExtensionState } from "../../extensionstate";
 
 /**
  * Executes a c-stat task, i.e. generates and clears C-STAT warnings and displays them in vs code.
@@ -12,6 +18,8 @@ import { CStat } from "../../../iar/tools/cstat";
  * https://github.com/microsoft/Vscode-extension-samples/blob/master/task-provider-sample/src/customTaskProvider.ts
  */
 export class CStatTaskExecution implements Vscode.Pseudoterminal {
+    private static readonly REPORT_DEFAULT_NAME = "C-STAT report.html";
+
     private readonly writeEmitter = new Vscode.EventEmitter<string>();
     onDidWrite: Vscode.Event<string> = this.writeEmitter.event;
     private readonly closeEmitter = new Vscode.EventEmitter<void>();
@@ -31,6 +39,13 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             this.generateDiagnostics();
         } else if (this.definition.action === "clear") {
             this.clearDiagnostics();
+        } else if (this.definition.action === "report-full") {
+            this.generateHTMLReport(true);
+        } else if (this.definition.action === "report-summary") {
+            this.generateHTMLReport(false);
+        } else {
+            this.writeEmitter.fire(`Unrecognized action '${this.definition.action}'`);
+            this.closeEmitter.fire();
         }
     }
 
@@ -44,16 +59,15 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     private async generateDiagnostics(): Promise<void> {
         const projectPath = this.definition.project;
         const configName = this.definition.config;
-        const builderPath = this.definition.builder;
+        const toolchain = this.definition.toolchain;
         const extraArgs = this.definition.extraBuildArguments;
 
         this.writeEmitter.fire("Running C-STAT...\r\n");
 
         try {
-            let warnings = await CStat.runAnalysis(builderPath, projectPath, configName, this.extensionPath, extraArgs, msg => {
-                msg = msg.replace(/(?<!\r)\n/g, "\r\n"); // VSC-82: vscode console prefers crlf, so replace all lf with crlf
-                this.writeEmitter.fire(msg);
-            });
+            const builderPath = Path.join(toolchain, Workbench.builderSubPath);
+            const outputDir = await CStatTaskExecution.getCStatOutputDirectory(projectPath, configName, toolchain);
+            let warnings = await CStat.runAnalysis(builderPath, projectPath, configName, outputDir, this.extensionPath, extraArgs, this.write.bind(this));
             this.writeEmitter.fire("Analyzing output...\r\n");
             this.diagnostics.clear();
 
@@ -83,6 +97,42 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     }
 
     /**
+     * Generates an HTML report of all C-STAT warnings
+     */
+    private async generateHTMLReport(full: boolean): Promise<void> {
+        const projectPath = this.definition.project;
+        const configName = this.definition.config;
+        const toolchain = this.definition.toolchain;
+
+        this.writeEmitter.fire((full ? "Generating Full HTML Report" : "Generating HTML Summary Report") + "...\r\n");
+
+        try {
+            // In order to find the path to ireport, we need to know the toolchain of this configuration.
+            // To find it, load the project with the xml parser (this is pretty cheap).
+            const project = new EwpFile(projectPath);
+            const config = project.configurations.find(conf => conf.name === configName);
+            if (!config) {
+                throw new Error(`No such configuration '${configName}' for project '${projectPath}'.`);
+            }
+            const outputDir = await CStatTaskExecution.getCStatOutputDirectory(projectPath, configName, toolchain);
+            const outFile = Path.join(outputDir, CStatTaskExecution.REPORT_DEFAULT_NAME);
+            const ireportPath = Path.join(toolchain, config.toolchainId.toLowerCase(), "bin/ireport" + IarOsUtils.executableExtension());
+
+            await CStatReport.generateHTMLReport(ireportPath, outputDir, Path.basename(projectPath, ".ewp"), outFile, full, this.write.bind(this));
+            if (Vscode.workspace.getConfiguration("iarvsc").get<string>("c-stat.autoOpenReports")) {
+                await Vscode.env.openExternal(Vscode.Uri.file(outFile));
+            }
+        } catch (e) {
+            if (typeof e === "string" || e instanceof Error) {
+                this.onError(e);
+            }
+        } finally {
+            this.closeEmitter.fire(undefined);
+        }
+
+    }
+
+    /**
      * Clears all C-STAT warnings
      */
     private clearDiagnostics() {
@@ -91,9 +141,31 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         this.closeEmitter.fire(undefined);
     }
 
+    private write(msg: string) {
+        msg = msg.replace(/(?<!\r)\n/g, "\r\n"); // VSC-82: vscode console prefers crlf, so replace all lf with crlf
+        this.writeEmitter.fire(msg);
+    }
+
     private onError(reason: string | Error) {
         this.writeEmitter.fire(reason + "\r\n");
         this.closeEmitter.fire(undefined);
+    }
+
+    // Gets the output directory for C-STAT files (e.g. where the cstat database and reports are created)
+    private static async getCStatOutputDirectory(projectPath: string, config: string, toolchain: string): Promise<string> {
+        try {
+            const extendedProject = await ExtensionState.getInstance().extendedProject.getValue();
+            if (extendedProject !== undefined && OsUtils.pathsEqual(extendedProject.path.toString(), projectPath)) {
+                return Path.join(Path.dirname(projectPath), await extendedProject.getCStatOutputDirectory(config));
+            }
+        } catch (e) {}
+        // If we don't have thrift access for this project, try to guess the default location. This is dependent on EW version.
+        const output = spawnSync(Path.join(toolchain, Workbench.builderSubPath)).stdout.toString(); // Spawn without args to get help list
+        if (output.includes("-cstat_cmds")) { // Filifjonkan
+            return Path.join(Path.dirname(projectPath), config, "C-STAT");
+        } else {
+            return Path.join(Path.dirname(projectPath), config, "Obj");
+        }
     }
 
     private static warningToDiagnostic(warning: CStat.CStatWarning): Vscode.Diagnostic {

@@ -22,7 +22,7 @@
                     <enableFalsePositives>0</enableFalsePositives>
                     <messagesLimitEnabled>1</messagesLimitEnabled>
                     <messagesLimit>100</messagesLimit>
-                    <outputDir>Debug/C-STAT</outputDir>
+                    <outputDir>Debug/C-STAT Output</outputDir>
                 </cstatargs>
                 <cstat_settings>
                     <cstat_version>2.3.2</cstat_version>
@@ -1723,7 +1723,7 @@
                                 <check enabled="true" name="UNION-type-punning" />
                             </group>
                         </package>
-                        <package enabled="false" name="CERT">
+                        <package enabled="true" name="CERT">
                             <group enabled="true" name="CERT-ARR">
                                 <check enabled="true" name="CERT-ARR30-C_a" />
                                 <check enabled="true" name="CERT-ARR30-C_b" />
@@ -1934,7 +1934,7 @@
                                 <check enabled="true" name="CERT-STR37-C" />
                             </group>
                         </package>
-                        <package enabled="false" name="SECURITY">
+                        <package enabled="true" name="SECURITY">
                             <group enabled="true" name="SEC-BUFFER">
                                 <check enabled="true" name="SEC-BUFFER-memory-leak-alias" />
                                 <check enabled="false" name="SEC-BUFFER-memory-leak" />
@@ -1993,7 +1993,7 @@
                                 <check enabled="false" name="SEC-STRING-hard-coded-credentials" />
                             </group>
                         </package>
-                        <package enabled="false" name="MISRAC2004">
+                        <package enabled="true" name="MISRAC2004">
                             <group enabled="true" name="MISRAC2004-1">
                                 <check enabled="true" name="MISRAC2004-1.1" />
                                 <check enabled="true" name="MISRAC2004-1.2_a" />
@@ -2194,7 +2194,7 @@
                                 <check enabled="true" name="MISRAC2004-20.12" />
                             </group>
                         </package>
-                        <package enabled="false" name="MISRAC2012">
+                        <package enabled="true" name="MISRAC2012">
                             <group enabled="true" name="MISRAC2012-Dir-4">
                                 <check enabled="true" name="MISRAC2012-Dir-4.3" />
                                 <check enabled="false" name="MISRAC2012-Dir-4.4" />
@@ -2501,7 +2501,7 @@
                                 <check enabled="true" name="MISRAC2012-Rule-22.10" />
                             </group>
                         </package>
-                        <package enabled="false" name="MISRAC++2008">
+                        <package enabled="true" name="MISRAC++2008">
                             <group enabled="true" name="MISRAC++2008-0-1">
                                 <check enabled="true" name="MISRAC++2008-0-1-1" />
                                 <check enabled="true" name="MISRAC++2008-0-1-2_a" />
@@ -2759,6 +2759,7 @@
                         </package>
                     </checks_tree>
                 </cstat_settings>
+
             </data>
         </settings>
         <settings>
