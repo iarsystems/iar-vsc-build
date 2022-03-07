@@ -274,13 +274,21 @@
           "type": "boolean",
           "default": false
         },
+        "iarvsc.c-stat.autoOpenReports": {
+          "description": "Whether to automatically open HTML reports in your browser when they are created.",
+          "type": "boolean",
+          "default": true
+        },
         "iarvsc.extraBuildArguments": {
           "type": "array",
           "markdownDescription": "Extra command line arguments to supply to iarbuild (e.g. [\"-parallel\", \"4\"].",
           "items": {
             "type": "string"
           },
-          "default": ["-parallel", "4"]
+          "default": [
+            "-parallel",
+            "4"
+          ]
         }
       }
     },
@@ -374,9 +382,17 @@
             "type": "string",
             "enum": [
               "run",
-              "clear"
+              "clear",
+              "report-full",
+              "report-summary"
             ],
-            "description": "What to do when running the task (generate warnings or clear them)."
+            "enumDescriptions": [
+              "Analyze the project to generate C-STAT warnings",
+              "Clear C-STAT warnings and the C-STAT database",
+              "Generate a full HTML report of the latest C-STAT analysis",
+              "Generate a summary HTML report of the latest C-STAT analysis"
+            ],
+            "description": "What to do when running the task."
           },
           "project": {
             "type": "string",
@@ -386,9 +402,9 @@
             "type": "string",
             "description": "The project configuration to use."
           },
-          "builder": {
+          "toolchain": {
             "type": "string",
-            "description": "The iarbuild executable to run."
+            "description": "The IAR toolchain to use."
           },
           "extraBuildArguments": {
             "type": "array",
@@ -472,6 +488,7 @@
     "test-compile": "npm run webpack && tsc -p ./"
   },
   "devDependencies": {
+    "@types/escape-html": "^1.0.1",
     "@types/jsdom": "^16.2.14",
     "@types/mocha": "^2.2.42",
     "@types/node": "^15.6.0",
@@ -500,6 +517,7 @@
     "async-mutex": "^0.3.2",
     "bufferutil": "^4.0.6",
     "csv-parse": "4.8.8",
+    "escape-html": "^1.0.3",
     "fast-deep-equal": "2.0.1",
     "jsdom": "^19.0.0",
     "rxjs": "^7.5.2",
