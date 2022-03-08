@@ -9,7 +9,6 @@ import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { join } from "path";
 import CsvParser = require("csv-parse/lib/sync");
 import * as Fs from "fs";
-import { Settings } from "../../extension/settings";
 import { OsUtils } from "../../../utils/osUtils";
 
 /**
@@ -55,7 +54,7 @@ export namespace CStat {
      * @param configurationName name of the project configuration
      * @param cstatOutputDir path to where cstat output is placed for this configuration
      * @param extensionPath path to the root of this extension
-     * @param extraBuildArguments extra arguments to pass to iarbuild. If empty, the extension settings are used instead.
+     * @param extraBuildArguments extra arguments to pass to iarbuild.
      * @param onWrite an output channel for writing logs and other messages while running
      */
     export async function runAnalysis(
@@ -82,10 +81,9 @@ export namespace CStat {
         if (Fs.existsSync(dbPath)) {
             Fs.unlinkSync(dbPath);
         }
-        if (extraBuildArguments.length === 0) {
-            extraBuildArguments = Settings.getExtraBuildArguments();
-        }
-        const iarbuild = spawn(builderPath, [projectPath, "-cstat_analyze", configurationName, "-log", "info"].concat(extraBuildArguments));
+        const args = [projectPath, "-cstat_analyze", configurationName, "-log", "info"].concat(extraBuildArguments);
+        onWrite?.(`> '${builderPath}' ${args.map(arg => `'${arg}'`).join(" ")}\n`);
+        const iarbuild = spawn(builderPath, args);
         iarbuild.stdout.on("data", data => {
             onWrite?.(data.toString());
         });

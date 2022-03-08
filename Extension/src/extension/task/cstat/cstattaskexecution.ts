@@ -32,18 +32,34 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
      * @param definition The task definition to execute
      */
     constructor(private readonly extensionPath: string, private readonly diagnostics: Vscode.DiagnosticCollection,
-        private readonly definition: CStatTaskDefinition) {
+        private readonly definition: Partial<CStatTaskDefinition>) {
     }
 
     open(_initialDimensions: Vscode.TerminalDimensions | undefined): void {
+        const projectPath = this.definition.project;
+        if (!projectPath) {
+            this.onError("No project was specificed. Select one in the extension configuration, or configure the task manually.");
+            return;
+        }
+        const configName = this.definition.config;
+        if (!configName) {
+            this.onError("No project configuration was specificed. Select one in the extension configuration, or configure the task manually.");
+            return;
+        }
+        const toolchain = this.definition.toolchain;
+        if (!toolchain) {
+            this.onError("No toolchain path was specificed. Select one in the extension configuration, or configure the task manually.");
+            return;
+        }
+
         if (this.definition.action === "run") {
-            this.generateDiagnostics();
+            this.generateDiagnostics(projectPath, configName, toolchain);
         } else if (this.definition.action === "clear") {
             this.clearDiagnostics();
         } else if (this.definition.action === "report-full") {
-            this.generateHTMLReport(true);
+            this.generateHTMLReport(projectPath, configName, toolchain, true);
         } else if (this.definition.action === "report-summary") {
-            this.generateHTMLReport(false);
+            this.generateHTMLReport(projectPath, configName, toolchain, false);
         } else {
             this.writeEmitter.fire(`Unrecognized action '${this.definition.action}'`);
             this.closeEmitter.fire();
@@ -57,11 +73,8 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     /**
      * Runs C-STAT on the current project and updates the warnings displayed in VS Code
      */
-    private async generateDiagnostics(): Promise<void> {
-        const projectPath = this.definition.project;
-        const configName = this.definition.config;
-        const toolchain = this.definition.toolchain;
-        const extraArgs = this.definition.extraBuildArguments;
+    private async generateDiagnostics(projectPath: string, configName: string, toolchain: string): Promise<void> {
+        const extraArgs = this.definition.extraBuildArguments ?? Settings.getExtraBuildArguments();
 
         this.writeEmitter.fire("Running C-STAT...\r\n");
 
@@ -100,11 +113,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     /**
      * Generates an HTML report of all C-STAT warnings
      */
-    private async generateHTMLReport(full: boolean): Promise<void> {
-        const projectPath = this.definition.project;
-        const configName = this.definition.config;
-        const toolchain = this.definition.toolchain;
-
+    private async generateHTMLReport(projectPath: string, configName: string, toolchain: string, full: boolean): Promise<void> {
         this.writeEmitter.fire((full ? "Generating Full HTML Report" : "Generating HTML Summary Report") + "...\r\n");
 
         try {

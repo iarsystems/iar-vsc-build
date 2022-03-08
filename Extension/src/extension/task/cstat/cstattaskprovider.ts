@@ -3,7 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Vscode from "vscode";
-import { ExtensionState } from "../../extensionstate";
 import { CStatTaskExecution } from "./cstattaskexecution";
 
 export namespace CStatTaskProvider {
@@ -30,7 +29,7 @@ export interface CStatTaskDefinition {
     toolchain: string;
     project: string;
     config: string;
-    extraBuildArguments: string[];
+    extraBuildArguments: string[] | undefined;
 }
 
 /**
@@ -83,7 +82,7 @@ class CStatProvider implements Vscode.TaskProvider {
         }
 
         try {
-            const execution = this.getExecution(this.getFallbackDefinition(label, action));
+            const execution = this.getExecution();
             return new Vscode.Task(_task.definition, Vscode.TaskScope.Workspace, _task.definition["label"], "iar-cstat", execution, []);
         } catch (e) {
             if (e instanceof Error) {
@@ -101,56 +100,20 @@ class CStatProvider implements Vscode.TaskProvider {
             toolchain: "${command:iar-settings.toolchain}",
             project: "${command:iar-settings.project-file}",
             config: "${command:iar-settings.project-configuration}",
-            extraBuildArguments: [],
+            extraBuildArguments: undefined,
         };
         return definition;
     }
 
     // Creates a custom task execution. VS Code will provide a task definition with e.g. command variables resolved,
     // but if some properties are missing (because the user didn't specify them), we fill them in from the fallback definition.
-    private getExecution(fallbackDefinition?: CStatTaskDefinition): Vscode.CustomExecution {
-        return new Vscode.CustomExecution((resolvedDefinition) => {
-            const definition = resolvedDefinition as CStatTaskDefinition;
-            for (const property in fallbackDefinition) {
-                if (!definition[property as keyof CStatTaskDefinition]) {
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    definition[property as keyof CStatTaskDefinition] = fallbackDefinition[property as keyof CStatTaskDefinition];
-                }
-            }
+    private getExecution(): Vscode.CustomExecution {
+        return new Vscode.CustomExecution(resolvedDefinition => {
             return Promise.resolve(
-                new CStatTaskExecution(this.extensionRootPath, this.diagnosticsCollection, definition)
+                new CStatTaskExecution(this.extensionRootPath, this.diagnosticsCollection, resolvedDefinition)
             );
         });
     }
-
-    // Essentially the same as above, but without the command variables. We use these values as fallbacks for when
-    // a property is missing from the task definition, but we're past the stage of resolving command variables.
-    private getFallbackDefinition(label: string, action: "run" | "clear" | "report-full" | "report-summary"): CStatTaskDefinition {
-        const workbench = ExtensionState.getInstance().workbench.selected?.path;
-        if (!workbench) {
-            throw new Error("Please select a toolchain, or specify one in the task definition.");
-        }
-        const project = ExtensionState.getInstance().project.selected?.path;
-        if (!project) {
-            throw new Error("Please select a project, or specify one in the task definition.");
-        }
-        const config = ExtensionState.getInstance().config.selected?.name;
-        if (!config) {
-            throw new Error("Please select a project configuration, or specify one in the task definition.");
-        }
-        const definition: CStatTaskDefinition = {
-            label: label,
-            type: "iar-cstat",
-            action: action,
-            toolchain: workbench.toString(),
-            project: project.toString(),
-            config: config,
-            extraBuildArguments: [],
-        };
-        return definition;
-    }
-
 
     private showErrorMissingField(field: string, label: string): void {
         Vscode.window.showErrorMessage(`'${field}' is missing for task with label '${label}'.`);
