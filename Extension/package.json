@@ -339,7 +339,7 @@
           },
           "config": {
             "type": "string",
-            "description": "The project configuration to use."
+            "description": "The project configuration to use. Enter * to use all configurations."
           },
           "workbench": {
             "type": "string",
