@@ -85,10 +85,8 @@ export namespace BackupUtils {
         const taskPromise = task();
         taskPromise.finally(async() => {
             const backupFilesAfterExit = (await FsPromises.readdir(Path.dirname(project))).filter(file => file.match(backupRegex));
-            console.log(backupFilesAfterExit);
             if (originalBackupFiles.length !== backupFilesAfterExit.length) {
                 const newBackupFiles = backupFilesAfterExit.filter(backupFile => !originalBackupFiles.includes(backupFile));
-                console.log(newBackupFiles);
                 await Promise.allSettled(newBackupFiles.map(file => FsPromises.rm(Path.join(projectDir, file))));
             }
         });
