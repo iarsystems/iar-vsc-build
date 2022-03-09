@@ -105,8 +105,7 @@ class CStatProvider implements Vscode.TaskProvider {
         return definition;
     }
 
-    // Creates a custom task execution. VS Code will provide a task definition with e.g. command variables resolved,
-    // but if some properties are missing (because the user didn't specify them), we fill them in from the fallback definition.
+    // Creates a custom task execution. VS Code will provide a task definition with e.g. command variables resolved
     private getExecution(): Vscode.CustomExecution {
         return new Vscode.CustomExecution(resolvedDefinition => {
             return Promise.resolve(

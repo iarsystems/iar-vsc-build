@@ -362,7 +362,7 @@
             "items": {
               "type": "string"
             },
-            "description": "Extra arguments to supply to iarbuild (e.g. [\"-parallel\", \"8\"]). Leave empty to use the extension settings.",
+            "description": "Extra arguments to supply to iarbuild (e.g. [\"-parallel\", \"8\"]). Leave undefined to use the extension settings.",
             "default": []
           }
         },
