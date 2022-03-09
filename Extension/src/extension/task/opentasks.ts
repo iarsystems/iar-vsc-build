@@ -70,9 +70,9 @@ export namespace OpenTasks {
 
         // Make sure to escape all arguments
         const process = new Vscode.ShellExecution(
-            { value: workbench, quoting: Vscode.ShellQuoting.Escape },
+            { value: workbench, quoting: Vscode.ShellQuoting.Strong },
             [
-                { value: workspace, quoting: Vscode.ShellQuoting.Escape }
+                { value: workspace, quoting: Vscode.ShellQuoting.Strong }
             ],
             {}
         );
