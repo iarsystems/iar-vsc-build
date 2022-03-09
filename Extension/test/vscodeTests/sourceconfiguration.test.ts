@@ -8,6 +8,7 @@ import { OsUtils } from "../../utils/osUtils";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { SourceFileConfiguration } from "vscode-cpptools";
 import { Settings } from "../../src/extension/settings";
+import { readdirSync } from "fs";
 
 suite("Test Source Configuration (intelliSense)", ()=>{
     const USER_DEFINE_1 = "MY_DEFINE";
@@ -91,6 +92,10 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         Assert(provider.isProjectFile(path));
         config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
         assertConfig(config!.configuration);
+
+        // check that no backup files were created (VSC-192)
+        const backups = readdirSync(projectDir).filter(entry => entry.match(/Backup \(\d+\) of /));
+        Assert.strictEqual(backups.length, 0, "The following backups were created: " + backups.join(", "));
     });
 
     test("Handles non-project files", async() => {

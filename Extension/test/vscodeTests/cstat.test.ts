@@ -173,6 +173,10 @@ suite("Test C-STAT", ()=>{
             await VscodeTestsUtils.runTaskForProject(CLEAR_TASK, TARGET_PROJECT, "Debug");
             diagnostics = getDiagnostics().flatMap(pair => pair[1]);
             Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
+
+            // Finally, check that no backup files were created (VSC-192)
+            const backups = (await fsPromises.readdir(path.join(sandboxPath, TARGET_PROJECT))).filter(entry => entry.match(/Backup \(\d+\) of /));
+            Assert.strictEqual(backups.length, 0, "The following backups were created: " + backups.join(", "));
         }
     });
 

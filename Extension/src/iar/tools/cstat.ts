@@ -4,7 +4,7 @@
 
 
 
-import { ProcessUtils } from "../../utils/utils";
+import { BackupUtils, ProcessUtils } from "../../utils/utils";
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { join } from "path";
 import CsvParser = require("csv-parse/lib/sync");
@@ -83,12 +83,14 @@ export namespace CStat {
         }
         const args = [projectPath, "-cstat_analyze", configurationName, "-log", "info"].concat(extraBuildArguments);
         onWrite?.(`> '${builderPath}' ${args.map(arg => `'${arg}'`).join(" ")}\n`);
-        const iarbuild = spawn(builderPath, args);
-        iarbuild.stdout.on("data", data => {
-            onWrite?.(data.toString());
-        });
+        await BackupUtils.doWithBackupCheck(projectPath, async() => {
+            const iarbuild = spawn(builderPath, args);
+            iarbuild.stdout.on("data", data => {
+                onWrite?.(data.toString());
+            });
 
-        await ProcessUtils.waitForExit(iarbuild);
+            await ProcessUtils.waitForExit(iarbuild);
+        });
 
         onWrite?.("Reading C-STAT output.");
         return getAllWarnings(dbPath, extensionPath);

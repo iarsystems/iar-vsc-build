@@ -3,10 +3,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Vscode from "vscode";
-import { spawn } from "child_process";
 import { Settings } from "../settings";
 import { BuildTaskDefinition } from "./buildtasks";
-import { ProcessUtils } from "../../utils/utils";
+import { BackupUtils, ProcessUtils } from "../../utils/utils";
+import { spawn } from "child_process";
 
 /**
  * Executes a build task using iarbuild, e.g. to build or clean a project. We have to use a custom execution
@@ -25,7 +25,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
     constructor(private readonly definition: Partial<BuildTaskDefinition>) {
     }
 
-    open(_initialDimensions: Vscode.TerminalDimensions | undefined): void {
+    async open(_initialDimensions: Vscode.TerminalDimensions | undefined) {
         const projectPath = this.definition.project;
         if (!projectPath) {
             this.onError("No project was specificed. Select one in the extension configuration, or configure the task manually.");
@@ -52,7 +52,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
             configName,
             "-log", "info" // VSC-124 This gives the same verbosity as EW
         ];
-        let extraArgs = this.definition["extraBuildArguments"];
+        let extraArgs = this.definition.extraBuildArguments;
         if (extraArgs === undefined || extraArgs.length === 0) {
             extraArgs = Settings.getExtraBuildArguments();
         }
@@ -60,23 +60,23 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
             args.push(...extraArgs);
         }
 
-        this.runIarBuild(builder, args).finally(() => {
+        try {
+            await BackupUtils.doWithBackupCheck(projectPath, async() => {
+                const iarbuild = spawn(iarbuildCommand, args);
+                this.write("> " + iarbuild.spawnargs.map(arg => `'${arg}'`).join(" ") + "\n");
+                iarbuild.stdout.on("data", data => {
+                    this.write(data.toString());
+                });
+
+                await ProcessUtils.waitForExit(iarbuild);
+            });
+        } finally {
             this.closeEmitter.fire();
-        });
+        }
     }
 
     close(): void {
         // Nothing to do here
-    }
-
-    private async runIarBuild(builderPath: string, args: string[]) {
-        this.write(`> '${builderPath}' ${args.map(arg => `'${arg}'`).join(" ")}\n`);
-        const iarbuild = spawn(builderPath, args);
-        iarbuild.stdout.on("data", data => {
-            this.write(data.toString());
-        });
-
-        await ProcessUtils.waitForExit(iarbuild);
     }
 
     private write(msg: string) {

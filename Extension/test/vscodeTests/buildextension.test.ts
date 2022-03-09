@@ -137,6 +137,10 @@ suite("Test build extension", ()=>{
                 // Clean the project.
                 await VscodeTestsUtils.runTaskForProject(Utils.CLEAN, path.basename(testEwp.ewp, ".ewp"), "Debug");
                 await Utils.assertFileNotExists(exeFile);
+
+                // Finally, check that no backup files were created (VSC-192)
+                const backups = fs.readdirSync(path.dirname(testEwp.folder)).filter(entry => entry.match(/Backup \(\d+\) of /));
+                assert.strictEqual(backups.length, 0, "The following backups were created: " + backups.join(", "));
             }
         }
     });

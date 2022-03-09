@@ -14,6 +14,7 @@ import { ThriftServiceManager } from "./project/thrift/thriftservicemanager";
 import { ThriftClient } from "./project/thrift/thriftclient";
 import { QtoPromise } from "../utils/promise";
 import { ThriftProject } from "./project/thrift/thriftproject";
+import { BackupUtils } from "../utils/utils";
 
 /**
  * A workbench with some extra capabilities,
@@ -69,7 +70,10 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     public loadProject(project: Project): Promise<ThriftProject> {
         let contextPromise = this.loadedContexts.get(project.path.toString());
         if (contextPromise === undefined) {
-            contextPromise = QtoPromise(this.projectMgr.service.LoadEwpFile(project.path.toString()));
+            // VSC-192 Remove erroneous backup files created by some EW versions.
+            contextPromise = BackupUtils.doWithBackupCheck(project.path.toString(), async() => {
+                return await this.projectMgr.service.LoadEwpFile(project.path.toString());
+            });
             this.loadedContexts.set(project.path.toString(), contextPromise);
             contextPromise.catch(() => this.loadedContexts.delete(project.path.toString()));
         }

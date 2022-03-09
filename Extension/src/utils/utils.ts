@@ -6,6 +6,7 @@
 
 import { PathLike } from "fs";
 import * as Path from "path";
+import * as FsPromises from "fs/promises";
 import { ChildProcess } from "child_process";
 
 export namespace ListUtils {
@@ -62,5 +63,36 @@ export namespace ProcessUtils {
                 }
             });
         });
+    }
+}
+
+export namespace BackupUtils {
+    /**
+     * Performs a task that might erroneously produce a backup of a project file and returns the result of the task.
+     * Any backups created while performing the tasks are automatically removed.
+     * See IDE-5888: simply loading a project would create a backup identical to the original file. See also VSC-192.
+     * @param project The path to the project that the task uses, i.e. the project to watch for backups of
+     * @param task Some task that might produce backup files. After fulfilling, any backup files are removed
+     * @returns The result of #{@link task}
+     */
+    export async function doWithBackupCheck<T>(project: string, task: () => Promise<T>): Promise<T> {
+        // TODO: only do this if we detect from the platform version that it is needed
+        const projectDir = Path.dirname(project);
+        // match all backup files for the project (.ewp, .ewt, .ewd)
+        const backupRegex = new RegExp(`Backup\\s+(\\(\\d+\\))?\\s*of ${Path.basename(project, ".ewp")}.ew`);
+        const originalBackupFiles = (await FsPromises.readdir(projectDir)).filter(file => file.match(backupRegex));
+
+        const taskPromise = task();
+        taskPromise.finally(async() => {
+            const backupFilesAfterExit = (await FsPromises.readdir(Path.dirname(project))).filter(file => file.match(backupRegex));
+            console.log(backupFilesAfterExit);
+            if (originalBackupFiles.length !== backupFilesAfterExit.length) {
+                const newBackupFiles = backupFilesAfterExit.filter(backupFile => !originalBackupFiles.includes(backupFile));
+                console.log(newBackupFiles);
+                await Promise.allSettled(newBackupFiles.map(file => FsPromises.rm(Path.join(projectDir, file))));
+            }
+        });
+
+        return taskPromise;
     }
 }
