@@ -62,7 +62,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
 
         try {
             await BackupUtils.doWithBackupCheck(projectPath, async() => {
-                const iarbuild = spawn(iarbuildCommand, args);
+                const iarbuild = spawn(builder, args);
                 this.write("> " + iarbuild.spawnargs.map(arg => `'${arg}'`).join(" ") + "\n");
                 iarbuild.stdout.on("data", data => {
                     this.write(data.toString());
