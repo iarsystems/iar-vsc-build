@@ -136,35 +136,46 @@ export namespace CStat {
 
     function getWarningsFromTable(sqlProc: ChildProcessWithoutNullStreams, tableName: string): Promise<CStatWarningWithHash[]> {
         return new Promise((resolve, reject) => {
-            sqlProc.stdin.write(`SELECT sql FROM sqlite_master WHERE type IS 'table' AND name IS '${tableName}';\n`);
-            sqlProc.stdout.once("data", tableData => {
-                // The name of the check is contained in property_alias if present, otherwise in property_id
-                const checkIdColumn = tableData.toString().includes("property_alias") ? "property_alias" : "property_id";
+            // Check that the table exists, otherwise resolve an empty array
+            sqlProc.stdin.write(`SELECT Count(*) FROM sqlite_master WHERE type IS 'table' AND name IS '${tableName}';\n`);
+            sqlProc.stdout.once("data", count => {
+                if (count.toString() === "0\n") {
+                    resolve([]);
+                    return;
+                }
+                // Get column names
+                sqlProc.stdin.write(`SELECT sql FROM sqlite_master WHERE type IS 'table' AND name IS '${tableName}';\n`);
+                sqlProc.stdout.once("data", tableData => {
+                    // The name of the check is contained in property_alias if present, otherwise in property_id
+                    const checkIdColumn = tableData.toString().includes("property_alias") ? "property_alias" : "property_id";
 
-                sqlProc.stdin.write(`SELECT Count(*) FROM ${tableName};\n`);
-                sqlProc.stdout.once("data", data => {
-                    const expectedRows = Number(data.toString());
+                    // Get number of warnings
+                    sqlProc.stdin.write(`SELECT Count(*) FROM ${tableName};\n`);
+                    sqlProc.stdout.once("data", data => {
+                        const expectedRows = Number(data.toString());
 
-                    if (expectedRows > 0) {
-                        const query = `SELECT ${fieldsToLoad.join(",")},${checkIdColumn} FROM '${tableName}';\n`;
-                        sqlProc.stdin.write(query);
-                        let output = "";
-                        sqlProc.stdout.on("data", data => {
-                            output += data.toString();
-                            try {
-                                const warnsRaw: string[][] = CsvParser(output);
-                                const warnings = warnsRaw.map(row => parseWarning(row));
-                                if (warnings.length === expectedRows) {
-                                    resolve(warnings);  // We are done
-                                }
-                            } catch (e) { } // CsvParser will throw if we havent recieved all output yet
-                        });
-                    } else {
-                        resolve([]);
-                    }
+                        if (expectedRows > 0) {
+                            // Get table rows
+                            const query = `SELECT ${fieldsToLoad.join(",")},${checkIdColumn} FROM '${tableName}';\n`;
+                            sqlProc.stdin.write(query);
+                            let output = "";
+                            sqlProc.stdout.on("data", data => {
+                                output += data.toString();
+                                try {
+                                    const warnsRaw: string[][] = CsvParser(output);
+                                    const warnings = warnsRaw.map(row => parseWarning(row));
+                                    if (warnings.length === expectedRows) {
+                                        resolve(warnings);  // We are done
+                                    }
+                                } catch (e) { } // CsvParser will throw if we havent recieved all output yet
+                            });
+                        } else {
+                            resolve([]);
+                        }
 
-                }); /* stdout.once() */
-            }); /* stdout.once() */
+                    }); /* SELECT Count(*) */
+                }); /* SELECT sql */
+            }); /* SELECT Count(*) */
 
             sqlProc.stderr.once("data", data => {
                 reject(data.toString());
