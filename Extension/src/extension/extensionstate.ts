@@ -170,6 +170,7 @@ class State {
                 exWb.onCrash(exitCode => {
                     Vscode.window.showErrorMessage(`The IAR project manager exited unexpectedly (code ${exitCode}). Try reloading the window or upgrading the project from IAR Embedded Workbench.`);
                     this.extendedWorkbench.setValue(undefined);
+                    this.loadProject();
                 });
             }
         });
