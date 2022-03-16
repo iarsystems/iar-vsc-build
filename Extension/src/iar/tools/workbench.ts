@@ -4,6 +4,7 @@
 
 
 
+import { spawnSync } from "child_process";
 import * as Fs from "fs";
 import * as Path from "path";
 import { OsUtils } from "../../../utils/osUtils";
@@ -20,11 +21,19 @@ const builderSubPath = "common/bin/iarbuild" + (OsUtils.OsType.Windows === OsUti
 export interface Workbench {
     readonly name: string;
     readonly path: Fs.PathLike;
+    // The path to iaridepm
     readonly idePath: Fs.PathLike;
+    // The path to iarbuild
     readonly builderPath: Fs.PathLike;
+    // The IDE platform version
+    readonly version: WorkbenchVersion;
 }
 
+export interface WorkbenchVersion { major: number, minor: number, patch: number }
+
 class IarWorkbench implements Workbench {
+    private _version: WorkbenchVersion | undefined = undefined;
+
     readonly path: Fs.PathLike;
     readonly idePath: Fs.PathLike;
     readonly builderPath: Fs.PathLike;
@@ -47,6 +56,19 @@ class IarWorkbench implements Workbench {
 
     get name(): string {
         return Path.parse(this.path.toString()).base;
+    }
+
+    get version(): WorkbenchVersion {
+        if (this._version === undefined) {
+            const stdout = spawnSync(this.builderPath.toString()).stdout;
+            const match = stdout.toString().match(/V(\d+)\.(\d+)\.(\d+)\.\d+/);
+            if (match && match[1] !== undefined && match[2] !== undefined && match[3] !== undefined) {
+                this._version = { major: parseInt(match[1]), minor: parseInt(match[2]), patch: parseInt(match[3]) };
+            } else {
+                this._version = { major: NaN, minor: NaN, patch: NaN };
+            }
+        }
+        return this._version;
     }
 
     /**

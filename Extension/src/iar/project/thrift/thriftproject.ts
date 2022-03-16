@@ -11,6 +11,8 @@ import * as ProjectManager from "./bindings/ProjectManager";
 import { LoadedProject, ExtendedProject } from "../project";
 import { Configuration, ProjectContext, Node } from "./bindings/projectmanager_types";
 import { QtoPromise } from "../../../utils/promise";
+import { Workbench } from "../../tools/workbench";
+import { WorkbenchVersionRegistry } from "../../tools/workbenchVersionRegistry";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.
@@ -21,10 +23,11 @@ export class ThriftProject implements ExtendedProject {
     private readonly onChangedHandlers: ((project: LoadedProject) => void)[] = [];
     private ignoreNextFileChange = false;
 
-    constructor(public path:           Fs.PathLike,
-                public configurations: ReadonlyArray<Configuration>,
-                private readonly projectMgr:    ProjectManager.Client,
-                private context:       ProjectContext) {
+    constructor(public path:                 Fs.PathLike,
+                public configurations:       ReadonlyArray<Configuration>,
+                private readonly projectMgr: ProjectManager.Client,
+                private context:             ProjectContext,
+                private readonly owner:      Workbench) {
         // TODO: this should probably be changed to some thrift-based listener
         this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString());
         this.fileWatcher.onDidChange(() => {
@@ -61,9 +64,12 @@ export class ThriftProject implements ExtendedProject {
         return Promise.reject(new Error("Could not find the correct C-STAT option."));
     }
 
-    getCSpyArguments(config: string): Promise<string[]> {
+    getCSpyArguments(config: string): Promise<string[] | undefined> {
         if (!this.configurations.some(c => c.name === config)) {
-            return Promise.reject(new Error(`Project '${this.name}' has no configuration '${config}'.`));
+            throw new Error(`Project '${this.name}' has no configuration '${config}'.`);
+        }
+        if (!WorkbenchVersionRegistry.canFetchCSpyCommandLine(this.owner)) {
+            return Promise.resolve(undefined);
         }
         return QtoPromise(this.projectMgr.GetToolArgumentsForConfiguration(this.context, "C-SPY", config));
     }
@@ -91,9 +97,16 @@ export class ThriftProject implements ExtendedProject {
 }
 
 export namespace ThriftProject {
-    // since constructors can't be async, we load the project async statically
-    export async function fromContext(path: Fs.PathLike, pm: ProjectManager.Client, context: ProjectContext): Promise<ThriftProject> {
-        const configs        = await pm.GetConfigurations(context);
-        return new ThriftProject(path, configs, pm, context);
+    /**
+     * Creates a thrift project from a loaded project context.
+     * @param path The path to the .ewp file
+     * @param pm The thrift project manager where the context is loaded
+     * @param context The project context
+     * @param owner The workbench that has loaded the project. Used to know e.g. what APIs versions are available.
+     * @returns
+     */
+    export async function fromContext(path: Fs.PathLike, pm: ProjectManager.Client, context: ProjectContext, owner: Workbench): Promise<ThriftProject> {
+        const configs = await pm.GetConfigurations(context);
+        return new ThriftProject(path, configs, pm, context, owner);
     }
 }

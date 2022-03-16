@@ -77,7 +77,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
             this.loadedContexts.set(project.path.toString(), contextPromise);
             contextPromise.catch(() => this.loadedContexts.delete(project.path.toString()));
         }
-        return contextPromise.then(context => ThriftProject.fromContext(project.path, this.projectMgr.service, context));
+        return contextPromise.then(context => ThriftProject.fromContext(project.path, this.projectMgr.service, context, this.workbench));
     }
 
     public async dispose() {

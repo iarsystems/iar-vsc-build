@@ -30,7 +30,7 @@ export interface ExtendedProject extends LoadedProject {
     getRootNode(): Promise<Node>;
     setNode(node: Node): Promise<void>;
     getCStatOutputDirectory(config: string): Promise<string>;
-    getCSpyArguments(config: string): Promise<string[]>;
+    getCSpyArguments(config: string): Promise<string[] | undefined>;
 }
 
 
