@@ -10,6 +10,7 @@ import * as Path from "path";
 import * as ProjectManager from "./bindings/ProjectManager";
 import { LoadedProject, ExtendedProject } from "../project";
 import { Configuration, ProjectContext, Node } from "./bindings/projectmanager_types";
+import { QtoPromise } from "../../../utils/promise";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.
@@ -58,6 +59,13 @@ export class ThriftProject implements ExtendedProject {
             return outDir;
         }
         return Promise.reject(new Error("Could not find the correct C-STAT option."));
+    }
+
+    getCSpyArguments(config: string): Promise<string[]> {
+        if (!this.configurations.some(c => c.name === config)) {
+            return Promise.reject(new Error(`Project '${this.name}' has no configuration '${config}'.`));
+        }
+        return QtoPromise(this.projectMgr.GetToolArgumentsForConfiguration(this.context, "C-SPY", config));
     }
 
     public async reload() {

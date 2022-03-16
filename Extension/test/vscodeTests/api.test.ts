@@ -3,9 +3,10 @@ import * as Path from "path";
 import * as Assert from "assert";
 import { VscodeTestsUtils } from "./utils";
 import { VscodeTestsSetup } from "./setup";
-import { OsUtils } from "../../utils/osUtils";
+import { IarOsUtils, OsUtils } from "../../utils/osUtils";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { BuildExtensionApi } from "../../utils/buildExtension";
+import path = require("path");
 
 suite("Test Public TS Api", ()=>{
     let api: BuildExtensionApi;
@@ -45,14 +46,59 @@ suite("Test Public TS Api", ()=>{
     test("Returns current configuration", async() => {
         {
             await VscodeTestsUtils.activateProject("LedFlasher");
-            const config = await api.getSelectedConfiguration();
-            Assert.strictEqual(config, "Flash Debug");
+            const config = await api.getSelectedConfiguration(ledFlasherPath);
+            Assert.strictEqual(config?.name, "Flash Debug");
+            Assert.strictEqual(config?.target, "ARM");
         }
         {
             await VscodeTestsUtils.activateProject("BasicDebugging");
             VscodeTestsUtils.activateConfiguration("Release");
-            const config = await api.getSelectedConfiguration();
-            Assert.strictEqual(config, "Release");
+            const config = await api.getSelectedConfiguration(basicDebuggingPath);
+            Assert.strictEqual(config?.target, "ARM");
         }
+    });
+    test("Returns project configurations", async() => {
+        {
+            await VscodeTestsUtils.activateProject("LedFlasher");
+            const configs = await api.getProjectConfigurations(ledFlasherPath);
+            Assert.strictEqual(configs?.[0]?.name, "Flash Debug");
+            Assert.strictEqual(configs?.[0]?.target, "ARM");
+        }
+        {
+            await VscodeTestsUtils.activateProject("BasicDebugging");
+            VscodeTestsUtils.activateConfiguration("Release");
+            const configs = await api.getProjectConfigurations(basicDebuggingPath);
+            Assert.strictEqual(configs?.[0]?.name, "Debug");
+            Assert.strictEqual(configs?.[0]?.target, "ARM");
+            Assert.strictEqual(configs?.[1]?.name, "Release");
+            Assert.strictEqual(configs?.[1]?.target, "ARM");
+        }
+    });
+
+    test("Returns cspy arguments", async() => {
+        await VscodeTestsUtils.activateProject("BasicDebugging");
+        const commands = await api.getCSpyCommandline(basicDebuggingPath, "Debug");
+        const expectedCommands = [
+            "/file",
+            path.join(path.dirname(basicDebuggingPath), "Debug/Exe/BasicDebugging.out"),
+            "--crun=disabled",
+            "--endian=little",
+            "--cpu=ARM7TDMI",
+            "/runto",
+            "main",
+            "--fpu=None",
+            "--semihosting",
+            "--multicore_nr_of_cores=1",
+            "/driver",
+            "armSIM2.dll",
+            "/proc",
+            "armPROC.dll",
+            "/plugin",
+            path.join("$TOOLKIT_DIR$", "bin", "armlibsupport" + IarOsUtils.libraryExtension()),
+            "/kernel",
+            "kernel" + IarOsUtils.libraryExtension(),
+            "/ilink"
+        ];
+        Assert.deepStrictEqual(commands, expectedCommands);
     });
 });
