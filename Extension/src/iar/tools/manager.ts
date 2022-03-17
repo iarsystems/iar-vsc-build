@@ -67,7 +67,11 @@ class IarToolManager implements ToolManager {
             }
         });
         if (useRegistry && OsUtils.OsType.Windows === OsUtils.detectOsType()) {
-            workbenches = workbenches.concat(await IarToolManager.collectFromWindowsRegistry());
+            try {
+                workbenches = workbenches.concat(await IarToolManager.collectFromWindowsRegistry());
+            } catch (e) {
+                console.log("Failed to fetch workbenches from registry: ", e);
+            }
         }
 
         this.add(...workbenches);
