@@ -55,9 +55,11 @@ export namespace ProcessUtils {
      */
     export function waitForExit(process: ChildProcess) {
         return new Promise<void>((resolve, reject) => {
+            let output = "";
+            process.stdout?.on("data", data => output += data.toString());
             process.on("exit", code => {
                 if (code !== 0) {
-                    reject(new Error("Process exited with code: " + code));
+                    reject(new Error("Process exited with code: " + code + "\nOutput: " + output));
                 } else {
                     resolve();
                 }
