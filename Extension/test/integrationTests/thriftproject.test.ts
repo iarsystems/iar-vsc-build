@@ -58,6 +58,7 @@ suite("Thrift project", function() {
             hasRelevantSettings: false,
             isExcludedFromBuild: false,
             isMfcEnabled: false,
+            isGenerated: false,
         })];
         await project.setNode(rootNode);
 

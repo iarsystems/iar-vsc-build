@@ -38,7 +38,7 @@ export class AddFileCommand extends ProjectCommand {
 
             uris.forEach(uri => {
                 const name = Path.basename(uri.fsPath);
-                parent.children.push(new Node({ children: [], name: name, type: NodeType.File, path: uri.fsPath, ...getNodeDefaults() }));
+                parent.children.push(new Node({ children: [], name: name, type: NodeType.File, path: uri.fsPath, ...getNodeDefaults(), isGenerated: false }));
             });
 
             await project.setNode(parent);
@@ -84,7 +84,7 @@ export class AddGroupCommand extends ProjectCommand {
             }
 
             const fullPath = Path.join(Path.dirname(project.path.toString()), name);
-            const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath, ...getNodeDefaults() });
+            const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath, ...getNodeDefaults(), isGenerated: false });
             parent.children.push(node);
             await project.setNode(parent);
         } catch (e) {
