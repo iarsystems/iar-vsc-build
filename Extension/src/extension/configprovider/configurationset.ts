@@ -123,7 +123,7 @@ namespace ConfigGenerator {
 
             // VSC-192 Invoke iarbuild and clean up any backups created
             await BackupUtils.doWithBackupCheck(project.path.toString(), async() => {
-                const builderProc = spawn(workbench.builderPath.toString(), [project.path.toString() + "a", "-jsondb", config.name, "-output", jsonPath].concat(extraArgs));
+                const builderProc = spawn(workbench.builderPath.toString(), [project.path.toString(), "-jsondb", config.name, "-output", jsonPath].concat(extraArgs));
                 builderProc.stdout.on("data", data => output?.append(data.toString()));
                 builderProc.on("error", (err) => {
                     return Promise.reject(err);
