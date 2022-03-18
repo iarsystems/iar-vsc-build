@@ -23,6 +23,7 @@ import { OsUtils } from "../../utils/osUtils";
 import { Project } from "../iar/project/project";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
+    IarVsc.extensionContext = context;
     ExtensionState.init(IarVsc.toolManager);
 
     // --- create and register commands
@@ -138,6 +139,7 @@ async function loadTools(addWorkbenchCommand?: Command<unknown>) {
 }
 
 export namespace IarVsc {
+    export let extensionContext: vscode.ExtensionContext | undefined;
     export const toolManager = ToolManager.createIarToolManager();
     // exported mostly for testing purposes
     export let settingsView: SettingsWebview;

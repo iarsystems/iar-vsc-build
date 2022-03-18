@@ -60,7 +60,7 @@ suite("Thrift project", function() {
             isMfcEnabled: false,
             isGenerated: false,
         })];
-        await project.setNode(rootNode);
+        await project.setNode(rootNode, []);
 
         const updatedRootNode = await project.getRootNode();
         Assert(updatedRootNode);

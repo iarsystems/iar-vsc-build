@@ -9,10 +9,12 @@ import * as Fs from "fs";
 import * as Path from "path";
 import * as ProjectManager from "./bindings/ProjectManager";
 import { LoadedProject, ExtendedProject } from "../project";
-import { Configuration, ProjectContext, Node } from "./bindings/projectmanager_types";
+import { Configuration, ProjectContext, Node, NodeType } from "./bindings/projectmanager_types";
 import { QtoPromise } from "../../../utils/promise";
 import { Workbench } from "../../tools/workbench";
 import { WorkbenchVersionRegistry } from "../../tools/workbenchVersionRegistry";
+import Int64 = require("node-int64");
+import { InformationDialog, InformationDialogType } from "../../../extension/ui/informationdialog";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.
@@ -46,9 +48,14 @@ export class ThriftProject implements ExtendedProject {
     public getRootNode(): Promise<Node> {
         return Promise.resolve(this.projectMgr.GetRootNode(this.context));
     }
-    public async setNode(node: Node): Promise<void> {
+    public async setNode(node: Node, indexPath: number[]): Promise<void> {
         this.ignoreNextFileChange = true;
-        await this.projectMgr.SetNode(this.context, node);
+        if (WorkbenchVersionRegistry.supportsSetNodeByIndex(this.owner)) {
+            await this.projectMgr.SetNodeByIndex(this.context, indexPath.map(i => new Int64(i)), node, true);
+        } else {
+            // eslint-disable-next-line deprecation/deprecation
+            await this.projectMgr.SetNode(this.context, node);
+        }
         this.fireChangedEvent();
     }
 
@@ -107,6 +114,25 @@ export namespace ThriftProject {
      */
     export async function fromContext(path: Fs.PathLike, pm: ProjectManager.Client, context: ProjectContext, owner: Workbench): Promise<ThriftProject> {
         const configs = await pm.GetConfigurations(context);
+
+        // VSC-233 Warn users about having several groups with the same name
+        if (!WorkbenchVersionRegistry.supportsSetNodeByIndex(owner)) {
+            const node = await pm.GetRootNode(context);
+            if (hasDuplicateGroupNames(new Set(), node)) {
+                const prompt = `The project ${Path.basename(path.toString())} has several groups with the same name. This may cause unwanted behaviour when adding or removing files.`;
+                InformationDialog.show("duplicateGroups", prompt, InformationDialogType.Warning);
+            }
+        }
         return new ThriftProject(path, configs, pm, context, owner);
     }
+}
+
+function hasDuplicateGroupNames(discoveredGroupNames: Set<string>, node: Node): boolean {
+    if (node.type === NodeType.Group) {
+        if (discoveredGroupNames.has(node.name)) {
+            return true;
+        }
+        discoveredGroupNames.add(node.name);
+    }
+    return node.children.some(child => hasDuplicateGroupNames(discoveredGroupNames, child));
 }

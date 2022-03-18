@@ -10,6 +10,9 @@ import { FsUtils } from "../../utils/fs";
 import { Config } from "./config";
 import { Node } from "./thrift/bindings/projectmanager_types";
 
+/**
+ * An embedded workbench project.
+ */
 export class Project {
     constructor(public path: Fs.PathLike) {}
 
@@ -18,6 +21,9 @@ export class Project {
     }
 }
 
+/**
+ * An embedded workbench project that is loaded in some way, so that we can access its configurations.
+ */
 export interface LoadedProject extends Project {
     configurations: ReadonlyArray<Config>;
 
@@ -26,10 +32,27 @@ export interface LoadedProject extends Project {
     unload(): void | Promise<void>;
 }
 
+/**
+ * An embedded workbench project that is loaded through e.g. thrift, so we can perform some operations on it.
+ */
 export interface ExtendedProject extends LoadedProject {
+    /**
+     * Gets the node at the top of the project (file) tree.
+     */
     getRootNode(): Promise<Node>;
-    setNode(node: Node): Promise<void>;
+    /**
+     * Sets a node in the project (file) tree
+     * @param node The new value for the node
+     * @param indexPath The path to node to replace, as a series of child indices
+     */
+    setNode(node: Node, indexPath: number[]): Promise<void>;
+    /**
+     * Gets the directory where C-STAT will place its output files
+     */
     getCStatOutputDirectory(config: string): Promise<string>;
+    /**
+     * Gets the C-SPY command line used to debug the configuration
+     */
     getCSpyArguments(config: string): Promise<string[] | undefined>;
 }
 

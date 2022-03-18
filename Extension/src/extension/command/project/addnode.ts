@@ -41,7 +41,7 @@ export class AddFileCommand extends ProjectCommand {
                 parent.children.push(new Node({ children: [], name: name, type: NodeType.File, path: uri.fsPath, ...getNodeDefaults(), isGenerated: false }));
             });
 
-            await project.setNode(parent);
+            await project.setNode(parent, source ? source.indexPath : []);
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
                 Vscode.window.showErrorMessage("Unable to add file: " + e.toString());
@@ -86,7 +86,7 @@ export class AddGroupCommand extends ProjectCommand {
             const fullPath = Path.join(Path.dirname(project.path.toString()), name);
             const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath, ...getNodeDefaults(), isGenerated: false });
             parent.children.push(node);
-            await project.setNode(parent);
+            await project.setNode(parent, source ? source.indexPath : []);
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
                 Vscode.window.showErrorMessage("Unable to add group: " + e.toString());

@@ -34,6 +34,7 @@ declare enum InvocationType {
  * Element types in a project tree
  */
 declare enum NodeType {
+  Invalid = 0,
   Group = 1,
   File = 2,
 }
@@ -140,7 +141,7 @@ declare class ProjectContext {
  *  This can be modified on the client side and is not persisted in the actual project
  *  until the backend is instructed to save this element.
  * 
- * @see ProjectManager.SetNode()
+ * @see ProjectManager.SetNodeByIndex()
  */
 declare class Node {
   public name: string;
@@ -152,8 +153,9 @@ declare class Node {
   public hasLocalSettings: boolean;
   public hasRelevantSettings: boolean;
   public childrenHaveLocalSettings: boolean;
+  public isGenerated: boolean;
 
-    constructor(args?: { name: string; children: Node[]; type: NodeType; path: string; isMfcEnabled: boolean; isExcludedFromBuild: boolean; hasLocalSettings: boolean; hasRelevantSettings: boolean; childrenHaveLocalSettings: boolean; });
+    constructor(args?: { name: string; children: Node[]; type: NodeType; path: string; isMfcEnabled: boolean; isExcludedFromBuild: boolean; hasLocalSettings: boolean; hasRelevantSettings: boolean; childrenHaveLocalSettings: boolean; isGenerated: boolean; });
   read(input: Object): void;
   write(input: Object): void;
 }
@@ -197,6 +199,19 @@ declare class OptionCategory {
   public optionIds: string[];
 
     constructor(args?: { id: string; optionIds: string[]; });
+  read(input: Object): void;
+  write(input: Object): void;
+}
+
+/**
+ * Input to builds.
+ */
+declare class BuildItem {
+  public projectContext: ProjectContext;
+  public configurationName: string;
+  public nodePaths: string[];
+
+    constructor(args?: { projectContext: ProjectContext; configurationName: string; nodePaths: string[]; });
   read(input: Object): void;
   write(input: Object): void;
 }

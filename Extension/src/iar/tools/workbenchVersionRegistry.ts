@@ -12,12 +12,27 @@ export namespace WorkbenchVersionRegistry {
      */
     export function canFetchCSpyCommandLine(workbench: Workbench): boolean {
         const version = workbench.version;
-        // Fix versions: 9.0.11 and 9.1.1
+        // Fix versions: 9.0.12 and 9.1.1
         return version.major > 9 ||
             (version.major === 9 && (
                 (version.minor > 1 ||
                     (version.minor === 1 && version.patch > 0) ||
-                    (version.minor === 0 && version.patch > 10)
+                    (version.minor === 0 && version.patch > 11)
                 )));
+    }
+
+    /**
+     * Whether this workbench supports the SetNodeByIndex thrift procedure, which
+     * te
+     * fixes issues with the previous SetNode procedure. See VSC-233.
+     */
+    export function supportsSetNodeByIndex(workbench: Workbench): boolean {
+        const version = workbench.version;
+        // Fix version: 9.1.1
+        return version.major > 9 ||
+            (version.major === 9 && (
+                version.minor > 1 ||
+                    (version.minor === 1 && version.patch > 0)
+            ));
     }
 }

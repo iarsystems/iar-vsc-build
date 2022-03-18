@@ -31,7 +31,7 @@ export class RemoveNodeCommand extends ProjectCommand {
 
             const rootNode = await project.getRootNode();
             this.removeNode(rootNode, toRemove);
-            await project.setNode(rootNode);
+            await project.setNode(rootNode, []);
 
             Vscode.window.showInformationMessage(`The ${typeString} "${toRemove.name}" has been removed from the project.`);
         } catch (e) {

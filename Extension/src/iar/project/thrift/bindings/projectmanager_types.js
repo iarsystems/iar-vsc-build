@@ -33,6 +33,8 @@ ttypes.InvocationType = {
   'MultiInput' : 2
 };
 ttypes.NodeType = {
+  '0' : 'Invalid',
+  'Invalid' : 0,
   '1' : 'Group',
   'Group' : 1,
   '2' : 'File',
@@ -593,6 +595,7 @@ var Node = module.exports.Node = function(args) {
   this.hasLocalSettings = null;
   this.hasRelevantSettings = null;
   this.childrenHaveLocalSettings = null;
+  this.isGenerated = null;
   if (args) {
     if (args.name !== undefined && args.name !== null) {
       this.name = args.name;
@@ -620,6 +623,9 @@ var Node = module.exports.Node = function(args) {
     }
     if (args.childrenHaveLocalSettings !== undefined && args.childrenHaveLocalSettings !== null) {
       this.childrenHaveLocalSettings = args.childrenHaveLocalSettings;
+    }
+    if (args.isGenerated !== undefined && args.isGenerated !== null) {
+      this.isGenerated = args.isGenerated;
     }
   }
 };
@@ -706,6 +712,13 @@ Node.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 10:
+      if (ftype == Thrift.Type.BOOL) {
+        this.isGenerated = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -767,6 +780,11 @@ Node.prototype.write = function(output) {
   if (this.childrenHaveLocalSettings !== null && this.childrenHaveLocalSettings !== undefined) {
     output.writeFieldBegin('childrenHaveLocalSettings', Thrift.Type.BOOL, 9);
     output.writeBool(this.childrenHaveLocalSettings);
+    output.writeFieldEnd();
+  }
+  if (this.isGenerated !== null && this.isGenerated !== undefined) {
+    output.writeFieldBegin('isGenerated', Thrift.Type.BOOL, 10);
+    output.writeBool(this.isGenerated);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -1106,6 +1124,101 @@ OptionCategory.prototype.write = function(output) {
   return;
 };
 
+var BuildItem = module.exports.BuildItem = function(args) {
+  this.projectContext = null;
+  this.configurationName = null;
+  this.nodePaths = null;
+  if (args) {
+    if (args.projectContext !== undefined && args.projectContext !== null) {
+      this.projectContext = new ttypes.ProjectContext(args.projectContext);
+    }
+    if (args.configurationName !== undefined && args.configurationName !== null) {
+      this.configurationName = args.configurationName;
+    }
+    if (args.nodePaths !== undefined && args.nodePaths !== null) {
+      this.nodePaths = Thrift.copyList(args.nodePaths, [null]);
+    }
+  }
+};
+BuildItem.prototype = {};
+BuildItem.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true) {
+    var ret = input.readFieldBegin();
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid) {
+      case 1:
+      if (ftype == Thrift.Type.STRUCT) {
+        this.projectContext = new ttypes.ProjectContext();
+        this.projectContext.read(input);
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.STRING) {
+        this.configurationName = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 3:
+      if (ftype == Thrift.Type.LIST) {
+        this.nodePaths = [];
+        var _rtmp336 = input.readListBegin();
+        var _size35 = _rtmp336.size || 0;
+        for (var _i37 = 0; _i37 < _size35; ++_i37) {
+          var elem38 = null;
+          elem38 = input.readString();
+          this.nodePaths.push(elem38);
+        }
+        input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+BuildItem.prototype.write = function(output) {
+  output.writeStructBegin('BuildItem');
+  if (this.projectContext !== null && this.projectContext !== undefined) {
+    output.writeFieldBegin('projectContext', Thrift.Type.STRUCT, 1);
+    this.projectContext.write(output);
+    output.writeFieldEnd();
+  }
+  if (this.configurationName !== null && this.configurationName !== undefined) {
+    output.writeFieldBegin('configurationName', Thrift.Type.STRING, 2);
+    output.writeString(this.configurationName);
+    output.writeFieldEnd();
+  }
+  if (this.nodePaths !== null && this.nodePaths !== undefined) {
+    output.writeFieldBegin('nodePaths', Thrift.Type.LIST, 3);
+    output.writeListBegin(Thrift.Type.STRING, this.nodePaths.length);
+    for (var iter39 in this.nodePaths) {
+      if (this.nodePaths.hasOwnProperty(iter39)) {
+        iter39 = this.nodePaths[iter39];
+        output.writeString(iter39);
+      }
+    }
+    output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
 var BuildResult = module.exports.BuildResult = function(args) {
   this.projectContext = null;
   this.buildOutput = null;
@@ -1144,12 +1257,12 @@ BuildResult.prototype.read = function(input) {
       case 2:
       if (ftype == Thrift.Type.LIST) {
         this.buildOutput = [];
-        var _rtmp336 = input.readListBegin();
-        var _size35 = _rtmp336.size || 0;
-        for (var _i37 = 0; _i37 < _size35; ++_i37) {
-          var elem38 = null;
-          elem38 = input.readString();
-          this.buildOutput.push(elem38);
+        var _rtmp341 = input.readListBegin();
+        var _size40 = _rtmp341.size || 0;
+        for (var _i42 = 0; _i42 < _size40; ++_i42) {
+          var elem43 = null;
+          elem43 = input.readString();
+          this.buildOutput.push(elem43);
         }
         input.readListEnd();
       } else {
@@ -1182,10 +1295,10 @@ BuildResult.prototype.write = function(output) {
   if (this.buildOutput !== null && this.buildOutput !== undefined) {
     output.writeFieldBegin('buildOutput', Thrift.Type.LIST, 2);
     output.writeListBegin(Thrift.Type.STRING, this.buildOutput.length);
-    for (var iter39 in this.buildOutput) {
-      if (this.buildOutput.hasOwnProperty(iter39)) {
-        iter39 = this.buildOutput[iter39];
-        output.writeString(iter39);
+    for (var iter44 in this.buildOutput) {
+      if (this.buildOutput.hasOwnProperty(iter44)) {
+        iter44 = this.buildOutput[iter44];
+        output.writeString(iter44);
       }
     }
     output.writeListEnd();
