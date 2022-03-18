@@ -52,8 +52,9 @@ suite("Test Public TS Api", ()=>{
         }
         {
             await VscodeTestsUtils.activateProject("BasicDebugging");
-            VscodeTestsUtils.activateConfiguration("Release");
+            await VscodeTestsUtils.activateConfiguration("Release");
             const config = await api.getSelectedConfiguration(basicDebuggingPath);
+            Assert.strictEqual(config?.name, "Release");
             Assert.strictEqual(config?.target, "ARM");
         }
     });
@@ -66,7 +67,7 @@ suite("Test Public TS Api", ()=>{
         }
         {
             await VscodeTestsUtils.activateProject("BasicDebugging");
-            VscodeTestsUtils.activateConfiguration("Release");
+            await VscodeTestsUtils.activateConfiguration("Release");
             const configs = await api.getProjectConfigurations(basicDebuggingPath);
             Assert.strictEqual(configs?.[0]?.name, "Debug");
             Assert.strictEqual(configs?.[0]?.target, "ARM");
