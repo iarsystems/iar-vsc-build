@@ -29,9 +29,14 @@ export class RemoveNodeCommand extends ProjectCommand {
                 return;
             }
 
-            const rootNode = await project.getRootNode();
-            this.removeNode(rootNode, toRemove);
-            await project.setNode(rootNode, []);
+            const parent = source.parent;
+            if (parent === undefined) {
+                // should never happen
+                console.error(`Parent was not populated for node ${source.name}`);
+                return;
+            }
+            parent.iarNode.children.splice(parent.iarNode.children.indexOf(source.iarNode), 1);
+            await project.setNode(parent.iarNode, parent.indexPath);
 
             Vscode.window.showInformationMessage(`The ${typeString} "${toRemove.name}" has been removed from the project.`);
         } catch (e) {

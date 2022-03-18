@@ -13,13 +13,13 @@ import { BehaviorSubject } from "rxjs";
 export class FilesNode {
     public name: string;
     public context: string;
-    constructor(public iarNode: Node, public indexPath: number[]) {
+    constructor(public iarNode: Node, public parent: FilesNode | undefined, public indexPath: number[]) {
         this.name = iarNode.name;
         this.context = iarNode.type === NodeType.File ? "file" : "group";
     }
 
     getChildren(): FilesNode[] {
-        return this.iarNode.children.map((child, i) => new FilesNode(child, this.indexPath.concat([i])));
+        return this.iarNode.children.map((child, i) => new FilesNode(child, this, this.indexPath.concat([i])));
     }
 }
 
@@ -66,7 +66,7 @@ export class TreeProjectProvider implements Vscode.TreeDataProvider<FilesNode> {
 
     getChildren(element?: FilesNode): Vscode.ProviderResult<FilesNode[]> {
         if (!element) {
-            return this.rootNode ? new FilesNode(this.rootNode, []).getChildren() : [];
+            return this.rootNode ? new FilesNode(this.rootNode, undefined, []).getChildren() : [];
         } else if (element instanceof FilesNode) {
             return element.getChildren();
         }
