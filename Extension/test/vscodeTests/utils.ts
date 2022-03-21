@@ -26,7 +26,6 @@ export namespace VscodeTestsUtils {
     export async function activateConfiguration(configurationTag: string) {
         if (ExtensionState.getInstance().config.selected?.name !== configurationTag) {
             await Promise.all([
-                VscodeTestsUtils.projectLoaded(),
                 ExtensionState.getInstance().config.selectWhen(config => config.name === configurationTag),
             ]);
         }
