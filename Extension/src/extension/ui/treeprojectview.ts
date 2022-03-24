@@ -12,6 +12,7 @@ import { ExtendedWorkbench } from "../../iar/extendedworkbench";
 import { InputModel } from "../model/model";
 import { AsyncObservable } from "../model/asyncobservable";
 import { Subject } from "rxjs";
+import { WorkbenchVersions } from "../../iar/tools/workbenchVersionRegistry";
 
 /**
  * Shows a view to the left of all files/groups in the project, and all configurations in the project.
@@ -41,8 +42,18 @@ export class TreeProjectView {
             if (isLoading) {
                 this.view.message = "Loading...";
             } else {
-                if (!hasExtendedWb && workbenchModel.selected) {
-                    this.view.message = "This IAR toolchain does not support modifying projects from VS Code.";
+                if (!hasExtendedWb && workbenchModel.selected !== undefined) {
+                    if (!WorkbenchVersions.doCheck(workbenchModel.selected, WorkbenchVersions.supportsThriftPM)) {
+                        const minProductVersion = WorkbenchVersions.getMinProductVersion(workbenchModel.selected, WorkbenchVersions.supportsThriftPM);
+                        if (minProductVersion !== undefined) {
+                            this.view.message = `The IAR project view requires ${minProductVersion} or later.`;
+                        } else {
+                            this.view.message = "This IAR toolchain does not support modifying projects from VS Code.";
+                        }
+                    } else {
+                        // The workbench *should* support this view but doesn't. The project manager probably crashed.
+                        this.view.message = "The IAR project view is unavailable.";
+                    }
                 } else {
                     if (projectIsEmpty) {
                         this.view.message = "There are no files in the project";
@@ -66,6 +77,7 @@ export class TreeProjectView {
             });
         });
         extWorkbenchModel.onValueDidChange(extWorkbench => {
+            console.log("a", extWorkbench);
             hasExtendedWb = extWorkbench !== undefined;
             updateMessage();
         });

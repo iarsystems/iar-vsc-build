@@ -24,9 +24,11 @@ export namespace WorkbenchVersions {
     export const canFetchCSpyCommandLine: MinVersion = [[9,1,1], Type.EwOnly];
     /**
      * Whether this workbench supports the SetNodeByIndex thrift procedure, which
-     * fixes issues with the previous SetNode procedure. See VSC-233.
-     */
+     * fixes issues with the previous SetNode procedure. See VSC-233. */
     export const supportsSetNodeByIndex: MinVersion = [[9,1,1], Type.BxAndEw];
+    /**
+     * Whether this workbench supports the thrift project manager. */
+    export const supportsThriftPM: MinVersion = [[9,0,11], Type.BxAndEw];
 
 
     /**
@@ -99,10 +101,12 @@ export namespace WorkbenchVersions {
         "arm": {
             "8.0.0": "8.10.1", // there wasn't actually a release using 8.0.0, but add it so we can match the supportsVSCode FixVersion
             "8.0.4": "8.10.1",
+            "9.0.11": "9.20.4",
         },
         "riscv": {
             "8.0.0": "1.10", // not a real release
             "8.3.2": "1.10",
+            "9.1.0": "3.10.1",
         },
         "430": {
             "8.0.0": "7.10.1", // not a real release
