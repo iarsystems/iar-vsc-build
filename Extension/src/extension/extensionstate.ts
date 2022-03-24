@@ -14,6 +14,8 @@ import { EwpFile } from "../iar/project/parsing/ewpfile";
 import { ExtendedWorkbench, ThriftWorkbench } from "../iar/extendedworkbench";
 import { AsyncObservable } from "./model/asyncobservable";
 import { BehaviorSubject } from "rxjs";
+import { InformationDialog, InformationDialogType } from "./ui/informationdialog";
+import { WorkbenchVersions } from "../iar/tools/workbenchVersionRegistry";
 
 /**
  * Holds most extension-wide data, such as the selected workbench, project and configuration, and loaded project etc.
@@ -172,6 +174,16 @@ class State {
                     this.extendedWorkbench.setValue(undefined);
                     this.loadProject();
                 });
+            }
+        });
+
+        this.workbench.addOnSelectedHandler(model => {
+            if (model.selected !== undefined && !WorkbenchVersions.doCheck(model.selected, WorkbenchVersions.supportsVSCode)) {
+                const minVersion = WorkbenchVersions.getMinProductVersion(model.selected, WorkbenchVersions.supportsVSCode);
+                InformationDialog.show(
+                    "unsupportedWorkbench",
+                    "The selected IAR toolchain is not supported by this extension." + (minVersion ? ` The minimum supported version is ${minVersion}.`: ""),
+                    InformationDialogType.Error);
             }
         });
     }
