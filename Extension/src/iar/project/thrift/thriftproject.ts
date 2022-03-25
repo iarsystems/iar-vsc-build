@@ -12,9 +12,9 @@ import { LoadedProject, ExtendedProject } from "../project";
 import { Configuration, ProjectContext, Node, NodeType } from "./bindings/projectmanager_types";
 import { QtoPromise } from "../../../utils/promise";
 import { Workbench } from "../../tools/workbench";
-import { WorkbenchVersionRegistry } from "../../tools/workbenchVersionRegistry";
 import Int64 = require("node-int64");
 import { InformationDialog, InformationDialogType } from "../../../extension/ui/informationdialog";
+import { WorkbenchVersions } from "../../tools/workbenchVersionRegistry";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.
@@ -50,7 +50,7 @@ export class ThriftProject implements ExtendedProject {
     }
     public async setNode(node: Node, indexPath: number[]): Promise<void> {
         this.ignoreNextFileChange = true;
-        if (WorkbenchVersionRegistry.supportsSetNodeByIndex(this.owner)) {
+        if (WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.supportsSetNodeByIndex)) {
             await this.projectMgr.SetNodeByIndex(this.context, indexPath.map(i => new Int64(i)), node, true);
         } else {
             // eslint-disable-next-line deprecation/deprecation
@@ -75,7 +75,7 @@ export class ThriftProject implements ExtendedProject {
         if (!this.configurations.some(c => c.name === config)) {
             throw new Error(`Project '${this.name}' has no configuration '${config}'.`);
         }
-        if (!WorkbenchVersionRegistry.canFetchCSpyCommandLine(this.owner)) {
+        if (!WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.canFetchCSpyCommandLine)) {
             return Promise.resolve(undefined);
         }
         return QtoPromise(this.projectMgr.GetToolArgumentsForConfiguration(this.context, "C-SPY", config));
@@ -116,7 +116,7 @@ export namespace ThriftProject {
         const configs = await pm.GetConfigurations(context);
 
         // VSC-233 Warn users about having several groups with the same name
-        if (!WorkbenchVersionRegistry.supportsSetNodeByIndex(owner)) {
+        if (!WorkbenchVersions.doCheck(owner, WorkbenchVersions.supportsSetNodeByIndex)) {
             const node = await pm.GetRootNode(context);
             if (hasDuplicateGroupNames(new Set(), node)) {
                 const prompt = `The project ${Path.basename(path.toString())} has several groups with the same name. This may cause unwanted behaviour when adding or removing files.`;

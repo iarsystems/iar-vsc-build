@@ -23,8 +23,8 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
 
     private readonly writeEmitter = new Vscode.EventEmitter<string>();
     onDidWrite: Vscode.Event<string> = this.writeEmitter.event;
-    private readonly closeEmitter = new Vscode.EventEmitter<void>();
-    onDidClose?: Vscode.Event<void> = this.closeEmitter.event;
+    private readonly closeEmitter = new Vscode.EventEmitter<number>();
+    onDidClose?: Vscode.Event<number> = this.closeEmitter.event;
 
     /**
      * @param extensionPath Path to the extension root
@@ -62,7 +62,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             this.generateHTMLReport(projectPath, configName, toolchain, false);
         } else {
             this.writeEmitter.fire(`Unrecognized action '${this.definition.action}'`);
-            this.closeEmitter.fire();
+            this.closeEmitter.fire(0);
         }
     }
 
@@ -105,7 +105,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
                 this.onError(e);
             }
         } finally {
-            this.closeEmitter.fire();
+            this.closeEmitter.fire(0);
         }
 
     }
@@ -137,7 +137,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
                 this.onError(e);
             }
         } finally {
-            this.closeEmitter.fire(undefined);
+            this.closeEmitter.fire(0);
         }
 
     }
@@ -148,7 +148,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     private clearDiagnostics() {
         this.writeEmitter.fire("Clearing C-STAT Warnings...\r\n");
         this.diagnostics.clear();
-        this.closeEmitter.fire(undefined);
+        this.closeEmitter.fire(0);
     }
 
     private write(msg: string) {
@@ -158,7 +158,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
 
     private onError(reason: string | Error) {
         this.writeEmitter.fire(reason + "\r\n");
-        this.closeEmitter.fire(undefined);
+        this.closeEmitter.fire(1);
     }
 
     // Gets the output directory for C-STAT files (e.g. where the cstat database and reports are created)

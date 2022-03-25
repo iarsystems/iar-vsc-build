@@ -3,7 +3,7 @@ import * as Path from "path";
 import * as Assert from "assert";
 import { VscodeTestsUtils } from "./utils";
 import { VscodeTestsSetup } from "./setup";
-import { IarOsUtils, OsUtils } from "../../utils/osUtils";
+import { OsUtils } from "../../utils/osUtils";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { BuildExtensionApi } from "../../utils/buildExtension";
 import path = require("path");
@@ -95,9 +95,9 @@ suite("Test Public TS Api", ()=>{
             "/proc",
             "armPROC.dll",
             "/plugin",
-            path.join("$TOOLKIT_DIR$", "bin", "armlibsupport" + IarOsUtils.libraryExtension()),
+            "$TOOLKIT_DIR$\\bin\\armlibsupport.dll",
             "/kernel",
-            "kernel" + IarOsUtils.libraryExtension(),
+            "kernel.dll",
             "/ilink"
         ];
         Assert.deepStrictEqual(commands, expectedCommands);

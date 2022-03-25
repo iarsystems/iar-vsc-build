@@ -15,8 +15,8 @@ import { spawn } from "child_process";
 export class BuildTaskExecution implements Vscode.Pseudoterminal {
     private readonly writeEmitter = new Vscode.EventEmitter<string>();
     onDidWrite: Vscode.Event<string> = this.writeEmitter.event;
-    private readonly closeEmitter = new Vscode.EventEmitter<void>();
-    onDidClose?: Vscode.Event<void> = this.closeEmitter.event;
+    private readonly closeEmitter = new Vscode.EventEmitter<number>();
+    onDidClose?: Vscode.Event<number> = this.closeEmitter.event;
 
     /**
      * @param diagnostics A diagnostics collection to place the results in (or clear results from)
@@ -71,7 +71,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
                 await ProcessUtils.waitForExit(iarbuild);
             });
         } finally {
-            this.closeEmitter.fire();
+            this.closeEmitter.fire(0);
         }
     }
 
@@ -86,7 +86,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
 
     private onError(reason: string | Error) {
         this.writeEmitter.fire(reason + "\r\n");
-        this.closeEmitter.fire(undefined);
+        this.closeEmitter.fire(1);
     }
 
     private convertCommandToIarCommand(command: string | undefined): string | undefined {
