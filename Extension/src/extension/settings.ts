@@ -238,9 +238,13 @@ class LocalSettingsFile {
         if (!LocalSettingsFile.exists(path)) {
             return {};
         } else {
-            const content = Fs.readFileSync(path);
+            try {
+                const content = Fs.readFileSync(path);
 
-            return JSON.parse(content.toString());
+                return JSON.parse(content.toString());
+            } catch (_) {
+                return {};
+            }
         }
     }
 }
