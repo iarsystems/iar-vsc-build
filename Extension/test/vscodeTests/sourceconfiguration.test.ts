@@ -28,7 +28,7 @@ suite("Test Source Configuration (intelliSense)", ()=>{
 
         await VscodeTestsUtils.activateProject("LedFlasher");
         originalUserDefines = Settings.getDefines();
-        Vscode.workspace.getConfiguration("iarvsc").update("defines", [USER_DEFINE_1, USER_DEFINE_2]);
+        await Vscode.workspace.getConfiguration("iarvsc").update("defines", [USER_DEFINE_1, USER_DEFINE_2]);
 
         const prov = IarConfigurationProvider.instance;
         Assert(prov, "Config provider should be initialized by now");
