@@ -1,17 +1,59 @@
-## Using the build script
+# IAR Build
 
-This folder includes a `build.rb` script to build the extension using Rake (https://github.com/ruby/rake)
-The `build.rb` script will install packages, pull thrift definitions and build the project
-all at once. See `ruby build.rb --help`.
+Build and develop your IAR Embedded Workbench projects from Visual Studio Code.
 
-This is used internally at IAR for continous integration and is currently not usable outside of the
-company network.
+* Build projects
+* Manage project files
+* Generate C-STAT messages and reports
+* Use language features powered by the [C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
 
-In order to rebuild the Apache Thrift extensions you will need a patched version of the Thrift compiler,
-which is currently not included in this folder (only the Jenkins server has it).
+An IAR Embedded Workbench or IAR Build Tools installation is required to use this extension.
 
-Once built, you can run/debug the extension by opening this folder in VS Code and pressing `F5`.
+> 💡️ To debug your Embedded Workbench projects from VS Code, please also see the [IAR C-SPY Debug extension]().
 
-The build script will also produce an installable `.vsix` file, see
-[instructions here](https://code.visualstudio.com/docs/editor/extension-gallery#_install-from-a-vsix)
-for how to install it.
+## Getting started
+To get started, open a folder containing an IAR Embedded Workbench project.
+A view with an IAR Embedded Workbench icon will appear in the left side panel:
+
+![side bar view](images/readme/sidebar.png)
+
+Here you may select the desired IAR Embedded Workbench/Build Tools installation,
+and the project and project configuration you want to work with. If your IAR Embedded Workbench or IAR Build Tools installation
+is not found automatically, please see [Adding IAR Embedded Workbench/Build Tools installations]().
+
+To build or analyze the selected project configuration, go to `Terminal->Run Task...` and then select either the `iar` or `iar-cstat` category.
+To make this easier, you may wish to [Add a default build task]().
+
+## Documentation
+* [Building projects and running C-STAT]()
+    * [Configuring build parameters]()
+* [Adding and removing project files]()
+* [Handling IAR language extensions]()
+* [Adding IAR Embedded Workbench/Build Tools installations]()
+* [Productivity tips]()
+
+[Click here]() to view the full documentation.
+
+## Compatibility
+This table helps you finding the extension version supporting your specific IAR Embedded Workbench (EW) or IAR Build Tools version (BX). 
+> 💡️ To use an earlier version of the extension, use a download link in the table below and install the extension manually in the **Extensions** view via `Install Another Version...`. 
+
+<details><summary>IAR EW/BX - Compatibility table</summary>
+
+| IAR EW/BX version  | Extension version | Comment
+|--------------|-----------|---------
+| EWARM 8.10 or later <br>EWRX 3.10 or later <br>EWRL78 3.10 or later <br>| (current)  | (automatically installed) |
+| EWARM 7.10      | [1.0](iar-vsc-1.0.vsix) | 
+
+</details>
+
+
+## Feedback
+[Technical Support](https://www.iar.com/knowledge/support/)\
+File questions, issues or feature requests for the extension to IAR Systems technical support.
+
+[Known Problems]()\
+The list of known problems with this extension.
+
+<!-- ## Contributions
+Contributions are always welcome. Or did we decide to have a read-only repository? -->
