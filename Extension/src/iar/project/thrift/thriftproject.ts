@@ -14,7 +14,7 @@ import { QtoPromise } from "../../../utils/promise";
 import { Workbench } from "../../../../utils/workbench";
 import Int64 = require("node-int64");
 import { InformationDialog, InformationDialogType } from "../../../extension/ui/informationdialog";
-import { WorkbenchVersions } from "../../tools/workbenchVersionRegistry";
+import { WorkbenchVersions } from "../../tools/workbenchversionregistry";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.

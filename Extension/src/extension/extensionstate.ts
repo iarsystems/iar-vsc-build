@@ -15,7 +15,7 @@ import { ExtendedWorkbench, ThriftWorkbench } from "../iar/extendedworkbench";
 import { AsyncObservable } from "./model/asyncobservable";
 import { BehaviorSubject } from "rxjs";
 import { InformationDialog, InformationDialogType } from "./ui/informationdialog";
-import { WorkbenchVersions } from "../iar/tools/workbenchVersionRegistry";
+import { WorkbenchVersions } from "../iar/tools/workbenchversionregistry";
 
 /**
  * Holds most extension-wide data, such as the selected workbench, project and configuration, and loaded project etc.
