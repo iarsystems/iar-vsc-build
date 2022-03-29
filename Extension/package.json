@@ -231,9 +231,12 @@
         },
         "iarvsc.defines": {
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "description": "A list of additional defines to use for intellisense, which are not listed in the project file or defined by the compiler. Note that this does not affect building.",
           "default": [
-            "_Pragma(x)="
+            "__fp16=float"
           ]
         },
         "iarvsc.cStandard": {
