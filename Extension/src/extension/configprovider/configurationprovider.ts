@@ -8,7 +8,7 @@ import { ExtensionState } from "../extensionstate";
 import { Settings } from "../settings";
 import { CancellationToken } from "vscode-jsonrpc";
 import { LanguageUtils } from "../../utils/utils";
-import { Workbench } from "../../iar/tools/workbench";
+import { Workbench } from "../../../utils/workbench";
 import { Config } from "../../iar/project/config";
 import * as Path from "path";
 import { IarOsUtils } from "../../../utils/osUtils";

@@ -5,7 +5,7 @@
 
 
 import { ListInputModelBase } from "./model";
-import { Workbench } from "../../iar/tools/workbench";
+import { Workbench } from "../../../utils/workbench";
 
 export class WorkbenchListModel extends ListInputModelBase<Workbench> {
     constructor(...workbenches: Workbench[]) {

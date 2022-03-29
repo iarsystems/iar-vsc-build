@@ -7,7 +7,7 @@
 import * as Vscode from "vscode";
 import { ExtendedProject, Project } from "../../iar/project/project";
 import { FilesNode, TreeProjectProvider } from "./treeprojectprovider";
-import { Workbench } from "../../iar/tools/workbench";
+import { Workbench } from "../../../utils/workbench";
 import { ExtendedWorkbench } from "../../iar/extendedworkbench";
 import { InputModel } from "../model/model";
 import { AsyncObservable } from "../model/asyncobservable";

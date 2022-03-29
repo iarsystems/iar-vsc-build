@@ -11,7 +11,7 @@ import * as ProjectManager from "./bindings/ProjectManager";
 import { LoadedProject, ExtendedProject } from "../project";
 import { Configuration, ProjectContext, Node, NodeType } from "./bindings/projectmanager_types";
 import { QtoPromise } from "../../../utils/promise";
-import { Workbench } from "../../tools/workbench";
+import { Workbench } from "../../../../utils/workbench";
 import Int64 = require("node-int64");
 import { InformationDialog, InformationDialogType } from "../../../extension/ui/informationdialog";
 import { WorkbenchVersions } from "../../tools/workbenchVersionRegistry";

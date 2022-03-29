@@ -1,6 +1,6 @@
 import { ThriftWorkbench } from "../../src/iar/extendedworkbench";
 import * as Assert from "assert";
-import { Workbench } from "../../src/iar/tools/workbench";
+import { Workbench } from "../../utils/workbench";
 import { IntegrationTestsCommon } from "./common";
 
 suite("Thrift workbench", function() {

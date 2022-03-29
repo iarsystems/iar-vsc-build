@@ -1,5 +1,5 @@
 /* eslint-disable comma-spacing */
-import { Workbench, WorkbenchType } from "./workbench";
+import { Workbench, WorkbenchType } from "../../../utils/workbench";
 
 /**
  * Allows looking up information about a workbench based on its IDE platform version.

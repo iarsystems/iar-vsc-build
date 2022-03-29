@@ -7,7 +7,7 @@ import { CStatTaskDefinition } from "./cstattaskprovider";
 import { CStat, CStatReport } from "../../../iar/tools/cstat";
 import { IarOsUtils, OsUtils } from "../../../../utils/osUtils";
 import * as Path from "path";
-import { Workbench } from "../../../iar/tools/workbench";
+import { Workbench } from "../../../../utils/workbench";
 import { EwpFile } from "../../../iar/project/parsing/ewpfile";
 import { spawnSync } from "child_process";
 import { ExtensionState } from "../../extensionstate";

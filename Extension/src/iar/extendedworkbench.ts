@@ -7,7 +7,7 @@
 import * as ProjectManager from "./project/thrift/bindings/ProjectManager";
 import * as Fs from "fs";
 import * as Path from "path";
-import { Workbench } from "./tools/workbench";
+import { Workbench } from "../../utils/workbench";
 import { Toolchain, PROJECTMANAGER_ID, ProjectContext } from "./project/thrift/bindings/projectmanager_types";
 import { ExtendedProject, Project } from "./project/project";
 import { ThriftServiceManager } from "./project/thrift/thriftservicemanager";

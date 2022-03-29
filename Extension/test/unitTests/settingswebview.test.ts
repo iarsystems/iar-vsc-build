@@ -11,7 +11,7 @@ import { ConfigurationListModel } from "../../src/extension/model/selectconfigur
 import { ProjectListModel } from "../../src/extension/model/selectproject";
 import { WorkbenchListModel } from "../../src/extension/model/selectworkbench";
 import { DropdownIds, SettingsWebview } from "../../src/extension/ui/settingswebview";
-import { Workbench, WorkbenchType } from "../../src/iar/tools/workbench";
+import { Workbench, WorkbenchType } from "../../utils/workbench";
 import { Config } from "../../src/iar/project/config";
 import { Project } from "../../src/iar/project/project";
 import { ListInputModel, ListInputModelBase } from "../../src/extension/model/model";

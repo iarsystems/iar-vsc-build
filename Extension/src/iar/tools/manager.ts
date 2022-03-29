@@ -5,9 +5,11 @@
 
 
 import * as Fs from "fs";
-import { Workbench } from "./workbench";
+import { Workbench } from "../../../utils/workbench";
 import * as Registry from "winreg";
 import { OsUtils } from "../../../utils/osUtils";
+import { FsUtils } from "../../utils/fs";
+import { ListUtils } from "../../utils/utils";
 
 type InvalidateHandler = (manager: ToolManager) => void;
 
@@ -41,7 +43,7 @@ class IarToolManager implements ToolManager {
     add(...workbenches: Workbench[]): void {
         if (workbenches.length > 0) {
             const prevLength = this.workbenches.length;
-            this.workbenches_ = Workbench.mergeUnique(this.workbenches_, workbenches);
+            this.workbenches_ = IarToolManager.mergeUnique(this.workbenches_, workbenches);
 
             if (this.workbenches_.length !== prevLength) {
                 this.workbenches_.sort((a, b) => a.name.toString().localeCompare(b.name.toString()));
@@ -63,7 +65,7 @@ class IarToolManager implements ToolManager {
             if (workbench) {
                 workbenches.push(workbench);
             } else {
-                workbenches = workbenches.concat(Workbench.collectWorkbenchesFrom(directory));
+                workbenches = workbenches.concat(IarToolManager.collectWorkbenchesFrom(directory));
             }
         });
         if (useRegistry && OsUtils.OsType.Windows === OsUtils.detectOsType()) {
@@ -96,6 +98,31 @@ class IarToolManager implements ToolManager {
         this.invalidateHandlers.forEach(handler => {
             handler(this);
         });
+    }
+
+    /**
+     * Search for valid workbenches. The found workbenches are stored in the
+     * Workbench class and are accessible using the static accessor functions.
+     *
+     * @param root The root folder where we must search for valid workbench
+     *             paths. By default this is `C:\Program Files (x86)\IAR Systems`.
+     *
+     * @returns {Workbench[]} A list of found workbenches. Size can be 0.
+     */
+    private static collectWorkbenchesFrom(root: string): Workbench[] {
+        const workbenches = new Array<Workbench>();
+
+        const directories = FsUtils.filteredListDirectory(root, () => true);
+
+        directories.forEach(directory => {
+            const workbench = Workbench.create(directory);
+
+            if (workbench !== undefined) {
+                workbenches.push(workbench);
+            }
+        });
+
+        return workbenches;
     }
 
     private static async collectFromWindowsRegistry(): Promise<Workbench[]> {
@@ -140,6 +167,22 @@ class IarToolManager implements ToolManager {
         });
         return workbenches;
     }
+
+    /**
+     * Merge two or more lists containing workbenches. This function will return
+     * a list of unique workbenches. Duplicates are removed.
+     *
+     * @param list Array list containing lists of workbenches
+     */
+    private static mergeUnique(...lists: Array<Workbench>[]): Workbench[] {
+        const fnKey = (item: Workbench): string => {
+            return OsUtils.normalizePath(item.path.toString());
+        };
+
+        return ListUtils.mergeUnique(fnKey, ...lists);
+    }
+
+
 }
 
 export namespace ToolManager {

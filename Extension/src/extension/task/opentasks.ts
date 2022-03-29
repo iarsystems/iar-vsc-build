@@ -6,7 +6,7 @@
 
 import * as Vscode from "vscode";
 import { OsUtils } from "../../../utils/osUtils";
-import { Workbench } from "../../iar/tools/workbench";
+import { Workbench } from "../../../utils/workbench";
 
 export interface OpenTaskDefinition {
     readonly label: string;

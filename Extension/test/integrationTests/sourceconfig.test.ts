@@ -4,7 +4,7 @@
 
 import * as Assert from "assert";
 import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
-import { Workbench } from "../../src/iar/tools/workbench";
+import { Workbench } from "../../utils/workbench";
 import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "../../utils/testutils/testSandbox";
 import * as Path from "path";

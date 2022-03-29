@@ -6,7 +6,7 @@
 
 import * as Vscode from "vscode";
 import * as Thrift from "thrift";
-import { Workbench } from "../../tools/workbench";
+import { Workbench } from "../../../../utils/workbench";
 import { spawn, ChildProcess } from "child_process";
 import * as path from "path";
 import * as fs from "fs";

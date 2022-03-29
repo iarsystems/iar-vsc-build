@@ -4,7 +4,7 @@ import * as Path from "path";
 import * as fsPromises from "fs/promises";
 import * as readline from "readline";
 import { spawn, spawnSync } from "child_process";
-import { Workbench } from "../../iar/tools/workbench";
+import { Workbench } from "../../../utils/workbench";
 import { Project } from "../../iar/project/project";
 import { Config } from "../../iar/project/config";
 import { createHash } from "crypto";
