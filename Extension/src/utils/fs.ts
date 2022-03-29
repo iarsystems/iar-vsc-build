@@ -16,12 +16,12 @@ export namespace FsUtils {
         return false;
     }
 
-    export function filteredListDirectory(dirPath: fs.PathLike, filterCallback: (path: fs.PathLike) => boolean): fs.PathLike[] {
+    export function filteredListDirectory(dirPath: string, filterCallback: (path: string) => boolean): string[] {
         return walkAndFind(dirPath, false, filterCallback);
     }
 
-    export function walkAndFind(dirPath: fs.PathLike, recursive: boolean, filterCallback: (path: fs.PathLike) => boolean): fs.PathLike[] {
-        let children: fs.PathLike[] = [];
+    export function walkAndFind(dirPath: string, recursive: boolean, filterCallback: (path: string) => boolean): string[] {
+        let children: string[] = [];
 
         if (fs.existsSync(dirPath)) {
             const stat = fs.statSync(dirPath);
@@ -50,8 +50,8 @@ export namespace FsUtils {
         return children;
     }
 
-    export function createFilteredListDirectoryFilenameRegex(regex: RegExp): (fullpath: fs.PathLike) => boolean {
-        return (fullpath: fs.PathLike): boolean => {
+    export function createFilteredListDirectoryFilenameRegex(regex: RegExp): (fullpath: string) => boolean {
+        return (fullpath: string): boolean => {
             const stat = fs.statSync(fullpath);
 
             if (stat.isFile()) {

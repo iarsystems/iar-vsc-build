@@ -55,7 +55,7 @@ class IarToolManager implements ToolManager {
      * The found workbenches are also returned.
      * @param useRegistry If true, on windows, also looks in the windows registry for workbenches.
      */
-    async collectWorkbenches(directories: Fs.PathLike[], useRegistry?: boolean): Promise<Workbench[]> {
+    async collectWorkbenches(directories: string[], useRegistry?: boolean): Promise<Workbench[]> {
         let workbenches: Workbench[] = [];
         directories.forEach(directory => {
             const workbench = Workbench.create(directory);

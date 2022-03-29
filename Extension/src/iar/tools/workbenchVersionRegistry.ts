@@ -1,8 +1,5 @@
 /* eslint-disable comma-spacing */
-import { Workbench } from "./workbench";
-import * as Fs from "fs";
-import * as Path from "path";
-import { IarOsUtils } from "../../../utils/osUtils";
+import { Workbench, WorkbenchType } from "./workbench";
 
 /**
  * Allows looking up information about a workbench based on its IDE platform version.
@@ -35,7 +32,7 @@ export namespace WorkbenchVersions {
      * Checks whether a workbench version meets the given minimum version.
      */
     export function doCheck(workbench: Workbench, minVer: MinVersion) {
-        if (minVer[1] === Type.EwOnly && isBuildTools(workbench)) {
+        if (minVer[1] === Type.EwOnly && workbench.type === WorkbenchType.BX) {
             return false;
         }
 
@@ -61,11 +58,7 @@ export namespace WorkbenchVersions {
      * @param minVer The version the workbench should meet
      */
     export function getMinProductVersion(workbench: Workbench, minVer: MinVersion): string | undefined {
-        // Find the target
-        let entries = Fs.readdirSync(workbench.path);
-        entries = entries.filter(entry => !["install-info", "common"].includes(entry)).
-            filter(entry => Fs.statSync(Path.join(workbench.path.toString(), entry)).isDirectory);
-        const target = entries[0];
+        const target = workbench.targetId;
         if (target === undefined) {
             return undefined;
         }
@@ -77,19 +70,12 @@ export namespace WorkbenchVersions {
         }
         // It would be weird to recommend BX users to upgrade to EW, so
         // if they're using BX and BX meets the requirements we can return a BX product name.
-        const useBuildTools = minVer[1] === Type.BxAndEw && isBuildTools(workbench);
-        const targetDisplayName = targetDisplayNames[target] ?? target;
+        const useBuildTools = minVer[1] === Type.BxAndEw && workbench.type === WorkbenchType.BX;
+        const targetDisplayName = Workbench.getTargetDisplayName(target) ?? target;
 
         return "IAR " + (useBuildTools ? "Build Tools" : "Embedded Workbench") + " for " + targetDisplayName + " " + productVersion;
         // Get the output type
         // construct the string
-    }
-
-    // Checks whether a workbench is a Build Tools. This might misclassify really old EW version, but that's ok.
-    function isBuildTools(workbench: Workbench): boolean {
-        return !Fs.existsSync(Path.join(workbench.path.toString(), "common/bin/CSpyServer" + IarOsUtils.executableExtension())) &&
-            !Fs.existsSync(Path.join(workbench.path.toString(), "common/bin/CSpyServer2" + IarOsUtils.executableExtension()));
-
     }
 
     // Maps IDE platform versions to (user-visible) product versions
@@ -132,15 +118,5 @@ export namespace WorkbenchVersions {
             "8.0.0": "5.10", // not a real release
             "8.1.2": "5.10",
         },
-    };
-    const targetDisplayNames: { [target: string]: string } = {
-        "arm":   "ARM",
-        "riscv": "RISC-V",
-        "430":   "MSP430",
-        "avr":   "AVR",
-        "rh850": "RH850",
-        "rl78": "Renesas RL78",
-        "rx": "Renesas RX",
-        "stm8": "STM8"
     };
 }

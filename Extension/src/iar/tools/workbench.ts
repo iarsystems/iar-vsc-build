@@ -7,7 +7,7 @@
 import { spawnSync } from "child_process";
 import * as Fs from "fs";
 import * as Path from "path";
-import { OsUtils } from "../../../utils/osUtils";
+import { IarOsUtils, OsUtils } from "../../../utils/osUtils";
 import { FsUtils } from "../../utils/fs";
 import { ListUtils } from "../../utils/utils";
 
@@ -20,23 +20,30 @@ const builderSubPath = "common/bin/iarbuild" + (OsUtils.OsType.Windows === OsUti
  */
 export interface Workbench {
     readonly name: string;
-    readonly path: Fs.PathLike;
-    // The path to iaridepm
-    readonly idePath: Fs.PathLike;
-    // The path to iarbuild
-    readonly builderPath: Fs.PathLike;
-    // The IDE platform version
+    readonly path: string;
+    /** The path to iaridepm */
+    readonly idePath: string;
+    /** The path to iarbuild */
+    readonly builderPath: string;
+    /** The IDE platform version */
     readonly version: WorkbenchVersion;
+    /** Whether this is a full IDE or just build tools (BX) */
+    readonly type: WorkbenchType;
+    /** An identifier for the target (e.g. 'arm').
+     *  This is the name of the folder in the workbench root containing target-specific files (e.g. the compiler) */
+    readonly targetId: string | undefined;
 }
 
 export interface WorkbenchVersion { major: number, minor: number, patch: number }
 
+export enum WorkbenchType { IDE, BX }
+
 class IarWorkbench implements Workbench {
     private _version: WorkbenchVersion | undefined = undefined;
 
-    readonly path: Fs.PathLike;
-    readonly idePath: Fs.PathLike;
-    readonly builderPath: Fs.PathLike;
+    readonly path: string;
+    readonly idePath: string;
+    readonly builderPath: string;
 
     /**
      * Create a new Workbench object based using a path.
@@ -44,13 +51,13 @@ class IarWorkbench implements Workbench {
      * @param path The root path of the workbench. The folders *common* and
      *             *install-info* reside in the root folder.
      */
-    constructor(path: Fs.PathLike) {
+    constructor(path: string) {
         this.path = path;
         this.idePath = Path.join(this.path.toString(), ideSubPath);
         this.builderPath = Path.join(this.path.toString(), builderSubPath);
 
         if (!this.isValid()) {
-            throw new Error("Path does not point to a an IAR Embedded Workbench or IAR Build Tools installation.");
+            throw new Error("Path does not point to an IAR Embedded Workbench or IAR Build Tools installation.");
         }
     }
 
@@ -69,6 +76,23 @@ class IarWorkbench implements Workbench {
             }
         }
         return this._version;
+    }
+
+    get type(): WorkbenchType {
+        // Checks whether a workbench has CspyServer. This might misclassify really old EW version, but that's ok since we don't support them anyway.
+        if (Fs.existsSync(Path.join(this.path, "common/bin/CSpyServer" + IarOsUtils.executableExtension())) ||
+            Fs.existsSync(Path.join(this.path, "common/bin/CSpyServer2" + IarOsUtils.executableExtension()))) {
+            return WorkbenchType.IDE;
+        }
+        return WorkbenchType.BX;
+    }
+
+    get targetId(): string | undefined {
+        let entries = Fs.readdirSync(this.path);
+        entries = entries.filter(entry => !["install-info", "common"].includes(entry)).
+            filter(entry => Fs.statSync(Path.join(this.path, entry)).isDirectory);
+        const target = entries[0];
+        return target;
     }
 
     /**
@@ -92,7 +116,7 @@ export namespace Workbench {
      *
      * @returns {Workbench[]} A list of found workbenches. Size can be 0.
      */
-    export function collectWorkbenchesFrom(root: Fs.PathLike): Workbench[] {
+    export function collectWorkbenchesFrom(root: string): Workbench[] {
         const workbenches = new Array<Workbench>();
 
         const directories = FsUtils.filteredListDirectory(root, () => true);
@@ -133,7 +157,7 @@ export namespace Workbench {
      *                    workbench path.
      * @returns Workbench when the specified path is a valid workbench path.
      */
-    export function create(root: Fs.PathLike): Workbench | undefined {
+    export function create(root: string): Workbench | undefined {
         try {
             return new IarWorkbench(root);
         } catch (e) {
@@ -151,5 +175,19 @@ export namespace Workbench {
         } catch (e) {
             return false;
         }
+    }
+
+    const targetDisplayNames: { [target: string]: string } = {
+        "arm":   "ARM",
+        "riscv": "RISC-V",
+        "430":   "MSP430",
+        "avr":   "AVR",
+        "rh850": "RH850",
+        "rl78": "Renesas RL78",
+        "rx": "Renesas RX",
+        "stm8": "STM8"
+    };
+    export function getTargetDisplayName(targetId: string): string | undefined {
+        return targetDisplayNames[targetId];
     }
 }

@@ -11,7 +11,7 @@ import { ConfigurationListModel } from "../../src/extension/model/selectconfigur
 import { ProjectListModel } from "../../src/extension/model/selectproject";
 import { WorkbenchListModel } from "../../src/extension/model/selectworkbench";
 import { DropdownIds, SettingsWebview } from "../../src/extension/ui/settingswebview";
-import { Workbench } from "../../src/iar/tools/workbench";
+import { Workbench, WorkbenchType } from "../../src/iar/tools/workbench";
 import { Config } from "../../src/iar/project/config";
 import { Project } from "../../src/iar/project/project";
 import { ListInputModel, ListInputModelBase } from "../../src/extension/model/model";
@@ -95,8 +95,8 @@ suite("Test settings view", () => {
 
     test("Populates dropdowns", () => {
         workbenchModel.set(
-            { name: "Embedded Workbench 9.0", path: "/path/Embedded Workbench 9.0", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 } },
-            { name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 } }
+            { name: "Embedded Workbench 9.0", path: "/path/Embedded Workbench 9.0", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetId: "arm", type: WorkbenchType.IDE },
+            { name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetId: "riscv", type: WorkbenchType.BX }
         );
         workbenchModel.select(2);
         projectModel.set( new Project("/some/directory/LedFlasher.ewp"), new Project("C:\\test\\A project.ewp") );

@@ -58,7 +58,7 @@ export interface ExtendedProject extends LoadedProject {
 
 
 export namespace Project {
-    export function findProjectsIn(directory: Fs.PathLike, recursive = true): Project[] {
+    export function findProjectsIn(directory: string, recursive = true): Project[] {
         const projectPaths = FsUtils.walkAndFind(directory, recursive, (path): boolean => {
             const stat = Fs.statSync(path);
 
