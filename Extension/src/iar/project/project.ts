@@ -49,7 +49,7 @@ export interface ExtendedProject extends LoadedProject {
     /**
      * Gets the directory where C-STAT will place its output files
      */
-    getCStatOutputDirectory(config: string): Promise<string>;
+    getCStatOutputDirectory(config: string): Promise<string | undefined>;
     /**
      * Gets the C-SPY command line used to debug the configuration
      */

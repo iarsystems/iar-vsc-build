@@ -19,9 +19,9 @@ export namespace WorkbenchVersions {
      * We make no attempt to support versions below this; some things may still work... */
     export const supportsVSCode: MinVersion = [[8,0,0], Type.BxAndEw];
     /**
-     * Whether this workbench can return correct C-SPY command lines from the project
-     * manager service. Previous versions may return incorrect command lines, see MAJ-156. */
-    export const canFetchCSpyCommandLine: MinVersion = [[9,1,1], Type.EwOnly];
+     * Whether this workbench can return correct options or tool arguments via thrift.
+     * Previous versions may fail to expand some argvars, see MAJ-156. */
+    export const canFetchProjectOptions: MinVersion = [[9,1,1], Type.BxAndEw];
     /**
      * Whether this workbench supports the SetNodeByIndex thrift procedure, which
      * fixes issues with the previous SetNode procedure. See VSC-233. */

@@ -166,7 +166,10 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         try {
             const extendedProject = await ExtensionState.getInstance().extendedProject.getValue();
             if (extendedProject !== undefined && OsUtils.pathsEqual(extendedProject.path.toString(), projectPath)) {
-                return Path.join(Path.dirname(projectPath), await extendedProject.getCStatOutputDirectory(config));
+                const outDir = await extendedProject.getCStatOutputDirectory(config);
+                if (outDir !== undefined) {
+                    return Path.join(Path.dirname(projectPath), outDir);
+                }
             }
         } catch (e) {}
         // If we don't have thrift access for this project, try to guess the default location. This is dependent on EW version.

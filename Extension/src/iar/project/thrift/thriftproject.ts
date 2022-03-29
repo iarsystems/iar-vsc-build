@@ -59,9 +59,12 @@ export class ThriftProject implements ExtendedProject {
         this.fireChangedEvent();
     }
 
-    async getCStatOutputDirectory(config: string): Promise<string> {
+    async getCStatOutputDirectory(config: string): Promise<string | undefined> {
         if (!this.configurations.some(c => c.name === config)) {
             return Promise.reject(new Error(`Project '${this.name}' has no configuration '${config}'.`));
+        }
+        if (!WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.canFetchProjectOptions)) {
+            return undefined;
         }
         const options = await this.projectMgr.GetOptionsForConfiguration(this.context, config);
         const outDir = options.find(option => option.id === "C-STAT.OutputDir")?.value;
@@ -75,7 +78,7 @@ export class ThriftProject implements ExtendedProject {
         if (!this.configurations.some(c => c.name === config)) {
             throw new Error(`Project '${this.name}' has no configuration '${config}'.`);
         }
-        if (!WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.canFetchCSpyCommandLine)) {
+        if (!WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.canFetchProjectOptions)) {
             return Promise.resolve(undefined);
         }
         return QtoPromise(this.projectMgr.GetToolArgumentsForConfiguration(this.context, "C-SPY", config));
