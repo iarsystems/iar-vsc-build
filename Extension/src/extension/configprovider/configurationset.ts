@@ -137,10 +137,17 @@ namespace ConfigGenerator {
 
         const compilerInvocations = new Map<string, string[]>();
         for (const fileObj of json) {
-            if (fileObj["type"] !== "COMPILER" || typeof(fileObj["file"]) !== "string" || !Array.isArray(fileObj["arguments"])) {
+            if (fileObj["type"] !== "COMPILER" || !Array.isArray(fileObj["arguments"])) {
                 continue;
             }
-            compilerInvocations.set(OsUtils.normalizePath(fileObj["file"]), fileObj["arguments"]);
+            // The compilation db can either contain a single file called "file" or an array of files called "files"
+            if (typeof(fileObj["file"]) === "string" ) {
+                compilerInvocations.set(OsUtils.normalizePath(fileObj["file"]), fileObj["arguments"]);
+            } else if (Array.isArray(fileObj["files"])) {
+                for (const file of fileObj["files"]) {
+                    compilerInvocations.set(OsUtils.normalizePath(file), fileObj["arguments"]);
+                }
+            }
         }
         return compilerInvocations;
     }
