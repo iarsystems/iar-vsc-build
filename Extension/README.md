@@ -49,11 +49,10 @@ This table helps you finding the extension version supporting your specific IAR 
 
 
 ## Feedback
-[Technical Support](https://www.iar.com/knowledge/support/)\
-File questions, issues or feature requests for the extension to IAR Systems technical support.
+Depending on which feedback you want to share with us, here are the preferred options:
+* If you have ideas on how to improve this extension or if you have found issues with it, see [contributing.md](https://www.iar.com/knowledge/support/) on how to proceed.
 
-[Known Problems]()\
-The list of known problems with this extension.
+* If you have issues with the underlying IAR Embedded Workbench or IAR Built Tools product, report this via the IAR Systems technical support channel at [IAR Technical Support](https://www.iar.com/knowledge/support/).
 
 <!-- ## Contributions
 Contributions are always welcome. Or did we decide to have a read-only repository? -->
