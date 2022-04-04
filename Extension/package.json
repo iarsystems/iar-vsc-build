@@ -116,14 +116,14 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "iar-vsc",
+          "id": "iar-build",
           "title": "IAR Build",
           "icon": "images/logo-transparent.svg"
         }
       ]
     },
     "views": {
-      "iar-vsc": [
+      "iar-build": [
         {
           "id": "iar-settings",
           "name": "Extension Configuration",
@@ -145,12 +145,12 @@
         },
         {
           "command": "iar.addFile",
-          "when": "view == iar-project && iarvsc.extendedProjectLoaded",
+          "when": "view == iar-project && iar-build.extendedProjectLoaded",
           "group": "navigation"
         },
         {
           "command": "iar.addGroup",
-          "when": "view == iar-project && iarvsc.extendedProjectLoaded",
+          "when": "view == iar-project && iar-build.extendedProjectLoaded",
           "group": "navigation"
         }
       ],
@@ -217,7 +217,7 @@
     "configuration": {
       "title": "IAR Build",
       "properties": {
-        "iarvsc.iarInstallDirectories": {
+        "iar-build.iarInstallDirectories": {
           "type": "array",
           "items": {
             "type": "string"
@@ -229,7 +229,7 @@
             "C:\\Program Files (x86)\\IAR Systems"
           ]
         },
-        "iarvsc.defines": {
+        "iar-build.defines": {
           "type": "array",
           "items": {
             "type": "string"
@@ -239,7 +239,7 @@
             "__fp16=float"
           ]
         },
-        "iarvsc.cStandard": {
+        "iar-build.cStandard": {
           "type": "string",
           "enum": [
             "c89",
@@ -250,7 +250,7 @@
           "description": "The c standard to use for intellisense.",
           "default": "c17"
         },
-        "iarvsc.cppStandard": {
+        "iar-build.cppStandard": {
           "type": "string",
           "enum": [
             "c++98",
@@ -262,7 +262,7 @@
           "description": "The c++ standard to use for intellisense.",
           "default": "c++17"
         },
-        "iarvsc.c-stat.filterLevel": {
+        "iar-build.c-stat.filterLevel": {
           "description": "C-STAT warnings with a lower severity than this are filtered out.",
           "default": "Low",
           "type": "string",
@@ -272,17 +272,17 @@
             "High"
           ]
         },
-        "iarvsc.c-stat.displayLowSeverityWarningsAsHints": {
+        "iar-build.c-stat.displayLowSeverityWarningsAsHints": {
           "description": "If the filter level is set to Low, displays low severity C-STAT warnings as hints rather than warnings. This hides them from the problem list, but still shows them in the editor.",
           "type": "boolean",
           "default": false
         },
-        "iarvsc.c-stat.autoOpenReports": {
+        "iar-build.c-stat.autoOpenReports": {
           "description": "Whether to automatically open HTML reports in your browser when they are created.",
           "type": "boolean",
           "default": true
         },
-        "iarvsc.extraBuildArguments": {
+        "iar-build.extraBuildArguments": {
           "type": "array",
           "markdownDescription": "Extra command line arguments to supply to iarbuild (e.g. [\"-parallel\", \"4\"].",
           "items": {
@@ -426,7 +426,7 @@
     ],
     "walkthroughs": [
       {
-        "id": "iar-vsc",
+        "id": "iar-build",
         "description": "Learn how to build and edit IAR Embedded Workbench projects",
         "featuredFor": [
           "**/*.ewp"
@@ -479,6 +479,12 @@
       }
     ]
   },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": ""
+    }
+  },
   "extensionDependencies": [
     "ms-vscode.cpptools"
   ],
@@ -488,7 +494,7 @@
     "webpack": "webpack --mode development",
     "webpack-watch": "webpack --mode development --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
-    "test-compile": "npm run webpack && tsc -p ./"
+    "test-compile": "tsc -p ./"
   },
   "devDependencies": {
     "@types/escape-html": "^1.0.1",

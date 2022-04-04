@@ -17,7 +17,7 @@ suite("Test Public TS Api", ()=>{
         this.timeout(50000);
         await VscodeTestsUtils.ensureExtensionIsActivated();
         VscodeTestsSetup.setup();
-        api = Vscode.extensions.getExtension("iarsystems.iar-vsc")!.exports;
+        api = Vscode.extensions.getExtension("iarsystems.iar-build")!.exports;
 
         const sandboxPath = VscodeTestsSetup.setup();
         ledFlasherPath = Path.join(sandboxPath, "SourceConfiguration/IAR-STM32F429II-EXP/LedFlasher/LedFlasher.ewp");

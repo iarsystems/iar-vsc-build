@@ -102,7 +102,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
                 break;
             }
             case MessageSubject.OpenSettings:
-                vscode.commands.executeCommand("workbench.action.openSettings", "@ext:iarsystems.iar-vsc");
+                vscode.commands.executeCommand("workbench.action.openSettings", "@ext:iarsystems.iar-build");
                 break;
             default:
                 console.error("Settings view got unknown subject: " + message.subject);

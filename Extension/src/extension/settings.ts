@@ -30,7 +30,7 @@ export namespace Settings {
         Configuration = "configuration",
     }
 
-    const section = "iarvsc";
+    const section = "iar-build";
 
     let settingsFile: LocalSettingsFile | undefined = undefined;
 

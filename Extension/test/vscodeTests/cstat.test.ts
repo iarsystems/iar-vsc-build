@@ -45,9 +45,9 @@ suite("Test C-STAT", ()=>{
     suiteSetup(async() => {
         await VscodeTestsUtils.ensureExtensionIsActivated();
         sandboxPath = VscodeTestsSetup.setup();
-        originalFilterLevel = Vscode.workspace.getConfiguration("iarvsc").get("c-stat.filterLevel");
-        originalAutoOpen = Vscode.workspace.getConfiguration("iarvsc").get("c-stat.autoOpenReports");
-        await Vscode.workspace.getConfiguration("iarvsc").update("c-stat.autoOpenReports", false);
+        originalFilterLevel = Vscode.workspace.getConfiguration("iar-build").get("c-stat.filterLevel");
+        originalAutoOpen = Vscode.workspace.getConfiguration("iar-build").get("c-stat.autoOpenReports");
+        await Vscode.workspace.getConfiguration("iar-build").update("c-stat.autoOpenReports", false);
         srcFilePath = path.join(sandboxPath, TARGET_PROJECT, "main.c");
         // Remove all backup files, since too many backup files will cause iarbuild to fail
         const nodes = await readdir(path.join(sandboxPath, TARGET_PROJECT));
@@ -57,8 +57,8 @@ suite("Test C-STAT", ()=>{
     });
 
     suiteTeardown(() => {
-        Vscode.workspace.getConfiguration("iarvsc").update("c-stat.filterLevel", originalFilterLevel);
-        Vscode.workspace.getConfiguration("iarvsc").update("c-stat.autoOpenReports", originalAutoOpen);
+        Vscode.workspace.getConfiguration("iar-build").update("c-stat.filterLevel", originalFilterLevel);
+        Vscode.workspace.getConfiguration("iar-build").update("c-stat.autoOpenReports", originalAutoOpen);
     });
 
     // Gets all diagnostics in the c-stat test project.
@@ -128,7 +128,7 @@ suite("Test C-STAT", ()=>{
 
     test("Run C-STAT on all listed EWs", async function() {
         this.timeout(50000);
-        Vscode.workspace.getConfiguration("iarvsc").update("c-stat.filterLevel", "Low");
+        Vscode.workspace.getConfiguration("iar-build").update("c-stat.filterLevel", "Low");
         const listedEws = ExtensionState.getInstance().workbench.workbenches;
         console.log(listedEws);
         for (const ew of listedEws) {
@@ -181,7 +181,7 @@ suite("Test C-STAT", ()=>{
     });
 
     test("Run C-STAT with configured tasks", async()=>{
-        Vscode.workspace.getConfiguration("iarvsc").update("c-stat.filterLevel", "Low");
+        Vscode.workspace.getConfiguration("iar-build").update("c-stat.filterLevel", "Low");
         // Activate another project, to test that tasks are not dependent on the project being selected/loaded
         VscodeTestsUtils.activateProject("LedFlasher");
         const listedEws = ExtensionState.getInstance().workbench.workbenches;
@@ -245,7 +245,7 @@ suite("Test C-STAT", ()=>{
     ];
     test("Run C-STAT with high filter level", async()=>{
         const targetProject = "C-STATProject";
-        Vscode.workspace.getConfiguration("iarvsc").update("c-stat.filterLevel", "High");
+        Vscode.workspace.getConfiguration("iar-build").update("c-stat.filterLevel", "High");
 
         const listedEws = ExtensionState.getInstance().workbench.workbenches;
         for (const ew of listedEws) {

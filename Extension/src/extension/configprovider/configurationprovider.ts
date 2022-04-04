@@ -46,7 +46,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     }
 
     readonly name = "IAR Build";
-    readonly extensionId = "iarsystems.iar-vsc";
+    readonly extensionId = "iarsystems.iar-build";
 
 
     private readonly output: Vscode.OutputChannel = Vscode.window.createOutputChannel("IAR Config Generator");

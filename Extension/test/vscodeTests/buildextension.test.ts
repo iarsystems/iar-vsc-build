@@ -147,7 +147,7 @@ suite("Test build extension", ()=>{
 
     test("Check that all EW's are listed", ()=>{
         // Get the list of configured workbenches.
-        const configuredEws: string[] | undefined = vscode.workspace.getConfiguration("iarvsc").get<string[]>(Settings.ExtensionSettingsField.IarInstallDirectories);
+        const configuredEws: string[] | undefined = vscode.workspace.getConfiguration("iar-build").get<string[]>(Settings.ExtensionSettingsField.IarInstallDirectories);
         if (!configuredEws) {
             fail("No listed workbenches found");
         }

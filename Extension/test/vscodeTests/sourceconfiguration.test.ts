@@ -28,7 +28,7 @@ suite("Test Source Configuration (intelliSense)", ()=>{
 
         await VscodeTestsUtils.activateProject("LedFlasher");
         originalUserDefines = Settings.getDefines();
-        await Vscode.workspace.getConfiguration("iarvsc").update("defines", [USER_DEFINE_1, USER_DEFINE_2]);
+        await Vscode.workspace.getConfiguration("iar-build").update("defines", [USER_DEFINE_1, USER_DEFINE_2]);
 
         const prov = IarConfigurationProvider.instance;
         Assert(prov, "Config provider should be initialized by now");
@@ -41,7 +41,7 @@ suite("Test Source Configuration (intelliSense)", ()=>{
     });
 
     suiteTeardown(() => {
-        Vscode.workspace.getConfiguration("iarvsc").update("defines", originalUserDefines);
+        Vscode.workspace.getConfiguration("iar-build").update("defines", originalUserDefines);
     });
 
     // All files in this project have the same config, so we can reuse the assertions

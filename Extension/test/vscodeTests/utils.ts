@@ -6,7 +6,7 @@ export namespace VscodeTestsUtils {
 
     // Waits for the extension to be activated.
     export async function ensureExtensionIsActivated() {
-        const ext = Vscode.extensions.getExtension("iarsystems.iar-vsc");
+        const ext = Vscode.extensions.getExtension("iarsystems.iar-build");
         Assert(ext, "Extension is not installed, did its name change?");
         await ext?.activate();
     }
