@@ -6,13 +6,13 @@ import { VscodeTestsSetup } from "./vscodeTests/setup";
 async function main() {
     const cmdlineEnvs = getEnvs();
 
-    await runTestsIn(path.resolve(__dirname), "../../", "./unitTests/index", cmdlineEnvs);
-    await runTestsIn(path.resolve(__dirname), "../../", "./integrationTests/index", cmdlineEnvs);
+    await runTestsIn(path.resolve(__dirname), "../", "./unitTests/index", cmdlineEnvs);
+    await runTestsIn(path.resolve(__dirname), "../", "./integrationTests/index", cmdlineEnvs);
     // A temp workspace ("sandbox") needs to be set up _before_ we launch vscode,
     // so that the projects are detected correctly
     const workspaceDir = VscodeTestsSetup.setup();
-    await runTestsIn(path.resolve(__dirname), "../../", "./vscodeTests/index", cmdlineEnvs, workspaceDir);
-    await runTestsIn(path.resolve(__dirname), "../../", "./miscTests/index", cmdlineEnvs);
+    await runTestsIn(path.resolve(__dirname), "../", "./vscodeTests/index", cmdlineEnvs, workspaceDir);
+    await runTestsIn(path.resolve(__dirname), "../", "./miscTests/index", cmdlineEnvs);
 }
 
 /**
