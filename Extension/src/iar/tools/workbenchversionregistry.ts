@@ -61,36 +61,17 @@ export namespace WorkbenchVersions {
      * @param minVer The version the workbench should meet
      */
     export function getMinProductVersions(workbench: Workbench, minVer: MinVersion): string[] {
-        return getMinProductVersionsImpl(workbench.type, workbench.targetIds, minVer);
-    }
-
-    /**
-     * Same as {@link getMinProductVersions}, but only returns the product name for the specificed target, even if the workbench supports several targets.
-     * If the workbench does not support the target, returns undefined.
-     * @param workbench A workbench to check
-     * @param minVer The version the workbench should meet
-     * @param target The target for which to return a product name
-     */
-    export function getMinProductVersionForTarget(workbench: Workbench, minVer: MinVersion, target: string): string | undefined {
-        target = target.toLowerCase();
-        if (!workbench.targetIds.includes(target)) {
-            return undefined;
-        }
-        return getMinProductVersionsImpl(workbench.type, [target], minVer)[0];
-    }
-
-    function getMinProductVersionsImpl(type: WorkbenchType, targets: string[], minVer: MinVersion): string[] {
         // Do we know the production version for this target and platform version?
         const minVersionString = `${minVer[0][0]}.${minVer[0][1]}.${minVer[0][2]}`;
 
-        return targets.map(target => {
+        return workbench.targetIds.map(target => {
             const productVersion = productVersionTable[target]?.[minVersionString];
             if (productVersion === undefined) {
                 return undefined;
             }
             // It would be weird to recommend BX users to upgrade to EW, so
             // if they're using BX and BX meets the requirements we can return a BX product name.
-            const useBuildTools = minVer[1] === Type.BxAndEw && type === WorkbenchType.BX;
+            const useBuildTools = minVer[1] === Type.BxAndEw && workbench.type === WorkbenchType.BX;
             const targetDisplayName = Workbench.getTargetDisplayName(target) ?? target;
 
             return "IAR " + (useBuildTools ? "Build Tools" : "Embedded Workbench") + " for " + targetDisplayName + " " + productVersion;

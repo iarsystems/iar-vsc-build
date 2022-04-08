@@ -13,7 +13,6 @@ import { InputModel } from "../model/model";
 import { AsyncObservable } from "../model/asyncobservable";
 import { Subject } from "rxjs";
 import { WorkbenchVersions } from "../../iar/tools/workbenchversionregistry";
-import { Config } from "../../iar/project/config";
 
 /**
  * Shows a view to the left of all files/groups in the project, and all configurations in the project.
@@ -24,7 +23,6 @@ export class TreeProjectView {
     private readonly view: Vscode.TreeView<FilesNode>;
 
     constructor(projectModel: InputModel<Project>,
-        configModel: InputModel<Config>,
         extProjectModel: AsyncObservable<ExtendedProject>,
         workbenchModel: InputModel<Workbench>,
         extWorkbenchModel: AsyncObservable<ExtendedWorkbench>,
@@ -48,12 +46,7 @@ export class TreeProjectView {
                     if (!WorkbenchVersions.doCheck(workbenchModel.selected, WorkbenchVersions.supportsThriftPM)) {
                         // The workbench is too old to support the files view.
                         // Try to display the minimum product version required to see it.
-                        let minProductVersion: string | undefined;
-                        if (configModel.selected !== undefined) {
-                            minProductVersion = WorkbenchVersions.getMinProductVersionForTarget(workbenchModel.selected, WorkbenchVersions.supportsThriftPM, configModel.selected.toolchainId);
-                        } else {
-                            minProductVersion = WorkbenchVersions.getMinProductVersions(workbenchModel.selected, WorkbenchVersions.supportsThriftPM).join(", ");
-                        }
+                        const minProductVersion = WorkbenchVersions.getMinProductVersions(workbenchModel.selected, WorkbenchVersions.supportsThriftPM).join(", ");
                         if (minProductVersion !== undefined) {
                             this.view.message = `The IAR project view requires ${minProductVersion} or later.`;
                         } else {
