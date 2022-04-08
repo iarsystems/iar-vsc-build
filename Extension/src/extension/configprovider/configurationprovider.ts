@@ -190,12 +190,17 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             return true;
         } catch (err) {
             this.currentConfiguration = undefined;
-            // Show error msg with a button to see the logs
-            Vscode.window.showErrorMessage("IAR: Failed to generate intellisense configuration: " + err, { title: "Show Output Window"}).then(res => {
-                if (res !== undefined) {
-                    this.output.show(false);
-                }
-            });
+            const extWb = await ExtensionState.getInstance().extendedWorkbench.getValue();
+            // If the selected workbench doesn't support the selected config's toolchain, don't show an error msg; we can show a more helpful error message elsewhere.
+            const suppressErrors = extWb && !(await extWb.getToolchains()).some(tc => tc.id === config.toolchainId);
+            if (!suppressErrors) {
+                // Show error msg with a button to see the logs
+                Vscode.window.showErrorMessage("IAR: Failed to generate intellisense configuration: " + err, { title: "Show Output Window"}).then(res => {
+                    if (res !== undefined) {
+                        this.output.show(false);
+                    }
+                });
+            }
             return false;
         }
     }

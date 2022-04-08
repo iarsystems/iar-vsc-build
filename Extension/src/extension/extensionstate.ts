@@ -205,7 +205,17 @@ class State {
     }
 
     private addConfigurationModelListeners(): void {
-        // Nothing to do here
+        this.config.addOnSelectedHandler(async() => {
+            // Check that the configuration target is supported by the selected workbench.
+            const selected = this.config.selected;
+            const extWb = await this.extendedWorkbench.getValue();
+            if (selected && extWb) {
+                const toolchains = await extWb.getToolchains();
+                if (!toolchains.some(tc => tc.id === selected.toolchainId)) {
+                    Vscode.window.showErrorMessage(`The target '${selected.toolchainId}' is not supported by the selected IAR toolchain. Please select a different toolchain.`);
+                }
+            }
+        });
     }
 
     // Loads a project using the appropriate method depending on whether an extended workbench
