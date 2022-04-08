@@ -179,10 +179,10 @@ class State {
 
         this.workbench.addOnSelectedHandler(model => {
             if (model.selected !== undefined && !WorkbenchVersions.doCheck(model.selected, WorkbenchVersions.supportsVSCode)) {
-                const minVersion = WorkbenchVersions.getMinProductVersion(model.selected, WorkbenchVersions.supportsVSCode);
+                const minVersions = WorkbenchVersions.getMinProductVersions(model.selected, WorkbenchVersions.supportsVSCode);
                 InformationDialog.show(
                     "unsupportedWorkbench",
-                    "The selected IAR toolchain is not supported by this extension." + (minVersion ? ` The minimum supported version is ${minVersion}.`: ""),
+                    "The selected IAR toolchain is not supported by this extension." + (minVersions.length > 0 ? ` The minimum supported version is ${minVersions.join(", ")}.`: ""),
                     InformationDialogType.Error);
             }
         });

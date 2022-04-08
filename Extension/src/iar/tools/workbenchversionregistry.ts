@@ -50,32 +50,51 @@ export namespace WorkbenchVersions {
     }
 
     /**
-     * Attemps to get the name of the product a workbench has to be upgraded to in order to meet the given minimum version.
-     * The returned string includes a *product version*, which may be different from the IDE platform version (the platform version is not very meaningful to users).
-     * This function may not return anything at all; it should not be relied upon for anything important,
-     * only to give users a hint about the required product version.
+     * Attemps to get the name of the product or products a workbench has to be upgraded to in order to meet the given minimum version.
+     * E.g.: 'IAR Embedded Workbench for RISC-V 3.10'
+     * Returns one product name for each target supported by the workbench.
+     *
+     * The returned strings each refer to a *product version*, which may be different from the IDE platform version (the platform version is not very meaningful to users).
+     * This function may not return any names at all; it should not be relied upon for anything important,
+     * only to give users a hint about the required product version(s).
      * @param workbench A workbench to check
      * @param minVer The version the workbench should meet
      */
-    export function getMinProductVersion(workbench: Workbench, minVer: MinVersion): string | undefined {
-        const target = workbench.targetId;
-        if (target === undefined) {
+    export function getMinProductVersions(workbench: Workbench, minVer: MinVersion): string[] {
+        return getMinProductVersionsImpl(workbench.type, workbench.targetIds, minVer);
+    }
+
+    /**
+     * Same as {@link getMinProductVersions}, but only returns the product name for the specificed target, even if the workbench supports several targets.
+     * If the workbench does not support the target, returns undefined.
+     * @param workbench A workbench to check
+     * @param minVer The version the workbench should meet
+     * @param target The target for which to return a product name
+     */
+    export function getMinProductVersionForTarget(workbench: Workbench, minVer: MinVersion, target: string): string | undefined {
+        target = target.toLowerCase();
+        if (!workbench.targetIds.includes(target)) {
             return undefined;
         }
+        return getMinProductVersionsImpl(workbench.type, [target], minVer)[0];
+    }
+
+    function getMinProductVersionsImpl(type: WorkbenchType, targets: string[], minVer: MinVersion): string[] {
         // Do we know the production version for this target and platform version?
         const minVersionString = `${minVer[0][0]}.${minVer[0][1]}.${minVer[0][2]}`;
-        const productVersion = productVersionTable[target]?.[minVersionString];
-        if (productVersion === undefined) {
-            return undefined;
-        }
-        // It would be weird to recommend BX users to upgrade to EW, so
-        // if they're using BX and BX meets the requirements we can return a BX product name.
-        const useBuildTools = minVer[1] === Type.BxAndEw && workbench.type === WorkbenchType.BX;
-        const targetDisplayName = Workbench.getTargetDisplayName(target) ?? target;
 
-        return "IAR " + (useBuildTools ? "Build Tools" : "Embedded Workbench") + " for " + targetDisplayName + " " + productVersion;
-        // Get the output type
-        // construct the string
+        return targets.map(target => {
+            const productVersion = productVersionTable[target]?.[minVersionString];
+            if (productVersion === undefined) {
+                return undefined;
+            }
+            // It would be weird to recommend BX users to upgrade to EW, so
+            // if they're using BX and BX meets the requirements we can return a BX product name.
+            const useBuildTools = minVer[1] === Type.BxAndEw && type === WorkbenchType.BX;
+            const targetDisplayName = Workbench.getTargetDisplayName(target) ?? target;
+
+            return "IAR " + (useBuildTools ? "Build Tools" : "Embedded Workbench") + " for " + targetDisplayName + " " + productVersion;
+        }).filter((product): product is string => !!product);
     }
 
     // Maps IDE platform versions to (user-visible) product versions

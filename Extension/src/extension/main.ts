@@ -48,6 +48,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     vscode.window.registerWebviewViewProvider(SettingsWebview.VIEW_TYPE, IarVsc.settingsView);
     IarVsc.projectTreeView = new TreeProjectView(
         projectModel,
+        configModel,
         ExtensionState.getInstance().extendedProject,
         workbenchModel,
         ExtensionState.getInstance().extendedWorkbench,

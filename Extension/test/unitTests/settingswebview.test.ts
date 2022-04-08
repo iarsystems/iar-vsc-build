@@ -95,8 +95,8 @@ suite("Test settings view", () => {
 
     test("Populates dropdowns", () => {
         workbenchModel.set(
-            { name: "Embedded Workbench 9.0", path: "/path/Embedded Workbench 9.0", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetId: "arm", type: WorkbenchType.IDE },
-            { name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetId: "riscv", type: WorkbenchType.BX }
+            { name: "Embedded Workbench 9.0", path: "/path/Embedded Workbench 9.0", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["arm"], type: WorkbenchType.IDE },
+            { name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.BX }
         );
         workbenchModel.select(2);
         projectModel.set( new Project("/some/directory/LedFlasher.ewp"), new Project("C:\\test\\A project.ewp") );
