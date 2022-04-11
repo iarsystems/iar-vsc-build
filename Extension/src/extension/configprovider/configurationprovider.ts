@@ -38,7 +38,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             Vscode.window.showWarningMessage("Cannot connect the IAR extension with the Microsoft CppTools extension. Falling back to the 'c_cpp_properties' json file.");
         }
         if (IarConfigurationProvider._instance) {
-            IarConfigurationProvider._instance.dispose();
+            IarConfigurationProvider._instance.close();
         }
 
         const instance = new IarConfigurationProvider(api);
@@ -66,6 +66,14 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
      */
     public isProjectFile(file: string) {
         return this.currentConfiguration?.isFileInProject(file) ?? false;
+    }
+
+    /**
+     * Unregister and dispose of this provider.
+     * Use this instead of calling {@link dispose}; calling this will indirectly call {@link dispose}.
+     */
+    public close() {
+        this.api?.dispose();
     }
 
     // To force cpptools to recognize extended keywords we pretend they're compiler-defined macros
@@ -171,9 +179,6 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     }
     dispose() {
         this.canProvideConfiguration = () => Promise.resolve(false);
-        if (this.api) {
-            this.api.dispose();
-        }
         this.output.dispose();
     }
 
