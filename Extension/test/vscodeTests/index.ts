@@ -8,10 +8,12 @@ import * as utils from "../../utils/testutils/testUtils";
 
 export function run(): Promise<void> {
     const testsRoot = path.resolve(__dirname);
-    return utils.getTestPromise(testsRoot, 20000).finally(() => {
+    return utils.getTestPromise(testsRoot, 20000).finally(async() => {
+        console.log("Tests done, deactivating");
         // Since these tests activate the extension, we should deactivate it afterwards to ensure
         // e.g. the service launcher is disposed of. Otherwise, the test process hangs under some circumstances.
         // TODO: investigate whether deactivate is supposed to be called by vs code here.
-        return deactivate();
+        await deactivate();
+        console.log("Done with deactivation");
     });
 }

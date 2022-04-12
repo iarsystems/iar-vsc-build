@@ -118,7 +118,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
 export async function deactivate() {
     IarVsc.ewpFilesWatcher?.dispose();
     if (IarConfigurationProvider.instance) {
-        IarConfigurationProvider.instance.dispose();
+        IarConfigurationProvider.instance.close();
     }
     IarTaskProvider.unregister();
     CStatTaskProvider.unRegister();
