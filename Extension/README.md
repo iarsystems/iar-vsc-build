@@ -41,8 +41,8 @@ This extension is compatible with any IAR Embedded Workbench (EW) or IAR Build T
 
 | IAR EW/BX version  | Limitation
 |--------------|---------
-| EWARM 9.20.4 or later <br>EWRH850 3.10 or later<br> | None |
-| EWARM 7.10-9.20.3<br>EW430 7.10 or later<br>EWRL78 3.10 or later<br>EWRX 3.10 or later<br>EWRH850 2.10-2.21<br>EWAVR 7.10 or later<br>EW8051 10.10 or later<br>| File view and possibility to add/remove files from a project is not supported. |
+| ARM v9.20.4 or later <br>RH850 v3.10 or later<br> | None |
+| ARM v7.10-9.20.3<br>430 v7.10 or later<br>RL78 v3.10 or later<br>RX v3.10 or later<br>RH850 v2.10-2.21<br>AVR v7.10 or later<br>8051 v10.10 or later<br>| File view and possibility to add/remove files from a project is not supported. |
 
 </details>
 
