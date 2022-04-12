@@ -92,7 +92,7 @@ export namespace CStat {
             await ProcessUtils.waitForExit(iarbuild);
         });
 
-        onWrite?.("Reading C-STAT output.");
+        onWrite?.("Reading C-STAT output.\n");
         return getAllWarnings(dbPath, extensionPath);
     }
 
@@ -268,10 +268,11 @@ export namespace CStat {
 /** Functions for invoking ireport for generating HTML reports */
 export namespace CStatReport {
     export function generateHTMLReport(ireportPath: string, cstatOutputDir: string, projectName: string, outputPath: string, full: boolean, onWrite?: (msg: string) => void): Promise<void> {
+        const dbPath = join(cstatOutputDir, "cstat.db");
         const args = [
             "--xml_mode",
             "--db",
-            join(cstatOutputDir, "cstat.db"),
+            dbPath,
             "--project",
             projectName,
             "--output",
@@ -282,8 +283,12 @@ export namespace CStatReport {
         }
 
         if (!Fs.existsSync(ireportPath)) {
-            return Promise.reject(new Error(`The program ${ireportPath} does not exists.`));
+            return Promise.reject(new Error(`The program ${ireportPath} does not exist.`));
         }
+        if (!Fs.existsSync(dbPath)) {
+            return Promise.reject(new Error(`The C-STAT database ${dbPath} does not exist. Please run a C-STAT analysis before genering an HTML report.`));
+        }
+        onWrite?.(`> '${ireportPath}' ${args.map(arg => `'${arg}'`).join(" ")}\n`);
         const ireport = spawn(ireportPath, args);
         ireport.stdout.on("data", data => {
             onWrite?.(data.toString());
