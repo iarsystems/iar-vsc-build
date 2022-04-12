@@ -35,15 +35,14 @@ To make this easier, you may wish to [Add a default build task]().
 [Click here]() to view the full documentation.
 
 ## Compatibility
-This table helps you finding the extension version supporting your specific IAR Embedded Workbench (EW) or IAR Build Tools version (BX). 
-> 💡️ To use an earlier version of the extension, use a download link in the table below and install the extension manually in the **Extensions** view via `Install Another Version...`. 
+This extension is compatible with any IAR Embedded Workbench (EW) or IAR Build Tools version (BX) using IDE version 8 or newer. This table helps you find the extension version supporting your specific product: 
 
 <details><summary>IAR EW/BX - Compatibility table</summary>
 
-| IAR EW/BX version  | Extension version | Comment
-|--------------|-----------|---------
-| EWARM 8.10 or later <br>EWRX 3.10 or later <br>EWRL78 3.10 or later <br>| (current)  | (automatically installed) |
-| EWARM 7.10      | [1.0](iar-vsc-1.0.vsix) | 
+| IAR EW/BX version  | Limitation
+|--------------|---------
+| EWARM 9.20.4 or later <br>EWRH850 3.10 or later<br> | None |
+| EWARM 7.10-9.20.3<br>EW430 7.10 or later<br>EWRL78 3.10 or later<br>EWRX 3.10 or later<br>EWRH850 2.10-2.21<br>EWAVR 7.10 or later<br>EW8051 10.10 or later<br>| File view and possibility to add/remove files from a project is not supported. |
 
 </details>
 
