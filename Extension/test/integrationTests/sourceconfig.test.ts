@@ -4,11 +4,11 @@
 
 import * as Assert from "assert";
 import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
-import { Workbench } from "../../utils/workbench";
+import { Workbench } from "iar-vsc-common/Workbench";
 import { IntegrationTestsCommon } from "./common";
-import { TestSandbox } from "../../utils/testutils/testSandbox";
+import { TestSandbox } from "iar-vsc-common/testutils/TestSandbox";
 import * as Path from "path";
-import { OsUtils } from "../../utils/osUtils";
+import { OsUtils } from "iar-vsc-common/osUtils";
 import { ConfigurationSet } from "../../src/extension/configprovider/configurationset";
 
 suite("Test source configuration providers", function() {

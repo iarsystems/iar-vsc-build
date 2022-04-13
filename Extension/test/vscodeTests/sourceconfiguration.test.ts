@@ -4,7 +4,7 @@ import * as Path from "path";
 import { IarConfigurationProvider } from "../../src/extension/configprovider/configurationprovider";
 import { VscodeTestsUtils } from "./utils";
 import { VscodeTestsSetup } from "./setup";
-import { OsUtils } from "../../utils/osUtils";
+import { OsUtils } from "iar-vsc-common/osUtils";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { SourceFileConfiguration } from "vscode-cpptools";
 import { Settings } from "../../src/extension/settings";

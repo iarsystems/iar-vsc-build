@@ -5,9 +5,9 @@
 import * as Vscode from "vscode";
 import { CStatTaskDefinition } from "./cstattaskprovider";
 import { CStat, CStatReport } from "../../../iar/tools/cstat";
-import { IarOsUtils, OsUtils } from "../../../../utils/osUtils";
+import { IarOsUtils, OsUtils } from "iar-vsc-common/osUtils";
 import * as Path from "path";
-import { Workbench } from "../../../../utils/workbench";
+import { Workbench } from "iar-vsc-common/workbench";
 import { EwpFile } from "../../../iar/project/parsing/ewpfile";
 import { spawnSync } from "child_process";
 import { ExtensionState } from "../../extensionstate";

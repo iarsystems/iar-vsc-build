@@ -6,7 +6,7 @@ import * as vscode from "vscode";
 import { Settings } from "../settings";
 import { CommandBase } from "./command";
 import { ToolManager } from "../../iar/tools/manager";
-import { OsUtils } from "../../../utils/osUtils";
+import { OsUtils } from "iar-vsc-common/osUtils";
 
 /**
  * Opens a file picker dialog and lets the user add a new folder containing workbench installations.

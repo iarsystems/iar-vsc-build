@@ -5,7 +5,7 @@
 
 
 import * as Vscode from "vscode";
-import { Workbench } from "../../../utils/workbench";
+import { Workbench } from "iar-vsc-common/workbench";
 import { BuildTaskExecution } from "./buildtaskexecution";
 
 export interface BuildTaskDefinition {

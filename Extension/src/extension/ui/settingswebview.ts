@@ -2,7 +2,7 @@ import { Subject } from "rxjs";
 import * as vscode from "vscode";
 import { Config } from "../../iar/project/config";
 import { Project } from "../../iar/project/project";
-import { Workbench } from "../../../utils/workbench";
+import { Workbench } from "iar-vsc-common/workbench";
 import { ListInputModel } from "../model/model";
 import * as sanitizeHtml from "sanitize-html";
 import { AddWorkbenchCommand } from "../command/addworkbench";

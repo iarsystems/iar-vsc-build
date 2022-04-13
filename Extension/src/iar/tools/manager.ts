@@ -5,9 +5,9 @@
 
 
 import * as Fs from "fs";
-import { Workbench } from "../../../utils/workbench";
+import { Workbench } from "iar-vsc-common/workbench";
 import * as Registry from "winreg";
-import { OsUtils } from "../../../utils/osUtils";
+import { OsUtils } from "iar-vsc-common/osUtils";
 import { FsUtils } from "../../utils/fs";
 import { ListUtils } from "../../utils/utils";
 

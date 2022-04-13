@@ -13,7 +13,6 @@ import { ListInputModel } from "../../src/extension/model/model";
  * and that that is propagated to the data models.
  */
 suite("Test Clicking Settings View", ()=>{
-
     suiteSetup(async function() {
         this.timeout(50000);
         await VscodeTestsUtils.ensureExtensionIsActivated();

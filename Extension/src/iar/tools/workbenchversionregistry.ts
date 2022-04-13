@@ -1,5 +1,5 @@
 /* eslint-disable comma-spacing */
-import { Workbench, WorkbenchType } from "../../../utils/workbench";
+import { Workbench, WorkbenchType } from "iar-vsc-common/workbench";
 
 /**
  * Allows looking up information about a workbench based on its IDE platform version.
@@ -79,7 +79,7 @@ export namespace WorkbenchVersions {
     }
 
     // Maps IDE platform versions to (user-visible) product versions
-    // Note that {@link isBuildTools} matches against exact fix versions. To be able to match
+    // Note that {@link getMinProductVersions} matches against exact fix versions. To be able to match
     // against a fix version for which there was no release for the target, you must add a "bogus" entry, see below.
     // We could try to match against the next release after the fix version, but that means we might return incorrect
     // product versions if we don't keep this table complete (and it is not complete ATM).

@@ -4,7 +4,7 @@
 
 import * as path from "path";
 import { deactivate } from "../../src/extension/main";
-import * as utils from "../../utils/testutils/testUtils";
+import * as utils from "iar-vsc-common/testutils/testUtils";
 
 export function run(): Promise<void> {
     const testsRoot = path.resolve(__dirname);

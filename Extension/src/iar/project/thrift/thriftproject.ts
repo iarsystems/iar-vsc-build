@@ -7,11 +7,11 @@
 import * as Vscode from "vscode";
 import * as Fs from "fs";
 import * as Path from "path";
-import * as ProjectManager from "./bindings/ProjectManager";
+import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
 import { LoadedProject, ExtendedProject } from "../project";
-import { Configuration, ProjectContext, Node, NodeType } from "./bindings/projectmanager_types";
+import { Configuration, ProjectContext, Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { QtoPromise } from "../../../utils/promise";
-import { Workbench } from "../../../../utils/workbench";
+import { Workbench } from "iar-vsc-common/workbench";
 import Int64 = require("node-int64");
 import { InformationDialog, InformationDialogType } from "../../../extension/ui/informationdialog";
 import { WorkbenchVersions } from "../../tools/workbenchversionregistry";

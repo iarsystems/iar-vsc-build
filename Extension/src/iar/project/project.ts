@@ -8,7 +8,7 @@ import * as Fs from "fs";
 import * as Path from "path";
 import { FsUtils } from "../../utils/fs";
 import { Config } from "./config";
-import { Node } from "./thrift/bindings/projectmanager_types";
+import { Node } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 
 /**
  * An embedded workbench project.

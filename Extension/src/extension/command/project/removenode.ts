@@ -8,7 +8,7 @@ import * as Vscode from "vscode";
 import { ConfirmationDialog } from "../../ui/confirmationdialog";
 import { FilesNode } from "../../ui/treeprojectprovider";
 import { ProjectCommand } from "./projectcommand";
-import { NodeType, Node } from "../../../iar/project/thrift/bindings/projectmanager_types";
+import { NodeType, Node } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { ExtendedProject } from "../../../iar/project/project";
 
 /**

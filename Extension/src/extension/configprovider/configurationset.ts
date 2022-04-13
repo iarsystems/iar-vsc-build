@@ -4,7 +4,7 @@ import * as Path from "path";
 import * as fsPromises from "fs/promises";
 import * as readline from "readline";
 import { spawn, spawnSync } from "child_process";
-import { Workbench } from "../../../utils/workbench";
+import { Workbench } from "iar-vsc-common/workbench";
 import { Project } from "../../iar/project/project";
 import { Config } from "../../iar/project/config";
 import { createHash } from "crypto";
@@ -15,7 +15,7 @@ import { BackupUtils, LanguageUtils, ListUtils, ProcessUtils } from "../../utils
 import { IncludePath } from "./data/includepath";
 import { Define } from "./data/define";
 import { PreIncludePath, StringPreIncludePath } from "./data/preincludepath";
-import { OsUtils } from "../../../utils/osUtils";
+import { OsUtils } from "iar-vsc-common/osUtils";
 import { Mutex } from "async-mutex";
 
 /**

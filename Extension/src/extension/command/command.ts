@@ -7,7 +7,7 @@
 import * as Vscode from "vscode";
 import { Input, ListInput } from "../ui/listinput";
 import { ListInputModel } from "../model/model";
-import { Workbench } from "../../../utils/workbench";
+import { Workbench } from "iar-vsc-common/workbench";
 import { Project } from "../../iar/project/project";
 import { Config } from "../../iar/project/config";
 

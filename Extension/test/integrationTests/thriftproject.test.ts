@@ -2,10 +2,10 @@ import * as Assert from "assert";
 import * as Path from "path";
 import { ThriftWorkbench } from "../../src/iar/extendedworkbench";
 import { Project } from "../../src/iar/project/project";
-import { Node, NodeType } from "../../src/iar/project/thrift/bindings/projectmanager_types";
+import { Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { ThriftProject } from "../../src/iar/project/thrift/thriftproject";
 import { IntegrationTestsCommon } from "./common";
-import { TestSandbox } from "../../utils/testutils/testSandbox";
+import { TestSandbox } from "iar-vsc-common/testutils/TestSandbox";
 
 suite("Thrift project", function() {
     this.timeout(0);

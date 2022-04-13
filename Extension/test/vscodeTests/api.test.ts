@@ -3,9 +3,9 @@ import * as Path from "path";
 import * as Assert from "assert";
 import { VscodeTestsUtils } from "./utils";
 import { VscodeTestsSetup } from "./setup";
-import { OsUtils } from "../../utils/osUtils";
+import { OsUtils } from "iar-vsc-common/osUtils";
 import { ExtensionState } from "../../src/extension/extensionstate";
-import { BuildExtensionApi } from "../../utils/buildExtension";
+import { BuildExtensionApi } from "iar-vsc-common/buildExtension";
 import path = require("path");
 
 suite("Test Public TS Api", ()=>{

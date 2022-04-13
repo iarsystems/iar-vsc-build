@@ -2,25 +2,23 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-
-
 import * as Vscode from "vscode";
 import * as Thrift from "thrift";
-import { Workbench } from "../../../../utils/workbench";
+import { Workbench } from "iar-vsc-common/workbench";
 import { spawn, ChildProcess } from "child_process";
 import * as path from "path";
 import * as fs from "fs";
-import { ServiceLocation, Transport, Protocol } from "./bindings/ServiceRegistry_types";
-import { ThriftClient } from "./thriftclient";
+import { ServiceLocation, Transport, Protocol } from "iar-vsc-common/thrift/bindings/ServiceRegistry_types";
+import { ThriftClient } from "iar-vsc-common/thrift/thriftClient";
 
-import * as CSpyServiceRegistry from "./bindings/CSpyServiceRegistry";
-import * as CSpyServiceManager from "./bindings/CSpyServiceManager";
-import { SERVICE_MANAGER_SERVICE } from "./bindings/ServiceManager_types";
+import * as CSpyServiceRegistry from "iar-vsc-common/thrift/bindings/CSpyServiceRegistry";
+import * as CSpyServiceManager from "iar-vsc-common/thrift/bindings/CSpyServiceManager";
+import { SERVICE_MANAGER_SERVICE } from "iar-vsc-common/thrift/bindings/ServiceManager_types";
 import { tmpdir } from "os";
 import { v4 as uuidv4 } from "uuid";
-import { PROJECTMANAGER_ID } from "./bindings/projectmanager_types";
-import * as ProjectManager from "./bindings/ProjectManager";
-import { OsUtils } from "../../../../utils/osUtils";
+import { PROJECTMANAGER_ID } from "iar-vsc-common/thrift/bindings/projectmanager_types";
+import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
+import { OsUtils } from "iar-vsc-common/osUtils";
 
 /** Callback for when the service manager crashes */
 export type CrashHandler = (exitCode: number | null) => void;

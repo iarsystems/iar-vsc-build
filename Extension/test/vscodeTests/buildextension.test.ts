@@ -6,15 +6,14 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 import { Settings } from "../../src/extension/settings";
-import { TestUtils } from "../../utils/testutils/testUtils";
+import { TestUtils } from "iar-vsc-common/testutils/TestUtils";
 import { Project } from "../../src/iar/project/project";
-import {IarUtils} from "../../utils/iarUtils";
-import { TestSandbox } from "../../utils/testutils/testSandbox";
+import { TestSandbox } from "iar-vsc-common/testutils/TestSandbox";
 import { VscodeTestsUtils } from "./utils";
 import { readdir, rm } from "fs/promises";
 import { VscodeTestsSetup } from "./setup";
 import { FsUtils } from "../../src/utils/fs";
-import { OsUtils } from "../../utils/osUtils";
+import { OsUtils } from "iar-vsc-common/osUtils";
 
 export namespace Utils{
     export const EXTENSION_ROOT = path.join(path.resolve(__dirname), "../../../");
@@ -56,7 +55,6 @@ export namespace Utils{
 
 
 suite("Test build extension", ()=>{
-
     let sandbox: TestSandbox;
     let sandboxPath: string;
 
@@ -116,7 +114,7 @@ suite("Test build extension", ()=>{
         for (const ew of listedEws) {
             VscodeTestsUtils.activateWorkbench(ew.name);
             // The tooltip is the absolute path to the current workbench. Read all the targets from the workbench.
-            const targets: string[] = IarUtils.getTargetsFromEwPath(ew.path.toString());
+            const targets: string[] = ew.targetIds;
             for (const target of targets) {
                 // Generate a testproject to build using the generic template
                 const testEwp = Utils.setupProject(id++, target.toUpperCase(), ewpFile, sandbox);

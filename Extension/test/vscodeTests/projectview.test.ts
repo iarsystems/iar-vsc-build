@@ -4,7 +4,7 @@ import * as Assert from "assert";
 import { VscodeTestsUtils } from "./utils";
 import { VscodeTestsSetup } from "./setup";
 import { FilesNode } from "../../src/extension/ui/treeprojectprovider";
-import { OsUtils } from "../../utils/osUtils";
+import { OsUtils } from "iar-vsc-common/osUtils";
 import { IarVsc } from "../../src/extension/main";
 
 namespace Utils {

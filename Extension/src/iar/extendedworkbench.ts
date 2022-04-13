@@ -4,14 +4,14 @@
 
 
 
-import * as ProjectManager from "./project/thrift/bindings/ProjectManager";
+import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
 import * as Fs from "fs";
 import * as Path from "path";
-import { Workbench } from "../../utils/workbench";
-import { Toolchain, PROJECTMANAGER_ID, ProjectContext } from "./project/thrift/bindings/projectmanager_types";
+import { Workbench } from "iar-vsc-common/workbench";
+import { Toolchain, PROJECTMANAGER_ID, ProjectContext } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { ExtendedProject, Project } from "./project/project";
 import { ThriftServiceManager } from "./project/thrift/thriftservicemanager";
-import { ThriftClient } from "./project/thrift/thriftclient";
+import { ThriftClient } from "iar-vsc-common/thrift/thriftClient";
 import { QtoPromise } from "../utils/promise";
 import { ThriftProject } from "./project/thrift/thriftproject";
 import { BackupUtils } from "../utils/utils";

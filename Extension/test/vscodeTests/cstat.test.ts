@@ -3,7 +3,7 @@ import * as Vscode from "vscode";
 import * as path from "path";
 import * as fsPromises from "fs/promises";
 import { VscodeTestsUtils } from "./utils";
-import { OsUtils } from "../../utils/osUtils";
+import { OsUtils } from "iar-vsc-common/osUtils";
 import { readdir, unlink } from "fs/promises";
 import { VscodeTestsSetup } from "./setup";
 import { ExtensionState } from "../../src/extension/extensionstate";

@@ -18,8 +18,8 @@ import { AddFileCommand, AddGroupCommand } from "./command/project/addnode";
 import { SettingsWebview } from "./ui/settingswebview";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Command } from "./command/command";
-import { BuildExtensionApi } from "../../utils/buildExtension";
-import { OsUtils } from "../../utils/osUtils";
+import { BuildExtensionApi } from "iar-vsc-common/buildExtension";
+import { OsUtils } from "iar-vsc-common/osUtils";
 import { Project } from "../iar/project/project";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
@@ -128,7 +128,7 @@ export async function deactivate() {
 async function loadTools(addWorkbenchCommand?: Command<unknown>) {
     const roots = Settings.getIarInstallDirectories();
 
-    await IarVsc.toolManager.collectWorkbenches(roots, true);
+    await IarVsc.toolManager.collectWorkbenches(roots, false);
     if (IarVsc.toolManager.workbenches.length === 0 && addWorkbenchCommand) {
         const response = await vscode.window.showErrorMessage("Unable to find any IAR toolchains to use. You must locate one before you can use this extension.", "Add IAR toolchain");
         if (response === "Add IAR toolchain") {

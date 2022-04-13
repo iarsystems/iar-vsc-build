@@ -5,7 +5,7 @@
 
 
 import * as Vscode from "vscode";
-import { Node, NodeType } from "../../iar/project/thrift/bindings/projectmanager_types";
+import { Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { ExtendedProject } from "../../iar/project/project";
 import { BehaviorSubject } from "rxjs";
 
