@@ -83,7 +83,7 @@ export namespace Define {
         line = line.trim();
 
         if (line.startsWith(defineStart)) {
-            line = line.substr(defineStart.length).trim();
+            line = line.substring(defineStart.length).trim();
 
             let identifier: string | undefined;
             let value: string | undefined = undefined;

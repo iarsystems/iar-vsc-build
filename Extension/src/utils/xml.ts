@@ -45,7 +45,7 @@ export namespace IarXml {
         }
 
         if ((validate[0] === "/") && (validate[validate.length - 1] === "/")) {
-            const regex = new RegExp(validate.substr(1, validate.length - 2));
+            const regex = new RegExp(validate.substring(1, validate.length - 2));
 
             return regex.test(content);
         } else {
