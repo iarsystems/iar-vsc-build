@@ -495,7 +495,7 @@
     "webpack-watch": "webpack --mode development --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
     "test-compile": "tsc -p ./",
-    "prepare": "cd .. && husky install"
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@types/escape-html": "^1.0.1",

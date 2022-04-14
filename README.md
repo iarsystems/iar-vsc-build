@@ -1,13 +1,62 @@
-<!-- This Source Code Form is subject to the terms of the Mozilla Public
-   - License, v. 2.0. If a copy of the MPL was not distributed with this
-   - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+# IAR Build
 
-# IAR-VSC-thrift
+Build and develop your IAR Embedded Workbench projects from Visual Studio Code.
 
-This is a fork of the `iar-vsc` Visual Studio code extension, available at https://github.com/pluyckx/iar-vsc .
-Unlike the original extension, this fork adds an IAR view to the Activity bar where users are able to manipulate the file structure in `.ewp` project files directly, and to read which build configurations they support.
+* Build projects
+* Manage project files
+* Generate C-STAT messages and reports
+* Use language features powered by the [C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
+
+An IAR Embedded Workbench or IAR Build Tools installation is required to use this extension.
+
+> 💡️ To debug your Embedded Workbench projects from VS Code, please also see the [IAR C-SPY Debug extension](https://marketplace.visualstudio.com/items?itemName=iarsystems.iar-debug).
+
+## Getting started
+To get started, open a folder containing an IAR Embedded Workbench project.
+A view with an IAR Embedded Workbench icon will appear in the left side panel:
+
+![side bar view](images/readme/sidebar.png)
+
+Here you may select the desired IAR Embedded Workbench/Build Tools installation,
+and the project and project configuration you want to work with. If your IAR Embedded Workbench or IAR Build Tools installation
+is not found automatically, please see [Adding IAR Embedded Workbench/Build Tools installations](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md).
+
+To build or analyze the selected project configuration, go to `Terminal->Run Task...` and then select either the `iar` or `iar-cstat` category.
+To make this easier, you may wish to [Add a default build task](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md).
+
+## Documentation
+* [Selecting the Embedded Workbench project](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#SelectingEWProject)
+
+* [Switching between VS Code and IAR Embedded Workbench](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#SwitchingVSCodeEW)
+
+* [Adding and removing source files](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#AddingRemovingFiles)
+
+* [IAR Build tasks](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#IARBuildTasks)
+
+* [Configuring build parameters](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#ConfigBuildParameters)
+
+* [IAR language extensions](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#IARLanguageExtensions)
+
+[Click here](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md) to view the full documentation.
+
+## Compatibility
+This extension is compatible with any IAR Embedded Workbench (EW) or IAR Build Tools version (BX) using IDE version 8 or newer. This table helps you find the extension version supporting your specific product:
+
+<details><summary>IAR EW/BX - Compatibility table</summary>
+
+| IAR EW/BX version  | Limitation
+|--------------|---------
+| ARM v9.20.4 or later <br>RH850 v3.10 or later<br> | None |
+| ARM v7.10-9.20.3<br>430 v7.10 or later<br>RL78 v3.10 or later<br>RX v3.10 or later<br>RH850 v2.10-2.21<br>AVR v7.10 or later<br>8051 v10.10 or later<br>| File view and possibility to add/remove files from a project is not supported. |
+
+</details>
 
 
-## Building
+## Feedback
+Depending on which feedback you want to share with us, here are the preferred options:
+* If you have ideas on how to improve this extension or if you have found issues with it, see [contributing.md](https://www.iar.com/knowledge/support/) on how to proceed.
 
-See `Extension/README.md`.
+* If you have issues with the underlying IAR Embedded Workbench or IAR Built Tools product, report this via the IAR Systems technical support channel at [IAR Technical Support](https://www.iar.com/knowledge/support/).
+
+<!-- ## Contributions
+Contributions are always welcome. Or did we decide to have a read-only repository? -->

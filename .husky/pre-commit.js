@@ -18,7 +18,7 @@ function runAndGetStdout(command, callback){
 runAndGetStdout("git diff --cached --name-only --diff-filter=ACMR", function(changedFiles) {
     const regex = "git@github\\.com:IARSystems/iar-vsc-common\\.git#[\\da-fA-F]{8}"
     if (changedFiles.includes("package.json")) {
-        runAndGetStdout("git --no-pager show :Extension/package.json", function(package) {
+        runAndGetStdout("git --no-pager show :package.json", function(package) {
             const source = JSON.parse(package)["dependencies"]?.["iar-vsc-common"];
             if (!new RegExp(regex).test(source)) {
                 console.log(`package.json: The source for the dependency 'iar-vsc-common' is not allowed: '${source}'.`);
@@ -30,7 +30,7 @@ runAndGetStdout("git diff --cached --name-only --diff-filter=ACMR", function(cha
     }
 
     if (changedFiles.includes("package-lock.json")) {
-        runAndGetStdout("git --no-pager show :Extension/package-lock.json", function(package_lock) {
+        runAndGetStdout("git --no-pager show :package-lock.json", function(package_lock) {
             const source = JSON.parse(package_lock)["packages"]?.[""]?.["dependencies"]?.["iar-vsc-common"];
             if (!new RegExp(regex).test(source)) {
                 console.log(`package-lock.json: The source for the dependency 'iar-vsc-common' is not allowed: '${source}'.`);

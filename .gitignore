@@ -1,12 +1,6 @@
-Extension/out
-Extension/dist
-Extension/node_modules
-Extension/test-sandbox
-Extension/*.vsix
-TestWorkspaces/**/Debug
-TestWorkspaces/**/settings
+out
+dist
+node_modules
+test-sandbox
+*.vsix
 .vscode-test
-venv/
-docs/_build
-docs/node_modules
-docs/venv
