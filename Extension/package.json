@@ -494,7 +494,8 @@
     "webpack": "webpack --mode development",
     "webpack-watch": "webpack --mode development --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
-    "test-compile": "tsc -p ./"
+    "test-compile": "tsc -p ./",
+    "prepare": "cd .. && husky install"
   },
   "devDependencies": {
     "@types/escape-html": "^1.0.1",
@@ -510,6 +511,7 @@
     "@typescript-eslint/parser": "^5.2.0",
     "eslint": "^8.1.0",
     "eslint-plugin-deprecation": "^1.3.2",
+    "husky": "^7.0.4",
     "ts-loader": "^9.2.6",
     "tslint": "^5.8.0",
     "typescript": "^4.3.0",
