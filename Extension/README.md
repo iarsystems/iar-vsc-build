@@ -9,7 +9,7 @@ Build and develop your IAR Embedded Workbench projects from Visual Studio Code.
 
 An IAR Embedded Workbench or IAR Build Tools installation is required to use this extension.
 
-> 💡️ To debug your Embedded Workbench projects from VS Code, please also see the [IAR C-SPY Debug extension]().
+> 💡️ To debug your Embedded Workbench projects from VS Code, please also see the [IAR C-SPY Debug extension](https://marketplace.visualstudio.com/items?itemName=iarsystems.iar-debug).
 
 ## Getting started
 To get started, open a folder containing an IAR Embedded Workbench project.
@@ -19,23 +19,28 @@ A view with an IAR Embedded Workbench icon will appear in the left side panel:
 
 Here you may select the desired IAR Embedded Workbench/Build Tools installation,
 and the project and project configuration you want to work with. If your IAR Embedded Workbench or IAR Build Tools installation
-is not found automatically, please see [Adding IAR Embedded Workbench/Build Tools installations]().
+is not found automatically, please see [Adding IAR Embedded Workbench/Build Tools installations](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md).
 
 To build or analyze the selected project configuration, go to `Terminal->Run Task...` and then select either the `iar` or `iar-cstat` category.
-To make this easier, you may wish to [Add a default build task]().
+To make this easier, you may wish to [Add a default build task](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md).
 
 ## Documentation
-* [Building projects and running C-STAT]()
-    * [Configuring build parameters]()
-* [Adding and removing project files]()
-* [Handling IAR language extensions]()
-* [Adding IAR Embedded Workbench/Build Tools installations]()
-* [Productivity tips]()
+* [Selecting the Embedded Workbench project](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#SelectingEWProject)
 
-[Click here]() to view the full documentation.
+* [Switching between VS Code and IAR Embedded Workbench](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#SwitchingVSCodeEW)
+
+* [Adding and removing source files](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#AddingRemovingFiles)
+
+* [IAR Build tasks](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#IARBuildTasks)
+
+* [Configuring build parameters](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#ConfigBuildParameters)
+
+* [IAR language extensions](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#IARLanguageExtensions)
+
+[Click here](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md) to view the full documentation.
 
 ## Compatibility
-This extension is compatible with any IAR Embedded Workbench (EW) or IAR Build Tools version (BX) using IDE version 8 or newer. This table helps you find the extension version supporting your specific product: 
+This extension is compatible with any IAR Embedded Workbench (EW) or IAR Build Tools version (BX) using IDE version 8 or newer. This table helps you find the extension version supporting your specific product:
 
 <details><summary>IAR EW/BX - Compatibility table</summary>
 
