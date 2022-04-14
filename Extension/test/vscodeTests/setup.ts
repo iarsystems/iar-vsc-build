@@ -1,4 +1,4 @@
-import { TestSandbox } from "iar-vsc-common/testutils/TestSandbox";
+import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 import * as Path from "path" ;
 
 export namespace VscodeTestsSetup {

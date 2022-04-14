@@ -5,7 +5,7 @@ import { Project } from "../../src/iar/project/project";
 import { Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { ThriftProject } from "../../src/iar/project/thrift/thriftproject";
 import { IntegrationTestsCommon } from "./common";
-import { TestSandbox } from "iar-vsc-common/testutils/TestSandbox";
+import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 
 suite("Thrift project", function() {
     this.timeout(0);

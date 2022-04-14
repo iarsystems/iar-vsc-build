@@ -4,9 +4,9 @@
 
 import * as Assert from "assert";
 import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
-import { Workbench } from "iar-vsc-common/Workbench";
+import { Workbench } from "iar-vsc-common/workbench";
 import { IntegrationTestsCommon } from "./common";
-import { TestSandbox } from "iar-vsc-common/testutils/TestSandbox";
+import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 import * as Path from "path";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { ConfigurationSet } from "../../src/extension/configprovider/configurationset";
