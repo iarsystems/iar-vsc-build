@@ -12,6 +12,6 @@ export namespace VscodeTestsSetup {
      */
     export function setup() {
         sandbox ??= new TestSandbox(Path.join(__dirname, "../../../"));
-        return sandbox.copyToSandbox(Path.join(__dirname, "../../../test/vscodeTests/TestProjects"), "UiTestProjects");
+        return sandbox.copyToSandbox(Path.join(__dirname, "../../../tests/vscodeTests/TestProjects"), "UiTestProjects");
     }
 }

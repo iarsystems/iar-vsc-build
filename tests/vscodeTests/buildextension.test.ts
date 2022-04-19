@@ -17,7 +17,7 @@ import { OsUtils } from "iar-vsc-common/osUtils";
 
 export namespace Utils{
     export const EXTENSION_ROOT = path.join(path.resolve(__dirname), "../../../");
-    export const TEST_PROJECTS_ROOT = path.join(EXTENSION_ROOT, "test/vscodeTests/TestProjects");
+    export const TEST_PROJECTS_ROOT = path.join(EXTENSION_ROOT, "tests/vscodeTests/TestProjects");
 
     // Tags for the tasks that can be executed
     export const BUILD = "Build Project";
@@ -108,7 +108,7 @@ suite("Test build extension", ()=>{
 
     test("Build and clean project with all listed EW:s", async function() {
         this.timeout(50000);
-        const ewpFile = path.join(path.join(Utils.EXTENSION_ROOT, "test/vscodeTests/BasicProject", "BasicProject.ewp"));
+        const ewpFile = path.join(path.join(Utils.EXTENSION_ROOT, "tests/vscodeTests/BasicProject", "BasicProject.ewp"));
         const listedEws = ExtensionState.getInstance().workbench.workbenches;
         let id = 1;
         for (const ew of listedEws) {
