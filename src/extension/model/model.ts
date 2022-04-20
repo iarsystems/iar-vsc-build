@@ -4,8 +4,8 @@
 
 
 
-export type SelectHandler<T> = (model: InputModel<T>, selected?: T) => void;
-export type InvalidateHandler<T> = (model: ListInputModel<T>) => void;
+type SelectHandler<T> = (model: InputModel<T>, selected?: T) => void;
+type InvalidateHandler<T> = (model: ListInputModel<T>) => void;
 
 export interface InputModel<T> {
     readonly selected: T | undefined;

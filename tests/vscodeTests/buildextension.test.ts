@@ -15,7 +15,7 @@ import { VscodeTestsSetup } from "./setup";
 import { FsUtils } from "../../src/utils/fs";
 import { OsUtils } from "iar-vsc-common/osUtils";
 
-export namespace Utils{
+namespace Utils {
     export const EXTENSION_ROOT = path.join(path.resolve(__dirname), "../../../");
     export const TEST_PROJECTS_ROOT = path.join(EXTENSION_ROOT, "tests/vscodeTests/TestProjects");
 

@@ -8,14 +8,6 @@ import * as Vscode from "vscode";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { Workbench } from "iar-vsc-common/workbench";
 
-export interface OpenTaskDefinition {
-    readonly label: string;
-    readonly type: string;
-    readonly command: string;
-    readonly workbench: string;
-    readonly workspace: string;
-}
-
 const OPEN_TASK_NAME = "Open Workspace in IAR Embedded Workbench";
 
 export namespace OpenTasks {

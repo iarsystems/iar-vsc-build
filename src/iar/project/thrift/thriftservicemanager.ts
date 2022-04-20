@@ -21,7 +21,7 @@ import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
 import { OsUtils } from "iar-vsc-common/osUtils";
 
 /** Callback for when the service manager crashes */
-export type CrashHandler = (exitCode: number | null) => void;
+type CrashHandler = (exitCode: number | null) => void;
 
 /**
  * Provides and manages thrift services for a workbench.

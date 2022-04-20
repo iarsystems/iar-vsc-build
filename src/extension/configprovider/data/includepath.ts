@@ -10,7 +10,7 @@ export interface IncludePath {
     readonly absolutePath: Fs.PathLike;
 }
 
-export class StringIncludePath implements IncludePath {
+class StringIncludePath implements IncludePath {
     private readonly includePath: Fs.PathLike;
     private readonly projectPath: Fs.PathLike | undefined;
 

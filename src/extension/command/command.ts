@@ -44,7 +44,7 @@ export abstract class CommandBase<T> implements Command<T> {
 /**
  * Prompts the user to select a value from the list model and updates the model's selected value
  */
-export class ListSelectionCommand<T> extends CommandBase<void> {
+class ListSelectionCommand<T> extends CommandBase<void> {
     private readonly input: Input<T>;
 
     constructor(id: string, model: ListInputModel<T>) {

@@ -19,7 +19,7 @@ async function main() {
  * Construct a key:string based on the supplied options from the commandline.
  * @returns
  */
-export function getEnvs(): Record<string, string> {
+function getEnvs(): Record<string, string> {
     const envs: Record<string, string> = {};
     for (const opt of process.argv.slice(2)) {
         if (opt.startsWith("--")) {

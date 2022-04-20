@@ -1,5 +1,5 @@
 
-export type Callback<T> = (value: T) => void;
+type Callback<T> = (value: T) => void;
 
 /**
  * An observable value that is generated/changed using asynchronous operations. This class ensures that
