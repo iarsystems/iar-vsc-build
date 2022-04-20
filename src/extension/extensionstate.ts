@@ -16,6 +16,7 @@ import { AsyncObservable } from "./model/asyncobservable";
 import { BehaviorSubject } from "rxjs";
 import { InformationDialog, InformationDialogType } from "./ui/informationdialog";
 import { WorkbenchVersions } from "../iar/tools/workbenchversionregistry";
+import { logger } from "iar-vsc-common/logger";
 
 /**
  * Holds most extension-wide data, such as the selected workbench, project and configuration, and loaded project etc.
@@ -51,6 +52,7 @@ class State {
         let projects: Project[] = [];
         if (Vscode.workspace.workspaceFolders !== undefined) {
             projects = Vscode.workspace.workspaceFolders.flatMap(folder => Project.findProjectsIn(folder.uri.fsPath, true));
+            logger.debug(`Found ${projects.length} project(s) in the workspace`);
         }
         this.project = new ProjectListModel(...projects);
 
@@ -90,6 +92,7 @@ class State {
             if (settingsValue) {
                 if (!model.selectWhen(item => settingsValue === toSettingsValue(item)) && model.amount > 0) {
                     Vscode.window.showWarningMessage(`IAR: Can't find '${settingsValue}' (defined in iar-vsc.json).`);
+                    logger.error(`Could not match item to ${field}: ${settingsValue} in iar-vsc.json`);
                     model.select(0);
                 }
             } else {
@@ -127,6 +130,7 @@ class State {
             // This is a little crude, but when the project changes there *may* have been a change in configurations,
             // so update the model.
             project?.onChanged(() => {
+                logger.debug("Loaded project was modified, reloading...");
                 if (project.name === this.project.selected?.name) {
                     this.config.set(...project.configurations);
                 }
@@ -137,18 +141,21 @@ class State {
     private addWorkbenchModelListeners(): void {
         // Try to load thrift services for the new workbench
         this.workbench.addOnSelectedHandler(async workbench => {
+            logger.debug(`Toolchain: selected '${this.workbench.selected?.name}' (index ${this.workbench.selectedIndex})`);
             const prevExtWb = this.extendedWorkbench.promise;
             const selectedWb = workbench.selected;
 
             if (selectedWb) {
                 this.extendedWorkbench.setWithPromise((async() => {
                     if (ThriftWorkbench.hasThriftSupport(selectedWb)) {
+                        logger.debug(`Loading thrift workbench '${selectedWb.name}'...`);
                         this.loading.next(true);
                         try {
                             return await ThriftWorkbench.from(selectedWb);
                         } catch (e) {
                             if (typeof e === "string" || e instanceof Error) {
                                 Vscode.window.showErrorMessage(`Error initiating IAR toolchain backend. Some functionality may be unavailable (${e.toString()}).`);
+                                logger.debug(`Error loading thrift workbench '${selectedWb.name}': ${e.toString()}`);
                             }
                             return undefined;
                         }
@@ -168,9 +175,11 @@ class State {
 
         // If workbench crashes, fall back to non-extended (non-thrift) functionality.
         this.extendedWorkbench.onValueDidChange(exWb => {
+            logger.debug(`Loaded thrift workbench '${exWb?.workbench.name}'`);
             if (exWb) {
                 exWb.onCrash(exitCode => {
                     Vscode.window.showErrorMessage(`The IAR project manager exited unexpectedly (code ${exitCode}). Try reloading the window or upgrading the project from IAR Embedded Workbench.`);
+                    logger.error(`Thrift workbench '${exWb.workbench.name}' crashed (code ${exitCode})`);
                     this.extendedWorkbench.setValue(undefined);
                     this.loadProject();
                 });
@@ -190,6 +199,7 @@ class State {
 
     private addProjectModelListeners(): void {
         this.project.addOnSelectedHandler(() => {
+            logger.debug(`Project: selected '${this.project.selected?.name}' (index ${this.project.selectedIndex})`);
             // Clear stored config, since it is only valid for the old project
             Settings.setConfiguration("");
             this.config.set(...[]);
@@ -198,6 +208,7 @@ class State {
         });
 
         this.loadedProject.onValueDidChange(project => {
+            logger.debug(`Loaded project '${project?.name}'`);
             this.loading.next(false);
             // Once a project has loaded we know its configurations, so populate our list model with them
             this.config.useConfigurationsFromProject(project);
@@ -206,6 +217,7 @@ class State {
 
     private addConfigurationModelListeners(): void {
         this.config.addOnSelectedHandler(async() => {
+            logger.debug(`Configuration: selected '${this.config.selected?.name}' (index ${this.config.selectedIndex})`);
             // Check that the configuration target is supported by the selected workbench.
             const selected = this.config.selected;
             const extWb = await this.extendedWorkbench.getValue();
@@ -228,12 +240,14 @@ class State {
             this.loading.next(true);
             const extendedWorkbench = await this.extendedWorkbench.getValue();
             if (this.workbench.selected && extendedWorkbench) {
+                logger.debug(`Loading project '${selectedProject.name}' using thrift...`);
                 const exProject = this.loadExtendedProject(selectedProject, extendedWorkbench);
 
                 this.extendedProject.setWithPromise(exProject);
                 this.loadedProject.setWithPromise(exProject.catch(() => new EwpFile(selectedProject.path)));
                 await this.loadedProject.getValue();
             } else {
+                logger.debug(`Loading project '${selectedProject.name}' using XML parser...`);
                 this.loadedProject.setValue(new EwpFile(selectedProject.path));
                 this.extendedProject.setValue(undefined);
             }
@@ -247,9 +261,9 @@ class State {
         try {
             return await exWorkbench.loadProject(project);
         } catch (e) {
-            // TODO: consider displaying more error information when the project manager starts providing specific errors
             if (typeof e === "string" || e instanceof Error) {
                 Vscode.window.showErrorMessage(`IAR: Error while loading the project. Some functionality may be unavailable (${e.toString()}).`);
+                logger.error(`Error loading project '${project.name}': ${e.toString()}`);
             }
             return Promise.reject(e);
         }

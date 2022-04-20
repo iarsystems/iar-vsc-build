@@ -15,6 +15,7 @@ import { ThriftClient } from "iar-vsc-common/thrift/thriftClient";
 import { QtoPromise } from "../utils/promise";
 import { ThriftProject } from "./project/thrift/thriftproject";
 import { BackupUtils } from "../utils/utils";
+import { logger } from "iar-vsc-common/logger";
 
 /**
  * A workbench with some extra capabilities,
@@ -70,6 +71,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     public loadProject(project: Project): Promise<ThriftProject> {
         let contextPromise = this.loadedContexts.get(project.path.toString());
         if (contextPromise === undefined) {
+            logger.debug(`Loading project context for '${project.name}'`);
             // VSC-192 Remove erroneous backup files created by some EW versions.
             contextPromise = BackupUtils.doWithBackupCheck(project.path.toString(), async() => {
                 return await this.projectMgr.service.LoadEwpFile(project.path.toString());
@@ -81,6 +83,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     }
 
     public async dispose() {
+        logger.debug(`Shutting down thrift workbench '${this.workbench.name}'`);
         // unload all loaded projects
         const contexts = await Promise.allSettled(this.loadedContexts.values());
         await Promise.allSettled(contexts.map(result => {

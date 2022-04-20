@@ -10,6 +10,7 @@ import * as Registry from "winreg";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { FsUtils } from "../../utils/fs";
 import { ListUtils } from "../../utils/utils";
+import { logger } from "iar-vsc-common/logger";
 
 type InvalidateHandler = (manager: ToolManager) => void;
 
@@ -18,10 +19,7 @@ export interface ToolManager {
 
     addInvalidateListener(handler: InvalidateHandler): void;
 
-    add(...workbenches: Workbench[]): void;
     collectWorkbenches(directories: Fs.PathLike[], useRegistry?: boolean): Promise<Workbench[]>;
-
-    findWorkbenchContainingPath(path: Fs.PathLike): Workbench | undefined;
 }
 
 class IarToolManager implements ToolManager {
@@ -38,18 +36,6 @@ class IarToolManager implements ToolManager {
 
     addInvalidateListener(handler: InvalidateHandler): void {
         this.invalidateHandlers.push(handler);
-    }
-
-    add(...workbenches: Workbench[]): void {
-        if (workbenches.length > 0) {
-            const prevLength = this.workbenches.length;
-            this.workbenches_ = IarToolManager.mergeUnique(this.workbenches_, workbenches);
-
-            if (this.workbenches_.length !== prevLength) {
-                this.workbenches_.sort((a, b) => a.name.toString().localeCompare(b.name.toString()));
-                this.fireInvalidateEvent();
-            }
-        }
     }
 
     /**
@@ -72,26 +58,26 @@ class IarToolManager implements ToolManager {
             try {
                 workbenches = workbenches.concat(await IarToolManager.collectFromWindowsRegistry());
             } catch (e) {
-                console.log("Failed to fetch workbenches from registry: ", e);
+                logger.error("Failed to fetch toolchains from registry: " + e);
             }
         }
 
+        logger.debug(`Collected ${workbenches.length} toolchains`);
         this.add(...workbenches);
         return workbenches;
     }
 
-    findWorkbenchContainingPath(path: Fs.PathLike): Workbench | undefined {
-        let workbench: Workbench | undefined = undefined;
+    private add(...workbenches: Workbench[]): void {
+        if (workbenches.length > 0) {
+            const prevLength = this.workbenches.length;
+            this.workbenches_ = IarToolManager.mergeUnique(this.workbenches_, workbenches);
 
-        this.workbenches_.some((value): boolean => {
-            if (path.toString().startsWith(value.path.toString())) {
-                workbench = value;
+            if (this.workbenches_.length !== prevLength) {
+                this.workbenches_.sort((a, b) => a.name.toString().localeCompare(b.name.toString()));
+                this.fireInvalidateEvent();
             }
-
-            return workbench !== undefined;
-        });
-
-        return workbench;
+            logger.debug(`${this.workbenches_.length - prevLength} new toolchain(s) added`);
+        }
     }
 
     private fireInvalidateEvent() {

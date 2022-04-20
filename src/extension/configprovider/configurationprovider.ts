@@ -17,6 +17,7 @@ import { Keyword } from "./data/keyword";
 import { Define } from "./data/define";
 import { ConfigurationSet } from "./configurationset";
 import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
+import { logger } from "iar-vsc-common/logger";
 
 /**
  * Provides source file configurations for an IAR project to cpptools via the cpptools typescript api.
@@ -35,7 +36,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         const api = await getCppToolsApi(Version.v2);
 
         if (!api) {
-            Vscode.window.showWarningMessage("Cannot connect the IAR extension with the Microsoft CppTools extension. Falling back to the 'c_cpp_properties' json file.");
+            Vscode.window.showWarningMessage("Cannot connect the IAR extension with the Microsoft CppTools extension. Intellisense may behave incorrectly.");
+            return;
         }
         if (IarConfigurationProvider._instance) {
             IarConfigurationProvider._instance.close();
@@ -73,13 +75,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
      * Use this instead of calling {@link dispose}; calling this will indirectly call {@link dispose}.
      */
     public close() {
-        this.api?.dispose();
+        this.api.dispose();
     }
 
     // To force cpptools to recognize extended keywords we pretend they're compiler-defined macros
     private keywordDefines: Define[] = [];
 
-    private constructor(private readonly api: CppToolsApi | undefined) {
+    private constructor(private readonly api: CppToolsApi) {
         // Note that changing the project will also trigger a config change
         // Note that we do not return the promise from onSettingsChanged, because the model does not need to wait for it to finish
         ExtensionState.getInstance().config.addOnSelectedHandler(() => {
@@ -92,10 +94,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         Settings.observeSetting(Settings.ExtensionSettingsField.CStandard, this.onSettingsChanged.bind(this));
         Settings.observeSetting(Settings.ExtensionSettingsField.CppStandard, this.onSettingsChanged.bind(this));
 
-        if (this.api) {
-            this.api.registerCustomConfigurationProvider(this);
-            this.api.notifyReady(this);
-        }
+        this.api.registerCustomConfigurationProvider(this);
+        this.api.notifyReady(this);
         this.onSettingsChanged();
     }
 
@@ -105,9 +105,11 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         return Promise.resolve(lang !== undefined && this.currentConfiguration !== undefined);
     }
     async provideConfigurations(uris: Vscode.Uri[], _token?: CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
+        logger.debug(`Providing intellisense configuration(s) for: ${uris.map(u => u.fsPath).join(", ")}`);
         const cStandard = Settings.getCStandard();
         const cppStandard = Settings.getCppStandard();
         if (this.currentConfiguration === undefined) {
+            logger.warn(`Cpptools requested intellisense config, but no config has been loaded`);
             return [];
         }
 
@@ -118,6 +120,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             try {
                 let partialConfig: PartialSourceFileConfiguration;
                 if (!this.currentConfiguration.isFileInProject(uri.fsPath)) {
+                    logger.debug(`Using fallback intellisense configuration for '${uri.fsPath}'`);
                     partialConfig = this.currentConfiguration.getFallbackConfiguration();
                 } else {
                     partialConfig = await this.currentConfiguration.getConfigurationFor(uri.fsPath);
@@ -154,7 +157,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
                 configs.push(res.value);
             }
         });
-        this.api?.didChangeCustomBrowseConfiguration(this);
+        this.api.didChangeCustomBrowseConfiguration(this);
         return configs;
     }
     canProvideBrowseConfiguration(_token?: CancellationToken | undefined): Thenable<boolean> {
@@ -190,6 +193,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         if (!workbench || !config || !project) {
             return false;
         }
+        logger.debug(`Generating intellisense config for '${project.name}':'${config.name}'...`);
         try {
             this.currentConfiguration = await ConfigurationSet.loadFromProject(project, config, workbench, this.output);
             return true;
@@ -199,6 +203,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             // If the selected workbench doesn't support the selected config's toolchain, don't show an error msg; we can show a more helpful error message elsewhere.
             const suppressErrors = extWb && !(await extWb.getToolchains()).some(tc => tc.id === config.toolchainId);
             if (!suppressErrors) {
+                logger.error("Failed to generate intellisense config: " + err);
                 // Show error msg with a button to see the logs
                 Vscode.window.showErrorMessage("IAR: Failed to generate intellisense configuration: " + err, { title: "Show Output Window"}).then(res => {
                     if (res !== undefined) {
@@ -236,7 +241,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             this.generateKeywordDefines(),
             this.generateSourceConfigs().then(didChange => changed = didChange),
         ]);
-        if (changed && this.api) {
+        if (changed) {
+            logger.debug("Intellisense config changed. Notifying cpptools.");
             this.api.didChangeCustomConfiguration(this);
             this.api.didChangeCustomBrowseConfiguration(this);
         }
@@ -254,10 +260,10 @@ function getCompilerForConfig(config: Config, workbench: Workbench): string | un
     const compilerPaths = FsUtils.filteredListDirectory(toolchainBinDir, filter);
     if (compilerPaths[0] !== undefined) {
         if (compilerPaths.length > 1) {
-            console.error(`Found more than one compiler candidate for ${config.toolchainId} in ${workbench}.`);
+            logger.error(`Found more than one compiler candidate for ${config.toolchainId} in ${workbench}.`);
         }
         return compilerPaths[0].toString();
     }
-    console.log(`Didn't find a compiler for ${config.toolchainId} in ${workbench.path}.`);
+    logger.error(`Didn't find a compiler for ${config.toolchainId} in ${workbench.path}.`);
     return undefined;
 }

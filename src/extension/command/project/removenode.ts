@@ -10,6 +10,7 @@ import { FilesNode } from "../../ui/treeprojectprovider";
 import { ProjectCommand } from "./projectcommand";
 import { NodeType, Node } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { ExtendedProject } from "../../../iar/project/project";
+import { logger } from "iar-vsc-common/logger";
 
 /**
  * This command removes a file or group from a project (using a thrift ProjectManager)
@@ -28,6 +29,7 @@ export class RemoveNodeCommand extends ProjectCommand {
             if (!shouldRemove) {
                 return;
             }
+            logger.debug(`Removing node '${toRemove.name}' from '${project.name}'`);
 
             const parent = source.parent;
             if (parent === undefined) {
@@ -42,6 +44,7 @@ export class RemoveNodeCommand extends ProjectCommand {
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
                 Vscode.window.showErrorMessage("Unable to remove " + typeString + ": " + e.toString());
+                logger.error("Unabled to remove node: " + e.toString());
             } else {
                 Vscode.window.showErrorMessage("Unable to remove " + typeString + ".");
             }

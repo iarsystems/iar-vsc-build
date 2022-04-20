@@ -10,6 +10,7 @@ import { join } from "path";
 import CsvParser = require("csv-parse/lib/sync");
 import * as Fs from "fs";
 import { OsUtils } from "iar-vsc-common/osUtils";
+import { logger } from "iar-vsc-common/logger";
 
 /**
  * Functions for interacting with C-STAT (i.e. running it via iarbuild and reading warnings)
@@ -102,7 +103,7 @@ export namespace CStat {
         case "Medium": return CStatWarningSeverity.MEDIUM;
         case "High":   return CStatWarningSeverity.HIGH;
         default:
-            console.log("Unrecognized C-STAT severity: " + severity);
+            logger.warn("Unrecognized C-STAT severity: " + severity);
             return CStatWarningSeverity.HIGH;
         }
     }

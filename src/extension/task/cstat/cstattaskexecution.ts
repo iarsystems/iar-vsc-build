@@ -12,6 +12,7 @@ import { EwpFile } from "../../../iar/project/parsing/ewpfile";
 import { spawnSync } from "child_process";
 import { ExtensionState } from "../../extensionstate";
 import { Settings } from "../../settings";
+import { logger } from "iar-vsc-common/logger";
 
 /**
  * Executes a c-stat task, i.e. generates and clears C-STAT warnings and displays them in vs code.
@@ -168,11 +169,15 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             if (extendedProject !== undefined && OsUtils.pathsEqual(extendedProject.path.toString(), projectPath)) {
                 const outDir = await extendedProject.getCStatOutputDirectory(config);
                 if (outDir !== undefined) {
+                    logger.debug(`Got C-STAT directory from project settings: ${outDir}`);
                     return Path.join(Path.dirname(projectPath), outDir);
                 }
             }
-        } catch (e) {}
+        } catch (e) {
+            logger.warn("Failed to fetch C-STAT directory: " + e);
+        }
         // If we don't have thrift access for this project, try to guess the default location. This is dependent on EW version.
+        logger.debug("Using default C-STAT directory");
         const output = spawnSync(Path.join(toolchain, Workbench.builderSubPath)).stdout.toString(); // Spawn without args to get help list
         if (output.includes("-cstat_cmds")) { // Filifjonkan
             return Path.join(Path.dirname(projectPath), config, "C-STAT");

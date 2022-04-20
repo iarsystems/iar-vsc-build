@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import { logger } from "iar-vsc-common/logger";
 import * as Vscode from "vscode";
 import { IarVsc } from "../main";
 
@@ -22,6 +23,7 @@ export namespace InformationDialog {
         const key = id + ".donotshow";
         const doNotShow = IarVsc.extensionContext?.globalState.get<boolean>(key);
         if (doNotShow) {
+            logger.debug(`Ignoring dialog ${id} ('do not show again' has been pressed)`);
             return;
         }
 
@@ -43,6 +45,7 @@ export namespace InformationDialog {
         const response = await result;
         if (response === options[1]) {
             IarVsc.extensionContext?.globalState.update(key, true);
+            logger.debug(`Ignoring future ${id} dialogs ('do not show again' was pressed)`);
         }
     }
 }

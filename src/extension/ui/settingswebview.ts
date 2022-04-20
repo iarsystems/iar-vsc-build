@@ -6,6 +6,7 @@ import { Workbench } from "iar-vsc-common/workbench";
 import { ListInputModel } from "../model/model";
 import * as sanitizeHtml from "sanitize-html";
 import { AddWorkbenchCommand } from "../command/addworkbench";
+import { logger } from "iar-vsc-common/logger";
 
 // Make sure this matches the enum in media/settingsview.js! AFAIK we cannot share code between here and the webview javascript
 enum MessageSubject {
@@ -82,7 +83,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         };
         // These messages are sent by our view (media/settingsview.js)
         this.view.webview.onDidReceiveMessage(async(message: {subject: string, index: number }) => {
-            console.log(message);
+            logger.debug(`Message from settings view: ${JSON.stringify(message)}`);
             switch (message.subject) {
             case MessageSubject.WorkbenchSelected:
                 this.workbenches.select(message.index);
@@ -105,7 +106,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
                 vscode.commands.executeCommand("workbench.action.openSettings", "@ext:iarsystems.iar-build");
                 break;
             default:
-                console.error("Settings view got unknown subject: " + message.subject);
+                logger.error("Settings view got unknown subject: " + message.subject);
                 break;
             }
         });

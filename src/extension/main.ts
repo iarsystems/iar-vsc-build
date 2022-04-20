@@ -21,8 +21,11 @@ import { Command } from "./command/command";
 import { BuildExtensionApi } from "iar-vsc-common/buildExtension";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { Project } from "../iar/project/project";
+import { logger } from "iar-vsc-common/logger";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
+    logger.init("IAR Build");
+    logger.debug("Activating extension");
     IarVsc.extensionContext = context;
     ExtensionState.init(IarVsc.toolManager);
 
@@ -116,6 +119,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
 }
 
 export async function deactivate() {
+    logger.debug("Deactivating extension");
     IarVsc.ewpFilesWatcher?.dispose();
     if (IarConfigurationProvider.instance) {
         IarConfigurationProvider.instance.close();
@@ -126,9 +130,10 @@ export async function deactivate() {
 }
 
 async function loadTools(addWorkbenchCommand?: Command<unknown>) {
+    logger.debug("Scanning for toolchains...");
     const roots = Settings.getIarInstallDirectories();
 
-    await IarVsc.toolManager.collectWorkbenches(roots, false);
+    await IarVsc.toolManager.collectWorkbenches(roots, true);
     if (IarVsc.toolManager.workbenches.length === 0 && addWorkbenchCommand) {
         const response = await vscode.window.showErrorMessage("Unable to find any IAR toolchains to use. You must locate one before you can use this extension.", "Add IAR toolchain");
         if (response === "Add IAR toolchain") {

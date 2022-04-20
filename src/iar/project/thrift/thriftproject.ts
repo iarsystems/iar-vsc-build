@@ -15,6 +15,7 @@ import { Workbench } from "iar-vsc-common/workbench";
 import Int64 = require("node-int64");
 import { InformationDialog, InformationDialogType } from "../../../extension/ui/informationdialog";
 import { WorkbenchVersions } from "../../tools/workbenchversionregistry";
+import { logger } from "iar-vsc-common/logger";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.
@@ -85,13 +86,13 @@ export class ThriftProject implements ExtendedProject {
     }
 
     public async reload() {
-        await this.projectMgr.CloseProject(this.context);
-        this.context = await this.projectMgr.LoadEwpFile(this.path.toString());
+        logger.debug(`Reloading project '${this.name}'`);
         this.configurations = await this.projectMgr.GetConfigurations(this.context);
         this.fireChangedEvent();
     }
 
     public unload() {
+        logger.debug(`Unloading project '${this.name}'`);
         this.fileWatcher.dispose();
         // note that we do not unload the project context from the project manager.
         // it is owned by the ThriftWorkbench and will be unloaded when the workbench is disposed

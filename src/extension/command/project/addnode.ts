@@ -10,6 +10,7 @@ import { Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_ty
 import { FilesNode } from "../../ui/treeprojectprovider";
 import { ProjectCommand } from "./projectcommand";
 import { ExtendedProject } from "../../../iar/project/project";
+import { logger } from "iar-vsc-common/logger";
 
 
 /**
@@ -32,9 +33,10 @@ export class AddFileCommand extends ProjectCommand {
             if (uris === undefined || uris.length === 0) {
                 return;
             }
-
             const rootNode = await project.getRootNode();
             const parent = source === undefined ? rootNode : source.iarNode;
+            logger.debug(`Adding [${uris.join(", ")}] to node '${parent.name}' in '${project.name}'`);
+
 
             uris.forEach(uri => {
                 const name = Path.basename(uri.fsPath);
@@ -44,9 +46,10 @@ export class AddFileCommand extends ProjectCommand {
             await project.setNode(parent, source ? source.indexPath : []);
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
-                Vscode.window.showErrorMessage("Unable to add file: " + e.toString());
+                Vscode.window.showErrorMessage("Unable to add file(s): " + e.toString());
+                logger.error("Unable to add file(s): " + e.toString());
             } else {
-                Vscode.window.showErrorMessage("Unable to add file.");
+                Vscode.window.showErrorMessage("Unable to add file(s).");
             }
         }
     }
@@ -82,6 +85,7 @@ export class AddGroupCommand extends ProjectCommand {
             if (!name) {
                 return;
             }
+            logger.debug(`Adding '${name}' to node '${parent.name}' in '${project.name}'`);
 
             const fullPath = Path.join(Path.dirname(project.path.toString()), name);
             const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath, ...getNodeDefaults(), isGenerated: false });
@@ -90,6 +94,7 @@ export class AddGroupCommand extends ProjectCommand {
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
                 Vscode.window.showErrorMessage("Unable to add group: " + e.toString());
+                logger.error("Unable to add group: " + e.toString());
             } else {
                 Vscode.window.showErrorMessage("Unable to add group.");
             }
