@@ -29,7 +29,7 @@ export class ThriftProject implements ExtendedProject {
     constructor(public path:                 Fs.PathLike,
                 public configurations:       ReadonlyArray<Configuration>,
                 private readonly projectMgr: ProjectManager.Client,
-                private context:             ProjectContext,
+                private readonly context:             ProjectContext,
                 private readonly owner:      Workbench) {
         // TODO: this should probably be changed to some thrift-based listener
         this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString());
