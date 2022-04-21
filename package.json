@@ -2,7 +2,7 @@
   "name": "iar-build",
   "displayName": "IAR Build",
   "description": "Develop IAR projects with intellisense, C-STAT and build support.",
-  "version": "2.0.0",
+  "version": "0.1.0",
   "publisher": "iarsystems",
   "icon": "images/logo.png",
   "galleryBanner": {
