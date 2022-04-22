@@ -79,7 +79,6 @@ export class TreeProjectView {
             });
         });
         extWorkbenchModel.onValueDidChange(extWorkbench => {
-            console.log("a", extWorkbench);
             hasExtendedWb = extWorkbench !== undefined;
             updateMessage();
         });

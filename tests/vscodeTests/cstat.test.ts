@@ -141,7 +141,7 @@ suite("Test C-STAT", ()=>{
 
             await VscodeTestsUtils.runTaskForProject(ANALYSIS_TASK, TARGET_PROJECT, "Debug");
             const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
-            Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only)");
+            Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only). Found these diagnostics:\n" + formatDiagnostics(fileDiagnostics));
             Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, srcFilePath));
 
             diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
@@ -195,7 +195,7 @@ suite("Test C-STAT", ()=>{
 
             await VscodeTestsUtils.runTask(ANALYSIS_TASK_CONFIGURED);
             const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
-            Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only)");
+            Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only). Found these diagnostics:\n" + formatDiagnostics(fileDiagnostics));
             Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, srcFilePath));
 
             diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
@@ -259,7 +259,7 @@ suite("Test C-STAT", ()=>{
 
             await VscodeTestsUtils.runTaskForProject(ANALYSIS_TASK, targetProject, "Debug");
             const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
-            Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only)");
+            Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only). Found these diagnostics:\n" + formatDiagnostics(fileDiagnostics));
             Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, srcFilePath));
 
             diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
@@ -276,4 +276,10 @@ suite("Test C-STAT", ()=>{
             Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
         }
     });
+
+    function formatDiagnostics(diagnostics: Array<[Vscode.Uri, Vscode.Diagnostic[]]>): string {
+        return diagnostics.map(diag => {
+            diag[0].fsPath + ":\n" + diag[1].map(d => "    " + d.message).join("\n");
+        }).join("\n");
+    }
 });

@@ -25,7 +25,7 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "--extensionTestsPath=${workspaceFolder}/out/test/unitTests"
+                "--extensionTestsPath=${workspaceFolder}/out/tests/unitTests"
             ],
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
@@ -42,7 +42,7 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "--extensionTestsPath=${workspaceFolder}/out/test/integrationTests"
+                "--extensionTestsPath=${workspaceFolder}/out/tests/integrationTests"
             ],
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
@@ -59,7 +59,7 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "--extensionTestsPath=${workspaceFolder}/out/test/vscodeTests",
+                "--extensionTestsPath=${workspaceFolder}/out/tests/vscodeTests",
                 "${workspaceFolder}/test-sandbox/UiTestProjects/"
             ],
             "outFiles": [
@@ -77,7 +77,7 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "--extensionTestsPath=${workspaceFolder}/out/test/miscTests"
+                "--extensionTestsPath=${workspaceFolder}/out/tests/miscTests"
             ],
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"

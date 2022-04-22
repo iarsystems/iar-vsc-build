@@ -147,7 +147,9 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
                     configuration: config,
                 };
             } catch (e) {
-                console.log(e);
+                if (typeof(e) === "string" || e instanceof Error) {
+                    logger.error(`Failed to provide intellisense configuration for ${uri.fsPath}: ${e.toString()}`);
+                }
                 throw e;
             }
         }));

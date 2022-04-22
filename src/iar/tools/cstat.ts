@@ -94,6 +94,7 @@ export namespace CStat {
         });
 
         onWrite?.("Reading C-STAT output.\n");
+        onWrite?.(`C-STAT database: ${dbPath}\n`);
         return getAllWarnings(dbPath, extensionPath);
     }
 

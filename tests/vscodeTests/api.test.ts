@@ -95,7 +95,7 @@ suite("Test Public TS Api", ()=>{
             "/proc",
             "armPROC.dll",
             "/plugin",
-            Path.join(ExtensionState.getInstance().workbench.selected!.path, "\\arm\\bin\\armlibsupport.dll"),
+            Path.join(ExtensionState.getInstance().workbench.selected!.path, "arm\\bin\\armlibsupport.dll"),
             "/kernel",
             "kernel.dll",
             "/ilink"
