@@ -41,7 +41,7 @@ suite("Test Source Configuration (intelliSense)", ()=>{
     });
 
     suiteTeardown(() => {
-        Vscode.workspace.getConfiguration("iar-build").update("defines", originalUserDefines);
+        return Vscode.workspace.getConfiguration("iar-build").update("defines", originalUserDefines);
     });
 
     // All files in this project have the same config, so we can reuse the assertions
