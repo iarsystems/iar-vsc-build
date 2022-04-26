@@ -204,8 +204,7 @@ namespace Rendering {
 
         <div id="footer">
             <vscode-link id="settings-link" class="link">Open Settings</vscode-link>
-            <!-- TODO: Change this url -->
-            <vscode-link href="https://iar-vsc.readthedocs.io/en/latest/index.html" id="documentation-link" class="link">View Documentation (TODO: change url!)</vscode-link>
+            <vscode-link href="https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md" id="documentation-link" class="link">View Documentation</vscode-link>
         </div>
     </body>
     </html>`;
