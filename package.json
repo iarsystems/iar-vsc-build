@@ -12,9 +12,11 @@
   "preview": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/pluyckx/iar-vsc.git"
+    "url": "https://github.com/IARSystems/iar-vsc-build"
   },
+	"license": "MPL-2.0",
   "homepage": "https://www.iar.com/",
+	"qna": "https://www.iar.com/support/",
   "engines": {
     "vscode": "^1.33.0"
   },
@@ -421,60 +423,6 @@
         "required": [
           "label",
           "action"
-        ]
-      }
-    ],
-    "walkthroughs": [
-      {
-        "id": "iar-build",
-        "description": "Learn how to build and edit IAR Embedded Workbench projects",
-        "featuredFor": [
-          "**/*.ewp"
-        ],
-        "title": "Get started with developing IAR projects",
-        "steps": [
-          {
-            "id": "load",
-            "title": "Load a project",
-            "description": "Test",
-            "completionEvents": [
-              "onView:iar-settings"
-            ],
-            "media": {
-              "markdown": "README.md"
-            }
-          },
-          {
-            "id": "build",
-            "title": "Build your project",
-            "completionEvents": [
-              "onView:iar-settings"
-            ],
-            "media": {
-              "markdown": "README.md"
-            }
-          },
-          {
-            "id": "cstat",
-            "title": "Analyze your project with C-STAT",
-            "description": "Test",
-            "completionEvents": [
-              "onStepSelected"
-            ],
-            "media": {
-              "markdown": "README.md"
-            }
-          },
-          {
-            "id": "project",
-            "title": "Add files to your project",
-            "completionEvents": [
-              "onView:iar-project"
-            ],
-            "media": {
-              "markdown": "README.md"
-            }
-          }
         ]
       }
     ]

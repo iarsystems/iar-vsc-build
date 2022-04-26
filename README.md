@@ -22,7 +22,7 @@ and the project and project configuration you want to work with. If your IAR Emb
 is not found automatically, please see [Adding IAR Embedded Workbench/Build Tools installations](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md).
 
 To build or analyze the selected project configuration, go to `Terminal->Run Task...` and then select either the `iar` or `iar-cstat` category.
-To make this easier, you may wish to [Add a default build task](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md).
+To make this easier, you may wish to [Add a default build task](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#setting-a-default-iar-build-task).
 
 ## Documentation
 * [Selecting the Embedded Workbench project](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#SelectingEWProject)
@@ -54,7 +54,7 @@ This extension is compatible with any IAR Embedded Workbench (EW) or IAR Build T
 
 ## Feedback
 Depending on which feedback you want to share with us, here are the preferred options:
-* If you have ideas on how to improve this extension or if you have found issues with it, see [contributing.md](https://www.iar.com/knowledge/support/) on how to proceed.
+* If you have ideas on how to improve this extension or if you have found issues with it, see [CONTRIBUTING.md](https://github.com/IARSystems/iar-vsc-build/blob/master/CONTRIBUTING.md) on how to proceed.
 
 * If you have issues with the underlying IAR Embedded Workbench or IAR Built Tools product, report this via the IAR Systems technical support channel at [IAR Technical Support](https://www.iar.com/knowledge/support/).
 
