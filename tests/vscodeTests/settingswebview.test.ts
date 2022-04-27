@@ -24,7 +24,7 @@ suite("Test Clicking Settings View", ()=>{
         await Vscode.commands.executeCommand("iar-settings.focus");
     });
 
-    suite("Clicking workbench updates model", async() => {
+    suite("Clicking workbench updates model", () => {
         let addedMockWorkbench = false;
 
         test("Clicking workbench updates model", async() => {
