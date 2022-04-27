@@ -1,0 +1,26 @@
+name: deploy
+on: [workflow_dispatch]
+jobs:
+  deploy-build:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'IARSystems/preview-vsc-build' }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: master
+          persist-credentials: false
+          fetch-depth: 0
+      - run: git remote add target https://${{ secrets.DEPLOY_PAT }}@github.com/IARSystems/iar-vsc-build.git && git push target master:pre-release
+  deploy-common:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'IARSystems/preview-vsc-build' }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: IARSystems/preview-vsc-common
+          ref: master
+          token: ${{ secrets.DEPLOY_PAT }}
+          persist-credentials: false
+          fetch-depth: 0
+      - run: git remote add target https://${{ secrets.DEPLOY_PAT }}@github.com/IARSystems/iar-vsc-common.git && git push target master:master
+
