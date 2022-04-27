@@ -6,6 +6,7 @@ import { IarVsc } from "../../src/extension/main";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { DropdownIds } from "../../src/extension/ui/settingswebview";
 import { ListInputModel } from "../../src/extension/model/model";
+import { WorkbenchType } from "iar-vsc-common/workbench";
 
 
 /**
@@ -23,24 +24,47 @@ suite("Test Clicking Settings View", ()=>{
         await Vscode.commands.executeCommand("iar-settings.focus");
     });
 
-    test("Clicking workbench updates model", async() => {
-        const workbenchModel = ExtensionState.getInstance().workbench;
-        if (workbenchModel.amount < 2) {
-            Assert.fail("This test requires at least two workbenches.");
-        }
+    suite("Clicking workbench updates model", async() => {
+        let addedMockWorkbench = false;
 
-        let indexToSelect = -1;
-        for (let i = 0; i < workbenchModel.amount; i++) {
-            if (i !== workbenchModel.selectedIndex) {
-                indexToSelect = i;
-                break;
+        test("Clicking workbench updates model", async() => {
+            const workbenchModel = ExtensionState.getInstance().workbench;
+
+            // We need at least two workbenches for this, so add a fake one if there is only one workbench
+            if (workbenchModel.amount === 1) {
+                addedMockWorkbench = true;
+                workbenchModel.set(...workbenchModel.workbenches, {
+                    name: "MockWorkbench",
+                    builderPath: "MockWorkbench",
+                    idePath: "MockWorkbench",
+                    path: "MockWorkbench",
+                    targetIds: [],
+                    type: WorkbenchType.IDE,
+                    version: { major: 0, minor: 0, patch: 0 }
+                });
+                // Wait for the view to redraw
+                await new Promise((res, _) => setTimeout(res, 1000));
             }
-        }
-        const modelChange = waitForModelChange(ExtensionState.getInstance().workbench);
-        IarVsc.settingsView.selectFromDropdown(DropdownIds.Workbench, indexToSelect);
-        await modelChange;
 
-        Assert.strictEqual(ExtensionState.getInstance().workbench.selectedIndex, indexToSelect);
+            let indexToSelect = -1;
+            for (let i = 0; i < workbenchModel.amount; i++) {
+                if (i !== workbenchModel.selectedIndex) {
+                    indexToSelect = i;
+                    break;
+                }
+            }
+            const modelChange = waitForModelChange(ExtensionState.getInstance().workbench);
+            IarVsc.settingsView.selectFromDropdown(DropdownIds.Workbench, indexToSelect);
+            await modelChange;
+
+            Assert.strictEqual(ExtensionState.getInstance().workbench.selectedIndex, indexToSelect);
+        });
+        suiteTeardown(() => {
+            if (addedMockWorkbench) {
+                const workbenchModel = ExtensionState.getInstance().workbench;
+                workbenchModel.set(...workbenchModel.workbenches.filter(wb => wb.name !== "MockWorkbench"));
+            }
+        });
     });
 
     test("Clicking project updates model", async() => {
