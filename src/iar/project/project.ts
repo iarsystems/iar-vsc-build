@@ -27,8 +27,8 @@ export class Project {
 export interface LoadedProject extends Project {
     configurations: ReadonlyArray<Config>;
 
+    // Called when the project is changed externally, i.e. by some other program
     onChanged(callback: (project: LoadedProject) => void): void;
-    reload(): void | Promise<void>;
     unload(): void | Promise<void>;
 }
 

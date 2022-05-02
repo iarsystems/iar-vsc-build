@@ -32,13 +32,13 @@ export class ThriftProject implements ExtendedProject {
                 private readonly context:             ProjectContext,
                 private readonly owner:      Workbench) {
         // TODO: this should probably be changed to some thrift-based listener
-        this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString());
+        this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString().replace(/\.ewp$/, ".ew*"));
         this.fileWatcher.onDidChange(() => {
             if (this.ignoreNextFileChange) {
                 this.ignoreNextFileChange = false;
                 return;
             }
-            this.reload();
+            this.fireChangedEvent();
         });
     }
 
@@ -83,12 +83,6 @@ export class ThriftProject implements ExtendedProject {
             return Promise.resolve(undefined);
         }
         return QtoPromise(this.projectMgr.GetToolArgumentsForConfiguration(this.context, "C-SPY", config));
-    }
-
-    public async reload() {
-        logger.debug(`Reloading project '${this.name}'`);
-        this.configurations = await this.projectMgr.GetConfigurations(this.context);
-        this.fireChangedEvent();
     }
 
     public unload() {

@@ -18,8 +18,8 @@ import { logger } from "iar-vsc-common/logger";
  */
 export class EwpFile implements LoadedProject {
     private readonly fileWatcher: Vscode.FileSystemWatcher;
-    private xml: XmlNode;
-    private _configurations: Config[];
+    private readonly xml: XmlNode;
+    private readonly _configurations: Config[];
 
     private readonly onChangedHandlers: ((project: LoadedProject) => void)[] = [];
 
@@ -30,11 +30,10 @@ export class EwpFile implements LoadedProject {
         this.xml = this.loadXml();
         this._configurations = this.loadConfigurations();
 
-        this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString());
+        this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString().replace(/\.ewp$/, ".ew*"));
 
         this.fileWatcher.onDidChange(() => {
-            this.reload();
-            this.onChangedHandlers.forEach(handler => handler(this));
+            this.fireChanged();
         });
     }
 
@@ -48,33 +47,6 @@ export class EwpFile implements LoadedProject {
 
     public onChanged(callback: (project: LoadedProject) => void): void {
         this.onChangedHandlers.push(callback);
-    }
-
-    /**
-     * Reload the project file.
-     */
-    public reload(): void {
-        try {
-            const oldXml = this.xml;
-            const oldConfigs = this._configurations;
-
-            try {
-                // if loading the xml or configurations fail, restore old state.
-                this.xml = this.loadXml();
-                this._configurations = this.loadConfigurations();
-            } catch (e) {
-                this.xml = oldXml;
-                this._configurations = oldConfigs;
-
-                throw e;
-            }
-
-            this.fireChanged();
-        } catch (e) {
-            if (typeof e === "string" || e instanceof Error) {
-                console.error("Failed to reload project: ", e.toString());
-            }
-        }
     }
 
     public findConfiguration(name: string): Config | undefined {

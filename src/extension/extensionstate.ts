@@ -82,6 +82,18 @@ class State {
         }
     }
 
+    /**
+     * Reloads the currently selected project, if any
+     */
+    public async reloadProject() {
+        const extProject = await this.extendedProject.getValue();
+        const extWorkbench = await this.extendedWorkbench.getValue();
+        if (extProject && extWorkbench) {
+            extWorkbench.unloadProject(extProject);
+        }
+        await this.loadProject();
+    }
+
     // Connects a list model to a persistable setting in the iar-vsc.json file, so that:
     // * Changes to the model are stored in the file.
     // * When the list contents change, tries to restore the selected value from the file.
@@ -127,12 +139,10 @@ class State {
 
     private addProjectContentListeners(): void {
         this.loadedProject.onValueDidChange(project => {
-            // This is a little crude, but when the project changes there *may* have been a change in configurations,
-            // so update the model.
             project?.onChanged(() => {
-                logger.debug("Loaded project was modified, reloading...");
                 if (project.name === this.project.selected?.name) {
-                    this.config.set(...project.configurations);
+                    logger.debug("Loaded project was modified, reloading...");
+                    this.reloadProject();
                 }
             });
         });

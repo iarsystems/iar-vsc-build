@@ -26,7 +26,20 @@ export interface ExtendedWorkbench {
 
     getToolchains(): Promise<Toolchain[]>;
 
+    /**
+     * Loads the given project into a {@link ExtendedProject}.
+     * This method uses caching; loaded projects are kept in memory to speed up
+     * subsequent loads of the same project. To evict a project from memory and
+     * force it to be reloaded from disk, call {@link unloadProject}.
+     */
     loadProject(project: Project): Promise<ExtendedProject>;
+    /**
+     * Unloads the given project if it has previously been loaded.
+     * The next time the project is loaded using this workbench, a full load from
+     * disk will be performed.
+     * Note that this invalidates all currently loaded instances of the project.
+     */
+    unloadProject(project: Project): Promise<void>;
 
     dispose(): Promise<void>;
 
@@ -80,6 +93,14 @@ export class ThriftWorkbench implements ExtendedWorkbench {
             contextPromise.catch(() => this.loadedContexts.delete(project.path.toString()));
         }
         return contextPromise.then(context => ThriftProject.fromContext(project.path, this.projectMgr.service, context, this.workbench));
+    }
+    public async unloadProject(project: Project): Promise<void> {
+        const contextPromise = this.loadedContexts.get(project.path.toString());
+        if (contextPromise !== undefined) {
+            const context = await contextPromise;
+            this.loadedContexts.delete(project.path.toString());
+            await this.projectMgr.service.CloseProject(context);
+        }
     }
 
     public async dispose() {
