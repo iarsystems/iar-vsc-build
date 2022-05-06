@@ -30,10 +30,6 @@ suite("Test source configuration providers", function() {
         Assert(project.findConfiguration("Debug"), "Test project should have a Debug configuration");
     });
 
-    suiteTeardown(() => {
-        project.unload();
-    });
-
     test("Finds project-wide configs", async() => {
         // This file has no overriden settings, so it should use the project-defined include paths etc.
         const projectFile = Path.join(projectDir, "util.c");

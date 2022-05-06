@@ -4,38 +4,25 @@
 
 
 
-import * as Fs from "fs";
 import * as Path from "path";
-import { FsUtils } from "../../utils/fs";
 import { Config } from "./config";
 import { Node } from "iar-vsc-common/thrift/bindings/projectmanager_types";
+import { OsUtils } from "iar-vsc-common/osUtils";
 
 /**
  * An embedded workbench project.
  */
-export class Project {
-    constructor(public path: Fs.PathLike) {}
-
-    get name(): string {
-        return Path.parse(this.path.toString()).name;
-    }
-}
-
-/**
- * An embedded workbench project that is loaded in some way, so that we can access its configurations.
- */
-export interface LoadedProject extends Project {
+export interface Project {
+    name: string;
+    path: string;
     configurations: ReadonlyArray<Config>;
-
-    // Called when the project is changed externally, i.e. by some other program
-    onChanged(callback: (project: LoadedProject) => void): void;
-    unload(): void | Promise<void>;
+    findConfiguration(name: string): Config | undefined;
 }
 
 /**
  * An embedded workbench project that is loaded through e.g. thrift, so we can perform some operations on it.
  */
-export interface ExtendedProject extends LoadedProject {
+export interface ExtendedProject extends Project {
     /**
      * Gets the node at the top of the project (file) tree.
      */
@@ -54,25 +41,27 @@ export interface ExtendedProject extends LoadedProject {
      * Gets the C-SPY command line used to debug the configuration
      */
     getCSpyArguments(config: string): Promise<string[] | undefined>;
+
+    /**
+     * Called when some of the available project data is changed (e.g. the nodes).
+     */
+    onChanged(callback: () => void): void;
+
+    unload(): void;
 }
 
 
 export namespace Project {
-    export function findProjectsIn(directory: string, recursive = true): Project[] {
-        const projectPaths = FsUtils.walkAndFind(directory, recursive, (path): boolean => {
-            const stat = Fs.statSync(path);
+    /**
+     * Checks whether this is an automatic backup file. These should generally be ignored.
+     */
+    export function isBackupFile(projectFile: string): boolean {
+        return /^Backup\s+(\(\d+\)\s+)?of.*\.ewp$/.test(Path.basename(projectFile));
+    }
 
-            if (stat.isFile()) {
-                const extension = Path.parse(path.toString()).ext;
-
-                if (extension === ".ewp" && !Path.basename(path.toString()).startsWith("Backup ")) {
-                    return true;
-                }
-            }
-
-            return false;
-        });
-
-        return projectPaths.map(path => new Project(path));
+    export function equal(p1: Project, p2: Project) {
+        return OsUtils.pathsEqual(p1.path, p2.path) &&
+            p1.configurations.length === p2.configurations.length &&
+            !p1.configurations.some(conf => p2.findConfiguration(conf.name) === undefined);
     }
 }

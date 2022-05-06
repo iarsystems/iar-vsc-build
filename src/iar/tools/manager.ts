@@ -45,15 +45,15 @@ class IarToolManager implements ToolManager {
      */
     async collectWorkbenches(directories: string[], useRegistry?: boolean): Promise<Workbench[]> {
         let workbenches: Workbench[] = [];
-        directories.forEach(directory => {
+        await Promise.all(directories.map(async(directory) => {
             const workbench = Workbench.create(directory);
 
             if (workbench) {
                 workbenches.push(workbench);
             } else {
-                workbenches = workbenches.concat(IarToolManager.collectWorkbenchesFrom(directory));
+                workbenches = workbenches.concat(await IarToolManager.collectWorkbenchesFrom(directory));
             }
-        });
+        }));
         if (useRegistry && OsUtils.OsType.Windows === OsUtils.detectOsType()) {
             try {
                 workbenches = workbenches.concat(await IarToolManager.collectFromWindowsRegistry());
@@ -95,10 +95,10 @@ class IarToolManager implements ToolManager {
      *
      * @returns {Workbench[]} A list of found workbenches. Size can be 0.
      */
-    private static collectWorkbenchesFrom(root: string): Workbench[] {
+    private static async collectWorkbenchesFrom(root: string): Promise<Workbench[]> {
         const workbenches = new Array<Workbench>();
 
-        const directories = FsUtils.filteredListDirectory(root, () => true);
+        const directories = await FsUtils.filteredListDirectory(root, () => true);
 
         directories.forEach(directory => {
             const workbench = Workbench.create(directory);

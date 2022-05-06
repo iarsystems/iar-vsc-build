@@ -4,69 +4,39 @@
 
 
 
-import * as Vscode from "vscode";
 import * as Fs from "fs";
 import * as Path from "path";
-import { LoadedProject } from "../project";
+import { Project } from "../project";
 import { XmlNode } from "../../../utils/XmlNode";
 import { Config } from "../config";
 import { XmlConfig } from "./xmlconfig";
-import { logger } from "iar-vsc-common/logger";
 
 /**
- * A parsed ewp file. We don't support much functionality here; rather, advanced functionality is added via thrift.
+ * A parsed ewp file. This is very cheap to instantiate compared to the thrift-based project.
  */
-export class EwpFile implements LoadedProject {
-    private readonly fileWatcher: Vscode.FileSystemWatcher;
-    private readonly xml: XmlNode;
+export class EwpFile implements Project {
     private readonly _configurations: Config[];
+    private readonly _path: string;
 
-    private readonly onChangedHandlers: ((project: LoadedProject) => void)[] = [];
-
-    readonly path: Fs.PathLike;
-
-    constructor(path: Fs.PathLike) {
-        this.path = path;
-        this.xml = this.loadXml();
-        this._configurations = this.loadConfigurations();
-
-        this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString().replace(/\.ewp$/, ".ew*"));
-
-        this.fileWatcher.onDidChange(() => {
-            this.fireChanged();
-        });
+    constructor(path: string) {
+        this._path = path;
+        const xml = EwpFile.loadXml(path);
+        this._configurations = EwpFile.loadConfigurations(xml);
     }
 
     get name(): string {
         return Path.parse(this.path.toString()).name;
+    }
+    get path(): string {
+        return this._path;
     }
 
     get configurations(): ReadonlyArray<Config> {
         return this._configurations;
     }
 
-    public onChanged(callback: (project: LoadedProject) => void): void {
-        this.onChangedHandlers.push(callback);
-    }
-
     public findConfiguration(name: string): Config | undefined {
-        let result: Config | undefined = undefined;
-
-        this.configurations.some((config): boolean => {
-            if (config.name === name) {
-                result = config;
-                return true;
-            }
-
-            return false;
-        });
-
-        return result;
-    }
-
-    public unload() {
-        logger.debug(`Unloading project '${this.name}'`);
-        this.fileWatcher.dispose();
+        return this.configurations.find(config => config.name === name);
     }
 
     /**
@@ -77,14 +47,14 @@ export class EwpFile implements LoadedProject {
      * like to create a helper function so we can reuse this code when reloading
      * the project file.
      */
-    private loadXml(): XmlNode {
-        const stat = Fs.statSync(this.path);
+    private static loadXml(path: string): XmlNode {
+        const stat = Fs.statSync(path);
 
         if (!stat.isFile()) {
             throw new Error("'${this.path.toString()}' is not a file!");
         }
 
-        const content = Fs.readFileSync(this.path);
+        const content = Fs.readFileSync(path);
 
         const node = new XmlNode(content.toString());
 
@@ -95,13 +65,7 @@ export class EwpFile implements LoadedProject {
         return node;
     }
 
-    private loadConfigurations(): Config[] {
-        return XmlConfig.fromXml(this.xml);
-    }
-
-    private fireChanged() {
-        this.onChangedHandlers.forEach(handler => {
-            handler(this);
-        });
+    private static loadConfigurations(xml: XmlNode): Config[] {
+        return XmlConfig.fromXml(xml);
     }
 }

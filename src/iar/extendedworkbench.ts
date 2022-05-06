@@ -71,6 +71,8 @@ export class ThriftWorkbench implements ExtendedWorkbench {
 
     // Loaded project contexts are stored, and may be reused until this workbench is disposed of.
     private readonly loadedContexts = new Map<string, Promise<ProjectContext>>();
+    // To avoid unloading and unloading the same project at the same time, store active unload tasks here and await them when loading
+    private readonly currentUnloadTasks = new Map<string, Promise<void>>();
 
     constructor(public workbench:   Workbench,
                 private readonly serviceMgr: ThriftServiceManager,
@@ -81,25 +83,39 @@ export class ThriftWorkbench implements ExtendedWorkbench {
         return QtoPromise(this.projectMgr.service.GetToolchains());
     }
 
-    public loadProject(project: Project): Promise<ThriftProject> {
+    public async loadProject(project: Project): Promise<ThriftProject> {
+        const unloadTask = this.currentUnloadTasks.get(project.path);
+        if (unloadTask) {
+            await unloadTask;
+        }
+
         let contextPromise = this.loadedContexts.get(project.path.toString());
         if (contextPromise === undefined) {
             logger.debug(`Loading project context for '${project.name}'`);
             // VSC-192 Remove erroneous backup files created by some EW versions.
-            contextPromise = BackupUtils.doWithBackupCheck(project.path.toString(), async() => {
-                return await this.projectMgr.service.LoadEwpFile(project.path.toString());
+            contextPromise = BackupUtils.doWithBackupCheck(project.path, async() => {
+                return await this.projectMgr.service.LoadEwpFile(project.path);
             });
-            this.loadedContexts.set(project.path.toString(), contextPromise);
-            contextPromise.catch(() => this.loadedContexts.delete(project.path.toString()));
+            this.loadedContexts.set(project.path, contextPromise);
+            contextPromise.catch(() => this.loadedContexts.delete(project.path));
         }
         return contextPromise.then(context => ThriftProject.fromContext(project.path, this.projectMgr.service, context, this.workbench));
     }
+
     public async unloadProject(project: Project): Promise<void> {
         const contextPromise = this.loadedContexts.get(project.path.toString());
-        if (contextPromise !== undefined) {
-            const context = await contextPromise;
-            this.loadedContexts.delete(project.path.toString());
-            await this.projectMgr.service.CloseProject(context);
+        if (contextPromise !== undefined && !this.currentUnloadTasks.has(project.path)) {
+
+            const unloadTask = contextPromise.then(context => {
+                this.loadedContexts.delete(project.path.toString());
+                return this.projectMgr.service.CloseProject(context);
+            });
+
+            this.currentUnloadTasks.set(project.path, unloadTask);
+            unloadTask.finally(() => {
+                this.currentUnloadTasks.delete(project.path);
+            });
+            await unloadTask;
         }
     }
 

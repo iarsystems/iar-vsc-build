@@ -16,38 +16,15 @@ export namespace FsUtils {
         return false;
     }
 
-    export function filteredListDirectory(dirPath: string, filterCallback: (path: string) => boolean): string[] {
-        return walkAndFind(dirPath, false, filterCallback);
-    }
-
-    export function walkAndFind(dirPath: string, recursive: boolean, filterCallback: (path: string) => boolean): string[] {
-        let children: string[] = [];
-
-        if (fs.existsSync(dirPath)) {
-            const stat = fs.statSync(dirPath);
-
+    export async function filteredListDirectory(dirPath: string, filterCallback: (path: string) => boolean): Promise<string[]> {
+        if (await FsUtils.exists(dirPath)) {
+            const stat = await fs.promises.stat(dirPath);
             if (stat.isDirectory()) {
-                const dir = fs.readdirSync(dirPath);
-
-                dir.forEach(child => {
-                    const fullpath = path.join(dirPath.toString(), child);
-
-                    if (filterCallback(fullpath)) {
-                        children.push(fullpath);
-                    }
-
-                    if (recursive) {
-                        const stat = fs.statSync(fullpath);
-
-                        if (stat.isDirectory()) {
-                            children = children.concat(walkAndFind(fullpath, true, filterCallback));
-                        }
-                    }
-                });
+                const children = await fs.promises.readdir(dirPath);
+                return children.map(child => path.join(dirPath, child)).filter(filterCallback);
             }
         }
-
-        return children;
+        return [];
     }
 
     export function createFilteredListDirectoryFilenameRegex(regex: RegExp): (fullpath: string) => boolean {

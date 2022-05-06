@@ -2,13 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-
-
-import * as Vscode from "vscode";
-import * as Fs from "fs";
 import * as Path from "path";
 import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
-import { LoadedProject, ExtendedProject } from "../project";
+import { ExtendedProject } from "../project";
 import { Configuration, ProjectContext, Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { QtoPromise } from "../../../utils/promise";
 import { Workbench } from "iar-vsc-common/workbench";
@@ -16,30 +12,20 @@ import Int64 = require("node-int64");
 import { InformationDialog, InformationDialogType } from "../../../extension/ui/informationdialog";
 import { WorkbenchVersions } from "../../tools/workbenchversionregistry";
 import { logger } from "iar-vsc-common/logger";
+import { Config } from "../config";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.
  */
 export class ThriftProject implements ExtendedProject {
-    private readonly fileWatcher: Vscode.FileSystemWatcher;
     // TODO: should maybe provide separate handlers for changes to specific data
-    private readonly onChangedHandlers: ((project: LoadedProject) => void)[] = [];
-    private ignoreNextFileChange = false;
+    private readonly onChangedHandlers: (() => void)[] = [];
 
-    constructor(public path:                 Fs.PathLike,
+    constructor(public path:                 string,
                 public configurations:       ReadonlyArray<Configuration>,
                 private readonly projectMgr: ProjectManager.Client,
                 private readonly context:             ProjectContext,
                 private readonly owner:      Workbench) {
-        // TODO: this should probably be changed to some thrift-based listener
-        this.fileWatcher = Vscode.workspace.createFileSystemWatcher(this.path.toString().replace(/\.ewp$/, ".ew*"));
-        this.fileWatcher.onDidChange(() => {
-            if (this.ignoreNextFileChange) {
-                this.ignoreNextFileChange = false;
-                return;
-            }
-            this.fireChangedEvent();
-        });
     }
 
     get name(): string {
@@ -50,7 +36,6 @@ export class ThriftProject implements ExtendedProject {
         return Promise.resolve(this.projectMgr.GetRootNode(this.context));
     }
     public async setNode(node: Node, indexPath: number[]): Promise<void> {
-        this.ignoreNextFileChange = true;
         if (WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.supportsSetNodeByIndex)) {
             await this.projectMgr.SetNodeByIndex(this.context, indexPath.map(i => new Int64(i)), node, true);
         } else {
@@ -87,17 +72,19 @@ export class ThriftProject implements ExtendedProject {
 
     public unload() {
         logger.debug(`Unloading project '${this.name}'`);
-        this.fileWatcher.dispose();
         // note that we do not unload the project context from the project manager.
         // it is owned by the ThriftWorkbench and will be unloaded when the workbench is disposed
     }
 
-    public onChanged(callback: (project: LoadedProject) => void): void {
+    public onChanged(callback: () => void): void {
         this.onChangedHandlers.push(callback);
+    }
+    public findConfiguration(name: string): Config | undefined {
+        return this.configurations.find(config => config.name === name);
     }
 
     private fireChangedEvent() {
-        this.onChangedHandlers.forEach(handler => handler(this));
+        this.onChangedHandlers.forEach(handler => handler());
     }
 }
 
@@ -110,7 +97,7 @@ export namespace ThriftProject {
      * @param owner The workbench that has loaded the project. Used to know e.g. what APIs versions are available.
      * @returns
      */
-    export async function fromContext(path: Fs.PathLike, pm: ProjectManager.Client, context: ProjectContext, owner: Workbench): Promise<ThriftProject> {
+    export async function fromContext(path: string, pm: ProjectManager.Client, context: ProjectContext, owner: Workbench): Promise<ThriftProject> {
         const configs = await pm.GetConfigurations(context);
 
         // VSC-233 Warn users about having several groups with the same name

@@ -67,12 +67,15 @@ export class TreeProjectView {
         };
 
         loading.subscribe(load => {
-            isLoading = load;
-            updateMessage();
-            this.provider.setProject(undefined);
+            if (load) {
+                isLoading = load;
+                updateMessage();
+                this.provider.setProject(undefined);
+            }
         });
         extProjectModel.onValueDidChange(project => {
             this.provider.setProject(project).then(() => {
+                isLoading = false;
                 updateMessage();
                 // Enable/disable the 'add file/group' buttons on this view
                 Vscode.commands.executeCommand("setContext", "iar-build.extendedProjectLoaded", project !== undefined);

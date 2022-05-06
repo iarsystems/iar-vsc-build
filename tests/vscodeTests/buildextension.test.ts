@@ -7,13 +7,13 @@ import * as fs from "fs";
 import * as path from "path";
 import { Settings } from "../../src/extension/settings";
 import { TestUtils } from "iar-vsc-common/testutils/testUtils";
-import { Project } from "../../src/iar/project/project";
 import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 import { VscodeTestsUtils } from "./utils";
 import { readdir, rm } from "fs/promises";
 import { VscodeTestsSetup } from "./setup";
 import { FsUtils } from "../../src/utils/fs";
 import { OsUtils } from "iar-vsc-common/osUtils";
+import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
 
 namespace Utils {
     export const EXTENSION_ROOT = path.join(path.resolve(__dirname), "../../../");
@@ -43,7 +43,7 @@ namespace Utils {
         // Generate the ewp-file to work with.
         TestUtils.patchEwpFile(target, ewpFile, outputFile);
         // Add the ewp-file to the list of project.
-        ExtensionState.getInstance().project.addProject(new Project(outputFile));
+        ExtensionState.getInstance().project.addProject(new EwpFile(outputFile));
 
         // Remove the unpatched ewp from the sandbox
         fs.unlinkSync(path.join(outputFolder, path.basename(ewpFile)));
@@ -160,16 +160,31 @@ suite("Test build extension", ()=>{
         }
     });
 
-    test("Check that creating/deleting projects updates extension state", async()=>{
-        const projectPath = path.join(sandboxPath, "dummyProject.ewp");
-        fs.writeFileSync(projectPath, "");
+    test("Check that creating/deleting/modifying projects affects extension state", async()=>{
+        // Add a project file, make sure it is added to the extension
+        const projectPath = path.join(sandboxPath, "newProject.ewp");
+        fs.copyFileSync(path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp"), projectPath);
         // Give vs code time to react
         await new Promise((p, _) => setTimeout(p, 1000));
-        assert(ExtensionState.getInstance().project.projects.some(project => project.name === "dummyProject"), "The created project was not added to the project list");
+        assert(ExtensionState.getInstance().project.projects.some(project => project.name === "newProject"), "The created project was not added to the project list");
+        await VscodeTestsUtils.activateProject("newProject");
 
+        // Change a configuration name and a file name, make sure the extension reacts
+        let ewpContents = fs.readFileSync(projectPath).toString();
+        ewpContents = ewpContents.replace("<name>Release</name>", "<name>TheNewConfig</name>");
+        ewpContents = ewpContents.replace("Fibonacci.c", "TheNewFile.c");
+        fs.writeFileSync(projectPath, ewpContents);
+        // Give vs code time to react
+        await new Promise((p, _) => setTimeout(p, 1000));
+        assert.strictEqual(ExtensionState.getInstance().project.selected!.configurations.length, 2);
+        assert(ExtensionState.getInstance().project.selected!.findConfiguration("TheNewConfig") !== undefined);
+        const extProject = await ExtensionState.getInstance().extendedProject.getValue();
+        assert((await extProject?.getRootNode())?.children.some(node => node.name === "TheNewFile.c"));
+
+        // Remove the project file, make sure it is from the extension
         fs.unlinkSync(projectPath);
         // Give vs code time to react
         await new Promise((p, _) => setTimeout(p, 1000));
-        assert(!ExtensionState.getInstance().project.projects.some(project => project.name === "dummyProject"), "The created project was not removed from the project list");
+        assert(!ExtensionState.getInstance().project.projects.some(project => project.name === "newProject"), "The created project was not removed from the project list");
     });
 });

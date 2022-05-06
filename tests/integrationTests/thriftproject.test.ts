@@ -1,11 +1,11 @@
 import * as Assert from "assert";
 import * as Path from "path";
 import { ThriftWorkbench } from "../../src/iar/extendedworkbench";
-import { Project } from "../../src/iar/project/project";
 import { Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { ThriftProject } from "../../src/iar/project/thrift/thriftproject";
 import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
+import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
 
 suite("Thrift project", function() {
     this.timeout(0);
@@ -34,11 +34,11 @@ suite("Thrift project", function() {
 
     setup(async() => {
         projectPath = sandbox.copyToSandbox(IntegrationTestsCommon.TEST_PROJECTS_DIR, "IntegrationTestProject");
-        project = await workbench.loadProject(new Project(Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_NAME)));
+        project = await workbench.loadProject(new EwpFile(Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_NAME)));
         Assert(project);
     });
-    teardown(async() => {
-        await project?.unload();
+    teardown(() => {
+        project?.unload();
     });
 
     test("Managing nodes", async() => {

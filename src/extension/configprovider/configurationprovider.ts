@@ -224,7 +224,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         if (!workbench || !config) {
             return;
         }
-        const compiler = getCompilerForConfig(config, workbench);
+        const compiler = await getCompilerForConfig(config, workbench);
         if (!compiler) {
             return;
         }
@@ -255,11 +255,11 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
  * Finds the compiler to use for the given config, and returns its path.
  * May return undefined, e.g. if the workbench doesn't have the required target installed.
  */
-function getCompilerForConfig(config: Config, workbench: Workbench): string | undefined {
+async function getCompilerForConfig(config: Config, workbench: Workbench): Promise<string | undefined> {
     const toolchainBinDir = Path.join(workbench.path.toString(), config.toolchainId.toLowerCase(), "bin");
     const regex = "icc.*" + IarOsUtils.executableExtension();
     const filter = FsUtils.createFilteredListDirectoryFilenameRegex(new RegExp(regex));
-    const compilerPaths = FsUtils.filteredListDirectory(toolchainBinDir, filter);
+    const compilerPaths = await FsUtils.filteredListDirectory(toolchainBinDir, filter);
     if (compilerPaths[0] !== undefined) {
         if (compilerPaths.length > 1) {
             logger.error(`Found more than one compiler candidate for ${config.toolchainId} in ${workbench}.`);

@@ -123,7 +123,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             const project = new EwpFile(projectPath);
             const config = project.configurations.find(conf => conf.name === configName);
             if (!config) {
-                throw new Error(`No such configuration '${configName}' for project '${projectPath}'.`);
+                throw new Error(`No such configuration '${configName}' for project '${project.name}'.`);
             }
             const outputDir = await CStatTaskExecution.getCStatOutputDirectory(projectPath, configName, toolchain);
             const outFile = Path.join(outputDir, CStatTaskExecution.REPORT_DEFAULT_NAME);

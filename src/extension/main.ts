@@ -19,9 +19,11 @@ import { SettingsWebview } from "./ui/settingswebview";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Command } from "./command/command";
 import { BuildExtensionApi } from "iar-vsc-common/buildExtension";
-import { OsUtils } from "iar-vsc-common/osUtils";
 import { Project } from "../iar/project/project";
 import { logger } from "iar-vsc-common/logger";
+import { EwpFile } from "../iar/project/parsing/ewpfile";
+import { EwpFileWatcherService } from "./ewpfilewatcher";
+import { API } from "./api";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
@@ -47,7 +49,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     const projectModel = ExtensionState.getInstance().project;
     const configModel = ExtensionState.getInstance().config;
 
-    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, projectModel, configModel, addWorkbenchCmd, ExtensionState.getInstance().loading);
+    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, projectModel, configModel, addWorkbenchCmd);
     vscode.window.registerWebviewViewProvider(SettingsWebview.VIEW_TYPE, IarVsc.settingsView);
     IarVsc.projectTreeView = new TreeProjectView(
         projectModel,
@@ -57,65 +59,28 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
         ExtensionState.getInstance().loading,
     );
 
-    // --- find and add workbenches
-    loadTools(addWorkbenchCmd);
-    Settings.observeSetting(Settings.ExtensionSettingsField.IarInstallDirectories, () => loadTools());
-
     // --- register tasks
     IarTaskProvider.register();
     CStatTaskProvider.register(context);
 
-    // -- start cpptools interface
+    // --- start cpptools interface
     IarConfigurationProvider.init();
 
-    // Watch for creating/deleting projects in the workspace
-    IarVsc.ewpFilesWatcher = vscode.workspace.createFileSystemWatcher("**/*.ewp", false, true, false);
-    IarVsc.ewpFilesWatcher.onDidCreate(uri => {
-        ExtensionState.getInstance().project.addProject(new Project(uri.fsPath));
-    });
-    IarVsc.ewpFilesWatcher.onDidDelete(uri => {
-        const toRemove = ExtensionState.getInstance().project.projects.find(project => OsUtils.pathsEqual(project.path.toString(), uri.fsPath));
-        if (toRemove) {
-            ExtensionState.getInstance().project.removeProject(toRemove);
-        }
-    });
+    // --- watch for creating/deleting/modifying projects in the workspace
+    IarVsc.ewpFilesWatcher = new EwpFileWatcherService();
 
-    // Public API
-    return {
-        getSelectedWorkbench() {
-            return Promise.resolve(ExtensionState.getInstance().workbench.selected?.path.toString());
-        },
-        async getSelectedConfiguration(projectPath) {
-            const loadedPath = (await ExtensionState.getInstance().loadedProject?.getValue())?.path.toString();
-            if (loadedPath && OsUtils.pathsEqual(projectPath, loadedPath)) {
-                const config = ExtensionState.getInstance().config.selected;
-                if (config) {
-                    return { name: config.name, target: config.toolchainId };
-                }
-            }
-            return undefined;
-        },
-        async getProjectConfigurations(projectPath) {
-            const loadedPath = (await ExtensionState.getInstance().loadedProject?.getValue())?.path.toString();
-            if (loadedPath && OsUtils.pathsEqual(projectPath, loadedPath)) {
-                return Promise.resolve(ExtensionState.getInstance().config.configurations.map(c => {
-                    return { name: c.name, target: c.toolchainId };
-                }));
-            }
-            return undefined;
-        },
-        async getLoadedProject() {
-            const project = await ExtensionState.getInstance().loadedProject.getValue();
-            return project?.path.toString();
-        },
-        async getCSpyCommandline(projectPath, configuration) {
-            const project = await ExtensionState.getInstance().extendedProject.getValue();
-            if (project === undefined || !OsUtils.pathsEqual(projectPath, project.path.toString())) {
-                return undefined;
-            }
-            return project.getCSpyArguments(configuration);
-        },
-    };
+    // --- find and add all .ewp projects
+    // note that we do not await here, this operation can be slow and we want activation to be quick
+    findProjectsInWorkspace();
+    vscode.workspace.onDidChangeWorkspaceFolders(() => findProjectsInWorkspace());
+
+    // --- find and add workbenches
+    loadTools(addWorkbenchCmd);
+    Settings.observeSetting(Settings.ExtensionSettingsField.IarInstallDirectories, () => loadTools());
+
+
+    // --- provide the public typescript API
+    return API;
 }
 
 export async function deactivate() {
@@ -127,6 +92,23 @@ export async function deactivate() {
     IarTaskProvider.unregister();
     CStatTaskProvider.unRegister();
     await ExtensionState.getInstance().dispose();
+}
+
+async function findProjectsInWorkspace() {
+    if (vscode.workspace.workspaceFolders !== undefined) {
+        const projectFiles = (await vscode.workspace.findFiles("**/*.ewp")).filter(uri => !Project.isBackupFile(uri.fsPath));
+        logger.debug(`Found ${projectFiles.length} project(s) in the workspace`);
+        const projects: Project[] = [];
+        projectFiles.forEach(uri => {
+            try {
+                projects.push(new EwpFile(uri.fsPath));
+            } catch (e) {
+                logger.error(`Could not parse project file '${uri.fsPath}': ${e}`);
+                vscode.window.showErrorMessage(`Could not parse project file '${uri.fsPath}': ${e}`);
+            }
+        });
+        ExtensionState.getInstance().project.set(...projects);
+    }
 }
 
 async function loadTools(addWorkbenchCommand?: Command<unknown>) {
@@ -149,5 +131,5 @@ export namespace IarVsc {
     // exported mostly for testing purposes
     export let settingsView: SettingsWebview;
     export let projectTreeView: TreeProjectView;
-    export let ewpFilesWatcher: vscode.FileSystemWatcher;
+    export let ewpFilesWatcher: EwpFileWatcherService;
 }

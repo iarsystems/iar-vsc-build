@@ -3,7 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { JSDOM } from "jsdom";
-import { BehaviorSubject, Subject } from "rxjs";
 import * as vscode from "vscode";
 import * as Assert from "assert";
 import { AddWorkbenchCommand } from "../../src/extension/command/addworkbench";
@@ -45,7 +44,6 @@ suite("Test settings view", () => {
     let workbenchModel: ListInputModelBase<Workbench>;
     let projectModel: ListInputModelBase<Project>;
     let configModel: ListInputModelBase<Config>;
-    let loading: Subject<boolean>;
 
     let settingsView: SettingsWebview;
     let mockView: vscode.WebviewView;
@@ -55,7 +53,6 @@ suite("Test settings view", () => {
         workbenchModel = new WorkbenchListModel();
         projectModel = new ProjectListModel();
         configModel = new ConfigurationListModel();
-        loading = new BehaviorSubject<boolean>(false);
 
         const extensionUri = vscode.Uri.file("../../");
         settingsView = new SettingsWebview(
@@ -64,7 +61,6 @@ suite("Test settings view", () => {
             projectModel,
             configModel,
             new AddWorkbenchCommand(ToolManager.createIarToolManager()),
-            loading,
         );
         mockView = Utils.createMockView();
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -99,7 +95,10 @@ suite("Test settings view", () => {
             { name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.BX }
         );
         workbenchModel.select(2);
-        projectModel.set( new Project("/some/directory/LedFlasher.ewp"), new Project("C:\\test\\A project.ewp") );
+        projectModel.set(
+            { name: "LedFlasher", path: "/some/directory/LedFlasher.ewp", configurations: [], findConfiguration: () => undefined },
+            { name: "A project", path:"C:\\test\\A project.ewp", configurations: [], findConfiguration: () => undefined },
+        );
         projectModel.select(0);
         configModel.set( { name: "Debug", toolchainId: "ARM" }, { name: "Release", toolchainId: "ARM"} );
         configModel.select(1);
@@ -133,31 +132,6 @@ suite("Test settings view", () => {
         Assert.strictEqual(options.item(workbenchModel.amount)?.tagName, "VSCODE-DIVIDER");
         Assert.strictEqual(options.item(workbenchModel.amount + 1)?.tagName, "VSCODE-OPTION");
         Assert.strictEqual(options.item(workbenchModel.amount + 1)?.textContent?.trim(), "Add Toolchain...");
-    });
-
-    test("Reacts to loading projects", () => {
-        configModel.set( { name: "Debug", toolchainId: "ARM" } );
-        updateDocument();
-        {
-            const configs = document.getElementById(DropdownIds.Configuration);
-            Assert(configs);
-            Assert.strictEqual(configs.getAttribute("disabled"), null, "Dropdown should be enabled");
-
-            const spinner = document.getElementsByTagName("VSCODE-PROGRESS-RING").item(0);
-            Assert(spinner);
-            Assert.strictEqual(spinner.getAttribute("hidden"), "", "Spinner should be hidden");
-        }
-        loading.next(true);
-        updateDocument();
-        {
-            const configs = document.getElementById(DropdownIds.Configuration);
-            Assert(configs);
-            Assert.strictEqual(configs.getAttribute("disabled"), "", "Dropdown should be disabled");
-
-            const spinner = document.getElementsByTagName("VSCODE-PROGRESS-RING").item(0);
-            Assert(spinner);
-            Assert.strictEqual(spinner.getAttribute("hidden"), null, "Spinner should be visible");
-        }
     });
 
     test("Escapes HTML tags", () => {
