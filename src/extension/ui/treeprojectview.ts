@@ -47,7 +47,7 @@ export class TreeProjectView {
                         // The workbench is too old to support the files view.
                         // Try to display the minimum product version required to see it.
                         const minProductVersion = WorkbenchVersions.getMinProductVersions(workbenchModel.selected, WorkbenchVersions.supportsThriftPM).join(", ");
-                        if (minProductVersion !== undefined) {
+                        if (!minProductVersion) {
                             this.view.message = `The IAR project view requires ${minProductVersion} or later.`;
                         } else {
                             this.view.message = "This IAR toolchain does not support modifying projects from VS Code.";

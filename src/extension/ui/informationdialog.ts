@@ -27,7 +27,7 @@ export namespace InformationDialog {
             return;
         }
 
-        const options = ["Ok", "Do Not Show Again"];
+        const options = ["Do Not Show Again"];
         let result: Thenable<string | undefined>;
         switch (type) {
         case InformationDialogType.Info:
@@ -43,7 +43,7 @@ export namespace InformationDialog {
         }
 
         const response = await result;
-        if (response === options[1]) {
+        if (response === options[0]) {
             IarVsc.extensionContext?.globalState.update(key, true);
             logger.debug(`Ignoring future ${id} dialogs ('do not show again' was pressed)`);
         }

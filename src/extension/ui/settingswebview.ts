@@ -167,7 +167,7 @@ namespace Rendering {
                     <vscode-dropdown id="${DropdownIds.Workbench}" class="dropdown" ${workbenches.amount === 0 ? "disabled" : ""}>
                         ${getDropdownOptions(workbenches, "No IAR toolchains")}
                         <vscode-divider></vscode-divider>
-                        <vscode-option>Add Toolchain...</vscode-option>
+                        <vscode-option artificial>Add Toolchain...</vscode-option>
                     </vscode-dropdown>
                 </div>
                 <div id="workbench-error" ${workbenches.amount > 0 ? "hidden" : ""}>
@@ -204,6 +204,10 @@ namespace Rendering {
             return `<vscode-option>${emptyMsg}</vscode-option>`;
         }
         let html = "";
+        if (model.selectedIndex === undefined) {
+            // The 'articifical' attribute tells the ui code to disregard this when calculating selected index
+            html += /*html*/`<vscode-option selected artificial>None selected...</vscode-option>`;
+        }
         for (let i = 0; i < model.amount; i++) {
             // Note that we sanitize the labels, since they are user input and could inject HTML.
             html += /*html*/`<vscode-option ${model.selectedIndex === i ? "selected" : ""}>

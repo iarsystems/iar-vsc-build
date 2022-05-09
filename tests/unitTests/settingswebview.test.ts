@@ -94,7 +94,7 @@ suite("Test settings view", () => {
             { name: "Embedded Workbench 9.0", path: "/path/Embedded Workbench 9.0", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["arm"], type: WorkbenchType.IDE },
             { name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.BX }
         );
-        workbenchModel.select(2);
+
         projectModel.set(
             { name: "LedFlasher", path: "/some/directory/LedFlasher.ewp", configurations: [], findConfiguration: () => undefined },
             { name: "A project", path:"C:\\test\\A project.ewp", configurations: [], findConfiguration: () => undefined },
@@ -124,19 +124,25 @@ suite("Test settings view", () => {
         Assert(dropdown);
         Assert.strictEqual(dropdown.getAttribute("disabled"), null, "Workbench dropdown should be enabled");
         const options = dropdown.children;
+
+        // We didn't select a workbench, there should be a "None selected..." option at the top
+        Assert.strictEqual(options.item(0)?.tagName, "VSCODE-OPTION");
+        Assert.strictEqual(options.item(0)?.textContent?.trim(), "None selected...");
+        Assert.strictEqual(options.item(0)?.getAttribute("selected"), "");
         for (let i = 0; i < workbenchModel.amount; i++) {
-            Assert.strictEqual(options.item(i)?.tagName, "VSCODE-OPTION", `Incorrect option ${i}`);
-            Assert.strictEqual(options.item(i)?.textContent?.trim(), workbenchModel.label(i), `Incorrect option ${i}`);
-            Assert.strictEqual(options.item(i)?.getAttribute("selected"), workbenchModel.selectedIndex === i ? "" : null, `Incorrect option ${i}`);
+            Assert.strictEqual(options.item(i + 1)?.tagName, "VSCODE-OPTION", `Incorrect option ${i + 1}`);
+            Assert.strictEqual(options.item(i + 1)?.textContent?.trim(), workbenchModel.label(i), `Incorrect option ${i + 1}`);
+            Assert.strictEqual(options.item(i + 1)?.getAttribute("selected"), null, `Incorrect option ${i + 1}`);
         }
-        Assert.strictEqual(options.item(workbenchModel.amount)?.tagName, "VSCODE-DIVIDER");
-        Assert.strictEqual(options.item(workbenchModel.amount + 1)?.tagName, "VSCODE-OPTION");
-        Assert.strictEqual(options.item(workbenchModel.amount + 1)?.textContent?.trim(), "Add Toolchain...");
+        Assert.strictEqual(options.item(workbenchModel.amount + 1)?.tagName, "VSCODE-DIVIDER");
+        Assert.strictEqual(options.item(workbenchModel.amount + 2)?.tagName, "VSCODE-OPTION");
+        Assert.strictEqual(options.item(workbenchModel.amount + 2)?.textContent?.trim(), "Add Toolchain...");
     });
 
     test("Escapes HTML tags", () => {
         // HTML tags must be escaped to prevent injections
         configModel.set( { name: "<script>alert('Hello')</script><b>Debug</b>", toolchainId: "ARM" } );
+        configModel.select(0);
         updateDocument();
 
         const configs = document.getElementById(DropdownIds.Configuration);

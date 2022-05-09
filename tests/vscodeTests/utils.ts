@@ -15,7 +15,7 @@ export namespace VscodeTestsUtils {
 
 
     export async function activateProject(projectLabel: string) {
-        if (ExtensionState.getInstance().project.selected?.name !== projectLabel) {
+        if ((await ExtensionState.getInstance().extendedProject.getValue())?.name !== projectLabel) {
             await Promise.all([
                 VscodeTestsUtils.projectLoaded(),
                 ExtensionState.getInstance().project.selectWhen(project => project.name === projectLabel),

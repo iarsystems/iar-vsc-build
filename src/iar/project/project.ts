@@ -62,6 +62,6 @@ export namespace Project {
     export function equal(p1: Project, p2: Project) {
         return OsUtils.pathsEqual(p1.path, p2.path) &&
             p1.configurations.length === p2.configurations.length &&
-            !p1.configurations.some(conf => p2.findConfiguration(conf.name) === undefined);
+            p1.configurations.every(conf => p2.findConfiguration(conf.name) !== undefined);
     }
 }

@@ -15,8 +15,20 @@ window.addEventListener("load", main);
 
 function connectDropdown(dropdown, messageSubject) {
     dropdown.addEventListener("change", function() {
-        vscode.postMessage({ subject: messageSubject, index: dropdown.selectedIndex });
+        sendDropdownMessage(dropdown, messageSubject);
     });
+}
+
+function sendDropdownMessage(dropdown, subject) {
+    let index = dropdown.selectedIndex;
+    // Options with the 'artificial' attribute, e.g. "None selected...", should not count toward the model index,
+    // only real entries do.
+    for (let i = 0; i < dropdown.selectedIndex; i++) {
+        if (dropdown.options[i].getAttribute("artificial") !== null) {
+            index -= 1;
+        }
+    }
+    vscode.postMessage({ subject, index });
 }
 
 function main() {
@@ -29,7 +41,7 @@ function main() {
         if (workbenchDropdown.selectedIndex === workbenchDropdown.length - 1) {
             vscode.postMessage({ subject: MessageSubject.AddWorkbench, index: 0 });
         } else {
-            vscode.postMessage({ subject: MessageSubject.WorkbenchSelected, index: workbenchDropdown.selectedIndex });
+            sendDropdownMessage(workbenchDropdown, MessageSubject.WorkbenchSelected);
         }
     });
 
@@ -48,7 +60,15 @@ function main() {
         const message = event.data;
         if (message["subject"] === "select") {
             const target = document.getElementById(message["target"]);
-            target.selectedIndex = message["index"];
+            let index = message["index"];
+            // Options with the 'artificial' attribute, e.g. "None selected...", should not count toward the model index,
+            // only real entries do.
+            for (let i = 0; i <= index; i++) {
+                if (target.options[i].getAttribute("artificial") !== null) {
+                    index += 1;
+                }
+            }
+            target.selectedIndex = index;
             triggerEvent(target, "change");
         }
     });

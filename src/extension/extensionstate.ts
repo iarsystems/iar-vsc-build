@@ -16,6 +16,7 @@ import { BehaviorSubject } from "rxjs";
 import { InformationDialog, InformationDialogType } from "./ui/informationdialog";
 import { WorkbenchVersions } from "../iar/tools/workbenchversionregistry";
 import { logger } from "iar-vsc-common/logger";
+import { AddWorkbenchCommand } from "./command/addworkbench";
 
 /**
  * Holds most extension-wide data, such as the selected workbench, project and configuration, and loaded project etc.
@@ -55,9 +56,16 @@ class State {
         this.extendedWorkbench = new AsyncObservable<ExtendedWorkbench>();
 
 
-        this.coupleModelToSetting(this.workbench, Settings.LocalSettingsField.Workbench, workbench => workbench?.path.toString());
-        this.coupleModelToSetting(this.project, Settings.LocalSettingsField.Ewp, project => project?.path.toString());
-        this.coupleModelToSetting(this.config, Settings.LocalSettingsField.Configuration, config => config?.name);
+        this.coupleModelToSetting(this.workbench, Settings.LocalSettingsField.Workbench, workbench => workbench?.path.toString(),
+            () => { // The default choice is to try to select a workbench that can load the project.
+                if (this.project.selected) {
+                    State.selectWorkbenchMatchingProject(this.project.selected, this.workbench);
+                }
+            });
+        this.coupleModelToSetting(this.project, Settings.LocalSettingsField.Ewp, project => project?.path.toString(),
+            () => this.project.select(0));
+        this.coupleModelToSetting(this.config, Settings.LocalSettingsField.Configuration, config => config?.name,
+            () => this.config.select(0));
 
         this.addListeners();
     }
@@ -88,17 +96,24 @@ class State {
     // Connects a list model to a persistable setting in the iar-vsc.json file, so that:
     // * Changes to the model are stored in the file.
     // * When the list contents change, tries to restore the selected value from the file.
-    // This means that selected values are remembered between sessions
-    private coupleModelToSetting<T>(model: ListInputModel<T>, field: Settings.LocalSettingsField, toSettingsValue: (val: T | undefined) => string | undefined) {
+    // This means that selected values are remembered between sessions.
+    // When no value could be restored, `defaultChoiceStrategy` is called to make a default choice,
+    // (e.g. select some random item)
+    private coupleModelToSetting<T>(
+        model: ListInputModel<T>,
+        field: Settings.LocalSettingsField,
+        toSettingsValue: (val: T | undefined) => string | undefined,
+        defaultChoiceStrategy: () => void,
+    ) {
         const setFromStoredValue = () => {
             const settingsValue = Settings.getLocalSetting(field);
             if (settingsValue) {
                 if (!model.selectWhen(item => settingsValue === toSettingsValue(item)) && model.amount > 0) {
                     logger.debug(`Could not match item to ${field}: ${settingsValue} in iar-vsc.json`);
-                    model.select(0);
+                    defaultChoiceStrategy();
                 }
             } else {
-                model.select(0);
+                defaultChoiceStrategy();
             }
         };
         model.addOnInvalidateHandler(() => setFromStoredValue());
@@ -113,17 +128,13 @@ class State {
     }
 
     private addListeners(): void {
-        this.addToolManagerListeners();
+        this.toolManager.addInvalidateListener(() => {
+            this.workbench.set(...this.toolManager.workbenches);
+        });
 
         this.addWorkbenchModelListeners();
         this.addProjectModelListeners();
         this.addConfigurationModelListeners();
-    }
-
-    private addToolManagerListeners(): void {
-        this.toolManager.addInvalidateListener(() => {
-            this.workbench.set(...this.toolManager.workbenches);
-        });
     }
 
     private addWorkbenchModelListeners(): void {
@@ -194,6 +205,12 @@ class State {
                 this.config.set(...[]);
             }
 
+            if (!this.workbench.selected && this.project.selected) {
+                if (State.selectWorkbenchMatchingProject(this.project.selected, this.workbench)) {
+                    // The workbench was changed, the project will be loaded from the workbench onSelected handler.
+                    return;
+                }
+            }
             this.loadProject();
         });
 
@@ -252,6 +269,48 @@ class State {
             }
             return Promise.reject(e);
         }
+    }
+
+    /**
+     * Implements the default workbench selection behaviour, for folders where no choice has yet been made.
+     *
+     * Selects the first workbench that supports all targets in the given project. If there are multiple such
+     * workbenches, the user is notified that they should confirm if the default choice is the right one. If there is no
+     * such workbench, the user is prompted to locate one.
+     * @returns Whether the selected workbench was changed
+     */
+    private static selectWorkbenchMatchingProject(project: Project, workbenchModel: WorkbenchListModel): boolean {
+        // Use a map to get all *unique* toolchains
+        const projectToolchains = new Map<string, void>();
+        project.configurations.forEach(conf => projectToolchains.set(conf.toolchainId.toLowerCase()));
+        const projectToolchainsArray = Array.from(projectToolchains.keys());
+        // Select the first workbench that has all project toolchains.
+        // Here, we're comparing 'toolchains' (internal thrift id), and 'targets' (the name of the toolchain directory on disk).
+        // These are not necessarily equivalent, but it's okay for this function to give false negatives.
+        const candidates = workbenchModel.workbenches.filter(workbench => projectToolchainsArray.every(target => workbench.targetIds.includes(target)));
+        if (candidates.length === 0) {
+            if (workbenchModel.amount > 0) {
+                Vscode.window.showWarningMessage(
+                    `No available IAR toolchain for target(s) '${projectToolchainsArray.join(", ")}'.`,
+                    "Add IAR toolchain",
+                ).then(response => {
+                    if (response === "Add IAR toolchain") {
+                        Vscode.commands.executeCommand(AddWorkbenchCommand.ID);
+                    }
+                });
+            }
+            return false;
+        }
+        // There is at least one candidate, select the first one.
+        workbenchModel.selectWhen(item => item === candidates[0]);
+        if (candidates.length > 1) {
+            InformationDialog.show(
+                "multipleWorkbenchCandidates",
+                `Found multiple IAR toolchains for '${projectToolchainsArray.join(", ")}'. Please make sure '${workbenchModel.selected?.name}' is the correct one.`,
+                InformationDialogType.Info
+            );
+        }
+        return true;
     }
 }
 
