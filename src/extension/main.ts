@@ -24,6 +24,7 @@ import { logger } from "iar-vsc-common/logger";
 import { EwpFile } from "../iar/project/parsing/ewpfile";
 import { EwpFileWatcherService } from "./ewpfilewatcher";
 import { API } from "./api";
+import { StatusBarItem } from "./ui/statusbaritem";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
@@ -40,9 +41,12 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     new AddGroupCommand().register(context);
     const addWorkbenchCmd = new AddWorkbenchCommand(IarVsc.toolManager);
     addWorkbenchCmd.register(context);
-    Command.createSelectWorkbenchCommand(ExtensionState.getInstance().workbench).register(context);
-    Command.createSelectProjectCommand(ExtensionState.getInstance().project).register(context);
-    Command.createSelectConfigurationCommand(ExtensionState.getInstance().config).register(context);
+    const workbenchCmd = Command.createSelectWorkbenchCommand(ExtensionState.getInstance().workbench);
+    workbenchCmd.register(context);
+    const projectCmd = Command.createSelectProjectCommand(ExtensionState.getInstance().project);
+    projectCmd.register(context);
+    const configCmd = Command.createSelectConfigurationCommand(ExtensionState.getInstance().config);
+    configCmd.register(context);
 
     // --- initialize custom GUI
     const workbenchModel = ExtensionState.getInstance().workbench;
@@ -58,6 +62,10 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
         ExtensionState.getInstance().extendedWorkbench,
         ExtensionState.getInstance().loading,
     );
+
+    StatusBarItem.createFromModel("iar.workbench", ExtensionState.getInstance().workbench, workbenchCmd, "IAR Toolchain: ", 4);
+    StatusBarItem.createFromModel("iar.project", ExtensionState.getInstance().project, projectCmd, "Project: ", 3);
+    StatusBarItem.createFromModel("iar.configuration", ExtensionState.getInstance().config, configCmd, "Configuration: ", 2);
 
     // --- register tasks
     IarTaskProvider.register();

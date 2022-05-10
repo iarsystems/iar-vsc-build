@@ -13,14 +13,6 @@ export class ConfigurationListModel extends ListInputModelBase<Config> {
         super(configs);
     }
 
-    get selectedText(): string | undefined {
-        if (this.selected) {
-            return this.selected.name;
-        } else {
-            return undefined;
-        }
-    }
-
     get configurations(): ReadonlyArray<Config> {
         return this.data;
     }

@@ -12,14 +12,6 @@ export class ProjectListModel extends ListInputModelBase<Project> {
         super(projects);
     }
 
-    get selectedText(): string | undefined {
-        if (this.selected) {
-            return this.selected.name;
-        } else {
-            return undefined;
-        }
-    }
-
     get projects(): ReadonlyArray<Project> {
         return this.data;
     }

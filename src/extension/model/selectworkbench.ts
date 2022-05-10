@@ -12,14 +12,6 @@ export class WorkbenchListModel extends ListInputModelBase<Workbench> {
         super(workbenches);
     }
 
-    get selectedText(): string | undefined {
-        if (this.selected) {
-            return this.selected.name;
-        } else {
-            return undefined;
-        }
-    }
-
     get workbenches(): ReadonlyArray<Workbench> {
         return this.data;
     }
