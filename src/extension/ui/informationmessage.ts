@@ -6,20 +6,20 @@ import { logger } from "iar-vsc-common/logger";
 import * as Vscode from "vscode";
 import { IarVsc } from "../main";
 
-export enum InformationDialogType {
+export enum InformationMessageType {
     Info,
     Warning,
     Error,
 }
 
-export namespace InformationDialog {
+export namespace InformationMessage {
     /**
-     * Shows a prompt informing the user about something, with an "Ok" button and a "Do not show again" button
+     * Shows a notification informing the user about something, with a "Do not show again" button
      * @param id A unique identifier for this dialog, used to persist "Do not show again" clicks
      * @param prompt A string prompt to show to the user
-     * @param Type The type of dialog, affects the icon shown to the user
+     * @param type The type of dialog, affects the icon shown to the user
      */
-    export async function show(id: string, prompt: string, type: InformationDialogType): Promise<void> {
+    export async function show(id: string, prompt: string, type: InformationMessageType): Promise<void> {
         const key = id + ".donotshow";
         const doNotShow = IarVsc.extensionContext?.globalState.get<boolean>(key);
         if (doNotShow) {
@@ -30,13 +30,13 @@ export namespace InformationDialog {
         const options = ["Do Not Show Again"];
         let result: Thenable<string | undefined>;
         switch (type) {
-        case InformationDialogType.Info:
+        case InformationMessageType.Info:
             result = Vscode.window.showInformationMessage(prompt, ...options);
             break;
-        case InformationDialogType.Warning:
+        case InformationMessageType.Warning:
             result = Vscode.window.showWarningMessage(prompt, ...options);
             break;
-        case InformationDialogType.Error:
+        case InformationMessageType.Error:
         default:
             result = Vscode.window.showErrorMessage(prompt, ...options);
             break;

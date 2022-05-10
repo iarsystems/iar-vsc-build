@@ -13,7 +13,7 @@ import { ConfigurationListModel } from "./model/selectconfiguration";
 import { ExtendedWorkbench, ThriftWorkbench } from "../iar/extendedworkbench";
 import { AsyncObservable } from "./model/asyncobservable";
 import { BehaviorSubject } from "rxjs";
-import { InformationDialog, InformationDialogType } from "./ui/informationdialog";
+import { InformationMessage, InformationMessageType } from "./ui/informationmessage";
 import { WorkbenchVersions } from "../iar/tools/workbenchversionregistry";
 import { logger } from "iar-vsc-common/logger";
 import { AddWorkbenchCommand } from "./command/addworkbench";
@@ -73,7 +73,7 @@ class State {
     public async dispose(): Promise<void> {
         const extendedProject = await this.extendedProject.getValue();
         if (extendedProject) {
-            extendedProject.unload();
+            await extendedProject.finishRunningOperations();
         }
         const extendedWorkbench = await this.extendedWorkbench.getValue();
         if (extendedWorkbench) {
@@ -88,9 +88,15 @@ class State {
         const extProject = await this.extendedProject.getValue();
         const extWorkbench = await this.extendedWorkbench.getValue();
         if (extProject && extWorkbench) {
-            await extWorkbench.unloadProject(extProject);
+            // Calling unloadProject invalidates the project, so we need to make sure all in-progress operations have
+            // finished first.
+            const reloadTask = extProject.finishRunningOperations().then(async() => {
+                await extWorkbench.unloadProject(extProject);
+                return this.loadSelectedProject();
+            });
+            this.extendedProject.setWithPromise(reloadTask);
+            await this.extendedProject.getValue();
         }
-        await this.loadProject();
     }
 
     // Connects a list model to a persistable setting in the iar-vsc.json file, so that:
@@ -168,7 +174,8 @@ class State {
                 this.extendedWorkbench.setValue(undefined);
             }
             // Unload the previous project and reload it with the new workbench. Only after can we dispose of the previous workbench.
-            await this.loadProject();
+            this.extendedProject.setWithPromise(this.loadSelectedProject());
+            await this.extendedProject.getValue();
             prevExtWb.then(extWb => extWb?.dispose());
         });
 
@@ -180,7 +187,7 @@ class State {
                     Vscode.window.showErrorMessage(`The IAR project manager exited unexpectedly (code ${exitCode}). Try reloading the window or upgrading the project from IAR Embedded Workbench.`);
                     logger.error(`Thrift workbench '${exWb.workbench.name}' crashed (code ${exitCode})`);
                     this.extendedWorkbench.setValue(undefined);
-                    this.loadProject();
+                    this.extendedProject.setWithPromise(this.loadSelectedProject());
                 });
             }
         });
@@ -188,10 +195,10 @@ class State {
         this.workbench.addOnSelectedHandler(model => {
             if (model.selected !== undefined && !WorkbenchVersions.doCheck(model.selected, WorkbenchVersions.supportsVSCode)) {
                 const minVersions = WorkbenchVersions.getMinProductVersions(model.selected, WorkbenchVersions.supportsVSCode);
-                InformationDialog.show(
+                InformationMessage.show(
                     "unsupportedWorkbench",
                     "The selected IAR toolchain is not supported by this extension." + (minVersions.length > 0 ? ` The minimum supported version is ${minVersions.join(", ")}.`: ""),
-                    InformationDialogType.Error);
+                    InformationMessageType.Error);
             }
         });
     }
@@ -211,7 +218,7 @@ class State {
                     return;
                 }
             }
-            this.loadProject();
+            this.extendedProject.setWithPromise(this.loadSelectedProject());
         });
 
         this.extendedProject.onValueDidChange(project => {
@@ -237,8 +244,9 @@ class State {
 
     // Loads a project using the appropriate method depending on whether an extended workbench
     // is available. Any previously loaded project is unloaded.
-    private async loadProject() {
-        this.extendedProject.promise.then(project => project?.unload());
+    // Note that this function itself won't change {@link this.extendedProject}; the caller should set it using
+    // the promise returned from this function.
+    private async loadSelectedProject(): Promise<ExtendedProject | undefined> {
         const selectedProject = this.project.selected;
 
         if (selectedProject) {
@@ -246,28 +254,21 @@ class State {
             if (this.workbench.selected && extendedWorkbench) {
                 this.loading.next(true);
                 logger.debug(`Loading project '${selectedProject.name}' using thrift...`);
-                const exProject = this.loadExtendedProject(selectedProject, extendedWorkbench);
-
-                this.extendedProject.setWithPromise(exProject.catch(() => undefined));
-                await this.extendedProject.getValue();
+                try {
+                    return extendedWorkbench.loadProject(selectedProject);
+                } catch (e) {
+                    if (typeof e === "string" || e instanceof Error) {
+                        Vscode.window.showErrorMessage(`IAR: Error while loading the project. Some functionality may be unavailable (${e.toString()}).`);
+                        logger.error(`Error loading project '${selectedProject.name}': ${e.toString()}`);
+                    }
+                    return undefined;
+                }
             } else {
                 logger.debug(`Not loading project '${selectedProject.name}' using thrift, no appropriate workbench selected...`);
-                this.extendedProject.setValue(undefined);
+                return undefined;
             }
         } else {
-            this.extendedProject.setValue(undefined);
-        }
-    }
-
-    private loadExtendedProject(project: Project, exWorkbench: ExtendedWorkbench): Promise<ExtendedProject> {
-        try {
-            return exWorkbench.loadProject(project);
-        } catch (e) {
-            if (typeof e === "string" || e instanceof Error) {
-                Vscode.window.showErrorMessage(`IAR: Error while loading the project. Some functionality may be unavailable (${e.toString()}).`);
-                logger.error(`Error loading project '${project.name}': ${e.toString()}`);
-            }
-            return Promise.reject(e);
+            return undefined;
         }
     }
 
@@ -304,10 +305,10 @@ class State {
         // There is at least one candidate, select the first one.
         workbenchModel.selectWhen(item => item === candidates[0]);
         if (candidates.length > 1) {
-            InformationDialog.show(
+            InformationMessage.show(
                 "multipleWorkbenchCandidates",
                 `Found multiple IAR toolchains for '${projectToolchainsArray.join(", ")}'. Please make sure '${workbenchModel.selected?.name}' is the correct one.`,
-                InformationDialogType.Info
+                InformationMessageType.Info
             );
         }
         return true;

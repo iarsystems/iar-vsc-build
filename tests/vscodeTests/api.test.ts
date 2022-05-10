@@ -22,10 +22,12 @@ suite("Test Public TS Api", ()=>{
         const sandboxPath = VscodeTestsSetup.setup();
         ledFlasherPath = Path.join(sandboxPath, "SourceConfiguration/IAR-STM32F429II-EXP/LedFlasher/LedFlasher.ewp");
         basicDebuggingPath = Path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp");
+        // Wait for a project to be loaded (this means both the workbench and project has settled)
+        await ExtensionState.getInstance().extendedProject.getValue();
     });
 
     test("Returns current workbench", async() => {
-        const apiPath =  await api.getSelectedWorkbench();
+        const apiPath = await api.getSelectedWorkbench();
         Assert.notStrictEqual(apiPath, undefined);
         Assert(OsUtils.pathsEqual(ExtensionState.getInstance().workbench.selected!.path.toString(), apiPath!), "The api did not returned the correct EW path: " + apiPath);
     });

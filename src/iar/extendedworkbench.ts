@@ -125,8 +125,9 @@ export class ThriftWorkbench implements ExtendedWorkbench {
         const contexts = await Promise.allSettled(this.loadedContexts.values());
         await Promise.allSettled(contexts.map(result => {
             if (result.status === "fulfilled") {
-                this.projectMgr.service.CloseProject(result.value);
+                return this.projectMgr.service.CloseProject(result.value);
             }
+            return Promise.resolve();
         }));
         this.projectMgr.close();
         await this.serviceMgr.stop();

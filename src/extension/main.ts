@@ -107,7 +107,7 @@ async function findProjectsInWorkspace() {
                 vscode.window.showErrorMessage(`Could not parse project file '${uri.fsPath}': ${e}`);
             }
         });
-        ExtensionState.getInstance().project.set(...projects);
+        ExtensionState.getInstance().project.set(...projects.sort((a, b) => a.name.localeCompare(b.name)));
     }
 }
 

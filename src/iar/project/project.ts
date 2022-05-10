@@ -47,7 +47,10 @@ export interface ExtendedProject extends Project {
      */
     onChanged(callback: () => void): void;
 
-    unload(): void;
+    /**
+     * Finishes all running operations (i.e. all unfinished calls to this object).
+     */
+    finishRunningOperations(): Promise<void>;
 }
 
 

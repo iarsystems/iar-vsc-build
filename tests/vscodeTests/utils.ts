@@ -9,6 +9,14 @@ export namespace VscodeTestsUtils {
         const ext = Vscode.extensions.getExtension("iarsystems.iar-build");
         Assert(ext, "Extension is not installed, did its name change?");
         await ext?.activate();
+        // Detecting projects and toolchains is done *after* activating, but we want that finished before we run any tests
+        const wbPromise = ExtensionState.getInstance().workbench.amount > 0 ? Promise.resolve() : new Promise((resolve, _) => {
+            ExtensionState.getInstance().workbench.addOnInvalidateHandler(resolve);
+        });
+        const projectPromise = ExtensionState.getInstance().project.amount > 0 ? Promise.resolve() : new Promise((resolve, _) => {
+            ExtensionState.getInstance().project.addOnInvalidateHandler(resolve);
+        });
+        await Promise.all([wbPromise, projectPromise]);
     }
 
     // ---- Helpers for interacting with the extension configuration UI
@@ -17,7 +25,7 @@ export namespace VscodeTestsUtils {
     export async function activateProject(projectLabel: string) {
         if ((await ExtensionState.getInstance().extendedProject.getValue())?.name !== projectLabel) {
             await Promise.all([
-                VscodeTestsUtils.projectLoaded(),
+                VscodeTestsUtils.projectLoaded(projectLabel),
                 ExtensionState.getInstance().project.selectWhen(project => project.name === projectLabel),
             ]);
         }
@@ -41,11 +49,11 @@ export namespace VscodeTestsUtils {
     }
 
     // Waits until the loaded project changes. Useful e.g. after activating a project to ensure it has loaded completely.
-    export function projectLoaded() {
+    export function projectLoaded(name?: string) {
         return new Promise<void>((resolve, reject) => {
             let resolved = false;
             ExtensionState.getInstance().extendedProject.onValueDidChange((proj) => {
-                if (proj !== undefined && !resolved) {
+                if (proj !== undefined && !resolved && (name === undefined || proj.name === name)) {
                     resolved = true;
                     resolve();
                 }

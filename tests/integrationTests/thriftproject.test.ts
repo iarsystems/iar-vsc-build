@@ -38,7 +38,7 @@ suite("Thrift project", function() {
         Assert(project);
     });
     teardown(() => {
-        project?.unload();
+        return project.finishRunningOperations();
     });
 
     test("Managing nodes", async() => {

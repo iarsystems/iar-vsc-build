@@ -9,9 +9,8 @@ import { Configuration, ProjectContext, Node, NodeType } from "iar-vsc-common/th
 import { QtoPromise } from "../../../utils/promise";
 import { Workbench } from "iar-vsc-common/workbench";
 import Int64 = require("node-int64");
-import { InformationDialog, InformationDialogType } from "../../../extension/ui/informationdialog";
+import { InformationMessage, InformationMessageType } from "../../../extension/ui/informationmessage";
 import { WorkbenchVersions } from "../../tools/workbenchversionregistry";
-import { logger } from "iar-vsc-common/logger";
 import { Config } from "../config";
 
 /**
@@ -20,6 +19,7 @@ import { Config } from "../config";
 export class ThriftProject implements ExtendedProject {
     // TODO: should maybe provide separate handlers for changes to specific data
     private readonly onChangedHandlers: (() => void)[] = [];
+    private readonly currentOperations: Promise<unknown>[] = [];
 
     constructor(public path:                 string,
                 public configurations:       ReadonlyArray<Configuration>,
@@ -33,47 +33,47 @@ export class ThriftProject implements ExtendedProject {
     }
 
     public getRootNode(): Promise<Node> {
-        return Promise.resolve(this.projectMgr.GetRootNode(this.context));
+        return this.performOperation(() => QtoPromise(this.projectMgr.GetRootNode(this.context)));
     }
-    public async setNode(node: Node, indexPath: number[]): Promise<void> {
-        if (WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.supportsSetNodeByIndex)) {
-            await this.projectMgr.SetNodeByIndex(this.context, indexPath.map(i => new Int64(i)), node, true);
-        } else {
-            // eslint-disable-next-line deprecation/deprecation
-            await this.projectMgr.SetNode(this.context, node);
-        }
-        this.fireChangedEvent();
+    public setNode(node: Node, indexPath: number[]): Promise<void> {
+        return this.performOperation(async() => {
+            if (WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.supportsSetNodeByIndex)) {
+                await this.projectMgr.SetNodeByIndex(this.context, indexPath.map(i => new Int64(i)), node, true);
+            } else {
+                // eslint-disable-next-line deprecation/deprecation
+                await this.projectMgr.SetNode(this.context, node);
+            }
+            this.fireChangedEvent();
+        });
     }
 
-    async getCStatOutputDirectory(config: string): Promise<string | undefined> {
-        if (!this.configurations.some(c => c.name === config)) {
-            return Promise.reject(new Error(`Project '${this.name}' has no configuration '${config}'.`));
-        }
-        if (!WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.canFetchProjectOptions)) {
-            return undefined;
-        }
-        const options = await this.projectMgr.GetOptionsForConfiguration(this.context, config);
-        const outDir = options.find(option => option.id === "C-STAT.OutputDir")?.value;
-        if (outDir !== undefined) {
-            return outDir;
-        }
-        return Promise.reject(new Error("Could not find the correct C-STAT option."));
+    getCStatOutputDirectory(config: string): Promise<string | undefined> {
+        return this.performOperation(async() => {
+            if (!this.configurations.some(c => c.name === config)) {
+                return Promise.reject(new Error(`Project '${this.name}' has no configuration '${config}'.`));
+            }
+            if (!WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.canFetchProjectOptions)) {
+                return undefined;
+            }
+            const options = await this.projectMgr.GetOptionsForConfiguration(this.context, config);
+            const outDir = options.find(option => option.id === "C-STAT.OutputDir")?.value;
+            if (outDir !== undefined) {
+                return outDir;
+            }
+            return Promise.reject(new Error("Could not find the correct C-STAT option."));
+        });
     }
 
     getCSpyArguments(config: string): Promise<string[] | undefined> {
-        if (!this.configurations.some(c => c.name === config)) {
-            throw new Error(`Project '${this.name}' has no configuration '${config}'.`);
-        }
-        if (!WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.canFetchProjectOptions)) {
-            return Promise.resolve(undefined);
-        }
-        return QtoPromise(this.projectMgr.GetToolArgumentsForConfiguration(this.context, "C-SPY", config));
-    }
-
-    public unload() {
-        logger.debug(`Unloading project '${this.name}'`);
-        // note that we do not unload the project context from the project manager.
-        // it is owned by the ThriftWorkbench and will be unloaded when the workbench is disposed
+        return this.performOperation(() => {
+            if (!this.configurations.some(c => c.name === config)) {
+                throw new Error(`Project '${this.name}' has no configuration '${config}'.`);
+            }
+            if (!WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.canFetchProjectOptions)) {
+                return Promise.resolve(undefined);
+            }
+            return QtoPromise(this.projectMgr.GetToolArgumentsForConfiguration(this.context, "C-SPY", config));
+        });
     }
 
     public onChanged(callback: () => void): void {
@@ -83,8 +83,25 @@ export class ThriftProject implements ExtendedProject {
         return this.configurations.find(config => config.name === name);
     }
 
+    // Wait for all running operations to finish
+    public async finishRunningOperations(): Promise<void> {
+        await Promise.all(this.currentOperations);
+    }
+
+
     private fireChangedEvent() {
         this.onChangedHandlers.forEach(handler => handler());
+    }
+
+    // Registers an operation (i.e. a thrift procedure call) that uses the project context. The operation will be
+    // awaited before invalidating the project context (as long as the owner of this instance calls {@link
+    // finishRunningOperations}).
+    // ! All thrift procedure calls should go through this method.
+    private performOperation<T>(operation: () => Promise<T>): Promise<T> {
+        const promise = operation();
+        this.currentOperations.push(promise);
+        promise.then(() => this.currentOperations.splice(this.currentOperations.indexOf(promise), 1));
+        return promise;
     }
 }
 
@@ -105,7 +122,7 @@ export namespace ThriftProject {
             const node = await pm.GetRootNode(context);
             if (hasDuplicateGroupNames(new Set(), node)) {
                 const prompt = `The project ${Path.basename(path.toString())} has several groups with the same name. This may cause unwanted behaviour when adding or removing files.`;
-                InformationDialog.show("duplicateGroups", prompt, InformationDialogType.Warning);
+                InformationMessage.show("duplicateGroups", prompt, InformationMessageType.Warning);
             }
         }
         return new ThriftProject(path, configs, pm, context, owner);

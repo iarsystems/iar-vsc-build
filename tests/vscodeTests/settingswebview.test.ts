@@ -19,7 +19,6 @@ suite("Test Clicking Settings View", ()=>{
         await VscodeTestsUtils.ensureExtensionIsActivated();
         VscodeTestsSetup.setup();
 
-        await VscodeTestsUtils.activateProject("BasicDebugging");
         // Focus the view. Otherwise it will not be instantiated/resolved.
         await Vscode.commands.executeCommand("iar-settings.focus");
     });
@@ -68,13 +67,13 @@ suite("Test Clicking Settings View", ()=>{
     });
 
     test("Clicking project updates model", async() => {
-        await new Promise((res, _) => setTimeout(res, 2000));
-        Assert(ExtensionState.getInstance().project.selectedIndex !== 0);
+        await VscodeTestsUtils.activateProject("BasicDebugging");
+        Assert(ExtensionState.getInstance().project.selectedIndex !== 1, ExtensionState.getInstance().project.selected!.name);
         const modelChange = waitForModelChange(ExtensionState.getInstance().project);
-        IarVsc.settingsView.selectFromDropdown(DropdownIds.Project, 0);
+        IarVsc.settingsView.selectFromDropdown(DropdownIds.Project, 1);
         await modelChange;
 
-        Assert.strictEqual(ExtensionState.getInstance().project.selectedIndex, 0);
+        Assert.strictEqual(ExtensionState.getInstance().project.selectedIndex, 1);
     });
     test("Clicking config updates model", async() => {
         await VscodeTestsUtils.activateProject("BasicDebugging");
