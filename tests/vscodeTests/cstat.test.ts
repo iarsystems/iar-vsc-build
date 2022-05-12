@@ -12,6 +12,7 @@ import { VscodeTestsSetup } from "./setup";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { FsUtils } from "../../src/utils/fs";
 import escapeHTML = require("escape-html");
+import { TestConfiguration } from "../testconfiguration";
 
 namespace Utils {
     export function assertDiagnosticEquals(actual: Vscode.Diagnostic, expected: Vscode.Diagnostic) {
@@ -28,7 +29,7 @@ namespace Utils {
     }
 }
 
-suite("Test C-STAT", ()=>{
+suite("Test C-STAT", () => {
     const ANALYSIS_TASK = "Run C-STAT Analysis";
     const ANALYSIS_TASK_CONFIGURED = "iar-cstat: Run C-STAT Analysis (configured)";
     const CLEAR_TASK = "Clear C-STAT Diagnostics";
@@ -128,7 +129,7 @@ suite("Test C-STAT", ()=>{
         { message: "Source file is not compiled in strict C89 mode without extensions", code: "MISRAC2004-1.1 [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(0, 0), relatedInformation: [] },
         { message: "`main' does not have a valid prototype", code: "MISRAC2004-16.5,MISRAC2012-Rule-8.2_a [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(13, 5), relatedInformation: [] },
         { message: "`bad_fun' does not have a valid prototype", code: "MISRAC2004-16.5,MISRAC2012-Rule-8.2_a [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
-        { message: "Use of `stdio.h' is not compliant", code: "MISRAC++2008-27-0-1,MISRAC2004-20.9,MISRAC2012-Rule-21.6 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(1, 19), relatedInformation: [] },
+        { message: `Use of ${TestConfiguration.getConfiguration().cstatHeaderQuoting[0]}stdio.h${TestConfiguration.getConfiguration().cstatHeaderQuoting[1]} is not compliant`, code: "MISRAC++2008-27-0-1,MISRAC2004-20.9,MISRAC2012-Rule-21.6 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(1, 19), relatedInformation: [] },
         { message: "Function `addOne' declared at block scope", code: "MISRAC2004-8.6 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(17, 11), relatedInformation: [] },
         { message: "Externally-linked object or function `bad_fun' is referenced in only one translation unit", code: "MISRAC2004-8.10,MISRAC2012-Rule-8.7 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
         { message: "Externally-linked object or function `addOne' is referenced in only one translation unit", code: "MISRAC2004-8.10,MISRAC2012-Rule-8.7 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(17, 11), relatedInformation: [] }
@@ -153,22 +154,26 @@ suite("Test C-STAT", ()=>{
 
             diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
             const expectedDiagnostics = generateExpectedDiagnostics();
-            Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
-            diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-            expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-            diagnostics.forEach((diag, i) => {
-                Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
-            });
+            if (TestConfiguration.getConfiguration().strictCstatCheck) {
+                Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
+                diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+                expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+                diagnostics.forEach((diag, i) => {
+                    Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
+                });
+            } else {
+                Assert(diagnostics.length >= expectedDiagnostics.length);
+            }
 
             // Check that we can generate HTML reports
             {
                 await VscodeTestsUtils.runTaskForProject(REPORT_SUMMARY_TASK, TARGET_PROJECT, "Debug");
-                const reportPath = path.join(sandboxPath, TARGET_PROJECT, "Debug/C-STAT Output/C-STAT report.html");
+                const reportPath = path.join(sandboxPath, TARGET_PROJECT, `Debug/${TestConfiguration.getConfiguration().cstatOutputDir}/C-STAT report.html`);
                 Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
             }
             {
                 await VscodeTestsUtils.runTaskForProject(REPORT_FULL_TASK, TARGET_PROJECT, "Debug");
-                const reportPath = path.join(sandboxPath, TARGET_PROJECT, "Debug/C-STAT Output/main.c1.html");
+                const reportPath = path.join(sandboxPath, TARGET_PROJECT, `Debug/${TestConfiguration.getConfiguration().cstatOutputDir}/main.c1.html`);
                 Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
                 const contents = await fsPromises.readFile(reportPath);
                 expectedDiagnostics.forEach(diagnostic => {
@@ -207,12 +212,16 @@ suite("Test C-STAT", ()=>{
 
             diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
             const expectedDiagnostics = generateExpectedDiagnostics();
-            Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
-            diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-            expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-            diagnostics.forEach((diag, i) => {
-                Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
-            });
+            if (TestConfiguration.getConfiguration().strictCstatCheck) {
+                Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
+                diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+                expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+                diagnostics.forEach((diag, i) => {
+                    Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
+                });
+            } else {
+                Assert(diagnostics.length >= expectedDiagnostics.length);
+            }
 
             // Check that we can generate HTML reports
             {
@@ -271,12 +280,16 @@ suite("Test C-STAT", ()=>{
 
             diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
             const expectedDiagnosticsHigh = generateExpectedDiagnosticsHigh();
-            Assert.strictEqual(diagnostics.length, expectedDiagnosticsHigh.length, "Actual and expected diagnostics are not the same length");
-            diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-            expectedDiagnosticsHigh.sort((a, b) => a.message < b.message ? -1 : 1);
-            diagnostics.forEach((diag, i) => {
-                Utils.assertDiagnosticEquals(diag, expectedDiagnosticsHigh[i]!);
-            });
+            if (TestConfiguration.getConfiguration().strictCstatCheck) {
+                Assert.strictEqual(diagnostics.length, expectedDiagnosticsHigh.length, "Actual and expected diagnostics are not the same length");
+                diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+                expectedDiagnosticsHigh.sort((a, b) => a.message < b.message ? -1 : 1);
+                diagnostics.forEach((diag, i) => {
+                    Utils.assertDiagnosticEquals(diag, expectedDiagnosticsHigh[i]!);
+                });
+            } else {
+                Assert(diagnostics.length >= expectedDiagnosticsHigh.length);
+            }
 
             await VscodeTestsUtils.runTaskForProject(CLEAR_TASK_CONFIGURED, targetProject, "Debug");
             diagnostics = getDiagnostics().flatMap(pair => pair[1]);

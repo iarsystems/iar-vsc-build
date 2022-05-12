@@ -5,13 +5,19 @@ import { ThriftWorkbench } from "../../src/iar/extendedworkbench";
 import * as Assert from "assert";
 import { Workbench } from "iar-vsc-common/workbench";
 import { IntegrationTestsCommon } from "./common";
+import { TestConfiguration } from "../testconfiguration";
 
 suite("Thrift workbench", function() {
     let workbench: Workbench;
 
-    suiteSetup(async() => {
-        const workbenches = await IntegrationTestsCommon.findWorkbenchesContainingTarget("arm");
-        Assert(workbenches && workbenches.length > 0, "These tests require an ARM EW to run, but none was found.");
+    suiteSetup(async function() {
+        if (!TestConfiguration.getConfiguration().testThriftSupport) {
+            this.skip();
+            return;
+        }
+
+        const workbenches = await IntegrationTestsCommon.findWorkbenchesContainingTarget(TestConfiguration.getConfiguration().target);
+        Assert(workbenches && workbenches.length > 0, "Found no suitable workbench to test with");
 
         const workbenchCandidate = workbenches?.find(wb => ThriftWorkbench.hasThriftSupport(wb) );
         Assert(workbenchCandidate, "These tests require a project manager-enabled EW to run, but none was found.");

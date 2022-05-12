@@ -17,6 +17,7 @@ import { VscodeTestsSetup } from "./setup";
 import { FsUtils } from "../../src/utils/fs";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
+import { TestConfiguration } from "../testconfiguration";
 
 namespace Utils {
     export const EXTENSION_ROOT = path.join(path.resolve(__dirname), "../../../");
@@ -186,10 +187,12 @@ suite("Test build extension", ()=>{
         await new Promise((p, _) => setTimeout(p, 3000));
         assert.strictEqual(ExtensionState.getInstance().project.selected!.configurations.length, 2);
         assert(ExtensionState.getInstance().project.selected!.findConfiguration("TheNewConfig") !== undefined);
-        const extProject = await ExtensionState.getInstance().extendedProject.getValue();
-        assert((await extProject?.getRootNode())?.children.some(node => node.name === "TheNewFile.c"));
+        if (TestConfiguration.getConfiguration().testThriftSupport) {
+            const extProject = await ExtensionState.getInstance().extendedProject.getValue();
+            assert((await extProject?.getRootNode())?.children.some(node => node.name === "TheNewFile.c"));
+        }
 
-        // Remove the project file, make sure it is from the extension
+        // Remove the project file, make sure it is removed from the extension
         fs.unlinkSync(projectPath);
         // Give vs code time to react
         await new Promise((p, _) => setTimeout(p, 1000));

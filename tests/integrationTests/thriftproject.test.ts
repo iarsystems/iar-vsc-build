@@ -9,6 +9,7 @@ import { ThriftProject } from "../../src/iar/project/thrift/thriftproject";
 import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
+import { TestConfiguration } from "../testconfiguration";
 
 suite("Thrift project", function() {
     this.timeout(0);
@@ -17,9 +18,14 @@ suite("Thrift project", function() {
     let sandbox: TestSandbox;
     let projectPath: string;
 
-    suiteSetup(async() => {
-        const workbenches = await IntegrationTestsCommon.findWorkbenchesContainingTarget("arm");
-        Assert(workbenches && workbenches.length > 0, "These tests require an ARM EW to run, but none was found.");
+    suiteSetup(async function() {
+        if (!TestConfiguration.getConfiguration().testThriftSupport) {
+            this.skip();
+            return;
+        }
+
+        const workbenches = await IntegrationTestsCommon.findWorkbenchesContainingTarget(TestConfiguration.getConfiguration().target);
+        Assert(workbenches && workbenches.length > 0, "Found no suitable workbench to test with");
 
         const workbenchCandidate = workbenches?.find(wb => ThriftWorkbench.hasThriftSupport(wb) );
         Assert(workbenchCandidate, "These tests require a project manager-enabled EW to run, but none was found.");
@@ -36,7 +42,7 @@ suite("Thrift project", function() {
     let project: ThriftProject;
 
     setup(async() => {
-        projectPath = sandbox.copyToSandbox(IntegrationTestsCommon.TEST_PROJECTS_DIR, "IntegrationTestProject");
+        projectPath = sandbox.copyToSandbox(TestConfiguration.getConfiguration().integrationTestProjectsDir, "IntegrationTestProject");
         project = await workbench.loadProject(new EwpFile(Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_NAME)));
         Assert(project);
     });

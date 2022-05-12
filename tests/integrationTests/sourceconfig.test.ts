@@ -10,6 +10,7 @@ import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 import * as Path from "path";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { ConfigurationSet } from "../../src/extension/cpptools/configurationset";
+import { TestConfiguration } from "../testconfiguration";
 
 suite("Test source configuration providers", function() {
     this.timeout(0);
@@ -20,12 +21,12 @@ suite("Test source configuration providers", function() {
     let project: EwpFile;
 
     suiteSetup(async() => {
-        const workbenches = await IntegrationTestsCommon.findWorkbenchesContainingTarget("arm");
-        Assert(workbenches && workbenches.length > 0, "These tests require an ARM EW to run, but none was found.");
+        const workbenches = await IntegrationTestsCommon.findWorkbenchesContainingTarget(TestConfiguration.getConfiguration().target);
+        Assert(workbenches && workbenches.length > 0, "Found no suitable workbench to test with");
         workbench = workbenches[0]!;
 
         sandbox = new TestSandbox(IntegrationTestsCommon.PROJECT_ROOT);
-        projectDir = sandbox.copyToSandbox(IntegrationTestsCommon.TEST_PROJECTS_DIR, "SourceConfigTests");
+        projectDir = sandbox.copyToSandbox(TestConfiguration.getConfiguration().integrationTestProjectsDir, "SourceConfigTests");
         project = new EwpFile(Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_NAME));
         Assert(project.findConfiguration("Debug"), "Test project should have a Debug configuration");
     });
@@ -49,9 +50,10 @@ suite("Test source configuration providers", function() {
         // Load a file so there is a valid browse config
         await configSet.getConfigurationFor(projectFile);
         const config = configSet.getFallbackConfiguration();
-        Assert(config.includes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]/)));
-        Assert(config.includes.some(path => path.absolutePath.toString().match(/arm[/\\]inc[/\\]c[/\\]aarch32/)));
-        Assert(config.defines.some(define => define.identifier === "__ARM_ARCH"));
+        for (const regex of TestConfiguration.getConfiguration().defaultIncludePaths) {
+            Assert(config.includes.some(path => path.absolutePath.toString().match(regex)));
+        }
+        Assert(config.defines.some(define => define.identifier === TestConfiguration.getConfiguration().architectureDefine));
         Assert(config.defines.some(define => define.identifier === "__VERSION__"));
     });
 

@@ -9,6 +9,7 @@ import { VscodeTestsSetup } from "./setup";
 import { FilesNode } from "../../src/extension/ui/treeprojectprovider";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { IarVsc } from "../../src/extension/main";
+import { TestConfiguration } from "../testconfiguration";
 
 namespace Utils {
     export async function getNodes(parent?: FilesNode) {
@@ -28,6 +29,10 @@ suite("Test Project View", ()=>{
     let libSrcDir: string;
 
     suiteSetup(async function() {
+        if (!TestConfiguration.getConfiguration().testThriftSupport) {
+            this.skip();
+            return;
+        }
         this.timeout(50000);
         await VscodeTestsUtils.ensureExtensionIsActivated();
         const sandboxPath = VscodeTestsSetup.setup();

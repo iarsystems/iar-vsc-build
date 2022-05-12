@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 import * as Path from "path" ;
+import { TestConfiguration } from "../testconfiguration";
 
 export namespace VscodeTestsSetup {
     export let sandbox: TestSandbox | undefined;
@@ -15,6 +16,6 @@ export namespace VscodeTestsSetup {
      */
     export function setup() {
         sandbox ??= new TestSandbox(Path.join(__dirname, "../../../"));
-        return sandbox.copyToSandbox(Path.join(__dirname, "../../../tests/vscodeTests/TestProjects"), "UiTestProjects");
+        return sandbox.copyToSandbox(TestConfiguration.getConfiguration().vscodeTestProjectsDir, "UiTestProjects");
     }
 }

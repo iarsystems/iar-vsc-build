@@ -47,6 +47,9 @@
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
             ],
+            "env": {
+                "log-to-console": "true",
+            },
             "preLaunchTask": "npm: test-compile",
             "presentation": {
                 "group": "Tests",
@@ -65,6 +68,9 @@
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
             ],
+            "env": {
+                "log-to-console": "true",
+            },
             "preLaunchTask": "npm: test-compile",
             "presentation": {
                 "group": "Tests",

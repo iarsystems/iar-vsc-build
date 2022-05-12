@@ -4,6 +4,7 @@
 import * as Assert from "assert";
 import * as Vscode from "vscode";
 import { ExtensionState } from "../../src/extension/extensionstate";
+import { TestConfiguration } from "../testconfiguration";
 
 export namespace VscodeTestsUtils {
 
@@ -27,10 +28,10 @@ export namespace VscodeTestsUtils {
 
     export async function activateProject(projectLabel: string) {
         if ((await ExtensionState.getInstance().extendedProject.getValue())?.name !== projectLabel) {
-            await Promise.all([
-                VscodeTestsUtils.projectLoaded(projectLabel),
-                ExtensionState.getInstance().project.selectWhen(project => project.name === projectLabel),
-            ]);
+            ExtensionState.getInstance().project.selectWhen(project => project.name === projectLabel);
+            if (TestConfiguration.getConfiguration().testThriftSupport) {
+                await VscodeTestsUtils.projectLoaded(projectLabel);
+            }
         }
     }
 
@@ -49,15 +50,18 @@ export namespace VscodeTestsUtils {
 
     export async function activateWorkbench(ew: string) {
         if (ExtensionState.getInstance().workbench.selected?.name !== ew) {
-            await Promise.all([
-                VscodeTestsUtils.projectLoaded(),
-                ExtensionState.getInstance().workbench.selectWhen(workbench => workbench.name === ew),
-            ]);
+            ExtensionState.getInstance().workbench.selectWhen(workbench => workbench.name === ew);
+            if (TestConfiguration.getConfiguration().testThriftSupport) {
+                await VscodeTestsUtils.projectLoaded();
+            }
         }
     }
 
     // Waits until the loaded project changes. Useful e.g. after activating a project to ensure it has loaded completely.
-    export function projectLoaded(name?: string) {
+    export async function projectLoaded(name?: string) {
+        if ((await ExtensionState.getInstance().extendedWorkbench.getValue()) === undefined) {
+            return Promise.reject(new Error("No thrift workbench available, did it crash in a previous test?"));
+        }
         return new Promise<void>((resolve, reject) => {
             let resolved = false;
             ExtensionState.getInstance().extendedProject.onValueDidChange((proj) => {
