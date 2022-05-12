@@ -12,6 +12,7 @@ import { ExtensionState } from "../../src/extension/extensionstate";
 import { SourceFileConfiguration } from "vscode-cpptools";
 import { Settings } from "../../src/extension/settings";
 import { readdirSync } from "fs";
+import { TestConfiguration } from "../testconfiguration";
 
 suite("Test Source Configuration (intelliSense)", ()=>{
     const USER_DEFINE_1 = "MY_DEFINE";
@@ -63,23 +64,19 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         Assert(config.defines.some(define => define === "USE_STDPERIPH_DRIVER=1"));
         Assert(config.defines.some(define => define === "STM32F429X=1"));
         Assert(config.defines.some(define => define === "HSE_VALUE=8000000"));
-
-        Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/CMSIS/Core/Include"))));
-        Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/CMSIS/DSP/Include"))));
-
-        // Compiler config
-        Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/inc"))));
-        Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/inc/c/aarch32"))));
-        Assert(config.defines.some(define => define.match(/__ARM_ARCH=\d+/)));
-        Assert(config.defines.some(define => define.match(/__VERSION__=".+"/)));
+        // cmsis is not available on linux
+        if (OsUtils.OsType.Windows === OsUtils.detectOsType() && TestConfiguration.getConfiguration().target === "arm") {
+            Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/CMSIS/Core/Include"))));
+            Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/CMSIS/Dsp/Include"))));
+        }
 
         // User settings
         Assert(config.defines.some(define => define === USER_DEFINE_1));
         Assert(config.defines.some(define => define === USER_DEFINE_2));
 
         // IAR keywords
-        Assert(config.defines.some(define => define === "__ro_placement="));
-        Assert(config.defines.some(define => define === "__no_alloc="));
+        Assert(config.defines.some(define => define === "__root="));
+        Assert(config.defines.some(define => define === "__noreturn="));
     }
 
     test("Handles project files", async() => {

@@ -9,9 +9,9 @@ import { VscodeTestsSetup } from "./setup";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { BuildExtensionApi } from "iar-vsc-common/buildExtension";
-import path = require("path");
+import { TestConfiguration } from "../testconfiguration";
 
-suite("Test Public TS Api", ()=>{
+suite("Test Public TS Api", function() {
     let api: BuildExtensionApi;
     let ledFlasherPath: string;
     let basicDebuggingPath: string;
@@ -58,14 +58,14 @@ suite("Test Public TS Api", ()=>{
             await VscodeTestsUtils.activateProject("LedFlasher");
             const config = await api.getSelectedConfiguration(ledFlasherPath);
             Assert.strictEqual(config?.name, "Flash Debug");
-            Assert.strictEqual(config?.target, "arm");
+            Assert.strictEqual(config?.target, TestConfiguration.getConfiguration().target.toUpperCase());
         }
         {
             await VscodeTestsUtils.activateProject("BasicDebugging");
             await VscodeTestsUtils.activateConfiguration("Release");
             const config = await api.getSelectedConfiguration(basicDebuggingPath);
             Assert.strictEqual(config?.name, "Release");
-            Assert.strictEqual(config?.target, "arm");
+            Assert.strictEqual(config?.target, TestConfiguration.getConfiguration().target.toUpperCase());
         }
     });
     test("Returns project configurations", async() => {
@@ -73,43 +73,27 @@ suite("Test Public TS Api", ()=>{
             await VscodeTestsUtils.activateProject("LedFlasher");
             const configs = await api.getProjectConfigurations(ledFlasherPath);
             Assert.strictEqual(configs?.[0]?.name, "Flash Debug");
-            Assert.strictEqual(configs?.[0]?.target, "arm");
+            Assert.strictEqual(configs?.[0]?.target, TestConfiguration.getConfiguration().target.toUpperCase());
         }
         {
             await VscodeTestsUtils.activateProject("BasicDebugging");
             await VscodeTestsUtils.activateConfiguration("Release");
             const configs = await api.getProjectConfigurations(basicDebuggingPath);
             Assert.strictEqual(configs?.[0]?.name, "Debug");
-            Assert.strictEqual(configs?.[0]?.target, "arm");
+            Assert.strictEqual(configs?.[0]?.target, TestConfiguration.getConfiguration().target.toUpperCase());
             Assert.strictEqual(configs?.[1]?.name, "Release");
-            Assert.strictEqual(configs?.[1]?.target, "arm");
+            Assert.strictEqual(configs?.[1]?.target, TestConfiguration.getConfiguration().target.toUpperCase());
         }
     });
 
-    test("Returns cspy arguments", async() => {
+    test("Returns cspy arguments", async function() {
+        if (TestConfiguration.getConfiguration().cspyCommandLine === undefined) {
+            this.skip();
+            return;
+        }
         await VscodeTestsUtils.activateProject("BasicDebugging");
         const commands = await api.getCSpyCommandline(basicDebuggingPath, "Debug");
-        const expectedCommands = [
-            "/file",
-            path.join(path.dirname(basicDebuggingPath), "Debug/Exe/BasicDebugging.out"),
-            "--crun=disabled",
-            "--endian=little",
-            "--cpu=ARM7TDMI",
-            "/runto",
-            "main",
-            "--fpu=None",
-            "--semihosting",
-            "--multicore_nr_of_cores=1",
-            "/driver",
-            Path.join(ExtensionState.getInstance().workbench.selected!.path, "arm\\bin\\armSIM2.dll"),
-            "/proc",
-            Path.join(ExtensionState.getInstance().workbench.selected!.path, "arm\\bin\\armPROC.dll"),
-            "/plugin",
-            Path.join(ExtensionState.getInstance().workbench.selected!.path, "arm\\bin\\armlibsupport.dll"),
-            "/kernel",
-            "kernel.dll",
-            "/ilink"
-        ];
+        const expectedCommands = TestConfiguration.getConfiguration().cspyCommandLine?.(basicDebuggingPath, ExtensionState.getInstance().workbench.selected!.path);
         Assert.deepStrictEqual(commands, expectedCommands);
     });
 });

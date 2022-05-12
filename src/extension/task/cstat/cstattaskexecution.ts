@@ -169,7 +169,6 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
 
     private write(msg: string) {
         msg = msg.replace(/(?<!\r)\n/g, "\r\n"); // VSC-82: vscode console prefers crlf, so replace all lf with crlf
-        console.log("CSTAT: " + msg);
         this.writeEmitter.fire(msg);
     }
 

@@ -48,7 +48,7 @@ export class ThriftProject implements ExtendedProject {
 
     getCStatOutputDirectory(config: string): Promise<string | undefined> {
         return this.performOperation(async() => {
-            if (!this.configurations.some(c => c.name === config)) {
+            if (this.findConfiguration(config) === undefined) {
                 return Promise.reject(new Error(`Project '${this.name}' has no configuration '${config}'.`));
             }
             if (!WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.canFetchProjectOptions)) {
@@ -65,7 +65,7 @@ export class ThriftProject implements ExtendedProject {
 
     getCSpyArguments(config: string): Promise<string[] | undefined> {
         return this.performOperation(() => {
-            if (!this.configurations.some(c => c.name === config)) {
+            if (this.findConfiguration(config) === undefined) {
                 throw new Error(`Project '${this.name}' has no configuration '${config}'.`);
             }
             if (!WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.canFetchProjectOptions)) {
