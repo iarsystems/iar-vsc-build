@@ -53,7 +53,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
             "-log", "info" // VSC-124 This gives the same verbosity as EW
         ];
         let extraArgs = this.definition.extraBuildArguments;
-        if (extraArgs === undefined || extraArgs.length === 0) {
+        if (extraArgs === undefined) {
             extraArgs = Settings.getExtraBuildArguments();
         }
         if (extraArgs.length !== 0) {

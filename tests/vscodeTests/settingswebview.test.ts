@@ -21,6 +21,7 @@ suite("Test Clicking Settings View", ()=>{
 
         // Focus the view. Otherwise it will not be instantiated/resolved.
         await Vscode.commands.executeCommand("iar-settings.focus");
+        await new Promise((res, _) => setTimeout(res, 1000));
     });
 
     suite("Clicking workbench updates model", () => {
