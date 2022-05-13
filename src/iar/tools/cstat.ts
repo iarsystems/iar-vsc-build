@@ -272,7 +272,6 @@ export namespace CStatReport {
     export function generateHTMLReport(ireportPath: string, cstatOutputDir: string, projectName: string, outputPath: string, full: boolean, onWrite?: (msg: string) => void): Promise<void> {
         const dbPath = join(cstatOutputDir, "cstat.db");
         const args = [
-            "--xml_mode",
             "--db",
             dbPath,
             "--project",
