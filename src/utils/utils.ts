@@ -79,7 +79,7 @@ export namespace BackupUtils {
         // TODO: only do this if we detect from the platform version that it is needed
         const projectDir = Path.dirname(project);
         // match all backup files for the project (.ewp, .ewt, .ewd)
-        const backupRegex = new RegExp(`Backup\\s+(\\(\\d+\\))?\\s*of ${Path.basename(project, ".ewp")}.ew`);
+        const backupRegex = new RegExp(`Backup\\s+(\\(\\d+\\))?\\s*of ${RegexUtils.escape(Path.basename(project, ".ewp"))}.ew`);
         const originalBackupFiles = (await FsPromises.readdir(projectDir)).filter(file => file.match(backupRegex));
 
         const taskPromise = task();
@@ -92,5 +92,15 @@ export namespace BackupUtils {
         });
 
         return taskPromise;
+    }
+}
+
+export namespace RegexUtils {
+    /**
+     * Escapes a string for use in a regular expression.
+     * The returned string will be a regex matching the input string exactly.
+     */
+    export function escape(str: string): string {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     }
 }

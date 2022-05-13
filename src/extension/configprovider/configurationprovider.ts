@@ -7,7 +7,7 @@ import { CustomConfigurationProvider, getCppToolsApi, Version, CppToolsApi, Sour
 import { ExtensionState } from "../extensionstate";
 import { Settings } from "../settings";
 import { CancellationToken } from "vscode-jsonrpc";
-import { LanguageUtils } from "../../utils/utils";
+import { LanguageUtils, RegexUtils } from "../../utils/utils";
 import { Workbench } from "iar-vsc-common/workbench";
 import { Config } from "../../iar/project/config";
 import * as Path from "path";
@@ -257,7 +257,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
  */
 async function getCompilerForConfig(config: Config, workbench: Workbench): Promise<string | undefined> {
     const toolchainBinDir = Path.join(workbench.path.toString(), config.toolchainId.toLowerCase(), "bin");
-    const regex = "icc.*" + IarOsUtils.executableExtension();
+    const regex = "icc.*" + RegexUtils.escape(IarOsUtils.executableExtension());
     const filter = FsUtils.createFilteredListDirectoryFilenameRegex(new RegExp(regex));
     const compilerPaths = await FsUtils.filteredListDirectory(toolchainBinDir, filter);
     if (compilerPaths[0] !== undefined) {
