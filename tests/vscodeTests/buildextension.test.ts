@@ -156,7 +156,7 @@ suite("Test build extension", ()=>{
         assert.deepStrictEqual(configuredEws?.length, listedEws.length);
         for (const configuredEw of configuredEws) {
             const ewId: string = path.basename(configuredEw.toString());
-            assert(listedEws.some(ew => ew.name === ewId));
+            assert(listedEws.some(ew => ew.name.startsWith(ewId)));
         }
     });
 
