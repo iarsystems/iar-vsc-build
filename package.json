@@ -474,7 +474,7 @@
     "csv-parse": "4.8.8",
     "escape-html": "^1.0.3",
     "fast-deep-equal": "2.0.1",
-    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#ce8979ef",
+    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#94a7cb54",
     "jsdom": "^19.0.0",
     "rxjs": "^7.5.2",
     "sanitize-html": "^2.6.1",
