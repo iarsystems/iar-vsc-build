@@ -16,6 +16,7 @@ import { QtoPromise } from "../utils/promise";
 import { ThriftProject } from "./project/thrift/thriftproject";
 import { BackupUtils } from "../utils/utils";
 import { logger } from "iar-vsc-common/logger";
+import { IarOsUtils } from "iar-vsc-common/osUtils";
 
 /**
  * A workbench with some extra capabilities,
@@ -66,7 +67,8 @@ export class ThriftWorkbench implements ExtendedWorkbench {
 
     static hasThriftSupport(workbench: Workbench): boolean {
         // TODO: find a better way to do this
-        return Fs.existsSync(Path.join(workbench.path.toString(), "common/bin/projectmanager.json"));
+        return Fs.existsSync(Path.join(workbench.path.toString(), "common/bin/projectmanager.json"))
+            && Fs.existsSync(Path.join(workbench.path.toString(), "common/bin/IarServiceLauncher" + IarOsUtils.executableExtension()));
     }
 
     // Loaded project contexts are stored, and may be reused until this workbench is disposed of.
