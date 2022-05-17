@@ -19,8 +19,8 @@ export class ProjectListModel extends ListInputModelBase<Project> {
     label(index: number): string {
         return this.getProjectAt(index).name;
     }
-    description(index: number): string | undefined {
-        return this.getProjectAt(index).path.toString();
+    description(_index: number): string | undefined {
+        return undefined;
     }
     detail(index: number): string | undefined {
         return this.getProjectAt(index).path.toString();

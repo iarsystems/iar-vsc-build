@@ -19,8 +19,8 @@ export class WorkbenchListModel extends ListInputModelBase<Workbench> {
     label(index: number): string {
         return this.getWorkbenchAt(index).name;
     }
-    description(index: number): string | undefined {
-        return this.getWorkbenchAt(index).path.toString();
+    description(_index: number): string | undefined {
+        return undefined;
     }
     detail(index: number): string | undefined {
         return this.getWorkbenchAt(index).path.toString();
