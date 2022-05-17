@@ -82,8 +82,8 @@ export namespace OpenTasks {
             label: label,
             type: "iar",
             command: "open",
-            workbench: "${command:iar-settings.toolchain}/" + Workbench.ideSubPath,
-            workspace: "${command:iar.selectIarWorkspace}",
+            workbench: "${command:iar-config.toolchain}/" + Workbench.ideSubPath,
+            workspace: "${command:iar-build.selectIarWorkspace}",
             problemMatcher: []
         };
 

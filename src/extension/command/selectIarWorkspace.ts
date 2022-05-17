@@ -16,7 +16,7 @@ import { ThenableToPromise } from "../../utils/promise";
 export class SelectIarWorkspace extends CommandBase<Promise<string | undefined>> {
 
     constructor() {
-        super("iar.selectIarWorkspace");
+        super("iar-build.selectIarWorkspace");
     }
 
     async executeImpl(_autoTriggered: boolean): Promise<string | undefined> {

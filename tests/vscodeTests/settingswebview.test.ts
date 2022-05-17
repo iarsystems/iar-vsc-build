@@ -20,7 +20,7 @@ suite("Test Clicking Settings View", ()=>{
         VscodeTestsSetup.setup();
 
         // Focus the view. Otherwise it will not be instantiated/resolved.
-        await Vscode.commands.executeCommand("iar-settings.focus");
+        await Vscode.commands.executeCommand("iar-configuration.focus");
         await new Promise((res, _) => setTimeout(res, 1000));
     });
 

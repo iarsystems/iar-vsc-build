@@ -17,7 +17,7 @@ import { logger } from "iar-vsc-common/logger";
  */
 export class RemoveNodeCommand extends ProjectCommand {
     constructor() {
-        super("iar.removeNode");
+        super("iar-build.removeNode");
     }
 
     async execute(source: FilesNode, project: ExtendedProject) {

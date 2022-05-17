@@ -62,9 +62,9 @@ export namespace BuildTasks {
             label: label,
             type: "iar",
             command: command,
-            builder: "${command:iar-settings.toolchain}/" + Workbench.builderSubPath,
-            project: "${command:iar-settings.project-file}",
-            config: "${command:iar-settings.project-configuration}",
+            builder: "${command:iar-config.toolchain}/" + Workbench.builderSubPath,
+            project: "${command:iar-config.project-file}",
+            config: "${command:iar-config.project-configuration}",
             extraBuildArguments: undefined,
             problemMatcher: ["$iar-cc", "$iar-linker"]
         };

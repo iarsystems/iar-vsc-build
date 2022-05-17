@@ -14,7 +14,7 @@ import { OsUtils } from "iar-vsc-common/osUtils";
  * Returns true if a folder containing any workbenches was successfully added.
  */
 export class AddWorkbenchCommand extends CommandBase<Promise<boolean>> {
-    public static readonly ID = "iar.addToolchain";
+    public static readonly ID = "iar-build.addToolchain";
 
     constructor(private readonly toolManager: ToolManager) {
         super(AddWorkbenchCommand.ID);

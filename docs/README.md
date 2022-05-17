@@ -132,7 +132,7 @@ This is an example `tasks.json` file with a configured Build Project task:
 			"command": "build",
 			"project": "${workspaceFolder}/MyProject.ewp",
 			"config": "*",
-			"builder": "${command:iar-settings.toolchain}/common/bin/iarbuild.exe",
+			"builder": "${command:iar-config.toolchain}/common/bin/iarbuild.exe",
 			"label": "Build MyProject",
             "extraBuildArguments": [
                 "-parallel",

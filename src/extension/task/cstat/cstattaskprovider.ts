@@ -97,9 +97,9 @@ class CStatProvider implements Vscode.TaskProvider {
             label: label,
             type: "iar-cstat",
             action: action,
-            toolchain: "${command:iar-settings.toolchain}",
-            project: "${command:iar-settings.project-file}",
-            config: "${command:iar-settings.project-configuration}",
+            toolchain: "${command:iar-config.toolchain}",
+            project: "${command:iar-config.project-file}",
+            config: "${command:iar-config.project-configuration}",
             extraBuildArguments: undefined,
         };
         return definition;

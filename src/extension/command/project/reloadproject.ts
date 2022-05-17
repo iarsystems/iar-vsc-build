@@ -8,7 +8,7 @@ import { CommandBase } from "../command";
 export class ReloadProjectCommand extends CommandBase<Promise<void>> {
 
     constructor() {
-        super("iar.reloadProject");
+        super("iar-build.reloadProject");
     }
 
     async executeImpl(_autoTriggered?: boolean): Promise<void> {

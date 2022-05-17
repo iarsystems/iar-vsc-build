@@ -18,7 +18,7 @@ import { logger } from "iar-vsc-common/logger";
  */
 export class AddFileCommand extends ProjectCommand {
     constructor() {
-        super("iar.addFile");
+        super("iar-build.addFile");
     }
 
     async execute(source: FilesNode | undefined, project: ExtendedProject) {
@@ -73,7 +73,7 @@ export class AddFileCommand extends ProjectCommand {
  */
 export class AddGroupCommand extends ProjectCommand {
     constructor() {
-        super("iar.addGroup");
+        super("iar-build.addGroup");
     }
 
     async execute(source: FilesNode | undefined, project: ExtendedProject) {

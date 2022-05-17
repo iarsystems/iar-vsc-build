@@ -36,19 +36,19 @@
     "multi-root ready"
   ],
   "activationEvents": [
-    "onCommand:iar.selectToolchain",
-    "onCommand:iar.selectProject",
-    "onCommand:iar.selectConfiguration",
-    "onCommand:iar.selectIarWorkspace",
-    "onCommand:iar.addToolchain",
-    "onCommand:iar.addFile",
-    "onCommand:iar.addGroup",
-    "onCommand:iar.removeNode",
-    "onCommand:iar.reloadProject",
-    "onCommand:iar-settings.toolchain",
-    "onCommand:iar-settings.project-file",
-    "onCommand:iar-settings.project-configuration",
-    "onView:iar-settings",
+    "onCommand:iar-build.selectToolchain",
+    "onCommand:iar-build.selectProject",
+    "onCommand:iar-build.selectConfiguration",
+    "onCommand:iar-build.selectIarWorkspace",
+    "onCommand:iar-build.addToolchain",
+    "onCommand:iar-build.addFile",
+    "onCommand:iar-build.addGroup",
+    "onCommand:iar-build.removeNode",
+    "onCommand:iar-build.reloadProject",
+    "onCommand:iar-config.toolchain",
+    "onCommand:iar-config.project-file",
+    "onCommand:iar-config.project-configuration",
+    "onView:iar-configuration",
     "onView:iar-project",
     "workspaceContains:**/*.ewp"
   ],
@@ -56,63 +56,63 @@
   "contributes": {
     "commands": [
       {
-        "command": "iar.selectToolchain",
+        "command": "iar-build.selectToolchain",
         "title": "Select Toolchain",
-        "category": "IAR"
+        "category": "IAR Build"
       },
       {
-        "command": "iar.selectProject",
+        "command": "iar-build.selectProject",
         "title": "Select Project",
-        "category": "IAR"
+        "category": "IAR Build"
       },
       {
-        "command": "iar.selectConfiguration",
+        "command": "iar-build.selectConfiguration",
         "title": "Select Configuration",
-        "category": "IAR"
+        "category": "IAR Build"
       },
       {
-        "command": "iar-settings.toolchain",
+        "command": "iar-config.toolchain",
         "title": "Get the selected toolchain location",
         "category": "IAR Settings"
       },
       {
-        "command": "iar-settings.project-file",
+        "command": "iar-config.project-file",
         "title": "Get the selected project file",
         "category": "IAR Settings"
       },
       {
-        "command": "iar-settings.project-configuration",
+        "command": "iar-config.project-configuration",
         "title": "Get the selected project configuration",
         "category": "IAR Settings"
       },
       {
-        "command": "iar.addFile",
+        "command": "iar-build.addFile",
         "title": "Add file(s) here",
-        "category": "IAR",
+        "category": "IAR Build",
         "icon": "$(new-file)"
       },
       {
-        "command": "iar.addGroup",
+        "command": "iar-build.addGroup",
         "title": "Add group here",
-        "category": "IAR",
+        "category": "IAR Build",
         "icon": "$(new-folder)"
       },
       {
-        "command": "iar.removeNode",
+        "command": "iar-build.removeNode",
         "title": "Remove file/group from project",
-        "category": "IAR",
+        "category": "IAR Build",
         "icon": "$(trash)"
       },
       {
-        "command": "iar.reloadProject",
+        "command": "iar-build.reloadProject",
         "title": "Reload project",
-        "category": "IAR",
+        "category": "IAR Build",
         "icon": "$(refresh)"
       },
       {
-        "command": "iar.addToolchain",
+        "command": "iar-build.addToolchain",
         "title": "Add an IAR Embedded Workbench or IAR Build Tools installation",
-        "category": "IAR"
+        "category": "IAR Build"
       }
     ],
     "viewsContainers": {
@@ -127,7 +127,7 @@
     "views": {
       "iar-build": [
         {
-          "id": "iar-settings",
+          "id": "iar-configuration",
           "name": "Extension Configuration",
           "type": "webview"
         },
@@ -142,60 +142,60 @@
     "menus": {
       "view/title": [
         {
-          "command": "iar.reloadProject",
+          "command": "iar-build.reloadProject",
           "when": "view == iar-project"
         },
         {
-          "command": "iar.addFile",
+          "command": "iar-build.addFile",
           "when": "view == iar-project && iar-build.extendedProjectLoaded",
           "group": "navigation"
         },
         {
-          "command": "iar.addGroup",
+          "command": "iar-build.addGroup",
           "when": "view == iar-project && iar-build.extendedProjectLoaded",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "iar.removeNode",
+          "command": "iar-build.removeNode",
           "when": "view == iar-project && viewItem == group || viewItem == file",
           "group": "inline"
         },
         {
-          "command": "iar.addGroup",
+          "command": "iar-build.addGroup",
           "when": "view == iar-project && viewItem == group",
           "group": "inline"
         },
         {
-          "command": "iar.addFile",
+          "command": "iar-build.addFile",
           "when": "view == iar-project && viewItem == group",
           "group": "inline"
         }
       ],
       "commandPalette": [
         {
-          "command": "iar.addFile",
+          "command": "iar-build.addFile",
           "when": "false"
         },
         {
-          "command": "iar.addGroup",
+          "command": "iar-build.addGroup",
           "when": "false"
         },
         {
-          "command": "iar.removeNode",
+          "command": "iar-build.removeNode",
           "when": "false"
         },
         {
-          "command": "iar-settings.toolchain",
+          "command": "iar-config.toolchain",
           "when": "false"
         },
         {
-          "command": "iar-settings.project-file",
+          "command": "iar-config.project-file",
           "when": "false"
         },
         {
-          "command": "iar-settings.project-configuration",
+          "command": "iar-config.project-configuration",
           "when": "false"
         }
       ]

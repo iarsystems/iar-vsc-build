@@ -30,7 +30,7 @@ export enum DropdownIds {
  */
 export class SettingsWebview implements vscode.WebviewViewProvider {
 
-    public static readonly VIEW_TYPE = "iar-settings";
+    public static readonly VIEW_TYPE = "iar-configuration";
 
     private view?: vscode.WebviewView;
 
