@@ -7,7 +7,7 @@ Build and develop your IAR Embedded Workbench projects from Visual Studio Code.
 * Generate C-STAT messages and reports
 * Use language features powered by the [C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
 
-An IAR Embedded Workbench or IAR Build Tools installation is required to use this extension.
+An IAR Embedded Workbench or IAR Build Tools installation is required to use this extension. See [Compatibility](#compatibility) table below for detailed information.
 
 > 💡️ To debug your Embedded Workbench projects from VS Code, please also see the [IAR C-SPY Debug extension](https://marketplace.visualstudio.com/items?itemName=iarsystems.iar-debug).
 
@@ -56,7 +56,7 @@ This extension is compatible with any IAR Embedded Workbench (EW) or IAR Build T
 Depending on which feedback you want to share with us, here are the preferred options:
 * If you have ideas on how to improve this extension or if you have found issues with it, see [CONTRIBUTING.md](https://github.com/IARSystems/iar-vsc-build/blob/master/CONTRIBUTING.md) on how to proceed.
 
-* If you have issues with the underlying IAR Embedded Workbench or IAR Built Tools product, report this via the IAR Systems technical support channel at [IAR Technical Support](https://www.iar.com/knowledge/support/).
+* If you have issues with the underlying IAR Embedded Workbench or IAR Build Tools product, report this via the IAR Systems technical support channel at [IAR Technical Support](https://www.iar.com/knowledge/support/).
 
 <!-- ## Contributions
 Contributions are always welcome. Or did we decide to have a read-only repository? -->
