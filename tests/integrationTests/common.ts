@@ -1,6 +1,6 @@
 import * as path from "path";
 import { Settings } from "../../src/extension/settings";
-import { ToolManager } from "../../src/iar/tools/manager";
+import { IarToolManager } from "../../src/iar/tools/manager";
 import * as fs from "fs";
 
 export namespace IntegrationTestsCommon {
@@ -14,7 +14,7 @@ export namespace IntegrationTestsCommon {
     export const TEST_PROJECT_SOURCE_FILE = "main.c";
 
     export async function findWorkbenchesContainingTarget(target: string) {
-        const manager = ToolManager.createIarToolManager();
+        const manager = new IarToolManager();
         await manager.collectWorkbenches(Settings.getIarInstallDirectories(), false);
 
         return manager.workbenches.filter(wb => {

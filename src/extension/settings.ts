@@ -42,7 +42,7 @@ export namespace Settings {
         });
     }
 
-    export function getIarInstallDirectories(): Fs.PathLike[] {
+    export function getIarInstallDirectories(): string[] {
         const directories = Vscode.workspace.getConfiguration(section).get(ExtensionSettingsField.IarInstallDirectories);
         return (directories ?? []) as string[];
     }

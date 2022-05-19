@@ -4,7 +4,6 @@
 
 
 
-import * as Fs from "fs";
 import { Workbench } from "iar-vsc-common/workbench";
 import * as Registry from "winreg";
 import { OsUtils } from "iar-vsc-common/osUtils";
@@ -19,10 +18,10 @@ export interface ToolManager {
 
     addInvalidateListener(handler: InvalidateHandler): void;
 
-    collectWorkbenches(directories: Fs.PathLike[], useRegistry?: boolean): Promise<Workbench[]>;
+    collectWorkbenches(directories: string[], useRegistry?: boolean): Promise<Workbench[]>;
 }
 
-class IarToolManager implements ToolManager {
+export class IarToolManager implements ToolManager {
     private workbenches_: Workbench[];
     private readonly invalidateHandlers: InvalidateHandler[] = [];
 
@@ -113,42 +112,35 @@ class IarToolManager implements ToolManager {
 
     private static async collectFromWindowsRegistry(): Promise<Workbench[]> {
         const keys = [
-            "\\SOFTWARE\\IAR Systems\\Embedded Workbench\\5.0\\Locations",
-            "\\SOFTWARE\\Wow6432Node\\IAR Systems\\Embedded Workbench\\5.0\\Locations",
+            "\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+            "\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
         ];
-        const paths: string[][] = await Promise.all(keys.map(key => {
-            return new Promise<string[]>((resolve, reject) => {
-                const regKey = new Registry({
-                    hive: Registry.HKLM,
-                    key: key,
-                });
-                regKey.keys((err, locationKeys) => {
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
-                    const found: string[] = [];
-                    locationKeys.forEach(locationKey => {
-                        locationKey.get("InstallPath", (err, value) => {
-                            if (err) {
-                                console.error(err);
-                                found.push("");
-                            } else {
-                                found.push(value.value);
-                            }
-                            if (found.length === locationKeys.length) {
-                                resolve(found);
-                            }
-                        });
-                    });
-                });
+        const paths: Array<Array<string | undefined>> = await Promise.all(keys.map(async key => {
+            const regKey = new Registry({
+                hive: Registry.HKLM,
+                key: key,
             });
+            const uninstallKeys = await RegisterUtils.subkeys(regKey);
+            const maybePaths = await Promise.allSettled(uninstallKeys.map(async key => {
+                const publisher = await RegisterUtils.item(key, "Publisher");
+                const displayName = await RegisterUtils.item(key, "DisplayName");
+                const installLocation = await RegisterUtils.item(key, "InstallLocation");
+                if (publisher.value === "IAR Systems" &&
+                    (displayName.value.includes("Embedded Workbench") || displayName.value.includes("Build Tools"))) {
+                    return Promise.resolve(installLocation.value);
+                }
+                return Promise.resolve(undefined);
+            }));
+            return maybePaths.map(res => res.status === "fulfilled" ? res.value : undefined);
         }));
+
         const workbenches: Workbench[] = [];
         paths.flat().forEach(path => {
-            const wb = Workbench.create(path);
-            if (wb !== undefined) {
-                workbenches.push(wb);
+            if (path !== undefined) {
+                const wb = Workbench.create(path);
+                if (wb !== undefined) {
+                    workbenches.push(wb);
+                }
             }
         });
         return workbenches;
@@ -158,7 +150,7 @@ class IarToolManager implements ToolManager {
      * Merge two or more lists containing workbenches. This function will return
      * a list of unique workbenches. Duplicates are removed.
      *
-     * @param list Array list containing lists of workbenches
+     * @param lists Array of list containing lists of workbenches
      */
     private static mergeUnique(...lists: Array<Workbench>[]): Workbench[] {
         const fnKey = (item: Workbench): string => {
@@ -171,8 +163,33 @@ class IarToolManager implements ToolManager {
 
 }
 
-export namespace ToolManager {
-    export function createIarToolManager(): ToolManager {
-        return new IarToolManager();
+namespace RegisterUtils {
+    /**
+     * A promisified version of {@link Registry.Registry.get}.
+     */
+    export function item(registry: Registry.Registry, key: string): Promise<Registry.RegistryItem> {
+        return new Promise((resolve, reject) => {
+            registry.get(key, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+    }
+    /**
+     * A promisified version of {@link Registry.Registry.keys}.
+     */
+    export function subkeys(registry: Registry.Registry): Promise<Registry.Registry[]> {
+        return new Promise((resolve, reject) => {
+            registry.keys((err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
     }
 }

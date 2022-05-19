@@ -14,7 +14,7 @@ import { Workbench, WorkbenchType } from "iar-vsc-common/workbench";
 import { Config } from "../../src/iar/project/config";
 import { Project } from "../../src/iar/project/project";
 import { ListInputModel, ListInputModelBase } from "../../src/extension/model/model";
-import { ToolManager } from "../../src/iar/tools/manager";
+import { IarToolManager } from "../../src/iar/tools/manager";
 
 namespace Utils {
     // A fake view we can receive html to, and then inspect it.
@@ -60,7 +60,7 @@ suite("Test settings view", () => {
             workbenchModel,
             projectModel,
             configModel,
-            new AddWorkbenchCommand(ToolManager.createIarToolManager()),
+            new AddWorkbenchCommand(new IarToolManager()),
         );
         mockView = Utils.createMockView();
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

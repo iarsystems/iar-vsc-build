@@ -4,7 +4,7 @@
 
 import * as vscode from "vscode";
 import { ExtensionState } from "./extensionstate";
-import { ToolManager } from "../iar/tools/manager";
+import { IarToolManager } from "../iar/tools/manager";
 import { Settings } from "./settings";
 import { IarTaskProvider } from "./task/provider";
 import { GetSettingsCommand } from "./command/getsettings";
@@ -135,7 +135,7 @@ async function loadTools(addWorkbenchCommand?: Command<unknown>) {
 
 export namespace IarVsc {
     export let extensionContext: vscode.ExtensionContext | undefined;
-    export const toolManager = ToolManager.createIarToolManager();
+    export const toolManager = new IarToolManager();
     // exported mostly for testing purposes
     export let settingsView: SettingsWebview;
     export let projectTreeView: TreeProjectView;

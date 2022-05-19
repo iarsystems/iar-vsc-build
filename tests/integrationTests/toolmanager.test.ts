@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { Settings } from "../../src/extension/settings";
-import { ToolManager } from "../../src/iar/tools/manager";
+import { IarToolManager } from "../../src/iar/tools/manager";
 
 suite("Test toolmanager creation with filesystem", () => {
     test("Using real filesystem", () => {
@@ -11,7 +11,7 @@ suite("Test toolmanager creation with filesystem", () => {
            the local filesystem and print the result. To improve this we have to
            create something like a filesystem simulator using stubbing, but that
            is a lot of work for now. */
-        const manager = ToolManager.createIarToolManager();
+        const manager = new IarToolManager();
         manager.collectWorkbenches(Settings.getIarInstallDirectories());
 
         console.log(manager);
