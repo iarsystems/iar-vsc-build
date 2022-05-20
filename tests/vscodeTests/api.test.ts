@@ -17,6 +17,7 @@ suite("Test Public TS Api", ()=>{
     let basicDebuggingPath: string;
 
     suiteSetup(async function() {
+        console.log("TS API tests");
         this.timeout(50000);
         await VscodeTestsUtils.ensureExtensionIsActivated();
         VscodeTestsSetup.setup();

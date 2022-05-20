@@ -62,6 +62,7 @@ suite("Test build extension", ()=>{
     let sandboxPath: string;
 
     suiteSetup(async() => {
+        console.log("Test build extension");
         await VscodeTestsUtils.ensureExtensionIsActivated();
         sandboxPath = VscodeTestsSetup.setup();
         sandbox = VscodeTestsSetup.sandbox!;
