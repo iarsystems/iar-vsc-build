@@ -61,6 +61,7 @@ suite("Test settings view", () => {
             projectModel,
             configModel,
             new AddWorkbenchCommand(new IarToolManager()),
+            new Subject(),
         );
         mockView = Utils.createMockView();
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
