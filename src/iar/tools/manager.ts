@@ -123,13 +123,15 @@ export class IarToolManager implements ToolManager {
             const uninstallKeys = await RegisterUtils.subkeys(regKey);
             const maybePaths = await Promise.allSettled(uninstallKeys.map(async key => {
                 const publisher = await RegisterUtils.item(key, "Publisher");
-                const displayName = await RegisterUtils.item(key, "DisplayName");
-                const installLocation = await RegisterUtils.item(key, "InstallLocation");
-                if (publisher.value === "IAR Systems" &&
-                    (displayName.value.includes("Embedded Workbench") || displayName.value.includes("Build Tools"))) {
-                    return Promise.resolve(installLocation.value);
+                if (publisher.value !== "IAR Systems") {
+                    return undefined;
                 }
-                return Promise.resolve(undefined);
+                const displayName = await RegisterUtils.item(key, "DisplayName");
+                if (!(displayName.value.includes("Embedded Workbench") || displayName.value.includes("Build Tools"))) {
+                    return undefined;
+                }
+                const installLocation = await RegisterUtils.item(key, "InstallLocation");
+                return installLocation.value;
             }));
             return maybePaths.map(res => res.status === "fulfilled" ? res.value : undefined);
         }));
