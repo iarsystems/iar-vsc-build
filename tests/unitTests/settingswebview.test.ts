@@ -15,6 +15,7 @@ import { Config } from "../../src/iar/project/config";
 import { Project } from "../../src/iar/project/project";
 import { ListInputModel, ListInputModelBase } from "../../src/extension/model/model";
 import { IarToolManager } from "../../src/iar/tools/manager";
+import { BehaviorSubject, Subject } from "rxjs";
 
 namespace Utils {
     // A fake view we can receive html to, and then inspect it.
@@ -44,6 +45,7 @@ suite("Test settings view", () => {
     let workbenchModel: ListInputModelBase<Workbench>;
     let projectModel: ListInputModelBase<Project>;
     let configModel: ListInputModelBase<Config>;
+    let loading: Subject<boolean>;
 
     let settingsView: SettingsWebview;
     let mockView: vscode.WebviewView;
@@ -53,6 +55,7 @@ suite("Test settings view", () => {
         workbenchModel = new WorkbenchListModel();
         projectModel = new ProjectListModel();
         configModel = new ConfigurationListModel();
+        loading = new BehaviorSubject<boolean>(false);
 
         const extensionUri = vscode.Uri.file("../../");
         settingsView = new SettingsWebview(
@@ -61,7 +64,7 @@ suite("Test settings view", () => {
             projectModel,
             configModel,
             new AddWorkbenchCommand(new IarToolManager()),
-            new Subject(),
+            loading,
         );
         mockView = Utils.createMockView();
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -138,6 +141,31 @@ suite("Test settings view", () => {
         Assert.strictEqual(options.item(workbenchModel.amount + 1)?.tagName, "VSCODE-DIVIDER");
         Assert.strictEqual(options.item(workbenchModel.amount + 2)?.tagName, "VSCODE-OPTION");
         Assert.strictEqual(options.item(workbenchModel.amount + 2)?.textContent?.trim(), "Add Toolchain...");
+    });
+
+    test("Reacts to loading workbenches", () => {
+        workbenchModel.set({ name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.BX });
+        updateDocument();
+        {
+            const wbs = document.getElementById(DropdownIds.Workbench);
+            Assert(wbs);
+            Assert.strictEqual(wbs.getAttribute("disabled"), null, "Dropdown should be enabled");
+
+            const spinner = document.getElementsByTagName("VSCODE-PROGRESS-RING").item(0);
+            Assert(spinner);
+            Assert.strictEqual(spinner.getAttribute("hidden"), "", "Spinner should be hidden");
+        }
+        loading.next(true);
+        updateDocument();
+        {
+            const wbs = document.getElementById(DropdownIds.Workbench);
+            Assert(wbs);
+            Assert.strictEqual(wbs.getAttribute("disabled"), "", "Dropdown should be disabled");
+
+            const spinner = document.getElementsByTagName("VSCODE-PROGRESS-RING").item(0);
+            Assert(spinner);
+            Assert.strictEqual(spinner.getAttribute("hidden"), null, "Spinner should be visible");
+        }
     });
 
     test("Escapes HTML tags", () => {

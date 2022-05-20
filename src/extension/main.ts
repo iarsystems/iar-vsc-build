@@ -25,7 +25,7 @@ import { EwpFile } from "../iar/project/parsing/ewpfile";
 import { EwpFileWatcherService } from "./ewpfilewatcher";
 import { API } from "./api";
 import { StatusBarItem } from "./ui/statusbaritem";
-import { Subject } from "rxjs";
+import { BehaviorSubject } from "rxjs";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
@@ -138,7 +138,7 @@ async function loadTools(addWorkbenchCommand?: Command<unknown>) {
 export namespace IarVsc {
     export let extensionContext: vscode.ExtensionContext | undefined;
     export const toolManager = new IarToolManager();
-    export const workbenchesLoading = new Subject<boolean>();
+    export const workbenchesLoading = new BehaviorSubject<boolean>(false);
     // exported mostly for testing purposes
     export let settingsView: SettingsWebview;
     export let projectTreeView: TreeProjectView;

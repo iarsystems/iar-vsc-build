@@ -186,7 +186,7 @@ namespace Rendering {
                 <div id="workbench-error" ${workbenches.amount > 0 || workbenchesLoading ? "hidden" : ""}>
                     <span>No IAR toolchain installations found.</span><vscode-link id="link-add">Add Toolchain</vscode-link>
                 </div>
-                ${workbenchesLoading ? "<vscode-progress-ring></vscode-progress-ring>" : ""}
+                <vscode-progress-ring ${ !workbenchesLoading ? "hidden" : ""}></vscode-progress-ring>
             </div>
             <div class="section">
                     <p>Active Project and Configuration:</p>
