@@ -9,6 +9,7 @@ import { ListInputModel } from "../model/model";
 import * as sanitizeHtml from "sanitize-html";
 import { AddWorkbenchCommand } from "../command/addworkbench";
 import { logger } from "iar-vsc-common/logger";
+import { Subject } from "rxjs";
 
 // Make sure this matches the enum in media/settingsview.js! AFAIK we cannot share code between here and the webview javascript
 enum MessageSubject {
@@ -36,6 +37,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
     public static readonly VIEW_TYPE = "iar-configuration";
 
     private view?: vscode.WebviewView;
+    private workbenchesLoading = false;
 
     /**
      * Creates a new view. The caller is responsible for registering it.
@@ -44,12 +46,14 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
      * @param projects The project list to display and modify
      * @param configs The configuration list to display and modify
      * @param addWorkbenchCommand The command to call when the user wants to add a new workbench
+     * @param workbenchesLoading Notifies when the workbench list is in the process of (re)loading
      */
     constructor(private readonly extensionUri: vscode.Uri,
         private readonly workbenches: ListInputModel<Workbench>,
         private readonly projects: ListInputModel<Project>,
         private readonly configs: ListInputModel<Config>,
         private readonly addWorkbenchCommand: AddWorkbenchCommand,
+        workbenchesLoading: Subject<boolean>,
     ) {
         // Fully redraw the view on any change. Not optimal performance, but seems to be fast enough.
         const changeHandler = this.updateView.bind(this);
@@ -59,6 +63,11 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         this.projects.addOnSelectedHandler(changeHandler);
         this.configs.addOnInvalidateHandler(changeHandler);
         this.configs.addOnSelectedHandler(changeHandler);
+
+        workbenchesLoading.subscribe(load => {
+            this.workbenchesLoading = load;
+            this.updateView();
+        });
     }
 
     // Called by vscode before the view is shown
@@ -111,7 +120,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         if (this.view === undefined) {
             return;
         }
-        this.view.webview.html = Rendering.getWebviewContent(this.view.webview, this.extensionUri, this.workbenches, this.projects, this.configs);
+        this.view.webview.html = Rendering.getWebviewContent(this.view.webview, this.extensionUri, this.workbenches, this.projects, this.configs, this.workbenchesLoading);
     }
 
     // ! Exposed for testing only. Selects a specific option from a dropdown.
@@ -136,7 +145,8 @@ namespace Rendering {
         extensionUri: vscode.Uri,
         workbenches: ListInputModel<Workbench>,
         projects: ListInputModel<Project>,
-        configs: ListInputModel<Config>
+        configs: ListInputModel<Config>,
+        workbenchesLoading: boolean
     ) {
         // load npm packages for standardized UI components and icons
         //! NOTE: ALL files you load here (even indirectly) must be explicitly included in .vscodeignore, so that they are packaged in the .vsix. Webpack will not find these files.
@@ -167,15 +177,16 @@ namespace Rendering {
                 <p>IAR Embedded Workbench or IAR Build Tools installation:</p>
                 <div class="dropdown-container">
                     <span class="codicon codicon-tools dropdown-icon"></span>
-                    <vscode-dropdown id="${DropdownIds.Workbench}" class="dropdown" ${workbenches.amount === 0 ? "disabled" : ""}>
+                    <vscode-dropdown id="${DropdownIds.Workbench}" class="dropdown" ${workbenches.amount === 0 || workbenchesLoading ? "disabled" : ""}>
                         ${getDropdownOptions(workbenches, "No IAR toolchains")}
                         <vscode-divider></vscode-divider>
                         <vscode-option artificial>Add Toolchain...</vscode-option>
                     </vscode-dropdown>
                 </div>
-                <div id="workbench-error" ${workbenches.amount > 0 ? "hidden" : ""}>
+                <div id="workbench-error" ${workbenches.amount > 0 || workbenchesLoading ? "hidden" : ""}>
                     <span>No IAR toolchain installations found.</span><vscode-link id="link-add">Add Toolchain</vscode-link>
                 </div>
+                ${workbenchesLoading ? "<vscode-progress-ring></vscode-progress-ring>" : ""}
             </div>
             <div class="section">
                     <p>Active Project and Configuration:</p>

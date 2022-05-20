@@ -25,6 +25,7 @@ import { EwpFile } from "../iar/project/parsing/ewpfile";
 import { EwpFileWatcherService } from "./ewpfilewatcher";
 import { API } from "./api";
 import { StatusBarItem } from "./ui/statusbaritem";
+import { Subject } from "rxjs";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
@@ -53,7 +54,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     const projectModel = ExtensionState.getInstance().project;
     const configModel = ExtensionState.getInstance().config;
 
-    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, projectModel, configModel, addWorkbenchCmd);
+    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, projectModel, configModel, addWorkbenchCmd, IarVsc.workbenchesLoading);
     vscode.window.registerWebviewViewProvider(SettingsWebview.VIEW_TYPE, IarVsc.settingsView);
     IarVsc.projectTreeView = new TreeProjectView(
         projectModel,
@@ -120,7 +121,7 @@ async function findProjectsInWorkspace() {
 }
 
 async function loadTools(addWorkbenchCommand?: Command<unknown>) {
-    logger.debug("Scanning for toolchains...");
+    IarVsc.workbenchesLoading.next(true);
     const roots = Settings.getIarInstallDirectories();
 
     await IarVsc.toolManager.collectWorkbenches(roots, true);
@@ -130,12 +131,14 @@ async function loadTools(addWorkbenchCommand?: Command<unknown>) {
             vscode.commands.executeCommand(addWorkbenchCommand.id);
         }
     }
+    IarVsc.workbenchesLoading.next(false);
 
 }
 
 export namespace IarVsc {
     export let extensionContext: vscode.ExtensionContext | undefined;
     export const toolManager = new IarToolManager();
+    export const workbenchesLoading = new Subject<boolean>();
     // exported mostly for testing purposes
     export let settingsView: SettingsWebview;
     export let projectTreeView: TreeProjectView;
