@@ -37,6 +37,10 @@ suite("Test Project View", ()=>{
         await VscodeTestsUtils.activateProject("LedFlasher");
     });
 
+    setup(function() {
+        console.log("\n==========================================================" + this.currentTest!.title + "==========================================================\n");
+    });
+
     test("Displays project files", async() => {
         const rootFileNodes = await Utils.getNodes();
         Assert.strictEqual(rootFileNodes.length, 5);

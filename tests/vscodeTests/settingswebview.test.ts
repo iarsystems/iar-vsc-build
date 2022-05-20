@@ -27,6 +27,10 @@ suite("Test Clicking Settings View", ()=>{
         await new Promise((res, _) => setTimeout(res, 1000));
     });
 
+    setup(function() {
+        console.log("\n==========================================================" + this.currentTest!.title + "==========================================================\n");
+    });
+
     suite("Clicking workbench updates model", () => {
         let addedMockWorkbench = false;
 

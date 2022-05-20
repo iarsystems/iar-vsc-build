@@ -74,6 +74,10 @@ suite("Test build extension", ()=>{
         );
     });
 
+    setup(function() {
+        console.log("\n==========================================================" + this.currentTest!.title + "==========================================================\n");
+    });
+
     test("Load projects in directory", ()=>{
         const allProjects = ExtensionState.getInstance().project.projects;
         assert(allProjects.some(config => config.name === "BasicDebugging"));

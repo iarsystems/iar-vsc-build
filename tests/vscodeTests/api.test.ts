@@ -29,6 +29,10 @@ suite("Test Public TS Api", ()=>{
         await ExtensionState.getInstance().extendedProject.getValue();
     });
 
+    setup(function() {
+        console.log("\n==========================================================" + this.currentTest!.title + "==========================================================\n");
+    });
+
     test("Returns current workbench", async() => {
         const apiPath = await api.getSelectedWorkbench();
         Assert.notStrictEqual(apiPath, undefined);

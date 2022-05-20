@@ -47,6 +47,10 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         return Vscode.workspace.getConfiguration("iar-build").update("defines", originalUserDefines);
     });
 
+    setup(function() {
+        console.log("\n==========================================================" + this.currentTest!.title + "==========================================================\n");
+    });
+
     // All files in this project have the same config, so we can reuse the assertions
     function assertConfig(config: SourceFileConfiguration) {
         const workbench = ExtensionState.getInstance().workbench.selected!;

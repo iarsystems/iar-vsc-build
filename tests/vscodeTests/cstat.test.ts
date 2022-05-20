@@ -64,6 +64,10 @@ suite("Test C-STAT", ()=>{
         await Vscode.workspace.getConfiguration("iar-build").update("c-stat.autoOpenReports", originalAutoOpen);
     });
 
+    setup(function() {
+        console.log("\n==========================================================" + this.currentTest!.title + "==========================================================\n");
+    });
+
     // Gets all diagnostics in the c-stat test project.
     const getDiagnostics = () => {
         const projectDir = path.join(sandboxPath, TARGET_PROJECT);
