@@ -26,6 +26,7 @@ import { EwpFileWatcherService } from "./ewpfilewatcher";
 import { API } from "./api";
 import { StatusBarItem } from "./ui/statusbaritem";
 import { BehaviorSubject } from "rxjs";
+import { InformationMessage, InformationMessageType } from "./ui/informationmessage";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
