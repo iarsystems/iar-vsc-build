@@ -8,7 +8,7 @@ import { IarToolManager } from "../iar/tools/manager";
 import { Settings } from "./settings";
 import { IarTaskProvider } from "./task/provider";
 import { GetSettingsCommand } from "./command/getsettings";
-import { IarConfigurationProvider } from "./configprovider/configurationprovider";
+import { IarConfigurationProvider } from "./cpptools/configurationprovider";
 import { CStatTaskProvider } from "./task/cstat/cstattaskprovider";
 import { TreeProjectView } from "./ui/treeprojectview";
 import { SelectIarWorkspace } from "./command/selectIarWorkspace";

@@ -4,7 +4,7 @@
 import * as Assert from "assert";
 import * as Vscode from "vscode";
 import * as Path from "path";
-import { IarConfigurationProvider } from "../../src/extension/configprovider/configurationprovider";
+import { IarConfigurationProvider } from "../../src/extension/cpptools/configurationprovider";
 import { VscodeTestsUtils } from "./utils";
 import { VscodeTestsSetup } from "./setup";
 import { OsUtils } from "iar-vsc-common/osUtils";

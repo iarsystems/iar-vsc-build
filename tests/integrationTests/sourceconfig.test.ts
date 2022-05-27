@@ -9,7 +9,7 @@ import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 import * as Path from "path";
 import { OsUtils } from "iar-vsc-common/osUtils";
-import { ConfigurationSet } from "../../src/extension/configprovider/configurationset";
+import { ConfigurationSet } from "../../src/extension/cpptools/configurationset";
 
 suite("Test source configuration providers", function() {
     this.timeout(0);
