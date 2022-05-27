@@ -35,7 +35,7 @@ export const API: BuildExtensionApi = {
         return Promise.resolve(undefined);
     },
 
-    getLoadedProject() {
+    getSelectedProject() {
         return Promise.resolve(ExtensionState.getInstance().project.selected?.path.toString());
     },
 

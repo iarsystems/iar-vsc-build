@@ -43,12 +43,12 @@ suite("Test Public TS Api", ()=>{
     test("Returns loaded project", async() => {
         {
             await VscodeTestsUtils.activateProject("LedFlasher");
-            const projPath = await api.getLoadedProject();
+            const projPath = await api.getSelectedProject();
             Assert.strictEqual(projPath, ledFlasherPath);
         }
         {
             await VscodeTestsUtils.activateProject("BasicDebugging");
-            const projPath = await api.getLoadedProject();
+            const projPath = await api.getSelectedProject();
             Assert.strictEqual(projPath, basicDebuggingPath);
         }
     });
