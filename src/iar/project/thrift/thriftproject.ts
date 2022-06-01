@@ -17,7 +17,6 @@ import { Config } from "../config";
  * A project using a thrift-capable backend to fetch and manage data.
  */
 export class ThriftProject implements ExtendedProject {
-    // TODO: should maybe provide separate handlers for changes to specific data
     private readonly onChangedHandlers: (() => void)[] = [];
     private readonly currentOperations: Promise<unknown>[] = [];
 

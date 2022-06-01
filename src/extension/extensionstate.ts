@@ -17,6 +17,7 @@ import { InformationMessage, InformationMessageType } from "./ui/informationmess
 import { WorkbenchVersions } from "../iar/tools/workbenchversionregistry";
 import { logger } from "iar-vsc-common/logger";
 import { AddWorkbenchCommand } from "./command/addworkbench";
+import { Workbench } from "iar-vsc-common/workbench";
 
 /**
  * Holds most extension-wide data, such as the selected workbench, project and configuration, and loaded project etc.
@@ -292,7 +293,7 @@ class State {
         if (candidates.length === 0) {
             if (workbenchModel.amount > 0) {
                 Vscode.window.showWarningMessage(
-                    `No available IAR toolchain for target(s) '${projectToolchainsArray.join(", ")}'.`,
+                    `No available IAR toolchain for target(s) '${projectToolchainsArray.map(Workbench.getTargetDisplayName).join(", ")}'.`,
                     "Add IAR toolchain",
                 ).then(response => {
                     if (response === "Add IAR toolchain") {
@@ -307,7 +308,7 @@ class State {
         if (candidates.length > 1) {
             InformationMessage.show(
                 "multipleWorkbenchCandidates",
-                `Found multiple IAR toolchains for '${projectToolchainsArray.join(", ")}'. Please make sure '${workbenchModel.selected?.name}' is the correct one.`,
+                `Found multiple IAR toolchains for '${projectToolchainsArray.map(Workbench.getTargetDisplayName).join(", ")}'. Please make sure '${workbenchModel.selected?.name}' is the correct one.`,
                 InformationMessageType.Info
             );
         }

@@ -66,7 +66,6 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     }
 
     static hasThriftSupport(workbench: Workbench): boolean {
-        // TODO: find a better way to do this
         return Fs.existsSync(Path.join(workbench.path.toString(), "common/bin/projectmanager.json"))
             && Fs.existsSync(Path.join(workbench.path.toString(), "common/bin/IarServiceLauncher" + IarOsUtils.executableExtension()));
     }

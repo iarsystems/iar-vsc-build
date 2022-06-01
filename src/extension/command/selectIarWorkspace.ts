@@ -20,7 +20,6 @@ export class SelectIarWorkspace extends CommandBase<Promise<string | undefined>>
     }
 
     async executeImpl(_autoTriggered: boolean): Promise<string | undefined> {
-        // TODO: support multi-root workspaces
         if (Vscode.workspace.workspaceFolders) {
             const fileCandidates = await Vscode.workspace.findFiles("**/*.eww");
 
