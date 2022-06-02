@@ -1,6 +1,6 @@
 @Library('common@tags/1.3.0') _
 
-node {
+node('a_windows || a_linux') {
 	stage('Load pipeline') {
 		deleteDir()
 		dir('release-scripts') {
