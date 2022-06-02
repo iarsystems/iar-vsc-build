@@ -159,6 +159,17 @@ To define additional macros, visible only to the indexer, open the IAR Build set
 
 The `@` operator is especially problematic, because it is not a valid identifier and cannot be defined as a macro. To avoid errors, you can rewrite expressions using `#pragma location` instead:
 
-[example needed]
+```c
+// Instead of:
+struct {
+ ...
+} my_struct @ 0x1234;
+
+// Write:
+#pragma location=0x1234
+struct {
+ ...
+} my_struct;
+```
 
 If you cannot refactor the code (for example because the `@` operator is used in your device headers), set **Error Squiggles** to **Disabled** in the VS Code C/C++ extension and rely on diagnostics from the IAR Build tasks instead.
