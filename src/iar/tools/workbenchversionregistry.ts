@@ -29,7 +29,7 @@ export namespace WorkbenchVersions {
     export const supportsSetNodeByIndex: MinVersion = [[9,1,1], Type.BxAndEw];
     /**
      * Whether this workbench supports the thrift project manager. */
-    export const supportsThriftPM: MinVersion = [[9,0,11], Type.BxAndEw];
+    export const supportsThriftPM: MinVersion = [[9,0,11], Type.EwOnly];
 
 
     /**

@@ -53,7 +53,7 @@ export namespace CStat {
      * @param builderPath path to the IarBuild to use
      * @param projectPath path to the project to run for
      * @param configurationName name of the project configuration
-     * @param cstatOutputDir path to where cstat output is placed for this configuration
+     * @param cstatOutputDirs directories to search for cstat output in (i.e. the cstat database)
      * @param extensionPath path to the root of this extension
      * @param extraBuildArguments extra arguments to pass to iarbuild.
      * @param onWrite an output channel for writing logs and other messages while running
@@ -62,7 +62,7 @@ export namespace CStat {
         builderPath: string,
         projectPath: string,
         configurationName: string,
-        cstatOutputDir: string,
+        cstatOutputDirs: string[],
         extensionPath: string,
         extraBuildArguments: string[],
         onWrite?: (msg: string) => void
@@ -72,16 +72,17 @@ export namespace CStat {
             return Promise.reject(new Error(`The builder ${builderPath} does not exists.`));
         }
 
-        const dbPath: string = join(cstatOutputDir, "cstat.db");
-
-        // It seems we need to delete the db and regenerate it every time to get around
-        // some weird behaviour where the db keeps references to files outside the project
-        // (specifically when the project is moved or the db is accidentally put under VCS).
-        // It seems EW solves this by checking if each file in the db is in the project,
-        // but i'm not sure how I would do that in VS Code
-        if (Fs.existsSync(dbPath)) {
-            Fs.unlinkSync(dbPath);
-        }
+        const possibleDbPaths = cstatOutputDirs.map(outputDir => join(outputDir, "cstat.db"));
+        possibleDbPaths.forEach(dbPath => {
+            // It seems we need to delete the db and regenerate it every time to get around
+            // some weird behaviour where the db keeps references to files outside the project
+            // (specifically when the project is moved or the db is accidentally put under VCS).
+            // EW solves this by checking if each file in the db is in the project, but we don't
+            // always have that data in VS Code.
+            if (Fs.existsSync(dbPath)) {
+                Fs.unlinkSync(dbPath);
+            }
+        });
         const args = [projectPath, "-cstat_analyze", configurationName, "-log", "info"].concat(extraBuildArguments);
         onWrite?.(`> '${builderPath}' ${args.map(arg => `'${arg}'`).join(" ")}\n`);
         await BackupUtils.doWithBackupCheck(projectPath, async() => {
@@ -94,8 +95,15 @@ export namespace CStat {
         });
 
         onWrite?.("Reading C-STAT output.\n");
-        onWrite?.(`C-STAT database: ${dbPath}\n`);
-        return getAllWarnings(dbPath, extensionPath);
+        const actualDb = possibleDbPaths.find(dbPath => {
+            return Fs.existsSync(dbPath);
+        });
+        if (actualDb) {
+            onWrite?.(`C-STAT database: ${actualDb}\n`);
+            return getAllWarnings(actualDb, extensionPath);
+        } else {
+            return Promise.reject(new Error("Could not find the C-STAT database. Searched locations:\n" + possibleDbPaths.join("\n")));
+        }
     }
 
     export function SeverityStringToSeverityEnum(severity: string): CStatWarningSeverity {
@@ -269,15 +277,31 @@ export namespace CStat {
 
 /** Functions for invoking ireport for generating HTML reports */
 export namespace CStatReport {
-    export function generateHTMLReport(ireportPath: string, cstatOutputDir: string, projectName: string, outputPath: string, full: boolean, onWrite?: (msg: string) => void): Promise<void> {
-        const dbPath = join(cstatOutputDir, "cstat.db");
+    const REPORT_DEFAULT_NAME = "C-STAT report.html";
+    /**
+     * Generates an HTML C-STAT report from a C-STAT database.
+     * @param ireportPath path to the ireport executable to use
+     * @param cstatOutputDirs directories to search for the cstat database in
+     * @param projectName the project name to put in the report
+     * @param onWrite an output channel for writing logs and other messages while running
+     * @returns the path to the generated report
+     */
+    export async function generateHTMLReport(ireportPath: string, cstatOutputDirs: string[], projectName: string, full: boolean, onWrite?: (msg: string) => void): Promise<string> {
+        const actualOutputDir = cstatOutputDirs.find(outputDir => {
+            return Fs.existsSync(join(outputDir, "cstat.db"));
+        });
+        if (!actualOutputDir) {
+            return Promise.reject(new Error("Please run a C-STAT analysis before genering an HTML report. Could not find the C-STAT database."));
+        }
+        const dbPath = join(actualOutputDir, "cstat.db");
+        const reportPath = join(actualOutputDir, REPORT_DEFAULT_NAME);
         const args = [
             "--db",
             dbPath,
             "--project",
             projectName,
             "--output",
-            outputPath
+            reportPath
         ];
         if (full) {
             args.push("--full");
@@ -294,6 +318,7 @@ export namespace CStatReport {
         ireport.stdout.on("data", data => {
             onWrite?.(data.toString());
         });
-        return ProcessUtils.waitForExit(ireport);
+        await ProcessUtils.waitForExit(ireport);
+        return reportPath;
     }
 }

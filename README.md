@@ -15,7 +15,7 @@ An IAR Embedded Workbench or IAR Build Tools installation is required to use thi
 To get started, open a folder containing an IAR Embedded Workbench project.
 A view with an IAR Embedded Workbench icon will appear in the left side panel:
 
-![side bar view](images/readme/sidebar.png)
+![side bar view](https://github.com/IARSystems/iar-vsc-build/blob/master/images/readme/sidebar.png)
 
 Here you may select the desired IAR Embedded Workbench/Build Tools installation,
 and the project and project configuration you want to work with. If your IAR Embedded Workbench or IAR Build Tools installation

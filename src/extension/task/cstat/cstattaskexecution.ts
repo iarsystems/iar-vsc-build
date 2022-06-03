@@ -9,7 +9,6 @@ import { IarOsUtils, OsUtils } from "iar-vsc-common/osUtils";
 import * as Path from "path";
 import { Workbench } from "iar-vsc-common/workbench";
 import { EwpFile } from "../../../iar/project/parsing/ewpfile";
-import { spawnSync } from "child_process";
 import { ExtensionState } from "../../extensionstate";
 import { Settings } from "../../settings";
 import { logger } from "iar-vsc-common/logger";
@@ -20,7 +19,6 @@ import { logger } from "iar-vsc-common/logger";
  * https://github.com/microsoft/Vscode-extension-samples/blob/master/task-provider-sample/src/customTaskProvider.ts
  */
 export class CStatTaskExecution implements Vscode.Pseudoterminal {
-    private static readonly REPORT_DEFAULT_NAME = "C-STAT report.html";
 
     private readonly writeEmitter = new Vscode.EventEmitter<string>();
     onDidWrite: Vscode.Event<string> = this.writeEmitter.event;
@@ -81,7 +79,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
 
         try {
             const builderPath = Path.join(toolchain, Workbench.builderSubPath);
-            const outputDir = await CStatTaskExecution.getCStatOutputDirectory(projectPath, configName, toolchain);
+            const outputDir = await CStatTaskExecution.getPossibleCStatOutputDirectories(projectPath, configName);
             let warnings = await CStat.runAnalysis(builderPath, projectPath, configName, outputDir, this.extensionPath, extraArgs, this.write.bind(this));
             this.writeEmitter.fire("Analyzing output...\r\n");
             this.diagnostics.clear();
@@ -125,13 +123,12 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             if (!config) {
                 throw new Error(`No such configuration '${configName}' for project '${project.name}'.`);
             }
-            const outputDir = await CStatTaskExecution.getCStatOutputDirectory(projectPath, configName, toolchain);
-            const outFile = Path.join(outputDir, CStatTaskExecution.REPORT_DEFAULT_NAME);
+            const outputDirs = await CStatTaskExecution.getPossibleCStatOutputDirectories(projectPath, configName);
             const ireportPath = Path.join(toolchain, config.toolchainId.toLowerCase(), "bin/ireport" + IarOsUtils.executableExtension());
 
-            await CStatReport.generateHTMLReport(ireportPath, outputDir, Path.basename(projectPath, ".ewp"), outFile, full, this.write.bind(this));
+            const reportPath = await CStatReport.generateHTMLReport(ireportPath, outputDirs, Path.basename(projectPath, ".ewp"), full, this.write.bind(this));
             if (Settings.getCstatAutoOpenReports()) {
-                await Vscode.env.openExternal(Vscode.Uri.file(outFile));
+                await Vscode.env.openExternal(Vscode.Uri.file(reportPath));
             }
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
@@ -164,28 +161,29 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         this.closeEmitter.fire(1);
     }
 
-    // Gets the output directory for C-STAT files (e.g. where the cstat database and reports are created)
-    private static async getCStatOutputDirectory(projectPath: string, config: string, toolchain: string): Promise<string> {
+    // Gets the output directory for C-STAT files (e.g. where the cstat database and reports are created).
+    // If we can't get it from thrift, several *guesses* are returned, which should each be checked in order.
+    private static async getPossibleCStatOutputDirectories(projectPath: string, config: string): Promise<string[]> {
         try {
             const extendedProject = await ExtensionState.getInstance().extendedProject.getValue();
             if (extendedProject !== undefined && OsUtils.pathsEqual(extendedProject.path.toString(), projectPath)) {
                 const outDir = await extendedProject.getCStatOutputDirectory(config);
                 if (outDir !== undefined) {
                     logger.debug(`Got C-STAT directory from project settings: ${outDir}`);
-                    return Path.join(Path.dirname(projectPath), outDir);
+                    return [Path.join(Path.dirname(projectPath), outDir)];
                 }
             }
         } catch (e) {
             logger.warn("Failed to fetch C-STAT directory: " + e);
         }
-        // If we don't have thrift access for this project, try to guess the default location. This is dependent on EW version.
         logger.debug("Using default C-STAT directory");
-        const output = spawnSync(Path.join(toolchain, Workbench.builderSubPath)).stdout.toString(); // Spawn without args to get help list
-        if (output.includes("-cstat_cmds")) { // Filifjonkan
-            return Path.join(Path.dirname(projectPath), config, "C-STAT");
-        } else {
-            return Path.join(Path.dirname(projectPath), config, "Obj");
-        }
+        // The default c-stat output directory varies depending on the IDE version the project was created with, which
+        // we don't know. Therefore we guess at all possible values.
+        return [
+            Path.join(Path.dirname(projectPath), config + "/C-STAT"),
+            Path.join(Path.dirname(projectPath), config + "\\C-STAT"),
+            Path.join(Path.dirname(projectPath), config, "Obj")
+        ];
     }
 
     private static warningToDiagnostic(warning: CStat.CStatWarning): Vscode.Diagnostic {
