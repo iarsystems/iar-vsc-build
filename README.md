@@ -42,7 +42,8 @@ To make this easier, you may wish to [Add a default build task](https://github.c
 [Click here](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md) to view the full documentation.
 
 ## Compatibility
-This extension is compatible with any IAR Embedded Workbench (EW) or IAR Build Tools version (BX) using IDE version 8 or newer. This table helps you find the extension version supporting your specific product:
+This extension is compatible with any IAR Embedded Workbench (EW) or IAR Build Tools version (BX) using IDE version 8 or newer. The table below helps you find the extension version supporting your IAR Embedded Workbench product.
+The supported versions are the same for IAR Build Tools installations, but IAR Build Tools does not support the file view or adding/removing files from a project.
 
 <details><summary>IAR EW/BX - Compatibility table</summary>
 
