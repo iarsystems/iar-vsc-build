@@ -27,6 +27,8 @@ To make this easier, you may wish to [Add a default build task](https://github.c
 ## Documentation
 * [Selecting the Embedded Workbench project](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#SelectingEWProject)
 
+* [Making IAR Build settings](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#iarbuildsettings)
+
 * [Switching between VS Code and IAR Embedded Workbench](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#SwitchingVSCodeEW)
 
 * [Adding and removing source files](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#AddingRemovingFiles)
