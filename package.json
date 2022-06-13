@@ -9,7 +9,7 @@
     "color": "#ffe000",
     "theme": "light"
   },
-  "preview": true,
+  "preview": false,
   "repository": {
     "type": "git",
     "url": "https://github.com/IARSystems/iar-vsc-build"
