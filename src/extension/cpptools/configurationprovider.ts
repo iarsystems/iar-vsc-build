@@ -135,7 +135,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
                 const lang = LanguageUtils.determineLanguage(uri.fsPath);
 
                 const config: SourceFileConfiguration = {
-                    compilerPath: "",
+                    // VSC-290 allowed MSVC-style unnamed unions/structs
+                    compilerArgs: ["-fms-extensions", "-fno-builtin"],
                     defines: stringDefines,
                     includePath: includes.map(i => i.absolutePath.toString()),
                     forcedInclude: preincludes.map(i => i.absolutePath.toString()),
