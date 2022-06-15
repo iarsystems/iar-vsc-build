@@ -8,15 +8,10 @@ import * as Vscode from "vscode";
 import * as Fs from "fs";
 import * as Path from "path";
 
-type cStandards = "c89" | "c99" | "c11";
-type cppStandards = "c++98" | "c++03" | "c++11" | "c++14" | "c++17";
-
 export namespace Settings {
 
     export enum ExtensionSettingsField {
         Defines = "defines",
-        CStandard = "cStandard",
-        CppStandard = "cppStandard",
         ExtraBuildArguments = "extraBuildArguments",
         IarInstallDirectories = "iarInstallDirectories",
         CstatFilterLevel = "c-stat.filterLevel",
@@ -87,26 +82,6 @@ export namespace Settings {
         }
     }
 
-    export function getCStandard(): cStandards {
-        const standard = Vscode.workspace.getConfiguration(section).get(ExtensionSettingsField.CStandard) as string;
-
-        if (isCStandard(standard)) {
-            return standard;
-        } else {
-            return "c11";
-        }
-    }
-
-    export function getCppStandard(): cppStandards {
-        const standard = Vscode.workspace.getConfiguration(section).get(ExtensionSettingsField.CppStandard) as string;
-
-        if (isCppStandard(standard)) {
-            return standard;
-        } else {
-            return "c++14";
-        }
-    }
-
     export function getExtraBuildArguments(): Array<string> {
         const args = Vscode.workspace.getConfiguration(section).get(ExtensionSettingsField.ExtraBuildArguments);
         if (args) {
@@ -150,30 +125,6 @@ export namespace Settings {
         }
 
         return settingsFile;
-    }
-
-    function isCStandard(value: string): value is cStandards {
-        switch (value) {
-        case "c89":
-        case "c99":
-        case "c11":
-            return true;
-        default:
-            return false;
-        }
-    }
-
-    function isCppStandard(value: string): value is cppStandards {
-        switch (value) {
-        case "c++98":
-        case "c++03":
-        case "c++11":
-        case "c++14":
-        case "c++17":
-            return true;
-        default:
-            return false;
-        }
     }
 }
 

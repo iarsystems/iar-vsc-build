@@ -241,29 +241,6 @@
             "__fp16=float"
           ]
         },
-        "iar-build.cStandard": {
-          "type": "string",
-          "enum": [
-            "c89",
-            "c99",
-            "c11",
-            "c17"
-          ],
-          "description": "The c standard to use for intellisense.",
-          "default": "c17"
-        },
-        "iar-build.cppStandard": {
-          "type": "string",
-          "enum": [
-            "c++98",
-            "c++03",
-            "c++11",
-            "c++14",
-            "c++17"
-          ],
-          "description": "The c++ standard to use for intellisense.",
-          "default": "c++17"
-        },
         "iar-build.c-stat.filterLevel": {
           "description": "C-STAT warnings with a lower severity than this are filtered out.",
           "default": "Low",

@@ -91,8 +91,6 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             this.onSettingsChanged();
         });
         Settings.observeSetting(Settings.ExtensionSettingsField.Defines, this.onSettingsChanged.bind(this));
-        Settings.observeSetting(Settings.ExtensionSettingsField.CStandard, this.onSettingsChanged.bind(this));
-        Settings.observeSetting(Settings.ExtensionSettingsField.CppStandard, this.onSettingsChanged.bind(this));
 
         this.api.registerCustomConfigurationProvider(this);
         this.api.notifyReady(this);
@@ -106,8 +104,6 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     }
     async provideConfigurations(uris: Vscode.Uri[], _token?: CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
         logger.debug(`Providing intellisense configuration(s) for: ${uris.map(u => u.fsPath).join(", ")}`);
-        const cStandard = Settings.getCStandard();
-        const cppStandard = Settings.getCppStandard();
         if (this.currentConfiguration === undefined) {
             logger.warn(`Cpptools requested intellisense config, but no config has been loaded`);
             return [];
@@ -131,7 +127,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
                 const preincludes = partialConfig.preincludes;
 
                 let stringDefines = defines.map(d => d.makeString());
-                stringDefines = stringDefines.concat(Settings.getDefines()); // user-defined extra macros
+                stringDefines = Settings.getDefines().concat(stringDefines); // user-defined extra macros
                 const lang = LanguageUtils.determineLanguage(uri.fsPath);
 
                 const config: SourceFileConfiguration = {
@@ -141,7 +137,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
                     includePath: includes.map(i => i.absolutePath.toString()),
                     forcedInclude: preincludes.map(i => i.absolutePath.toString()),
                     intelliSenseMode: "clang-arm",
-                    standard: lang === "c" ? cStandard : cppStandard,
+                    standard: lang === "c" ? (tryGetCStandard(defines) ?? "c11") : (tryGetCppStandard(defines) ?? "c++11"),
                 };
                 return {
                     uri: uri,
@@ -169,11 +165,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
     provideBrowseConfiguration(_token?: CancellationToken | undefined): Promise<WorkspaceBrowseConfiguration> {
         const config = this.currentConfiguration?.getFallbackConfiguration();
         const includes = config?.includes.concat(config.preincludes ?? []) ?? [];
+        const defines = config?.defines ?? [];
+        const standard = tryGetCStandard(defines) ?? tryGetCppStandard(defines) ?? "c11";
         return Promise.resolve({
             browsePath: includes?.map(inc => inc.absolutePath.toString()),
             compilerPath: "",
             compilerArgs: [],
-            standard: Settings.getCStandard(),
+            standard,
             windowsSdkVersion: ""
         });
     }
@@ -271,6 +269,28 @@ async function getCompilerForConfig(config: Config, workbench: Workbench): Promi
     logger.error(`Didn't find a compiler for ${config.toolchainId} in ${workbench.path}.`);
     return undefined;
 }
+
+type LangStandard = "c89" | "c99" | "c11" | "c17" | "c++98" | "c++03" | "c++11" | "c++14" | "c++17" | "c++20";
+// Tries to deduce the c or c++ language standard used for a file, given its preprocessor defines.
+function tryGetCStandard(defines: Define[]): LangStandard | undefined {
+    const stdcDefine = defines.find(def => def.identifier === "__STDC_VERSION__");
+    return stdcDefine && stdcDefine.value ? LANG_STANDARD_DEFINES[stdcDefine.value] : undefined;
+}
+function tryGetCppStandard(defines: Define[]): LangStandard | undefined {
+    const cppDefine = defines.find(def => def.identifier === "__cplusplus");
+    return cppDefine && cppDefine.value ? LANG_STANDARD_DEFINES[cppDefine.value] : undefined;
+}
+const LANG_STANDARD_DEFINES: Record<string, LangStandard> = {
+    "199409L": "c89",
+    "199901L": "c99",
+    "201112L": "c11",
+    "201710L": "c17",
+    "199711L": "c++03",
+    "201103L": "c++11",
+    "201402L": "c++14",
+    "201703L": "c++17",
+    "202002L": "c++20",
+};
 
 // Instrinsic functions that should not be added as preprocessor macros. They are typically declared as functions in an <intrinsics.h> header
 const INTRINSIC_FUNCTIONS: Record<string, Set<string>> = {
