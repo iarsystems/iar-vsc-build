@@ -205,7 +205,8 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         diagnostic.relatedInformation = warning.trace.map(traceItem => {
             return new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(traceItem.file), this.makePosition(traceItem.line, 1)), traceItem.message);
         });
-        diagnostic.source = warning.checkId + ` [${severityString}]`;
+        diagnostic.source = "cstat";
+        diagnostic.code = warning.checkId + " [" + severityString + "]";
         return diagnostic;
     }
     private static makePosition(cstatLine: number, cstatCol: number): Vscode.Position {
