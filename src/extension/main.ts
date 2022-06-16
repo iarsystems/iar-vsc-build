@@ -119,7 +119,6 @@ async function findProjectsInWorkspace() {
         });
         ExtensionState.getInstance().project.set(...projects.sort((a, b) => a.name.localeCompare(b.name)));
         // VSC-275 Using argvar files gives various cryptic errors, we need an explicit warning about what causes them.
-        console.log(await vscode.workspace.findFiles("**/*.custom_argvars"));
         if ((await vscode.workspace.findFiles("**/*.custom_argvars")).length > 0) {
             InformationMessage.show("customArgvarsUnsupported", "One or more projects in the workspace appears to use a .custom_argvars file. These are not yet supported by this extension.", InformationMessageType.Warning);
         }

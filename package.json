@@ -431,7 +431,6 @@
     "@types/thrift": "^0.10.9",
     "@types/uuid": "^8.3.1",
     "@types/vscode": "^1.33.0",
-    "@types/winreg": "^1.2.31",
     "@typescript-eslint/eslint-plugin": "^5.2.0",
     "@typescript-eslint/parser": "^5.2.0",
     "eslint": "^8.1.0",

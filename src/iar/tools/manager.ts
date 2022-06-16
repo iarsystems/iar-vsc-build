@@ -5,11 +5,15 @@
 
 
 import { Workbench } from "iar-vsc-common/workbench";
-import * as Registry from "winreg";
+import * as Path from "path";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { FsUtils } from "../../utils/fs";
-import { ListUtils } from "../../utils/utils";
+import { ListUtils, ProcessUtils } from "../../utils/utils";
 import { logger } from "iar-vsc-common/logger";
+import { spawn } from "child_process";
+import { tmpdir } from "os";
+import { readFile, rm } from "fs/promises";
+import { v4 as uuidv4 } from "uuid";
 
 type InvalidateHandler = (manager: ToolManager) => void;
 
@@ -112,28 +116,21 @@ export class IarToolManager implements ToolManager {
 
     private static async collectFromWindowsRegistry(): Promise<Workbench[]> {
         const keys = [
-            "\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
-            "\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
+            "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+            "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
         ];
         const paths: Array<Array<string | undefined>> = await Promise.all(keys.map(async key => {
-            const regKey = new Registry({
-                hive: Registry.HKLM,
-                key: key,
+            const entries = await RegisterUtils.getAllEntries(key);
+            return entries.map(entry => {
+                if (entry["Publisher"] !== "IAR Systems") {
+                    return undefined;
+                }
+                const displayName = entry["DisplayName"];
+                if (displayName === undefined || !(displayName.includes("Embedded Workbench") || displayName.includes("Build Tools"))) {
+                    return undefined;
+                }
+                return entry["InstallLocation"];
             });
-            const uninstallKeys = await RegisterUtils.subkeys(regKey);
-            const maybePaths = await Promise.allSettled(uninstallKeys.map(async key => {
-                const publisher = await RegisterUtils.item(key, "Publisher");
-                if (publisher.value !== "IAR Systems") {
-                    return undefined;
-                }
-                const displayName = await RegisterUtils.item(key, "DisplayName");
-                if (!(displayName.value.includes("Embedded Workbench") || displayName.value.includes("Build Tools"))) {
-                    return undefined;
-                }
-                const installLocation = await RegisterUtils.item(key, "InstallLocation");
-                return installLocation.value;
-            }));
-            return maybePaths.map(res => res.status === "fulfilled" ? res.value : undefined);
         }));
 
         const workbenches: Workbench[] = [];
@@ -166,32 +163,34 @@ export class IarToolManager implements ToolManager {
 }
 
 namespace RegisterUtils {
-    /**
-     * A promisified version of {@link Registry.Registry.get}.
-     */
-    export function item(registry: Registry.Registry, key: string): Promise<Registry.RegistryItem> {
-        return new Promise((resolve, reject) => {
-            registry.get(key, (err, result) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(result);
-                }
-            });
+
+    export async function getAllEntries(key: string): Promise<Record<string, string>[]> {
+        const exePath = process.env["windir"] ? Path.join(process.env["windir"], "system32", "reg.exe") : "reg.exe";
+        const resultPath = Path.join(tmpdir(), "iar-build", uuidv4() + "-winreg.txt");
+        const proc = spawn(exePath, ["export", key, resultPath, "/y"]);
+        proc.stdout.on("data", dat => console.log(dat.toString()));
+        proc.stderr.on("data", dat => console.error(dat.toString()));
+        await ProcessUtils.waitForExit(proc);
+
+        const contents = (await readFile(resultPath)).toString("utf16le");
+        await rm (resultPath);
+
+        const results: Record<string, string>[] = [];
+        const lines = contents.split("\r\n");
+        const keyRegex = new RegExp(`\\[${key.replace(/\\/g, "\\\\")}\\\\[\\w\\-{}]+\\]`);
+        const valueRegex = /"([^"]+)"="([^"]+)"/;
+        let curr: Record<string, string> = {};
+        lines.forEach(line => {
+            if (keyRegex.test(line)) {
+                results.push(curr);
+                curr = {};
+            }
+            const match = line.match(valueRegex);
+            if (match && match[1] && match[2]) {
+                curr[match[1]] = match[2];
+            }
         });
-    }
-    /**
-     * A promisified version of {@link Registry.Registry.keys}.
-     */
-    export function subkeys(registry: Registry.Registry): Promise<Registry.Registry[]> {
-        return new Promise((resolve, reject) => {
-            registry.keys((err, result) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(result);
-                }
-            });
-        });
+        results.push(curr);
+        return results;
     }
 }
