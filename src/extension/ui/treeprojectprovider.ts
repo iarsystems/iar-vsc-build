@@ -55,9 +55,10 @@ export class TreeProjectProvider implements Vscode.TreeDataProvider<FilesNode> {
             item.tooltip = element.iarNode.path;
             item.command = { title: "Open in editor", command: "vscode.open", arguments: [Vscode.Uri.file(element.iarNode.path)] };
             item.resourceUri = Vscode.Uri.file(element.iarNode.path);
+            item.iconPath = Vscode.ThemeIcon.File;
         }
         if (element.iarNode.type === NodeType.Group) {
-            item.iconPath = new Vscode.ThemeIcon("folder");
+            item.iconPath = Vscode.ThemeIcon.Folder;
             item.contextValue = "group";
         }
 
