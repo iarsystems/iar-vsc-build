@@ -190,6 +190,11 @@ export namespace CStat {
             sqlProc.stderr.once("data", data => {
                 reject(data.toString());
             });
+            sqlProc.on("exit", code => {
+                if (code !== 0) {
+                    reject(new Error("sqlite exited with code " + code));
+                }
+            });
         });
     }
 
@@ -257,6 +262,11 @@ export namespace CStat {
 
             sqlProc.stderr.once("data", data => {
                 reject(data.toString());
+            });
+            sqlProc.on("exit", code => {
+                if (code !== 0) {
+                    reject(new Error("sqlite exited with code " + code));
+                }
             });
         });
     }
