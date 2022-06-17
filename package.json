@@ -50,7 +50,9 @@
     "onCommand:iar-config.project-configuration",
     "onView:iar-configuration",
     "onView:iar-project",
-    "workspaceContains:**/*.ewp"
+    "workspaceContains:**/*.ewp",
+    "onTaskType:iar",
+    "onTaskType:iar-cstat"
   ],
   "main": "./out/src/extension/main.js",
   "contributes": {
