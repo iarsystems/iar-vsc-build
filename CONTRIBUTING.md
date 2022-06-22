@@ -7,7 +7,7 @@ The bug report should include:
  * A short description of the bug
  * Instructions for how to reproduce the bug
  * Any relevant logs or error messages. Logs can be found in the **Output** panel in VS Code, by selecting `IAR Build`,
- `IAR Config Generator` or `IarServiceManager` in the dropdown in the top left.
+ `IAR Config Generator` or `IarServiceManager` in the dropdown in the top right.
 
 ## Feature requests
 To request a new feature, please first check if there is already a GitHub issue describing the feature you would like.
