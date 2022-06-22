@@ -34,17 +34,18 @@ export class ConfigurationSet {
      * @param project The project to provide intellisense configuration for
      * @param config The project config (e.g. Debug/Release) to providue intellisense configuration for
      * @param workbench The workbench to use to generate the configuration
+     * @param workspaceFolder The workspace folder the project is in. Used to resolve relative paths
      * @param outputChannel The channel to display output in
      */
-    static async loadFromProject(project: Project, config: Config, workbench: Workbench, outputChannel?: vscode.OutputChannel): Promise<ConfigurationSet> {
+    static async loadFromProject(project: Project, config: Config, workbench: Workbench, workspaceFolder?: string, outputChannel?: vscode.OutputChannel): Promise<ConfigurationSet> {
         // select how to generate configs for this workbench
         const builderOutput = spawnSync(workbench.builderPath.toString()).stdout.toString(); // Spawn without args to get help list
         try {
             let args: Map<string, string[]>;
             if (builderOutput.includes("-jsondb")) { // Filifjonkan
-                args = await ConfigGenerator.generateArgsForFilifjonkan(project, config, workbench, outputChannel);
+                args = await ConfigGenerator.generateArgsForFilifjonkan(project, config, workbench, workspaceFolder, outputChannel);
             } else {
-                args = await ConfigGenerator.generateArgsForBeforeFilifjonkan(project, config, workbench, outputChannel);
+                args = await ConfigGenerator.generateArgsForBeforeFilifjonkan(project, config, workbench, workspaceFolder, outputChannel);
             }
             outputChannel?.appendLine("Done!");
             return new ConfigurationSet(args, project, outputChannel);
@@ -110,7 +111,7 @@ namespace ConfigGenerator {
      * Config generator for workbenches using IDE platform versions on or after filifjonkan.
      * Uses the iarbuild -jsondb option to find compilation flags for each file, then calls {@link generateFromCompilerArgs}.
      */
-    export async function generateArgsForFilifjonkan(project: Project, config: Config, workbench: Workbench, output?: vscode.OutputChannel): Promise<Map<string, string[]>> {
+    export async function generateArgsForFilifjonkan(project: Project, config: Config, workbench: Workbench, workspaceFolder?: string, output?: vscode.OutputChannel): Promise<Map<string, string[]>> {
         // Avoid filename collisions between different vs code windows
         const jsonPath = Path.join(tmpdir(), `iar-jsondb${createHash("md5").update(project.path.toString()).digest("hex")}.json`);
         let json: Array<{[key: string]: (string | string[])}> = [];
@@ -126,7 +127,10 @@ namespace ConfigGenerator {
 
             // VSC-192 Invoke iarbuild and clean up any backups created
             await BackupUtils.doWithBackupCheck(project.path.toString(), async() => {
-                const builderProc = spawn(workbench.builderPath.toString(), [project.path.toString(), "-jsondb", config.name, "-output", jsonPath].concat(extraArgs));
+                const builderProc = spawn(
+                    workbench.builderPath.toString(),
+                    [project.path.toString(), "-jsondb", config.name, "-output", jsonPath].concat(extraArgs),
+                    { cwd: workspaceFolder });
                 builderProc.stdout.on("data", data => output?.append(data.toString()));
                 builderProc.on("error", (err) => {
                     return Promise.reject(err);
@@ -159,12 +163,16 @@ namespace ConfigGenerator {
      * Config generator for workbenches using IDE platform versions prior to filifjonkan.
      * Uses iarbuild -dryrun -log all, parsing the output to find compilation flags for each file, then calls {@link generateFromCompilerArgs}
      */
-    export function generateArgsForBeforeFilifjonkan(project: Project, config: Config, workbench: Workbench, output?: vscode.OutputChannel): Promise<Map<string, string[]>> {
+    export function generateArgsForBeforeFilifjonkan(project: Project, config: Config, workbench: Workbench, workspaceFolder?: string, output?: vscode.OutputChannel): Promise<Map<string, string[]>> {
         const extraArgs = Settings.getExtraBuildArguments();
 
         // VSC-192 clean up any backups created by iarbuild
         return BackupUtils.doWithBackupCheck(project.path.toString(), async() => {
-            const builderProc = spawn(workbench.builderPath.toString(), [project.path.toString(), "-dryrun", config.name, "-log", "all"].concat(extraArgs));
+            const builderProc = spawn(
+                workbench.builderPath.toString(),
+                [project.path.toString(), "-dryrun", config.name, "-log", "all"].concat(extraArgs),
+                { cwd: workspaceFolder },
+            );
             builderProc.on("error", (err) => {
                 return Promise.reject(err);
             });

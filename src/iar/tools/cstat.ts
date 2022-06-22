@@ -9,6 +9,7 @@ import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { join } from "path";
 import CsvParser = require("csv-parse/lib/sync");
 import * as Fs from "fs";
+import * as Path from "path";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { logger } from "iar-vsc-common/logger";
 
@@ -56,6 +57,7 @@ export namespace CStat {
      * @param cstatOutputDirs directories to search for cstat output in (i.e. the cstat database)
      * @param extensionPath path to the root of this extension
      * @param extraBuildArguments extra arguments to pass to iarbuild.
+     * @param workingDirectory the folder in which to spawn e.g. iarbuild
      * @param onWrite an output channel for writing logs and other messages while running
      */
     export async function runAnalysis(
@@ -65,6 +67,7 @@ export namespace CStat {
         cstatOutputDirs: string[],
         extensionPath: string,
         extraBuildArguments: string[],
+        workingDirectory: string,
         onWrite?: (msg: string) => void
     ): Promise<CStatWarning[]> {
 
@@ -86,7 +89,7 @@ export namespace CStat {
         const args = [projectPath, "-cstat_analyze", configurationName, "-log", "info"].concat(extraBuildArguments);
         onWrite?.(`> '${builderPath}' ${args.map(arg => `'${arg}'`).join(" ")}\n`);
         await BackupUtils.doWithBackupCheck(projectPath, async() => {
-            const iarbuild = spawn(builderPath, args);
+            const iarbuild = spawn(builderPath, args, {cwd: workingDirectory});
             iarbuild.stdout.on("data", data => {
                 onWrite?.(data.toString());
             });
@@ -293,12 +296,25 @@ export namespace CStatReport {
      * @param ireportPath path to the ireport executable to use
      * @param cstatOutputDirs directories to search for the cstat database in
      * @param projectName the project name to put in the report
+     * @param full whether to generate a full report
+     * @param workingDirectory the folder in which to spawn ireport
      * @param onWrite an output channel for writing logs and other messages while running
      * @returns the path to the generated report
      */
-    export async function generateHTMLReport(ireportPath: string, cstatOutputDirs: string[], projectName: string, full: boolean, onWrite?: (msg: string) => void): Promise<string> {
+    export async function generateHTMLReport(
+        ireportPath: string,
+        cstatOutputDirs: string[],
+        projectName: string,
+        full: boolean,
+        workingDirectory: string,
+        onWrite?: (msg: string) => void,
+    ): Promise<string> {
         const actualOutputDir = cstatOutputDirs.find(outputDir => {
-            return Fs.existsSync(join(outputDir, "cstat.db"));
+            let dbPath = join(outputDir, "cstat.db");
+            if (!Path.isAbsolute(outputDir)) {
+                dbPath = join(workingDirectory, dbPath);
+            }
+            return Fs.existsSync(dbPath);
         });
         if (!actualOutputDir) {
             return Promise.reject(new Error("Please run a C-STAT analysis before genering an HTML report. Could not find the C-STAT database."));
@@ -320,11 +336,8 @@ export namespace CStatReport {
         if (!Fs.existsSync(ireportPath)) {
             return Promise.reject(new Error(`The program ${ireportPath} does not exist.`));
         }
-        if (!Fs.existsSync(dbPath)) {
-            return Promise.reject(new Error(`The C-STAT database ${dbPath} does not exist. Please run a C-STAT analysis before genering an HTML report.`));
-        }
         onWrite?.(`> '${ireportPath}' ${args.map(arg => `'${arg}'`).join(" ")}\n`);
-        const ireport = spawn(ireportPath, args);
+        const ireport = spawn(ireportPath, args, {cwd: workingDirectory});
         ireport.stdout.on("data", data => {
             onWrite?.(data.toString());
         });

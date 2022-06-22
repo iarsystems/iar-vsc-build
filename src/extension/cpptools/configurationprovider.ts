@@ -195,8 +195,9 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             return false;
         }
         logger.debug(`Generating intellisense config for '${project.name}':'${config.name}'...`);
+        const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(project.path))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         try {
-            this.currentConfiguration = await ConfigurationSet.loadFromProject(project, config, workbench, this.output);
+            this.currentConfiguration = await ConfigurationSet.loadFromProject(project, config, workbench, workspaceFolder, this.output);
             return true;
         } catch (err) {
             this.currentConfiguration = undefined;

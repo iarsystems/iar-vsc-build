@@ -319,7 +319,7 @@
           "project": {
             "type": "string",
             "description": "The project (.ewp) file to use.",
-            "format": "uri"
+            "format": "string"
           },
           "config": {
             "type": "string",

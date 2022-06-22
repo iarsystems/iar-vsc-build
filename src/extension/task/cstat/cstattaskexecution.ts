@@ -51,14 +51,16 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             return;
         }
 
+        const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(projectPath))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
         if (this.definition.action === "run") {
-            this.generateDiagnostics(projectPath, configName, toolchain);
+            this.generateDiagnostics(projectPath, configName, toolchain, workspaceFolder);
         } else if (this.definition.action === "clear") {
             this.clearDiagnostics();
         } else if (this.definition.action === "report-full") {
-            this.generateHTMLReport(projectPath, configName, toolchain, true);
+            this.generateHTMLReport(projectPath, configName, toolchain, true, workspaceFolder);
         } else if (this.definition.action === "report-summary") {
-            this.generateHTMLReport(projectPath, configName, toolchain, false);
+            this.generateHTMLReport(projectPath, configName, toolchain, false, workspaceFolder);
         } else {
             this.writeEmitter.fire(`Unrecognized action '${this.definition.action}'`);
             this.closeEmitter.fire(0);
@@ -72,7 +74,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     /**
      * Runs C-STAT on the current project and updates the warnings displayed in VS Code
      */
-    private async generateDiagnostics(projectPath: string, configName: string, toolchain: string): Promise<void> {
+    private async generateDiagnostics(projectPath: string, configName: string, toolchain: string, workspaceFolder?: string): Promise<void> {
         const extraArgs = this.definition.extraBuildArguments ?? Settings.getExtraBuildArguments();
 
         this.writeEmitter.fire("Running C-STAT...\r\n");
@@ -80,7 +82,16 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         try {
             const builderPath = Path.join(toolchain, Workbench.builderSubPath);
             const outputDir = await CStatTaskExecution.getPossibleCStatOutputDirectories(projectPath, configName);
-            let warnings = await CStat.runAnalysis(builderPath, projectPath, configName, outputDir, this.extensionPath, extraArgs, this.write.bind(this));
+            let warnings = await CStat.runAnalysis(
+                builderPath,
+                projectPath,
+                configName,
+                outputDir,
+                this.extensionPath,
+                extraArgs,
+                workspaceFolder ?? Path.dirname(builderPath),
+                this.write.bind(this));
+
             this.writeEmitter.fire("Analyzing output...\r\n");
             this.diagnostics.clear();
 
@@ -112,7 +123,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     /**
      * Generates an HTML report of all C-STAT warnings
      */
-    private async generateHTMLReport(projectPath: string, configName: string, toolchain: string, full: boolean): Promise<void> {
+    private async generateHTMLReport(projectPath: string, configName: string, toolchain: string, full: boolean, workspaceFolder?: string): Promise<void> {
         this.writeEmitter.fire((full ? "Generating Full HTML Report" : "Generating HTML Summary Report") + "...\r\n");
 
         try {
@@ -126,7 +137,14 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             const outputDirs = await CStatTaskExecution.getPossibleCStatOutputDirectories(projectPath, configName);
             const ireportPath = Path.join(toolchain, config.toolchainId.toLowerCase(), "bin/ireport" + IarOsUtils.executableExtension());
 
-            const reportPath = await CStatReport.generateHTMLReport(ireportPath, outputDirs, Path.basename(projectPath, ".ewp"), full, this.write.bind(this));
+            const reportPath = await CStatReport.generateHTMLReport(
+                ireportPath,
+                outputDirs,
+                Path.basename(projectPath, ".ewp"),
+                full,
+                workspaceFolder ?? Path.dirname(ireportPath),
+                this.write.bind(this)
+            );
             if (Settings.getCstatAutoOpenReports()) {
                 await Vscode.env.openExternal(Vscode.Uri.file(reportPath));
             }

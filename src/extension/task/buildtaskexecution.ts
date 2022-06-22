@@ -60,9 +60,10 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
             args.push(...extraArgs);
         }
 
+        const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(projectPath))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         try {
             await BackupUtils.doWithBackupCheck(projectPath, async() => {
-                const iarbuild = spawn(builder, args);
+                const iarbuild = spawn(builder, args, {cwd: workspaceFolder});
                 this.write("> " + iarbuild.spawnargs.map(arg => `'${arg}'`).join(" ") + "\n");
                 iarbuild.stdout.on("data", data => {
                     this.write(data.toString());
