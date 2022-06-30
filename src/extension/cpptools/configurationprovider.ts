@@ -102,12 +102,13 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         const lang = LanguageUtils.determineLanguage(uri.fsPath);
         return Promise.resolve(lang !== undefined && this.currentConfiguration !== undefined);
     }
-    async provideConfigurations(uris: Vscode.Uri[], _token?: CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
+    async provideConfigurations(uris: Vscode.Uri[], token?: CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
         logger.debug(`Providing intellisense configuration(s) for: ${uris.map(u => u.fsPath).join(", ")}`);
         if (this.currentConfiguration === undefined) {
             logger.warn(`Cpptools requested intellisense config, but no config has been loaded`);
             return [];
         }
+        const preTimestamp = Date.now();
 
         const results = await Promise.allSettled(uris.map(async(uri) => {
             if (!this.currentConfiguration) {
@@ -157,7 +158,17 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             }
         });
         this.api.didChangeCustomBrowseConfiguration(this);
-        return configs;
+        logger.debug(`Generated intellisense configuration(s) in ${Date.now() - preTimestamp} ms.`);
+        if (token?.isCancellationRequested) {
+            // VSC-301 cpptools has a very strict timeout for providing configs, and violating it means cpptools ignores
+            // our response. In that case, we can signal a configuration change to force cpptools to remake the request.
+            // Since this result is now cached in thewon't{@link ConfigurationSet}, we won't time out a second time.
+            logger.debug("Cpptools timed out waiting for intellisense configuration(s). Requesting a refresh.");
+            this.api.didChangeCustomConfiguration(this);
+            return [];
+        } else {
+            return configs;
+        }
     }
     canProvideBrowseConfiguration(_token?: CancellationToken | undefined): Thenable<boolean> {
         return Promise.resolve(true);

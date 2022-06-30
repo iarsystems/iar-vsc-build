@@ -58,6 +58,7 @@ export class ConfigurationSet {
     }
 
     private browseInfo: PartialSourceFileConfiguration = { includes: [], defines: [], preincludes: [] };
+    private readonly cachedResults: Map<string, PartialSourceFileConfiguration> = new Map();
 
     private constructor(
         private readonly compilationArgs: Map<string, string[]>,
@@ -74,9 +75,13 @@ export class ConfigurationSet {
 
     /**
      * Gets the intellisense configuration for the given file. The file must be in the project.
+     * The results are cached; calling this function repeatedly for the same file is cheap.
      */
     async getConfigurationFor(file: string): Promise<PartialSourceFileConfiguration> {
-        // It might be a good idea to cache these result, but cpptools does at least *some* caching for us.
+        const cachedConfiguration = this.cachedResults.get(OsUtils.normalizePath(file));
+        if (cachedConfiguration) {
+            return cachedConfiguration;
+        }
         const args = this.compilationArgs.get(OsUtils.normalizePath(file));
         if (!args) {
             return Promise.reject(new Error("File is not in the project"));
@@ -85,6 +90,7 @@ export class ConfigurationSet {
         // note that we clone args! it will be modified, so we can't use the same instance that's in the compilationArgs map
         const config = await ConfigGenerator.generateFromCompilerArgs([...args], this.project, this.outputChannel);
 
+        this.cachedResults.set(OsUtils.normalizePath(file), config);
         this.browseInfo.includes = ListUtils.mergeUnique(inc => inc.absolutePath.toString(), config.includes, this.browseInfo.includes);
         this.browseInfo.defines = ListUtils.mergeUnique(def => def.makeString(), config.defines, this.browseInfo.defines);
         this.browseInfo.preincludes = ListUtils.mergeUnique(inc => inc.absolutePath.toString(), config.preincludes, this.browseInfo.preincludes);
