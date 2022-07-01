@@ -7,25 +7,33 @@ import { Settings } from "../settings";
 import { BuildTaskDefinition } from "./buildtasks";
 import { BackupUtils, ProcessUtils } from "../../utils/utils";
 import { spawn } from "child_process";
+import { FileStylizer, stylizeBold, StylizedTerminal, stylizeError, stylizePunctuation, stylizeWarning } from "./stylizedterminal";
 
 /**
  * Executes a build task using iarbuild, e.g. to build or clean a project. We have to use a custom execution
  * (as opposed to a much simpler ShellExecution) so that we can add some custom behaviour (to mitigate VSC-192 and VSC-211)
  */
-export class BuildTaskExecution implements Vscode.Pseudoterminal {
-    private readonly writeEmitter = new Vscode.EventEmitter<string>();
-    onDidWrite: Vscode.Event<string> = this.writeEmitter.event;
-    private readonly closeEmitter = new Vscode.EventEmitter<number>();
-    onDidClose?: Vscode.Event<number> = this.closeEmitter.event;
+export class BuildTaskExecution extends StylizedTerminal {
 
     /**
-     * @param diagnostics A diagnostics collection to place the results in (or clear results from)
      * @param definition The task definition to execute
      */
     constructor(private readonly definition: Partial<BuildTaskDefinition>) {
+        super(
+            Settings.getColorizeBuildOutput() ?
+                [
+                    line => line.replace(/(:)(?= (?:Warning|Error))/g, stylizePunctuation("$1")),
+                    line => line.replace(/(Warning)(\[\w+\]:)/g, stylizeWarning("$1") + stylizePunctuation("$2")),
+                    line => line.replace(/(Error)(\[\w+\]:)/g, stylizeError("$1") + stylizePunctuation("$2")),
+                    line => line.replace(/(?<=errors: )([1-9]\d*)/gi, stylizeError("$1")),
+                    line => line.replace(/(?<=warnings: )([1-9]\d*)/gi, stylizeWarning("$1")),
+                    line => line.replace(/(Build failed\.)/, stylizeBold("$1")),
+                    FileStylizer(true),
+                ] : [ FileStylizer(false) ]
+        );
     }
 
-    async open(_initialDimensions: Vscode.TerminalDimensions | undefined) {
+    override async open() {
         const projectPath = this.definition.project;
         if (!projectPath) {
             this.onError("No project was specificed. Select one in the extension configuration, or configure the task manually.");
@@ -72,7 +80,7 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
                 await ProcessUtils.waitForExit(iarbuild);
             });
         } finally {
-            this.closeEmitter.fire(0);
+            this.closeTerminal(0);
         }
     }
 
@@ -80,14 +88,9 @@ export class BuildTaskExecution implements Vscode.Pseudoterminal {
         // Nothing to do here
     }
 
-    private write(msg: string) {
-        msg = msg.replace(/(?<!\r)\n/g, "\r\n"); // VSC-82: vscode console prefers crlf, so replace all lf with crlf
-        this.writeEmitter.fire(msg);
-    }
-
     private onError(reason: string | Error) {
-        this.writeEmitter.fire(reason + "\r\n");
-        this.closeEmitter.fire(1);
+        this.write(reason + "\r\n");
+        this.closeTerminal(1);
     }
 
     private convertCommandToIarCommand(command: string | undefined): string | undefined {

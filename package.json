@@ -278,6 +278,11 @@
             "-parallel",
             "4"
           ]
+        },
+        "iar-build.colorizeBuildOutput": {
+          "type": "boolean",
+          "description": "Whether to apply colors to the output from the Build, Rebuild and Clean tasks.",
+          "default": true
         }
       }
     },
@@ -287,7 +292,7 @@
         "owner": "cpp",
         "fileLocation": "absolute",
         "pattern": {
-          "regexp": "^([^(]*)\\((\\d*)\\)\\s*:\\s*([^\\[]*)[^:]*:\\s*(.*)",
+          "regexp": "^(.*):(\\d*)\\s*:\\s*([^\\[]*)[^:]*:\\s*(.*)",
           "file": 1,
           "line": 2,
           "severity": 3,
@@ -299,7 +304,7 @@
         "owner": "cpp",
         "fileLocation": "absolute",
         "pattern": {
-          "regexp": "^([^\\[]*)[^\\]]*\\]\\s*:\\s*([^\\(]*)\\(\\s*(.*)\\s*\\)",
+          "regexp": "^([^\\[]*)[^\\]]*\\]\\s*:\\s*([^\\(]*)\\[.*?((?:\\/|\\w:).*)\\s*\\]",
           "file": 3,
           "message": 2,
           "severity": 1,
@@ -464,7 +469,7 @@
     "thrift": "^0.12.0",
     "utf-8-validate": "^5.0.8",
     "uuid": "^8.3.2",
-    "vscode-cpptools": "^5.0.0",
+    "vscode-cpptools": "^6.1.0",
     "vscode-jsonrpc": "^3.0.0",
     "winreg": "^1.2.4",
     "xml-js": "1.6.8"

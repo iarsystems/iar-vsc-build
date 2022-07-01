@@ -17,6 +17,7 @@ export namespace Settings {
         CstatFilterLevel = "c-stat.filterLevel",
         CstatDisplayLowSeverityWarningsAsHints = "c-stat.displayLowSeverityWarningsAsHints",
         CstatAutoOpenReports = "c-stat.autoOpenReports",
+        ColorizeBuildOutput = "colorizeBuildOutput"
     }
 
     export enum LocalSettingsField {
@@ -104,6 +105,10 @@ export namespace Settings {
     }
     export function getCstatAutoOpenReports(): boolean {
         const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.CstatAutoOpenReports);
+        return val ?? false;
+    }
+    export function getColorizeBuildOutput(): boolean {
+        const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.ColorizeBuildOutput);
         return val ?? false;
     }
 
