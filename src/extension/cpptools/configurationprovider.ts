@@ -125,6 +125,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
                 const includes = partialConfig.includes;
                 let defines = partialConfig.defines;
                 defines = defines.concat(this.keywordDefines);
+                // Temporary workaround for https://github.com/microsoft/vscode-cpptools/issues/9435
+                defines = defines.filter(d => !["__EDG_VERSION__", "__EDG_SIZE_TYPE__", "__EDG_PTRDIFF_TYPE__"].includes(d.identifier));
                 const preincludes = partialConfig.preincludes;
 
                 let stringDefines = defines.map(d => d.makeString());
