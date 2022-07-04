@@ -92,6 +92,7 @@ export namespace WorkbenchVersions {
             "8.0.0": "8.10.1", // there wasn't actually a release using 8.0.0, but add it so we can match the supportsVSCode FixVersion
             "8.0.4": "8.10.1",
             "9.0.11": "9.20.4",
+            "9.1.1": "9.30.1",
         },
         "riscv": {
             "8.0.0": "1.10", // not a real release
@@ -109,6 +110,9 @@ export namespace WorkbenchVersions {
         "rh850": {
             "8.0.0": "2.10", // not a real release
             "8.1.1": "2.10",
+            "9.0.11": "3.10", // not a real release
+            "9.1.1": "3.10", // not a real release
+            "9.1.2": "3.10",
         },
         "rl78": {
             "8.0.0": "3.10", // not a real release
