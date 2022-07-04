@@ -51,18 +51,24 @@ export namespace LanguageUtils {
 
 export namespace ProcessUtils {
     /**
+     * Waits for a process to exit. Returns the exit code of the process.
+     */
+    export function waitForExitCode(process: ChildProcess): Promise<number | null> {
+        return new Promise((resolve, reject) => {
+            process.on("exit", code => {
+                resolve(code);
+            });
+            process.on("error", e => reject(e));
+        });
+    }
+    /**
      * Waits for a process to exit. Rejects if the exit code is non-zero.
      */
-    export function waitForExit(process: ChildProcess) {
-        return new Promise<void>((resolve, reject) => {
-            process.on("exit", code => {
-                if (code !== 0) {
-                    reject(new Error("Process exited with code: " + code));
-                } else {
-                    resolve();
-                }
-            });
-        });
+    export async function waitForExit(process: ChildProcess): Promise<void> {
+        const code = await waitForExitCode(process);
+        if (code !== 0) {
+            throw new Error("Process exited with code: " + code);
+        }
     }
 }
 

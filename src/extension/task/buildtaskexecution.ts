@@ -77,10 +77,12 @@ export class BuildTaskExecution extends StylizedTerminal {
                     this.write(data.toString());
                 });
 
-                await ProcessUtils.waitForExit(iarbuild);
+                const code = await ProcessUtils.waitForExitCode(iarbuild);
+                this.closeTerminal(code ?? 1);
             });
-        } finally {
-            this.closeTerminal(0);
+        } catch (e) {
+            const errorMsg = (e instanceof Error || typeof e === "string") ? e.toString() : JSON.stringify(e);
+            this.onError(errorMsg);
         }
     }
 
