@@ -195,4 +195,11 @@ suite("Test build extension", ()=>{
         await new Promise((p, _) => setTimeout(p, 1000));
         assert(!ExtensionState.getInstance().project.projects.some(project => project.name === "newProject"), "The created project was not removed from the project list");
     });
+
+    test("Check that build task failures are communicated to VS Code", async()=>{
+        // Regression test for VSC-302 (https://github.com/IARSystems/iar-vsc-build/issues/11)
+        // The task should not run, because it depends on a build task that fails
+        await VscodeTestsUtils.runTaskForProject("create temp file", "BasicDebugging", "Debug");
+        assert.strictEqual(await FsUtils.exists(path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp.tmp")), false, "Build task did not fail even though iarbuild failed");
+    });
 });

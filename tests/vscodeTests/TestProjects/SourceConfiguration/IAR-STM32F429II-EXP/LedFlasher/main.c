@@ -20,6 +20,13 @@
 #include "config.h"
 #include "intrinsics.h"
 
+typedef struct {
+    union _u {
+    // union {
+        int a;
+    };
+} AnonymousMember;
+
 void main()
 {
     SystemInit();
@@ -40,6 +47,10 @@ void main()
     enable_interrupt(USER_BUTTON_EXTI_IRQn, 7, 1);
 
     led_on(LED1);
+
+    // VSC-290 (#1) test that ms-style unnamed members are accepted by intellisense
+    AnonymousMember str;
+    str.a = 1;
 
     while (1) {}
 }

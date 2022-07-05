@@ -114,4 +114,21 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
         assertConfig(config!.configuration);
     });
+
+    test("IntelliSense reports no errors", async() => {
+        // This lets us test for false positive errors in intelliSense.
+        // Since the project compiles, intelliSense shouldn't report any errors.
+
+        // Regression test for:
+        // VSC-290 (https://github.com/IARSystems/iar-vsc-build/issues/1), ms-style unnamed structs
+        // VSC-299 (https://github.com/IARSystems/iar-vsc-build/issues/7), invalid macro definition
+
+        await Vscode.commands.executeCommand("vscode.open", Vscode.Uri.file(Path.join(projectDir, "main.c")));
+        // Give intelliSense some time to parse the file
+        await new Promise((res, _) => setTimeout(res, 5000));
+        const diagnostics = Vscode.languages.getDiagnostics().filter(diag =>
+            !(Path.relative(projectDir, diag[0].fsPath).startsWith("..")) && (Path.relative(libDir, diag[0].fsPath).startsWith(".."))).
+            filter(diag => diag[1].length > 0);
+        Assert.deepStrictEqual(diagnostics, [], "intelliSense reported false positive(s)");
+    });
 });

@@ -38,5 +38,12 @@
 			"toolchain": "${command:iar-config.toolchain}",
 			"problemMatcher": []
 		},
+		{
+			"type": "shell",
+			"label": "create temp file",
+			"command": "touch",
+			"args": ["${command:iar-config.project-file}.tmp"],
+			"dependsOn": "iar: Build Project",
+		}
 	]
 }
