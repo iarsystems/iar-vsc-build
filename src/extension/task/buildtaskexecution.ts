@@ -28,8 +28,8 @@ export class BuildTaskExecution extends StylizedTerminal {
                     line => line.replace(/(?<=errors: )([1-9]\d*)/gi, stylizeError("$1")),
                     line => line.replace(/(?<=warnings: )([1-9]\d*)/gi, stylizeWarning("$1")),
                     line => line.replace(/(Build failed\.)/, stylizeBold("$1")),
-                    FileStylizer(true),
-                ] : [ FileStylizer(false) ]
+                    FileStylizer,
+                ] : []
         );
     }
 

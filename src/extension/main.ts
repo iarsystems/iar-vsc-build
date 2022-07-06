@@ -82,7 +82,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     // --- find and add all .ewp projects
     // note that we do not await here, this operation can be slow and we want activation to be quick
     findProjectsInWorkspace();
-    vscode.workspace.onDidChangeWorkspaceFolders(() => findProjectsInWorkspace());
+    context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => findProjectsInWorkspace()));
 
     // --- find and add workbenches
     loadTools(addWorkbenchCmd);

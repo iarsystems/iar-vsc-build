@@ -68,16 +68,9 @@ export function stylizeBold(text: string) {
     return "\u001b[1m" + text + "\u001b[0m";
 }
 
-// Changes file paths to a vscode-friendly format and (optionally) gives the an underline and blue color
-export function FileStylizer(colorize: boolean): Stylizer {
-    return function(line: string) {
-        const regex = OsUtils.detectOsType() === OsUtils.OsType.Windows ?
-            /(?<!\w)([a-zA-Z]:(?:[\\/][\w .!#()-]+)+)/g :
-            /(?<!\w)((?:\/[\w .!#()-]+)+)/g;
-        const regexWithLinenumber = new RegExp(regex.source + "\\((\\d+)\\)", "g");
-        if (regexWithLinenumber.test(line)) {
-            return line.replace(regexWithLinenumber, colorize ? "\u001b[4m\u001b[34m$1:$2\u001b[0m" : "$1:$2");
-        }
-        return colorize ? line.replace(regex, "\u001b[4m\u001b[34m$1\u001b[0m") : line;
-    };
+export function FileStylizer(line: string): string {
+    const regex = OsUtils.detectOsType() === OsUtils.OsType.Windows ?
+        /(?<!\w)([a-zA-Z]:(?:[\\/][\w .!#()-]+)+(?:\.\w+)(?:\(\d+\))?)/g :
+        /(?<!\w)((?:\/[\w .!#()-]+)+(?:\.\w+)(?:\(\d+\))?)/g;
+    return line.replace(regex, "\u001b[4m\u001b[34m$1\u001b[0m");
 }
