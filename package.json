@@ -293,7 +293,7 @@
         "owner": "cpp",
         "fileLocation": "absolute",
         "pattern": {
-          "regexp": "^(.*):(\\d*)\\s*:\\s*([^\\[]*)[^:]*:\\s*(.*)",
+          "regexp": "^([^(]*)\\((\\d*)\\)\\s*:\\s*([^\\[]*)[^:]*:\\s*(.*)",
           "file": 1,
           "line": 2,
           "severity": 3,
