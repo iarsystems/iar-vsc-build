@@ -241,8 +241,9 @@
           "description": "A list of additional defines to use for intellisense, which are not listed in the project file or defined by the compiler. Note that this does not affect building.",
           "default": [
             "__fp16=float",
-            "constrange(...)=",
+            "__constrange(...)=",
             "__c99_generic(...)=",
+            "__spec_string=",
             "__func__=\"\"",
             "__alignof__(a)=1",
             "__ALIGNOF__=__alignof__"
