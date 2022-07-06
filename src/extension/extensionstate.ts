@@ -303,8 +303,11 @@ class State {
             }
             return false;
         }
+        // Prioritize newer workbench versions
+        const candidatesPrioritized = candidates.sort((wb1, wb2) =>
+            (wb2.version.major - wb1.version.major) || (wb2.version.minor - wb1.version.minor) || (wb2.version.patch - wb1.version.patch));
         // There is at least one candidate, select the first one.
-        workbenchModel.selectWhen(item => item === candidates[0]);
+        workbenchModel.selectWhen(item => item === candidatesPrioritized[0]);
         if (candidates.length > 1) {
             InformationMessage.show(
                 "multipleWorkbenchCandidates",
