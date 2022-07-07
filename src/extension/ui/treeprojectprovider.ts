@@ -12,10 +12,8 @@ import { BehaviorSubject } from "rxjs";
 // A node showing a file or file group i.e. a {@link Node}
 export class FilesNode {
     public name: string;
-    public context: string;
     constructor(public iarNode: Node, public parent: FilesNode | undefined, public indexPath: number[]) {
         this.name = iarNode.name;
-        this.context = iarNode.type === NodeType.File ? "file" : "group";
     }
 
     getChildren(): FilesNode[] {
@@ -48,17 +46,29 @@ export class TreeProjectProvider implements Vscode.TreeDataProvider<FilesNode> {
 
     getTreeItem(element: FilesNode): Vscode.TreeItem | Thenable<Vscode.TreeItem> {
         const item = new Vscode.TreeItem(element.name);
-        item.contextValue = element.context;
-        item.collapsibleState = element.iarNode.children.length > 0 ? Vscode.TreeItemCollapsibleState.Expanded : Vscode.TreeItemCollapsibleState.None;
 
         if (element.iarNode.type === NodeType.File) {
-            item.tooltip = element.iarNode.path;
+            item.iconPath = Vscode.ThemeIcon.File;
             item.command = { title: "Open in editor", command: "vscode.open", arguments: [Vscode.Uri.file(element.iarNode.path)] };
+            item.contextValue = "file";
             item.resourceUri = Vscode.Uri.file(element.iarNode.path);
         }
         if (element.iarNode.type === NodeType.Group) {
             item.iconPath = Vscode.ThemeIcon.Folder;
             item.contextValue = "group";
+        }
+        if (element.iarNode.isGenerated) {
+            item.contextValue = undefined;
+        }
+
+        if (element.iarNode.children.length === 0) {
+            item.collapsibleState = Vscode.TreeItemCollapsibleState.None;
+        } else {
+            if (element.iarNode.isGenerated || element.iarNode.type === NodeType.File) {
+                item.collapsibleState = Vscode.TreeItemCollapsibleState.Collapsed;
+            } else {
+                item.collapsibleState = Vscode.TreeItemCollapsibleState.Expanded;
+            }
         }
 
         return item;
