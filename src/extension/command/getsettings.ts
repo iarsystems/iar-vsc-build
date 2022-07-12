@@ -8,11 +8,13 @@ import * as Vscode from "vscode";
 
 import { Command } from "./command";
 import { Settings } from "../settings";
+import { ExtensionState } from "../extensionstate";
 
 export enum GetSettingsCommand {
     Workbench = "iar-config.toolchain",
     ProjectFile = "iar-config.project-file",
-    ProjectConfiguration = "iar-config.project-configuration"
+    ProjectConfiguration = "iar-config.project-configuration",
+    ProjectName = "iar-config.project-name",
 }
 
 class GetSettings implements Command<string | undefined> {
@@ -33,11 +35,31 @@ class GetSettings implements Command<string | undefined> {
     }
 }
 
+class GetProjectName implements Command<string | undefined> {
+
+    constructor(readonly id: GetSettingsCommand) {
+    }
+
+    execute(_autoTriggered: boolean): string | undefined {
+        return ExtensionState.getInstance().project.selected?.name;
+    }
+
+    register(context: Vscode.ExtensionContext): void {
+        const cmd = Vscode.commands.registerCommand(this.id, (): string | undefined => {
+            return this.execute(false);
+        }, this);
+
+        context.subscriptions.push(cmd);
+    }
+}
+
 export namespace GetSettingsCommand {
     export function initCommands(context: Vscode.ExtensionContext): void {
         initCommand(context, GetSettingsCommand.Workbench, Settings.LocalSettingsField.Workbench);
         initCommand(context, GetSettingsCommand.ProjectFile, Settings.LocalSettingsField.Ewp);
         initCommand(context, GetSettingsCommand.ProjectConfiguration, Settings.LocalSettingsField.Configuration);
+        const projectNameCmd = new GetProjectName(GetSettingsCommand.ProjectName);
+        projectNameCmd.register(context);
     }
 
     function initCommand(context: Vscode.ExtensionContext, command: GetSettingsCommand, field: Settings.LocalSettingsField): void {

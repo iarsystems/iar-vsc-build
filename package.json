@@ -48,6 +48,7 @@
     "onCommand:iar-config.toolchain",
     "onCommand:iar-config.project-file",
     "onCommand:iar-config.project-configuration",
+    "onCommand:iar-config.project-name",
     "onView:iar-configuration",
     "onView:iar-project",
     "workspaceContains:**/*.ewp",
@@ -85,6 +86,11 @@
       {
         "command": "iar-config.project-configuration",
         "title": "Get the selected project configuration",
+        "category": "IAR Settings"
+      },
+      {
+        "command": "iar-config.project-name",
+        "title": "Get the selected project name",
         "category": "IAR Settings"
       },
       {
@@ -198,6 +204,10 @@
         },
         {
           "command": "iar-config.project-configuration",
+          "when": "false"
+        },
+        {
+          "command": "iar-config.project-name",
           "when": "false"
         }
       ]
