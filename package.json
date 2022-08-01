@@ -221,6 +221,11 @@
     "configuration": {
       "title": "IAR Build",
       "properties": {
+        "iar-build.projectsToExclude": {
+          "type": "string",
+          "markdownDescription": "All projects that match this regex will be ignored. Empty regex means no ignore.",
+          "default": ""
+        },
         "iar-build.iarInstallDirectories": {
           "type": "array",
           "items": {

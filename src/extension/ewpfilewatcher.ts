@@ -85,19 +85,19 @@ class EwpFilesWatcher {
     constructor() {
         this.ewpFilesWatcher = vscode.workspace.createFileSystemWatcher("**/*.ewp");
         this.ewpFilesWatcher.onDidCreate(uri => {
-            if (Project.isBackupFile(uri.fsPath)) {
+            if (Project.isIgnoredFile(uri.fsPath)) {
                 return;
             }
             this.createdCallbacks.forEach(cb => cb(uri.fsPath));
         });
         this.ewpFilesWatcher.onDidChange(uri => {
-            if (Project.isBackupFile(uri.fsPath)) {
+            if (Project.isIgnoredFile(uri.fsPath)) {
                 return;
             }
             this.modifiedCallbacks.forEach(cb => cb(uri.fsPath));
         });
         this.ewpFilesWatcher.onDidDelete(uri => {
-            if (Project.isBackupFile(uri.fsPath)) {
+            if (Project.isIgnoredFile(uri.fsPath)) {
                 return;
             }
             this.deletedCallbacks.forEach(cb => cb(uri.fsPath));

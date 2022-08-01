@@ -4,6 +4,7 @@
 
 
 
+import * as vscode from "vscode";
 import * as Path from "path";
 import { Config } from "./config";
 import { Node } from "iar-vsc-common/thrift/bindings/projectmanager_types";
@@ -56,10 +57,17 @@ export interface ExtendedProject extends Project {
 
 export namespace Project {
     /**
-     * Checks whether this is an automatic backup file. These should generally be ignored.
+     * Checks whether this file should be ignored.
      */
-    export function isBackupFile(projectFile: string): boolean {
-        return /^Backup\s+(\(\d+\)\s+)?of.*\.ewp$/.test(Path.basename(projectFile));
+    export function isIgnoredFile(projectFile: string): boolean {
+        // Checks whether this is an automatic backup file. These should generally be ignored.
+        const isBackupFile = /^Backup\s+(\(\d+\)\s+)?of.*\.ewp$/.test(Path.basename(projectFile));
+
+        // All projects that match this regex should be ignored
+        const projectsToExclude: string = vscode.workspace.getConfiguration("iar-build").get<string>("projectsToExclude")!;
+        const isIgnoredFile = projectsToExclude != '' && RegExp(projectsToExclude).test(projectFile);
+
+        return isBackupFile || isIgnoredFile;
     }
 
     export function equal(p1: Project, p2: Project) {

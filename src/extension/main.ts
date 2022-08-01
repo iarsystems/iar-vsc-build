@@ -106,7 +106,7 @@ export async function deactivate() {
 
 async function findProjectsInWorkspace() {
     if (vscode.workspace.workspaceFolders !== undefined) {
-        const projectFiles = (await vscode.workspace.findFiles("**/*.ewp")).filter(uri => !Project.isBackupFile(uri.fsPath));
+        const projectFiles = (await vscode.workspace.findFiles("**/*.ewp")).filter(uri => !Project.isIgnoredFile(uri.fsPath));
         logger.debug(`Found ${projectFiles.length} project(s) in the workspace`);
         const projects: Project[] = [];
         projectFiles.forEach(uri => {
