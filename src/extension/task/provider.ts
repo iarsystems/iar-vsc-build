@@ -41,6 +41,7 @@ export namespace IarTaskProvider {
 
             const provider: Vscode.TerminalLinkProvider<FileLink> = {
                 provideTerminalLinks(context, _token): FileLink[] {
+                    // Detect source file paths with line numbers (e.g. /my/file.c(15))
                     const fileRegex = OsUtils.detectOsType() === OsUtils.OsType.Windows ?
                         /(?<!\w)([a-zA-Z]:(?:[\\/][\w .!#()-]+)+)\((\d+)\)/g :
                         /(?<!\w)((?:\/[\w .!#()-]+)+)\((\d+)\)/g;
@@ -51,6 +52,27 @@ export namespace IarTaskProvider {
                             length: execResult[0].length,
                             uri: Vscode.Uri.file(execResult[1]).with({fragment: "L" + execResult[2]}),
                         }];
+                    }
+                    // Detect file paths in the iarbuild command line we print at the top of the task output
+                    // (e.g. to iarbuild or the .ewp file). VS Code can detect these file paths on its own, but doesn't
+                    // handle spaces in the file paths (see https://github.com/IARSystems/iar-vsc-build/issues/16).
+                    if (context.line.startsWith(">")) {
+                        const fileRegex = OsUtils.detectOsType() === OsUtils.OsType.Windows ?
+                            /(?<=')[a-zA-Z]:(?:(?:\\\\|\\|\/)[\w .!#()-]+)+(?=')/g :
+                            /(?<=')(?:\/[\w .!#()-]+)+(?=')/g;
+                        const matches = context.line.matchAll(fileRegex);
+                        const foundLinks: FileLink[] = [];
+                        for (const match of matches) {
+                            if (match[0] === undefined || match.index === undefined) {
+                                continue;
+                            }
+                            foundLinks.push({
+                                startIndex: match.index,
+                                length: match[0].length,
+                                uri: Vscode.Uri.file(match[0].replace(/\\\\/g, "\\")),
+                            });
+                        }
+                        return foundLinks;
                     }
                     return [];
                 },

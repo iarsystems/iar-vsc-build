@@ -70,7 +70,7 @@ export function stylizeBold(text: string) {
 
 export function FileStylizer(line: string): string {
     const regex = OsUtils.detectOsType() === OsUtils.OsType.Windows ?
-        /(?<!\w)([a-zA-Z]:(?:[\\/][\w .!#()-]+)+(?:\.\w+)(?:\(\d+\))?)/g :
+        /(?<!\w)([a-zA-Z]:(?:(?:\\\\|\\|\/)[\w .!#()-]+)+(?:\.\w+)(?:\(\d+\))?)/g :
         /(?<!\w)((?:\/[\w .!#()-]+)+(?:\.\w+)(?:\(\d+\))?)/g;
     return line.replace(regex, "\u001b[4m\u001b[34m$1\u001b[0m");
 }
