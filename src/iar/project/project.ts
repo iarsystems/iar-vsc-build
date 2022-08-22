@@ -64,8 +64,8 @@ export namespace Project {
         const isBackupFile = /^Backup\s+(\(\d+\)\s+)?of.*\.ewp$/.test(Path.basename(projectFile));
 
         // All projects that match this regex should be ignored
-        const projectsToExclude: string = vscode.workspace.getConfiguration("iar-build").get<string>("projectsToExclude")!;
-        const isIgnoredFile = projectsToExclude != '' && RegExp(projectsToExclude).test(projectFile);
+        const projectsToExclude = vscode.workspace.getConfiguration("iar-build").get<string>("projectsToExclude");
+        const isIgnoredFile = !!projectsToExclude && RegExp(projectsToExclude).test(projectFile);
 
         return isBackupFile || isIgnoredFile;
     }
