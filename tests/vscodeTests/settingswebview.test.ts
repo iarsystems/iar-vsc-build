@@ -96,7 +96,7 @@ suite("Test Clicking Settings View", ()=>{
         await VscodeTestsUtils.activateArgVarFile("ArgVarFile1.custom_argvars");
         Assert(ExtensionState.getInstance().argVarsFile.selectedIndex !== 1);
         const modelChange = waitForModelChange(ExtensionState.getInstance().argVarsFile);
-        IarVsc.settingsView.selectFromDropdown(DropdownIds.ArgVarFile, 1);
+        IarVsc.settingsView.selectFromDropdown(DropdownIds.ArgVarsFile, 1);
         await modelChange;
 
         Assert.strictEqual(ExtensionState.getInstance().argVarsFile.selectedIndex, 1);
