@@ -15,6 +15,7 @@ export enum GetSettingsCommand {
     ProjectFile = "iar-config.project-file",
     ProjectConfiguration = "iar-config.project-configuration",
     ProjectName = "iar-config.project-name",
+    ArgVarFile = "iar-config.argument-variables-file",
 }
 
 class GetSettings implements Command<string | undefined> {
@@ -58,6 +59,7 @@ export namespace GetSettingsCommand {
         initCommand(context, GetSettingsCommand.Workbench, Settings.LocalSettingsField.Workbench);
         initCommand(context, GetSettingsCommand.ProjectFile, Settings.LocalSettingsField.Ewp);
         initCommand(context, GetSettingsCommand.ProjectConfiguration, Settings.LocalSettingsField.Configuration);
+        initCommand(context, GetSettingsCommand.ArgVarFile, Settings.LocalSettingsField.ArgVarFile);
         const projectNameCmd = new GetProjectName(GetSettingsCommand.ProjectName);
         projectNameCmd.register(context);
     }

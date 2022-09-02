@@ -24,6 +24,7 @@ export namespace Settings {
         Workbench = "toolchain",
         Ewp = "ewp",
         Configuration = "configuration",
+        ArgVarFile = "argumentVariablesFile"
     }
 
     const section = "iar-build";
@@ -138,6 +139,7 @@ interface LocalSettings {
     compiler?: string;
     toolchain?: string;
     configuration?: string;
+    argumentVariablesFile?: string;
 }
 
 /**

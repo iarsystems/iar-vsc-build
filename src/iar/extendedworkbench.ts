@@ -17,6 +17,12 @@ import { ThriftProject } from "./project/thrift/thriftproject";
 import { BackupUtils } from "../utils/utils";
 import { logger } from "iar-vsc-common/logger";
 import { IarOsUtils } from "iar-vsc-common/osUtils";
+import { copyFile, writeFile } from "fs/promises";
+import { ArgVarsFile } from "./project/argvarfile";
+import { Mutex } from "async-mutex";
+import { tmpdir } from "os";
+import { createHash } from "crypto";
+import { WorkbenchVersions } from "./tools/workbenchversionregistry";
 
 /**
  * A workbench with some extra capabilities,
@@ -34,6 +40,14 @@ export interface ExtendedWorkbench {
      * force it to be reloaded from disk, call {@link unloadProject}.
      */
     loadProject(project: Project): Promise<ExtendedProject>;
+    /**
+     * Loads the given .custom_argvars file, making the variables specified in it
+     * available to subsequently loaded projects. This unloads *all* currently
+     * loaded projects, invalidating all existing {@link ExtendedProject}
+     * instances from this workbench.
+     * The projects must be loaded again before they can be used.
+     */
+    loadArgVars(argVars: ArgVarsFile | undefined): Promise<void>;
     /**
      * Unloads the given project if it has previously been loaded.
      * The next time the project is loaded using this workbench, a full load from
@@ -70,10 +84,13 @@ export class ThriftWorkbench implements ExtendedWorkbench {
             && Fs.existsSync(Path.join(workbench.path.toString(), "common/bin/IarServiceLauncher" + IarOsUtils.executableExtension()));
     }
 
-    // Loaded project contexts are stored, and may be reused until this workbench is disposed of.
-    private readonly loadedContexts = new Map<string, Promise<ProjectContext>>();
-    // To avoid unloading and unloading the same project at the same time, store active unload tasks here and await them when loading
-    private readonly currentUnloadTasks = new Map<string, Promise<void>>();
+    // Loaded project contexts are stored, and may be reused until this workbench is disposed of, or the project is unloaded
+    private readonly loadedContexts = new Map<string, ProjectContext>();
+
+    // To avoid conflicting operations running at the same time (e.g. loading and unloading the same project
+    // concurrently), we only allow one operation at a time. This can probably be optimized to allow unrelated
+    // operations (e.g. for separate projects) to run concurrently.
+    private readonly mtx = new Mutex();
 
     constructor(public workbench:   Workbench,
                 private readonly serviceMgr: ThriftServiceManager,
@@ -84,40 +101,53 @@ export class ThriftWorkbench implements ExtendedWorkbench {
         return QtoPromise(this.projectMgr.service.GetToolchains());
     }
 
-    public async loadProject(project: Project): Promise<ThriftProject> {
-        const unloadTask = this.currentUnloadTasks.get(project.path);
-        if (unloadTask) {
-            await unloadTask;
-        }
-
-        let contextPromise = this.loadedContexts.get(project.path.toString());
-        if (contextPromise === undefined) {
-            logger.debug(`Loading project context for '${project.name}'`);
-            // VSC-192 Remove erroneous backup files created by some EW versions.
-            contextPromise = BackupUtils.doWithBackupCheck(project.path, async() => {
-                return await this.projectMgr.service.LoadEwpFile(project.path);
-            });
-            this.loadedContexts.set(project.path, contextPromise);
-            contextPromise.catch(() => this.loadedContexts.delete(project.path));
-        }
-        return contextPromise.then(context => ThriftProject.fromContext(project.path, this.projectMgr.service, context, this.workbench));
+    public loadProject(project: Project): Promise<ThriftProject> {
+        return this.mtx.runExclusive(async() => {
+            logger.debug("Loading " + project.name);
+            let context = this.loadedContexts.get(project.path.toString());
+            if (context === undefined) {
+                logger.debug(`Loading project context for '${project.name}'`);
+                // VSC-192 Remove erroneous backup files created by some EW versions.
+                context = await BackupUtils.doWithBackupCheck(project.path, async() => {
+                    return await this.projectMgr.service.LoadEwpFile(project.path);
+                });
+                this.loadedContexts.set(project.path, context);
+            }
+            return ThriftProject.fromContext(project.path, this.projectMgr.service, context, this.workbench);
+        });
     }
 
-    public async unloadProject(project: Project): Promise<void> {
-        const contextPromise = this.loadedContexts.get(project.path.toString());
-        if (contextPromise !== undefined && !this.currentUnloadTasks.has(project.path)) {
-
-            const unloadTask = contextPromise.then(context => {
-                this.loadedContexts.delete(project.path.toString());
-                return this.projectMgr.service.CloseProject(context);
-            });
-
-            this.currentUnloadTasks.set(project.path, unloadTask);
-            unloadTask.finally(() => {
-                this.currentUnloadTasks.delete(project.path);
-            });
-            await unloadTask;
+    public loadArgVars(argVars: ArgVarsFile | undefined) {
+        if (!WorkbenchVersions.doCheck(this.workbench, WorkbenchVersions.supportsPMWorkspaces)) {
+            return Promise.resolve();
         }
+        return this.mtx.runExclusive(async() => {
+            logger.debug("Loading argvars file: " + argVars?.name);
+            if (argVars) {
+                // There is no direct thrift API for loading argvars files. Instead, loading an .eww file will automatically
+                // load the .custom_argvars file with the same name. Thus, we create an empty .eww file next to the argvars file and load it.
+                const tmpBasename = Path.join(tmpdir(), "iar-build", createHash("md5").update(argVars?.path).digest("hex"));
+                Fs.mkdirSync(Path.dirname(tmpBasename), { recursive: true });
+                await writeFile(tmpBasename + ".eww", this.ewwContents);
+                await copyFile(argVars.path, tmpBasename + ".custom_argvars");
+                await this.projectMgr.service.LoadEwwFile(tmpBasename + ".eww");
+            } else {
+                await this.projectMgr.service.CloseWorkspace();
+            }
+            this.loadedContexts.clear();
+        });
+    }
+
+    public unloadProject(project: Project): Promise<void> {
+        return this.mtx.runExclusive(async() => {
+            logger.debug("Unloading " + project.name);
+            const context = this.loadedContexts.get(project.path);
+            if (context !== undefined) {
+                this.loadedContexts.delete(project.path.toString());
+                await this.projectMgr.service.CloseProject(context);
+                this.loadedContexts.delete(project.path);
+            }
+        });
     }
 
     public async dispose() {
@@ -137,4 +167,10 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     public onCrash(handler: (code: number | null) => void) {
         this.serviceMgr.addCrashHandler(handler);
     }
+
+    private readonly ewwContents = `<?xml version="1.0" encoding="UTF-8"?>
+                                    <workspace>
+                                        <batchBuild />
+                                    </workspace>
+                                    `;
 }

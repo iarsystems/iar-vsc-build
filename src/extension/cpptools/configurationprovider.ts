@@ -90,6 +90,9 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         ExtensionState.getInstance().workbench.addOnSelectedHandler(() => {
             this.onSettingsChanged();
         });
+        ExtensionState.getInstance().argVarsFile.addOnSelectedHandler(() => {
+            this.onSettingsChanged();
+        });
         Settings.observeSetting(Settings.ExtensionSettingsField.Defines, this.onSettingsChanged.bind(this));
 
         this.api.registerCustomConfigurationProvider(this);
@@ -207,10 +210,11 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         if (!workbench || !config || !project) {
             return false;
         }
+        const argVarFile = ExtensionState.getInstance().argVarsFile.selected;
         logger.debug(`Generating intellisense config for '${project.name}':'${config.name}'...`);
         const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(project.path))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         try {
-            this.currentConfiguration = await ConfigurationSet.loadFromProject(project, config, workbench, workspaceFolder, this.output);
+            this.currentConfiguration = await ConfigurationSet.loadFromProject(project, config, workbench, argVarFile, workspaceFolder, this.output);
             return true;
         } catch (err) {
             this.currentConfiguration = undefined;

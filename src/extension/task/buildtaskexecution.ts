@@ -60,6 +60,9 @@ export class BuildTaskExecution extends StylizedTerminal {
             configName,
             "-log", "info" // VSC-124 This gives the same verbosity as EW
         ];
+        if (this.definition.argumentVariablesFile) {
+            args.push("-varfile", this.definition.argumentVariablesFile);
+        }
         let extraArgs = this.definition.extraBuildArguments;
         if (extraArgs === undefined) {
             extraArgs = Settings.getExtraBuildArguments();

@@ -34,12 +34,17 @@ export namespace VscodeTestsUtils {
         }
     }
 
-    export async function activateConfiguration(configurationTag: string) {
+    export function activateConfiguration(configurationTag: string) {
         if (ExtensionState.getInstance().config.selected?.name !== configurationTag) {
-            await Promise.all([
-                ExtensionState.getInstance().config.selectWhen(config => config.name === configurationTag),
-            ]);
+            Assert(ExtensionState.getInstance().config.selectWhen(config => config.name === configurationTag));
         }
+    }
+
+    export function activateArgVarFile(fileLabel: string) {
+        if (ExtensionState.getInstance().argVarsFile.selected?.name !== fileLabel) {
+            Assert(ExtensionState.getInstance().argVarsFile.selectWhen(file => file.name === fileLabel));
+        }
+
     }
 
     export async function activateWorkbench(ew: string) {

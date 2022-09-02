@@ -76,12 +76,12 @@ suite("Test Clicking Settings View", ()=>{
 
     test("Clicking project updates model", async() => {
         await VscodeTestsUtils.activateProject("BasicDebugging");
-        Assert(ExtensionState.getInstance().project.selectedIndex !== 1, ExtensionState.getInstance().project.selected!.name);
+        Assert(ExtensionState.getInstance().project.selectedIndex !== 2, ExtensionState.getInstance().project.selected!.name);
         const modelChange = waitForModelChange(ExtensionState.getInstance().project);
-        IarVsc.settingsView.selectFromDropdown(DropdownIds.Project, 1);
+        IarVsc.settingsView.selectFromDropdown(DropdownIds.Project, 2);
         await modelChange;
 
-        Assert.strictEqual(ExtensionState.getInstance().project.selectedIndex, 1);
+        Assert.strictEqual(ExtensionState.getInstance().project.selectedIndex, 2);
     });
     test("Clicking config updates model", async() => {
         await VscodeTestsUtils.activateProject("BasicDebugging");
@@ -91,6 +91,15 @@ suite("Test Clicking Settings View", ()=>{
         await modelChange;
 
         Assert.strictEqual(ExtensionState.getInstance().config.selectedIndex, 1);
+    });
+    test("Clicking argVar updates model", async() => {
+        await VscodeTestsUtils.activateArgVarFile("ArgVarFile1.custom_argvars");
+        Assert(ExtensionState.getInstance().argVarsFile.selectedIndex !== 1);
+        const modelChange = waitForModelChange(ExtensionState.getInstance().argVarsFile);
+        IarVsc.settingsView.selectFromDropdown(DropdownIds.ArgVarFile, 1);
+        await modelChange;
+
+        Assert.strictEqual(ExtensionState.getInstance().argVarsFile.selectedIndex, 1);
     });
 
     const waitForModelChange = function<T>(model: ListInputModel<T>) {

@@ -39,6 +39,7 @@
     "onCommand:iar-build.selectToolchain",
     "onCommand:iar-build.selectProject",
     "onCommand:iar-build.selectConfiguration",
+    "onCommand:iar-build.selectArgumentVariablesFile",
     "onCommand:iar-build.selectIarWorkspace",
     "onCommand:iar-build.addToolchain",
     "onCommand:iar-build.addFile",
@@ -49,6 +50,7 @@
     "onCommand:iar-config.project-file",
     "onCommand:iar-config.project-configuration",
     "onCommand:iar-config.project-name",
+    "onCommand:iar-config.argument-variables-file",
     "onView:iar-configuration",
     "onView:iar-project",
     "workspaceContains:**/*.ewp",
@@ -74,6 +76,11 @@
         "category": "IAR Build"
       },
       {
+        "command": "iar-build.selectArgumentVariablesFile",
+        "title": "Select Configuration",
+        "category": "IAR Build"
+      },
+      {
         "command": "iar-config.toolchain",
         "title": "Get the selected toolchain location",
         "category": "IAR Settings"
@@ -91,6 +98,11 @@
       {
         "command": "iar-config.project-name",
         "title": "Get the selected project name",
+        "category": "IAR Settings"
+      },
+      {
+        "command": "iar-config.argument-variables-file",
+        "title": "Get the selected .custom_argvars file",
         "category": "IAR Settings"
       },
       {
@@ -362,6 +374,10 @@
             "type": "string",
             "description": "The name for this task. Will be shown in the VS Code UI."
           },
+          "argumentVariablesFile": {
+            "type": "string",
+            "description": "Optional .custom_argvars file to use when building."
+          },
           "extraBuildArguments": {
             "type": "array",
             "items": {
@@ -410,6 +426,10 @@
           "toolchain": {
             "type": "string",
             "description": "The IAR toolchain to use."
+          },
+          "argumentVariablesFile": {
+            "type": "string",
+            "description": "Optional .custom_argvars file to use when running C-STAT."
           },
           "extraBuildArguments": {
             "type": "array",

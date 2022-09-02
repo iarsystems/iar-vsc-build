@@ -15,6 +15,7 @@ export interface BuildTaskDefinition {
     readonly builder: string;
     readonly project: string;
     readonly config: string;
+    readonly argumentVariablesFile: string | undefined;
     readonly extraBuildArguments: string[] | undefined;
 }
 
@@ -65,6 +66,7 @@ export namespace BuildTasks {
             builder: "${command:iar-config.toolchain}/" + Workbench.builderSubPath,
             project: "${command:iar-config.project-file}",
             config: "${command:iar-config.project-configuration}",
+            argumentVariablesFile:  "${command:iar-config.argument-variables-file}",
             extraBuildArguments: undefined,
             problemMatcher: ["$iar-cc", "$iar-linker"]
         };

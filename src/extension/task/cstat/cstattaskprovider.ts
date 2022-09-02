@@ -29,6 +29,7 @@ export interface CStatTaskDefinition {
     toolchain: string;
     project: string;
     config: string;
+    argumentVariablesFile: string | undefined;
     extraBuildArguments: string[] | undefined;
 }
 
@@ -100,6 +101,7 @@ class CStatProvider implements Vscode.TaskProvider {
             toolchain: "${command:iar-config.toolchain}",
             project: "${command:iar-config.project-file}",
             config: "${command:iar-config.project-configuration}",
+            argumentVariablesFile: "${command:iar-config.argument-variables-file}",
             extraBuildArguments: undefined,
         };
         return definition;

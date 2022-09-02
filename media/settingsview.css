@@ -39,6 +39,19 @@ body {
     margin-right: 10px;
 }
 
+.help-icon {
+    display: inline !important;
+    position: relative;
+    top: 4px;
+    margin-left: 5px;
+    color: var(--vscode-tab-inactiveForeground);
+}
+
+.help-icon:hover {
+    cursor: pointer;
+    color: var(--vscode-editor-foreground);
+}
+
 .dropdown-container .dropdown {
     flex-grow: 1;
     margin-right: 1.0em;
@@ -62,4 +75,8 @@ body {
 
 #workbench-error *:first-child {
     margin-right: .3em;
+}
+
+.disabled {
+    color: var(--vscode-disabledForeground)
 }

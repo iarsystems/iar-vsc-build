@@ -10,12 +10,14 @@ import * as sanitizeHtml from "sanitize-html";
 import { AddWorkbenchCommand } from "../command/addworkbench";
 import { logger } from "iar-vsc-common/logger";
 import { Subject } from "rxjs";
+import { ArgVarsFile } from "../../iar/project/argvarfile";
 
 // Make sure this matches the enum in media/settingsview.js! AFAIK we cannot share code between here and the webview javascript
 enum MessageSubject {
     WorkbenchSelected = "Workbench",
     ProjectSelected = "Project",
     ConfigSelected = "Config",
+    ArgVarsSelected = "ArgVars",
     AddWorkbench = "AddWorkbench",
     OpenSettings = "OpenSettings",
 }
@@ -23,6 +25,7 @@ export enum DropdownIds {
     Workbench = "workbench",
     Project = "project",
     Configuration = "config",
+    ArgVarsFile = "argvarsfile",
 }
 
 /**
@@ -45,6 +48,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
      * @param workbenches The workbench list to display and modify
      * @param projects The project list to display and modify
      * @param configs The configuration list to display and modify
+     * @param argVarFiles The .custom_argvars file list to display and modify
      * @param addWorkbenchCommand The command to call when the user wants to add a new workbench
      * @param workbenchesLoading Notifies when the workbench list is in the process of (re)loading
      */
@@ -52,6 +56,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         private readonly workbenches: ListInputModel<Workbench>,
         private readonly projects: ListInputModel<Project>,
         private readonly configs: ListInputModel<Config>,
+        private readonly argVarFiles: ListInputModel<ArgVarsFile>,
         private readonly addWorkbenchCommand: AddWorkbenchCommand,
         workbenchesLoading: Subject<boolean>,
     ) {
@@ -63,6 +68,8 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         this.projects.addOnSelectedHandler(changeHandler);
         this.configs.addOnInvalidateHandler(changeHandler);
         this.configs.addOnSelectedHandler(changeHandler);
+        this.argVarFiles.addOnInvalidateHandler(changeHandler);
+        this.argVarFiles.addOnSelectedHandler(changeHandler);
 
         workbenchesLoading.subscribe(load => {
             this.workbenchesLoading = load;
@@ -97,6 +104,9 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
             case MessageSubject.ConfigSelected:
                 this.configs.select(message.index);
                 break;
+            case MessageSubject.ArgVarsSelected:
+                this.argVarFiles.select(message.index);
+                break;
             case MessageSubject.AddWorkbench: {
                 const changed = await vscode.commands.executeCommand(this.addWorkbenchCommand.id);
                 if (!changed) {
@@ -120,7 +130,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         if (this.view === undefined) {
             return;
         }
-        this.view.webview.html = Rendering.getWebviewContent(this.view.webview, this.extensionUri, this.workbenches, this.projects, this.configs, this.workbenchesLoading);
+        this.view.webview.html = Rendering.getWebviewContent(this.view.webview, this.extensionUri, this.workbenches, this.projects, this.configs, this.argVarFiles, this.workbenchesLoading);
     }
 
     // ! Exposed for testing only. Selects a specific option from a dropdown.
@@ -146,6 +156,7 @@ namespace Rendering {
         workbenches: ListInputModel<Workbench>,
         projects: ListInputModel<Project>,
         configs: ListInputModel<Config>,
+        argVarFiles: ListInputModel<ArgVarsFile>,
         workbenchesLoading: boolean
     ) {
         // load npm packages for standardized UI components and icons
@@ -181,14 +192,10 @@ namespace Rendering {
         <div id="contents">
             <div class="section">
                 <p>IAR Embedded Workbench or IAR Build Tools installation:</p>
-                <div class="dropdown-container">
-                    <span class="codicon codicon-tools dropdown-icon"></span>
-                    <vscode-dropdown id="${DropdownIds.Workbench}" class="dropdown" ${workbenches.amount === 0 || workbenchesLoading ? "disabled" : ""}>
-                        ${getDropdownOptions(workbenches, "No IAR toolchains")}
-                        <vscode-divider></vscode-divider>
-                        <vscode-option artificial>Add Toolchain...</vscode-option>
-                    </vscode-dropdown>
-                </div>
+                ${makeDropdown(workbenches, DropdownIds.Workbench, "tools", workbenches.amount === 0 || workbenchesLoading, /*html*/`
+                    <vscode-divider></vscode-divider>
+                    <vscode-option artificial>Add Toolchain...</vscode-option>
+                `)}
                 <div id="workbench-error" ${workbenches.amount > 0 || workbenchesLoading ? "hidden" : ""}>
                     <span>No IAR toolchain installations found.</span><vscode-link id="link-add">Add Toolchain</vscode-link>
                 </div>
@@ -196,18 +203,12 @@ namespace Rendering {
             </div>
             <div class="section">
                     <p>Active Project and Configuration:</p>
-                    <div class="dropdown-container">
-                        <span class="codicon codicon-symbol-method dropdown-icon"></span>
-                        <vscode-dropdown id="${DropdownIds.Project}" class="dropdown" ${projects.amount === 0 ? "disabled" : ""}>
-                            ${getDropdownOptions(projects, "No projects")}
-                        </vscode-dropdown>
-                    </div>
-                    <div class="dropdown-container">
-                        <span class="codicon codicon-settings-gear dropdown-icon"></span>
-                        <vscode-dropdown id="${DropdownIds.Configuration}" class="dropdown" ${configs.amount === 0 ? "disabled" : ""}>
-                            ${getDropdownOptions(configs, "No configurations")}
-                        </vscode-dropdown>
-                    </div>
+                    ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.amount === 0)}
+                    ${makeDropdown(configs, DropdownIds.Configuration, "settings-gear", configs.amount === 0)}
+            </div>
+            <div class="section">
+                    <p>Custom Argument Variables File <span class="codicon codicon-question help-icon"></span></p>
+                    ${makeDropdown(argVarFiles, DropdownIds.ArgVarsFile, "variable-group", argVarFiles.amount === 0)}
             </div>
         </div>
 
@@ -217,6 +218,18 @@ namespace Rendering {
         </div>
     </body>
     </html>`;
+    }
+
+    function makeDropdown<T>(model: ListInputModel<T>, id: DropdownIds, iconName: string, isDisabled: boolean, extraOptions?: string) {
+        return /*html*/`
+            <div class="dropdown-container">
+                <span class="codicon codicon-${iconName} dropdown-icon ${isDisabled ? "disabled" : ""}"></span>
+                <vscode-dropdown id="${id}" class="dropdown" ${isDisabled ? "disabled" : ""}>
+                    ${getDropdownOptions(model, "No .custom_argvars file found")}
+                    ${extraOptions ?? ""}
+                </vscode-dropdown>
+            </div>
+        `;
     }
 
     function getDropdownOptions<T>(model: ListInputModel<T>, emptyMsg: string): string {
