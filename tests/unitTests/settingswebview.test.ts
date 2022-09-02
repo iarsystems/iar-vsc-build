@@ -132,7 +132,7 @@ suite("Test settings view", () => {
         };
         assertDropdownMatchesModel(DropdownIds.Project, projectModel);
         assertDropdownMatchesModel(DropdownIds.Configuration, configModel);
-        assertDropdownMatchesModel(DropdownIds.ArgVarFile, argVarModel);
+        assertDropdownMatchesModel(DropdownIds.ArgVarsFile, argVarModel);
 
         // test workbench dropdown separately, since it has an additional option
         const dropdown = document.getElementById(DropdownIds.Workbench);
