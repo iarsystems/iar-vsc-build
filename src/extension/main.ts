@@ -26,7 +26,8 @@ import { EwpFileWatcherService } from "./ewpfilewatcher";
 import { API } from "./api";
 import { StatusBarItem } from "./ui/statusbaritem";
 import { BehaviorSubject } from "rxjs";
-import { InformationMessage, InformationMessageType } from "./ui/informationmessage";
+import { ArgVarsFile } from "../iar/project/argvarfile";
+import { ArgVarFileWatcherService } from "./argvarfilewatcher";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
@@ -49,8 +50,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     projectCmd.register(context);
     const configCmd = Command.createSelectConfigurationCommand(ExtensionState.getInstance().config);
     configCmd.register(context);
-    const argVarsCmd = Command.createSelectArgVarsFileCommand(ExtensionState.getInstance().argVarsFile);
-    argVarsCmd.register(context);
+    Command.createSelectArgVarsFileCommand(ExtensionState.getInstance().argVarsFile).register(context);
 
     // --- initialize custom GUI
     const workbenchModel = ExtensionState.getInstance().workbench;
@@ -71,7 +71,6 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     StatusBarItem.createFromModel("iar.workbench", ExtensionState.getInstance().workbench, workbenchCmd, "IAR Toolchain: ", 4);
     StatusBarItem.createFromModel("iar.project", ExtensionState.getInstance().project, projectCmd, "Project: ", 3);
     StatusBarItem.createFromModel("iar.configuration", ExtensionState.getInstance().config, configCmd, "Configuration: ", 2);
-    StatusBarItem.createFromModel("iar.argvarfile", ExtensionState.getInstance().argVarsFile, argVarsCmd, "ArgVars File: ", 1);
 
     // --- register tasks
     IarTaskProvider.register();
