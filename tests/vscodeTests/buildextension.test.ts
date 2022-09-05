@@ -183,7 +183,7 @@ suite("Test build extension", ()=>{
         ewpContents = ewpContents.replace("Fibonacci.c", "TheNewFile.c");
         fs.writeFileSync(projectPath, ewpContents);
         // Give vs code time to react
-        await new Promise((p, _) => setTimeout(p, 1000));
+        await new Promise((p, _) => setTimeout(p, 3000));
         assert.strictEqual(ExtensionState.getInstance().project.selected!.configurations.length, 2);
         assert(ExtensionState.getInstance().project.selected!.findConfiguration("TheNewConfig") !== undefined);
         const extProject = await ExtensionState.getInstance().extendedProject.getValue();
