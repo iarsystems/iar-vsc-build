@@ -83,16 +83,10 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     IarVsc.ewpFilesWatcher = new EwpFileWatcherService();
     IarVsc.argVarsFilesWatcher = new ArgVarFileWatcherService();
 
-    // --- find and add .custom_argvars files
-    vscode.workspace.findFiles("**/*.custom_argvars").then(files => {
-        const argVarsFiles = files.map(file => ArgVarsFile.fromFile(file.fsPath));
-        ExtensionState.getInstance().argVarsFile.set(...argVarsFiles.sort((av1, av2) => av1.name.localeCompare(av2.name)));
-    });
-
-    // --- find and add all .ewp projects
+    // --- find and add all .ewp projects and.custom_argvars files
     // note that we do not await here, this operation can be slow and we want activation to be quick
-    findProjectsInWorkspace();
-    context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => findProjectsInWorkspace()));
+    findIARFilesInWorkspace();
+    context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => findIARFilesInWorkspace()));
 
     // --- find and add workbenches
     loadTools(addWorkbenchCmd);
@@ -114,8 +108,14 @@ export async function deactivate() {
     await ExtensionState.getInstance().dispose();
 }
 
-async function findProjectsInWorkspace() {
+// Finds .ewp and .custom_argvars files
+async function findIARFilesInWorkspace() {
     if (vscode.workspace.workspaceFolders !== undefined) {
+        const doneFindingArgVars = vscode.workspace.findFiles("**/*.custom_argvars").then(files => {
+            const argVarsFiles = files.map(file => ArgVarsFile.fromFile(file.fsPath));
+            ExtensionState.getInstance().argVarsFile.set(...argVarsFiles.sort((av1, av2) => av1.name.localeCompare(av2.name)));
+        });
+
         const projectFiles = (await vscode.workspace.findFiles("**/*.ewp")).filter(uri => !Project.isBackupFile(uri.fsPath));
         logger.debug(`Found ${projectFiles.length} project(s) in the workspace`);
         const projects: Project[] = [];
@@ -127,6 +127,8 @@ async function findProjectsInWorkspace() {
                 vscode.window.showErrorMessage(`Could not parse project file '${uri.fsPath}': ${e}`);
             }
         });
+        // ArgVars should be set before the projects, since an argvars file may be required to load the project
+        await doneFindingArgVars;
         ExtensionState.getInstance().project.set(...projects.sort((a, b) => a.name.localeCompare(b.name)));
     }
 }
@@ -135,7 +137,7 @@ async function loadTools(addWorkbenchCommand?: Command<unknown>) {
     IarVsc.workbenchesLoading.next(true);
     const roots = Settings.getIarInstallDirectories();
 
-    await IarVsc.toolManager.collectWorkbenches(roots, true);
+    await IarVsc.toolManager.collectWorkbenches(roots, false);
     if (IarVsc.toolManager.workbenches.length === 0 && addWorkbenchCommand) {
         const response = await vscode.window.showErrorMessage("Unable to find any IAR toolchains to use. You must locate one before you can use this extension.", "Add IAR toolchain");
         if (response === "Add IAR toolchain") {
