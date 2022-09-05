@@ -17,7 +17,8 @@ export namespace Settings {
         CstatFilterLevel = "c-stat.filterLevel",
         CstatDisplayLowSeverityWarningsAsHints = "c-stat.displayLowSeverityWarningsAsHints",
         CstatAutoOpenReports = "c-stat.autoOpenReports",
-        ColorizeBuildOutput = "colorizeBuildOutput"
+        ColorizeBuildOutput = "colorizeBuildOutput",
+        ProjectsToExclude = "projectsToExclude",
     }
 
     export enum LocalSettingsField {
@@ -111,6 +112,9 @@ export namespace Settings {
     export function getColorizeBuildOutput(): boolean {
         const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.ColorizeBuildOutput);
         return val ?? false;
+    }
+    export function getProjectsToExclude(): string | undefined {
+        return Vscode.workspace.getConfiguration(section).get<string>(ExtensionSettingsField.ProjectsToExclude);
     }
 
     function generateSettingsFilePath(): Fs.PathLike | undefined  {

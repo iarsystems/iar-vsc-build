@@ -4,11 +4,11 @@
 
 
 
-import * as vscode from "vscode";
 import * as Path from "path";
 import { Config } from "./config";
 import { Node } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { OsUtils } from "iar-vsc-common/osUtils";
+import { Settings } from "../../extension/settings";
 
 /**
  * An embedded workbench project.
@@ -64,7 +64,7 @@ export namespace Project {
         const isBackupFile = /^Backup\s+(\(\d+\)\s+)?of.*\.ewp$/.test(Path.basename(projectFile));
 
         // All projects that match this regex should be ignored
-        const projectsToExclude = vscode.workspace.getConfiguration("iar-build").get<string>("projectsToExclude");
+        const projectsToExclude = Settings.getProjectsToExclude();
         const isIgnoredFile = !!projectsToExclude && RegExp(projectsToExclude).test(projectFile);
 
         return isBackupFile || isIgnoredFile;

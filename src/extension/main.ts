@@ -87,6 +87,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     // note that we do not await here, this operation can be slow and we want activation to be quick
     findIARFilesInWorkspace();
     context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => findIARFilesInWorkspace()));
+    Settings.observeSetting(Settings.ExtensionSettingsField.ProjectsToExclude, () => findIARFilesInWorkspace());
 
     // --- find and add workbenches
     loadTools(addWorkbenchCmd);
