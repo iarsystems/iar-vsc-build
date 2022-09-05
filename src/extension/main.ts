@@ -116,7 +116,7 @@ async function findIARFilesInWorkspace() {
             ExtensionState.getInstance().argVarsFile.set(...argVarsFiles.sort((av1, av2) => av1.name.localeCompare(av2.name)));
         });
 
-        const projectFiles = (await vscode.workspace.findFiles("**/*.ewp")).filter(uri => !Project.isBackupFile(uri.fsPath));
+        const projectFiles = (await vscode.workspace.findFiles("**/*.ewp")).filter(uri => !Project.isIgnoredFile(uri.fsPath));
         logger.debug(`Found ${projectFiles.length} project(s) in the workspace`);
         const projects: Project[] = [];
         projectFiles.forEach(uri => {
