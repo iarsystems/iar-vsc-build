@@ -164,7 +164,7 @@ class State {
     }
 
     private addWorkbenchModelListeners(): void {
-        // Try to load thrift services for the new workbench
+        // Try to load thrift services for the new workbench, and load the current argvars and project with the new services.
         this.workbench.addOnSelectedHandler(async workbench => {
             logger.debug(`Toolchain: selected '${this.workbench.selected?.name}' (index ${this.workbench.selectedIndex})`);
             const prevExtWb = this.extendedWorkbench.promise;
@@ -193,9 +193,14 @@ class State {
             } else {
                 this.extendedWorkbench.setValue(undefined);
             }
-            // Unload the previous project and reload it with the new workbench. Only after can we dispose of the previous workbench.
-            this.extendedProject.setWithPromise(this.loadSelectedProject());
-            await this.extendedProject.getValue();
+
+            const loadingTask = (async() => {
+                (await this.extendedProject.getValue())?.finishRunningOperations();
+                (await this.extendedWorkbench.getValue())?.loadArgVars(this.argVarsFile.selected);
+                return this.loadSelectedProject();
+            })();
+            this.extendedProject.setWithPromise(loadingTask);
+
             prevExtWb.then(extWb => extWb?.dispose());
         });
 

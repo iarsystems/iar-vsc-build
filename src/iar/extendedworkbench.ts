@@ -137,7 +137,6 @@ export class ThriftWorkbench implements ExtendedWorkbench {
             logger.debug("Unloading " + project.name);
             const context = this.loadedContexts.get(project.path);
             if (context !== undefined) {
-                this.loadedContexts.delete(project.path.toString());
                 await this.projectMgr.service.CloseProject(context);
                 this.loadedContexts.delete(project.path);
             }
