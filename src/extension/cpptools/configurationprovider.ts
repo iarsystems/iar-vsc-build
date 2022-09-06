@@ -214,9 +214,8 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             return true;
         } catch (err) {
             this.currentConfiguration = undefined;
-            const extWb = await ExtensionState.getInstance().extendedWorkbench.getValue();
-            // If the selected workbench doesn't support the selected config's toolchain, don't show an error msg; we can show a more helpful error message elsewhere.
-            const suppressErrors = extWb && !(await extWb.getToolchains()).some(tc => tc.id === config.toolchainId);
+            // If the selected workbench doesn't support the selected config's target, don't show an error msg; we can show a more helpful error message elsewhere.
+            const suppressErrors = !workbench.targetIds.includes(config.targetId);
             if (!suppressErrors) {
                 logger.error("Failed to generate intellisense config: " + err);
                 // Show error msg with a button to see the logs
@@ -246,7 +245,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         const filePath         = platformBasePath + "/config/syntax_icc.cfg";
         if (await FsUtils.exists(filePath)) {
             const keywords = await Keyword.fromSyntaxFile(filePath);
-            const blacklist = INTRINSIC_FUNCTIONS[config.toolchainId.toLowerCase()] ?? new Set();
+            const blacklist = INTRINSIC_FUNCTIONS[config.targetId] ?? new Set();
             this.keywordDefines = keywords.filter(kw => !blacklist.has(kw.identifier)).map(kw => Keyword.toDefine(kw));
         }
     }
@@ -270,17 +269,17 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
  * May return undefined, e.g. if the workbench doesn't have the required target installed.
  */
 async function getCompilerForConfig(config: Config, workbench: Workbench): Promise<string | undefined> {
-    const toolchainBinDir = Path.join(workbench.path.toString(), config.toolchainId.toLowerCase(), "bin");
+    const toolchainBinDir = Path.join(workbench.path.toString(), config.targetId, "bin");
     const regex = "icc.*" + RegexUtils.escape(IarOsUtils.executableExtension());
     const filter = FsUtils.createFilteredListDirectoryFilenameRegex(new RegExp(regex));
     const compilerPaths = await FsUtils.filteredListDirectory(toolchainBinDir, filter);
     if (compilerPaths[0] !== undefined) {
         if (compilerPaths.length > 1) {
-            logger.error(`Found more than one compiler candidate for ${config.toolchainId} in ${workbench}.`);
+            logger.error(`Found more than one compiler candidate for ${config.targetId} in ${workbench}.`);
         }
         return compilerPaths[0].toString();
     }
-    logger.error(`Didn't find a compiler for ${config.toolchainId} in ${workbench.path}.`);
+    logger.error(`Didn't find a compiler for ${config.targetId} in ${workbench.path}.`);
     return undefined;
 }
 

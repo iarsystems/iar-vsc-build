@@ -104,7 +104,7 @@ suite("Test settings view", () => {
             { name: "A project", path:"C:\\test\\A project.ewp", configurations: [], findConfiguration: () => undefined },
         );
         projectModel.select(0);
-        configModel.set( { name: "Debug", toolchainId: "ARM" }, { name: "Release", toolchainId: "ARM"} );
+        configModel.set( { name: "Debug", targetId: "arm" }, { name: "Release", targetId: "arm"} );
         configModel.select(1);
         updateDocument();
 
@@ -170,7 +170,7 @@ suite("Test settings view", () => {
 
     test("Escapes HTML tags", () => {
         // HTML tags must be escaped to prevent injections
-        configModel.set( { name: "<script>alert('Hello')</script><b>Debug</b>", toolchainId: "ARM" } );
+        configModel.set( { name: "<script>alert('Hello')</script><b>Debug</b>", targetId: "arm" } );
         configModel.select(0);
         updateDocument();
 

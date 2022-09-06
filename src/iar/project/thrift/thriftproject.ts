@@ -5,7 +5,7 @@
 import * as Path from "path";
 import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
 import { ExtendedProject } from "../project";
-import { Configuration, ProjectContext, Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
+import { ProjectContext, Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { QtoPromise } from "../../../utils/promise";
 import { Workbench } from "iar-vsc-common/workbench";
 import Int64 = require("node-int64");
@@ -21,7 +21,7 @@ export class ThriftProject implements ExtendedProject {
     private readonly currentOperations: Promise<unknown>[] = [];
 
     constructor(public path:                 string,
-                public configurations:       ReadonlyArray<Configuration>,
+                public configurations:       ReadonlyArray<Config>,
                 private readonly projectMgr: ProjectManager.Client,
                 private readonly context:             ProjectContext,
                 private readonly owner:      Workbench) {
@@ -114,7 +114,12 @@ export namespace ThriftProject {
      * @returns
      */
     export async function fromContext(path: string, pm: ProjectManager.Client, context: ProjectContext, owner: Workbench): Promise<ThriftProject> {
-        const configs = await pm.GetConfigurations(context);
+        const configs = (await pm.GetConfigurations(context)).map(thriftConfig => {
+            return {
+                name: thriftConfig.name,
+                targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
+            };
+        });
 
         // VSC-233 Warn users about having several groups with the same name
         if (!WorkbenchVersions.doCheck(owner, WorkbenchVersions.supportsSetNodeByIndex)) {

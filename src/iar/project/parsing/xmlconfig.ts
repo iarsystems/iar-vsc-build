@@ -33,12 +33,12 @@ export class XmlConfig implements Config {
         }
     }
 
-    get toolchainId(): string {
+    get targetId(): string {
         const toolchainXml = this.xml.getFirstChildByName("toolchain");
         if (toolchainXml) {
             const toolchain = IarXml.getNameTextFromElement(toolchainXml);
             if (toolchain) {
-                return toolchain;
+                return Config.toolchainIdToTargetId(toolchain);
             }
         }
         return "";

@@ -230,7 +230,7 @@ namespace ConfigGenerator {
                     return;
                 }
                 // generateFromCompilerArgs expects the first arg to be an absolute path to a compiler
-                compInv[0] = Path.join(workbench.path.toString(), `${config.toolchainId.toLowerCase()}/bin/${compInv[0]}`);
+                compInv[0] = Path.join(workbench.path.toString(), `${config.targetId}/bin/${compInv[0]}`);
                 compilerInvocationsMap.set(OsUtils.normalizePath(file), compInv);
             });
 

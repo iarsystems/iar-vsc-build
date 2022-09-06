@@ -135,7 +135,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
                 throw new Error(`No such configuration '${configName}' for project '${project.name}'.`);
             }
             const outputDirs = await CStatTaskExecution.getPossibleCStatOutputDirectories(projectPath, configName);
-            const ireportPath = Path.join(toolchain, config.toolchainId.toLowerCase(), "bin/ireport" + IarOsUtils.executableExtension());
+            const ireportPath = Path.join(toolchain, config.targetId, "bin/ireport" + IarOsUtils.executableExtension());
 
             const reportPath = await CStatReport.generateHTMLReport(
                 ireportPath,
