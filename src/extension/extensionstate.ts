@@ -263,15 +263,14 @@ class State {
     }
 
     private addConfigurationModelListeners(): void {
-        this.config.addOnSelectedHandler(async() => {
+        this.config.addOnSelectedHandler(() => {
             logger.debug(`Configuration: selected '${this.config.selected?.name}' (index ${this.config.selectedIndex})`);
             // Check that the configuration target is supported by the selected workbench.
             const selected = this.config.selected;
-            const extWb = await this.extendedWorkbench.getValue();
-            if (selected && extWb) {
-                const toolchains = await extWb.getToolchains();
-                if (!toolchains.some(tc => tc.id === selected.toolchainId)) {
-                    Vscode.window.showErrorMessage(`The target '${selected.toolchainId}' is not supported by the selected IAR toolchain. Please select a different toolchain.`);
+            const workbench = this.workbench.selected;
+            if (selected && workbench) {
+                if (!workbench.targetIds.includes(selected.targetId)) {
+                    Vscode.window.showErrorMessage(`The target '${Workbench.getTargetDisplayName(selected.targetId)}' is not supported by the selected IAR toolchain. Please select a different toolchain.`);
                 }
             }
         });
@@ -333,7 +332,7 @@ class State {
     private static selectWorkbenchMatchingProject(project: Project, workbenchModel: WorkbenchListModel): boolean {
         // Use a map to get all *unique* toolchains
         const projectToolchains = new Map<string, void>();
-        project.configurations.forEach(conf => projectToolchains.set(conf.toolchainId.toLowerCase()));
+        project.configurations.forEach(conf => projectToolchains.set(conf.targetId));
         const projectToolchainsArray = Array.from(projectToolchains.keys());
         // Select the first workbench that has all project toolchains.
         // Here, we're comparing 'toolchains' (internal thrift id), and 'targets' (the name of the toolchain directory on disk).

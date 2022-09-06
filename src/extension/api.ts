@@ -19,7 +19,7 @@ export const API: BuildExtensionApi = {
         if (selectedPath && OsUtils.pathsEqual(projectPath, selectedPath)) {
             const config = ExtensionState.getInstance().config.selected;
             if (config) {
-                return Promise.resolve({ name: config.name, target: config.toolchainId });
+                return Promise.resolve({ name: config.name, target: config.targetId });
             }
         }
         return Promise.resolve(undefined);
@@ -29,7 +29,7 @@ export const API: BuildExtensionApi = {
         const selectedPath = ExtensionState.getInstance().project.selected?.path.toString();
         if (selectedPath && OsUtils.pathsEqual(projectPath, selectedPath)) {
             return Promise.resolve(ExtensionState.getInstance().config.configurations.map(c => {
-                return { name: c.name, target: c.toolchainId };
+                return { name: c.name, target: c.targetId };
             }));
         }
         return Promise.resolve(undefined);

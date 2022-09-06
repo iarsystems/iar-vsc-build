@@ -7,6 +7,7 @@
 import { ListInputModelBase } from "./model";
 import { Config } from "../../iar/project/config";
 import { Project } from "../../iar/project/project";
+import { Workbench } from "iar-vsc-common/workbench";
 
 export class ConfigurationListModel extends ListInputModelBase<Config> {
     constructor(...configs: Config[]) {
@@ -21,7 +22,7 @@ export class ConfigurationListModel extends ListInputModelBase<Config> {
         return this.getConfigurationAt(index).name;
     }
     description(index: number): string | undefined {
-        return this.getConfigurationAt(index).toolchainId;
+        return Workbench.getTargetDisplayName(this.getConfigurationAt(index).targetId);
     }
     detail(): string | undefined {
         return undefined;

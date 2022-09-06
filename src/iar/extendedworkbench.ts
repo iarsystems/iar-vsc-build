@@ -31,8 +31,6 @@ import { WorkbenchVersions } from "./tools/workbenchversionregistry";
 export interface ExtendedWorkbench {
     readonly workbench: Workbench;
 
-    getToolchains(): Promise<Toolchain[]>;
-
     /**
      * Loads the given project into a {@link ExtendedProject}.
      * This method uses caching; loaded projects are kept in memory to speed up
@@ -95,10 +93,6 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     constructor(public workbench:   Workbench,
                 private readonly serviceMgr: ThriftServiceManager,
                 private readonly projectMgr: ThriftClient<ProjectManager.Client>) {
-    }
-
-    public getToolchains() {
-        return QtoPromise(this.projectMgr.service.GetToolchains());
     }
 
     public loadProject(project: Project): Promise<ThriftProject> {
