@@ -25,13 +25,4 @@ suite("Thrift workbench", function() {
         await thriftWb.dispose();
     });
 
-    test("Provides toolchain(s)", async() => {
-        const thriftWb = await ThriftWorkbench.from(workbench);
-        Assert(thriftWb);
-        const tcs = await thriftWb.getToolchains();
-        Assert(tcs.some(tc => tc.id === "ARM"));
-
-        await thriftWb.dispose();
-    });
-
 });
