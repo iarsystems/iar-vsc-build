@@ -192,7 +192,7 @@ namespace Rendering {
         <div id="contents">
             <div class="section">
                 <p>IAR Embedded Workbench or IAR Build Tools installation:</p>
-                ${makeDropdown(workbenches, DropdownIds.Workbench, "tools", workbenches.amount === 0 || workbenchesLoading, /*html*/`
+                ${makeDropdown(workbenches, DropdownIds.Workbench, "tools", workbenches.amount === 0 || workbenchesLoading, "No IAR toolchains found", /*html*/`
                     <vscode-divider></vscode-divider>
                     <vscode-option artificial>Add Toolchain...</vscode-option>
                 `)}
@@ -203,12 +203,16 @@ namespace Rendering {
             </div>
             <div class="section">
                     <p>Active Project and Configuration:</p>
-                    ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.amount === 0)}
-                    ${makeDropdown(configs, DropdownIds.Configuration, "settings-gear", configs.amount === 0)}
+                    ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.amount === 0, "No .ewp project found")}
+                    ${makeDropdown(configs, DropdownIds.Configuration, "settings-gear", configs.amount === 0, "No configurations found")}
             </div>
             <div class="section">
-                    <p>Custom Argument Variables File <span class="codicon codicon-question help-icon"></span></p>
-                    ${makeDropdown(argVarFiles, DropdownIds.ArgVarsFile, "variable-group", argVarFiles.amount === 0)}
+                    <p>Custom Argument Variables File
+                        <span class="codicon codicon-question help-icon">
+                            <span class="tooltip">Load a .custom_argvars file created in IAR Embedded Workbench (see <strong>Tools-&gt;Configure Custom Argument Variables...</strong>)</span>
+                        </span>
+                    </p>
+                    ${makeDropdown(argVarFiles, DropdownIds.ArgVarsFile, "variable-group", argVarFiles.amount === 0, "No .custom_argvars file found")}
             </div>
         </div>
 
@@ -220,12 +224,12 @@ namespace Rendering {
     </html>`;
     }
 
-    function makeDropdown<T>(model: ListInputModel<T>, id: DropdownIds, iconName: string, isDisabled: boolean, extraOptions?: string) {
+    function makeDropdown<T>(model: ListInputModel<T>, id: DropdownIds, iconName: string, isDisabled: boolean, emptyMsg: string, extraOptions?: string) {
         return /*html*/`
             <div class="dropdown-container">
                 <span class="codicon codicon-${iconName} dropdown-icon ${isDisabled ? "disabled" : ""}"></span>
                 <vscode-dropdown id="${id}" class="dropdown" ${isDisabled ? "disabled" : ""}>
-                    ${getDropdownOptions(model, "No .custom_argvars file found")}
+                    ${getDropdownOptions(model, emptyMsg)}
                     ${extraOptions ?? ""}
                 </vscode-dropdown>
             </div>
