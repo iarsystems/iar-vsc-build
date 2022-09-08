@@ -17,7 +17,7 @@ export class ArgVarFileWatcherService {
     constructor() {
         this.filesWatcher = vscode.workspace.createFileSystemWatcher("**/*.custom_argvars");
         this.filesWatcher.onDidCreate(path => {
-            logger.debug("Detected new project file: " + path.fsPath);
+            logger.debug("Detected new argvars file: " + path.fsPath);
             ExtensionState.getInstance().argVarsFile.addArgVarsFile(ArgVarsFile.fromFile(path.fsPath));
         });
 
