@@ -58,14 +58,14 @@ suite("Test Public TS Api", ()=>{
             await VscodeTestsUtils.activateProject("LedFlasher");
             const config = await api.getSelectedConfiguration(ledFlasherPath);
             Assert.strictEqual(config?.name, "Flash Debug");
-            Assert.strictEqual(config?.target, "ARM");
+            Assert.strictEqual(config?.target, "arm");
         }
         {
             await VscodeTestsUtils.activateProject("BasicDebugging");
             await VscodeTestsUtils.activateConfiguration("Release");
             const config = await api.getSelectedConfiguration(basicDebuggingPath);
             Assert.strictEqual(config?.name, "Release");
-            Assert.strictEqual(config?.target, "ARM");
+            Assert.strictEqual(config?.target, "arm");
         }
     });
     test("Returns project configurations", async() => {
@@ -73,16 +73,16 @@ suite("Test Public TS Api", ()=>{
             await VscodeTestsUtils.activateProject("LedFlasher");
             const configs = await api.getProjectConfigurations(ledFlasherPath);
             Assert.strictEqual(configs?.[0]?.name, "Flash Debug");
-            Assert.strictEqual(configs?.[0]?.target, "ARM");
+            Assert.strictEqual(configs?.[0]?.target, "arm");
         }
         {
             await VscodeTestsUtils.activateProject("BasicDebugging");
             await VscodeTestsUtils.activateConfiguration("Release");
             const configs = await api.getProjectConfigurations(basicDebuggingPath);
             Assert.strictEqual(configs?.[0]?.name, "Debug");
-            Assert.strictEqual(configs?.[0]?.target, "ARM");
+            Assert.strictEqual(configs?.[0]?.target, "arm");
             Assert.strictEqual(configs?.[1]?.name, "Release");
-            Assert.strictEqual(configs?.[1]?.target, "ARM");
+            Assert.strictEqual(configs?.[1]?.target, "arm");
         }
     });
 
