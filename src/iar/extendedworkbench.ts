@@ -112,6 +112,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
 
     public loadArgVars(argVars: ArgVarsFile | undefined) {
         if (!WorkbenchVersions.doCheck(this.workbench, WorkbenchVersions.supportsPMWorkspaces)) {
+            logger.error("Tried to load argvars file with unsupported workbench.");
             return Promise.resolve();
         }
         return this.mtx.runExclusive(async() => {
@@ -136,7 +137,11 @@ export class ThriftWorkbench implements ExtendedWorkbench {
             logger.debug("Unloading " + project.name);
             const context = this.loadedContexts.get(project.path);
             if (context !== undefined) {
-                await this.projectMgr.service.CloseProject(context);
+                if (WorkbenchVersions.doCheck(this.workbench, WorkbenchVersions.supportsPMWorkspaces)) {
+                    await this.projectMgr.service.RemoveProject(context);
+                } else {
+                    await this.projectMgr.service.CloseProject(context);
+                }
                 this.loadedContexts.delete(project.path);
             }
         });

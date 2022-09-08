@@ -32,7 +32,7 @@ export namespace WorkbenchVersions {
     export const supportsThriftPM: MinVersion = [[9,0,11], Type.EwOnly];
     /**
      * Whether this workbench supports loading workspaces from the thrift project manager (e.g. to load .custom_argvars files). */
-    export const supportsPMWorkspaces: MinVersion = [[9,1,0], Type.BxAndEw];
+    export const supportsPMWorkspaces: MinVersion = [[9,1,1], Type.BxAndEw];
 
 
     /**
@@ -95,7 +95,6 @@ export namespace WorkbenchVersions {
             "8.0.0": "8.10.1", // there wasn't actually a release using 8.0.0, but add it so we can match the supportsVSCode FixVersion
             "8.0.4": "8.10.1",
             "9.0.11": "9.20.4",
-            "9.1.0": "9.30.1", // not a real release
             "9.1.1": "9.30.1",
         },
         "riscv": {
