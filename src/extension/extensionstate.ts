@@ -194,8 +194,9 @@ class State {
                 this.extendedWorkbench.setValue(undefined);
             }
 
+            const extendedProj = await this.extendedProject.getValue();
             const loadingTask = (async() => {
-                (await this.extendedProject.getValue())?.finishRunningOperations();
+                extendedProj?.finishRunningOperations();
                 (await this.extendedWorkbench.getValue())?.loadArgVars(this.argVarsFile.selected);
                 return this.loadSelectedProject();
             })();

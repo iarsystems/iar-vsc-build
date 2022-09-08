@@ -112,7 +112,6 @@ export class ThriftWorkbench implements ExtendedWorkbench {
 
     public loadArgVars(argVars: ArgVarsFile | undefined) {
         if (!WorkbenchVersions.doCheck(this.workbench, WorkbenchVersions.supportsPMWorkspaces)) {
-            logger.error("Tried to load argvars file with unsupported workbench.");
             return Promise.resolve();
         }
         return this.mtx.runExclusive(async() => {
