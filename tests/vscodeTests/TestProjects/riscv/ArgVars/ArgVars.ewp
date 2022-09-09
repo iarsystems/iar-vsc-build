@@ -633,7 +633,7 @@
                 </option>
                 <option>
                     <name>IlinkOutputFile</name>
-                    <state>template_riscv.out</state>
+                    <state>ArgVars.out</state>
                 </option>
                 <option>
                     <name>IlinkDebugInfoEnable</name>
@@ -1945,4 +1945,4 @@
     <file>
         <name>$PROJ_DIR$\main.c</name>
     </file>
-<file><name>$PROJ_DIR$/Fibonacci.c</name></file><file><name>$PROJ_DIR$/Utilities.c</name></file></project>
+<file><name>$PROJ_DIR$/$TEST$.c</name></file><file><name>$PROJ_DIR$/Utilities.c</name></file></project>
