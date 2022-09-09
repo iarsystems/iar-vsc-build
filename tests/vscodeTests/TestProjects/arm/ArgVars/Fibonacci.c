@@ -28,9 +28,6 @@ static void NextCounter(void)
   callCount += 1;
 }
 
-// We want this project to fail to build, to test that build task failures are communicated to VS Code
-#pragma error "This is a deliberate error"
-
 /* Increase the 'callCount' variable. */
 /* Get and print the associated Fibonacci number. */
 static void DoForegroundProcess(void)

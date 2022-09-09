@@ -13,7 +13,7 @@ import { TestConfiguration } from "../testconfiguration";
 
 suite("Test Public TS Api", function() {
     let api: BuildExtensionApi;
-    let ledFlasherPath: string;
+    let sourceConfigPath: string;
     let basicDebuggingPath: string;
 
     suiteSetup(async function() {
@@ -24,7 +24,7 @@ suite("Test Public TS Api", function() {
         api = Vscode.extensions.getExtension("iarsystems.iar-build")!.exports;
 
         const sandboxPath = VscodeTestsSetup.setup();
-        ledFlasherPath = Path.join(sandboxPath, "SourceConfiguration/IAR-STM32F429II-EXP/LedFlasher/LedFlasher.ewp");
+        sourceConfigPath = Path.join(sandboxPath, "SourceConfiguration/Project/SourceConfiguration.ewp");
         basicDebuggingPath = Path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp");
         // Wait for a project to be loaded (this means both the workbench and project has settled)
         await ExtensionState.getInstance().extendedProject.getValue();
@@ -42,9 +42,9 @@ suite("Test Public TS Api", function() {
 
     test("Returns loaded project", async() => {
         {
-            await VscodeTestsUtils.activateProject("LedFlasher");
+            await VscodeTestsUtils.activateProject("SourceConfiguration");
             const projPath = await api.getSelectedProject();
-            Assert.strictEqual(projPath, ledFlasherPath);
+            Assert.strictEqual(projPath, sourceConfigPath);
         }
         {
             await VscodeTestsUtils.activateProject("BasicDebugging");
@@ -55,34 +55,34 @@ suite("Test Public TS Api", function() {
 
     test("Returns current configuration", async() => {
         {
-            await VscodeTestsUtils.activateProject("LedFlasher");
-            const config = await api.getSelectedConfiguration(ledFlasherPath);
-            Assert.strictEqual(config?.name, "Flash Debug");
-            Assert.strictEqual(config?.target, TestConfiguration.getConfiguration().target.toUpperCase());
+            await VscodeTestsUtils.activateProject("SourceConfiguration");
+            const config = await api.getSelectedConfiguration(sourceConfigPath);
+            Assert.strictEqual(config?.name, "TheConfiguration");
+            Assert.strictEqual(config?.target, TestConfiguration.getConfiguration().target);
         }
         {
             await VscodeTestsUtils.activateProject("BasicDebugging");
             await VscodeTestsUtils.activateConfiguration("Release");
             const config = await api.getSelectedConfiguration(basicDebuggingPath);
             Assert.strictEqual(config?.name, "Release");
-            Assert.strictEqual(config?.target, TestConfiguration.getConfiguration().target.toUpperCase());
+            Assert.strictEqual(config?.target, TestConfiguration.getConfiguration().target);
         }
     });
     test("Returns project configurations", async() => {
         {
-            await VscodeTestsUtils.activateProject("LedFlasher");
-            const configs = await api.getProjectConfigurations(ledFlasherPath);
-            Assert.strictEqual(configs?.[0]?.name, "Flash Debug");
-            Assert.strictEqual(configs?.[0]?.target, TestConfiguration.getConfiguration().target.toUpperCase());
+            await VscodeTestsUtils.activateProject("SourceConfiguration");
+            const configs = await api.getProjectConfigurations(sourceConfigPath);
+            Assert.strictEqual(configs?.[0]?.name, "TheConfiguration");
+            Assert.strictEqual(configs?.[0]?.target, TestConfiguration.getConfiguration().target);
         }
         {
             await VscodeTestsUtils.activateProject("BasicDebugging");
             await VscodeTestsUtils.activateConfiguration("Release");
             const configs = await api.getProjectConfigurations(basicDebuggingPath);
             Assert.strictEqual(configs?.[0]?.name, "Debug");
-            Assert.strictEqual(configs?.[0]?.target, TestConfiguration.getConfiguration().target.toUpperCase());
+            Assert.strictEqual(configs?.[0]?.target, TestConfiguration.getConfiguration().target);
             Assert.strictEqual(configs?.[1]?.name, "Release");
-            Assert.strictEqual(configs?.[1]?.target, TestConfiguration.getConfiguration().target.toUpperCase());
+            Assert.strictEqual(configs?.[1]?.target, TestConfiguration.getConfiguration().target);
         }
     });
 
@@ -93,7 +93,7 @@ suite("Test Public TS Api", function() {
         }
         await VscodeTestsUtils.activateProject("BasicDebugging");
         const commands = await api.getCSpyCommandline(basicDebuggingPath, "Debug");
-        const expectedCommands = TestConfiguration.getConfiguration().cspyCommandLine?.(basicDebuggingPath, ExtensionState.getInstance().workbench.selected!.path);
+        const expectedCommands = TestConfiguration.getConfiguration().cspyCommandLine?.(ExtensionState.getInstance().workbench.selected!.path, basicDebuggingPath);
         Assert.deepStrictEqual(commands, expectedCommands);
     });
 });

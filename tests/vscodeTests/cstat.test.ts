@@ -196,7 +196,7 @@ suite("Test C-STAT", () => {
     test("Run C-STAT with configured tasks", async()=>{
         await Vscode.workspace.getConfiguration("iar-build").update("c-stat.filterLevel", "Low");
         // Activate another project, to test that tasks are not dependent on the project being selected/loaded
-        VscodeTestsUtils.activateProject("LedFlasher");
+        VscodeTestsUtils.activateProject("BasicDebugging");
         const listedEws = ExtensionState.getInstance().workbench.workbenches;
         for (const ew of listedEws) {
             VscodeTestsUtils.activateWorkbench(ew.name);

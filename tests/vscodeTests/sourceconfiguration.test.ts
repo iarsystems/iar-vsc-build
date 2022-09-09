@@ -27,10 +27,10 @@ suite("Test Source Configuration (intelliSense)", ()=>{
     suiteSetup(async function() {
         this.timeout(40000);
         const sandboxPath = VscodeTestsSetup.setup();
-        projectDir = Path.join(sandboxPath, "SourceConfiguration/IAR-STM32F429II-EXP/LedFlasher");
-        libDir = Path.join(sandboxPath, "SourceConfiguration/STM32F4xx_DSP_StdPeriph_Lib/Libraries");
+        projectDir = Path.join(sandboxPath, "SourceConfiguration/Project");
+        libDir = Path.join(sandboxPath, "SourceConfiguration/Library");
 
-        await VscodeTestsUtils.activateProject("LedFlasher");
+        await VscodeTestsUtils.activateProject("SourceConfiguration");
         originalUserDefines = Settings.getDefines();
         await Vscode.workspace.getConfiguration("iar-build").update("defines", [USER_DEFINE_1, USER_DEFINE_2]);
 
@@ -57,18 +57,22 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         const workbench = ExtensionState.getInstance().workbench.selected!;
         // Project config
         Assert(config.includePath.some(path => OsUtils.pathsEqual(path, projectDir)));
-        Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(projectDir, "board"))));
-        Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(libDir, "STM32F4xx_StdPeriph_Driver/inc"))));
-        Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(libDir, "CMSIS/Device/ST/STM32F4xx/Include"))));
-        Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(libDir, "CMSIS/Device/ST/STM32F4xx/Source/Templates/iar"))));
+        Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(libDir, "inc"))));
         Assert(config.defines.some(define => define === "USE_STDPERIPH_DRIVER=1"));
-        Assert(config.defines.some(define => define === "STM32F429X=1"));
         Assert(config.defines.some(define => define === "HSE_VALUE=8000000"));
         // cmsis is not available on linux
         if (OsUtils.OsType.Windows === OsUtils.detectOsType() && TestConfiguration.getConfiguration().target === "arm") {
             Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/CMSIS/Core/Include"))));
             Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/CMSIS/Dsp/Include"))));
         }
+
+        // Compiler config
+        TestConfiguration.getConfiguration().defaultIncludePaths.forEach(includeRegex => {
+            Assert(config.includePath.some(path => includeRegex.test(path)), `Found no include path matching ${includeRegex.source}`);
+        });
+
+        Assert(config.defines.some(define => define.match(new RegExp(`${TestConfiguration.getConfiguration().architectureDefine}=.+`))));
+        Assert(config.defines.some(define => define.match(/__VERSION__=".+"/)));
 
         // User settings
         Assert(config.defines.some(define => define === USER_DEFINE_1));
@@ -85,12 +89,7 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         let config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
         assertConfig(config!.configuration);
 
-        path = Path.join(projectDir, "board/system_stm32f4xx.c");
-        config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
-        Assert(provider.isProjectFile(path));
-        assertConfig(config!.configuration);
-
-        path = Path.join(libDir, "STM32F4xx_StdPeriph_Driver/src/misc.c");
+        path = Path.join(libDir, "src/gpio.c");
         Assert(provider.isProjectFile(path));
         config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
         assertConfig(config!.configuration);
@@ -106,7 +105,7 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         let config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
         assertConfig(config!.configuration);
 
-        path = Path.join(projectDir, "stm32f4xx_it.h");
+        path = Path.join(projectDir, "main.h");
         Assert(!provider.isProjectFile(path));
         config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
         assertConfig(config!.configuration);

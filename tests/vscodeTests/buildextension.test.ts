@@ -82,9 +82,10 @@ suite("Test build extension", ()=>{
 
     test("Load projects in directory", ()=>{
         const allProjects = ExtensionState.getInstance().project.projects;
+        assert(allProjects.some(config => config.name === "ArgVars"));
         assert(allProjects.some(config => config.name === "BasicDebugging"));
         assert(allProjects.some(config => config.name === "C-STATProject"));
-        assert(allProjects.some(config => config.name === "LedFlasher"));
+        assert(allProjects.some(config => config.name === "SourceConfiguration"));
     });
 
     test("No backups in project list", ()=>{

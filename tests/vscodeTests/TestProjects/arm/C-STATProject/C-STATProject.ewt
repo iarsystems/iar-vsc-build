@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project>
     <fileVersion>3</fileVersion>
     <configuration>
@@ -14,7 +13,7 @@
                 <version>515</version>
                 <cstatargs>
                     <useExtraArgs>0</useExtraArgs>
-                    <extraArgs></extraArgs>
+                    <extraArgs />
                     <analyzeTimeoutEnabled>1</analyzeTimeoutEnabled>
                     <analyzeTimeout>600</analyzeTimeout>
                     <enableParallel>1</enableParallel>
@@ -1433,7 +1432,7 @@
                 <version>515</version>
                 <cstatargs>
                     <useExtraArgs>0</useExtraArgs>
-                    <extraArgs></extraArgs>
+                    <extraArgs />
                     <analyzeTimeoutEnabled>1</analyzeTimeoutEnabled>
                     <analyzeTimeout>600</analyzeTimeout>
                     <enableParallel>1</enableParallel>

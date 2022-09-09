@@ -6,6 +6,7 @@ import * as Assert from "assert";
 import * as Path from "path";
 import { IarConfigurationProvider } from "../../src/extension/cpptools/configurationprovider";
 import { ExtensionState } from "../../src/extension/extensionstate";
+import { WorkbenchVersions } from "../../src/iar/tools/workbenchversionregistry";
 import { FsUtils } from "../../src/utils/fs";
 import { VscodeTestsSetup } from "./setup";
 import { VscodeTestsUtils } from "./utils";
@@ -23,7 +24,10 @@ suite("Test .custom_argvars project support", () => {
         await VscodeTestsUtils.activateProject("ArgVars");
     });
 
-    test("Can load project with .custom_argvars", async() => {
+    test("Can load project with .custom_argvars", async function() {
+        if (!WorkbenchVersions.doCheck(ExtensionState.getInstance().workbench.selected!, WorkbenchVersions.supportsPMWorkspaces)) {
+            this.skip();
+        }
         await VscodeTestsUtils.activateArgVarFile("ArgVarFile1.custom_argvars");
         await new Promise((res) => setTimeout(res, 1000));
         {
