@@ -125,7 +125,7 @@ suite("Test build extension", ()=>{
             VscodeTestsUtils.activateWorkbench(ew.name);
             if (ew.targetIds.includes(TestConfiguration.getConfiguration().target)) {
                 // Generate a testproject to build using the generic template
-                const testEwp = Utils.setupProject(id++, target.toUpperCase(), ewpFile, sandbox);
+                const testEwp = Utils.setupProject(id++, TestConfiguration.getConfiguration().target.toUpperCase(), ewpFile, sandbox);
                 // Build the project.
                 await VscodeTestsUtils.runTaskForProject(Utils.BUILD, path.basename(testEwp.ewp, ".ewp"), "Debug");
                 // Check that an output file has been created
