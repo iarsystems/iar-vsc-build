@@ -123,9 +123,7 @@ suite("Test build extension", ()=>{
         let id = 1;
         for (const ew of listedEws) {
             VscodeTestsUtils.activateWorkbench(ew.name);
-            // The tooltip is the absolute path to the current workbench. Read all the targets from the workbench.
-            const targets: string[] = ew.targetIds;
-            for (const target of targets) {
+            if (ew.targetIds.includes(TestConfiguration.getConfiguration().target)) {
                 // Generate a testproject to build using the generic template
                 const testEwp = Utils.setupProject(id++, target.toUpperCase(), ewpFile, sandbox);
                 // Build the project.

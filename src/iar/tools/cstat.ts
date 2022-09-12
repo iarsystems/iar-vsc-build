@@ -105,7 +105,7 @@ export namespace CStat {
             onWrite?.(`C-STAT database: ${actualDb}\n`);
             return getAllWarnings(actualDb, extensionPath);
         } else {
-            return Promise.reject(new Error("Could not find the C-STAT database. Searched locations:\n" + possibleDbPaths.join("\n")));
+            return Promise.reject(new Error("Could not find the C-STAT database. Searched locations:\r\n" + possibleDbPaths.join("\r\n")));
         }
     }
 

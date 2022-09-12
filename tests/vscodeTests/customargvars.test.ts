@@ -8,6 +8,7 @@ import { IarConfigurationProvider } from "../../src/extension/cpptools/configura
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { WorkbenchVersions } from "../../src/iar/tools/workbenchversionregistry";
 import { FsUtils } from "../../src/utils/fs";
+import { TestConfiguration } from "../testconfiguration";
 import { VscodeTestsSetup } from "./setup";
 import { VscodeTestsUtils } from "./utils";
 
@@ -25,6 +26,9 @@ suite("Test .custom_argvars project support", () => {
     });
 
     test("Can load project with .custom_argvars", async function() {
+        if (!TestConfiguration.getConfiguration().testThriftSupport) {
+            this.skip();
+        }
         if (!WorkbenchVersions.doCheck(ExtensionState.getInstance().workbench.selected!, WorkbenchVersions.supportsPMWorkspaces)) {
             this.skip();
         }
