@@ -19,7 +19,7 @@ suite("Test .custom_argvars project support", () => {
     let sandBoxDir: string;
 
     suiteSetup(async function() {
-        await VscodeTestsUtils.ensureExtensionIsActivated();
+        await VscodeTestsUtils.doExtensionSetup();
         sandBoxDir = VscodeTestsSetup.setup();
 
         await VscodeTestsUtils.activateProject("ArgVars");

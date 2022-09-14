@@ -19,7 +19,7 @@ import { WorkbenchType } from "iar-vsc-common/workbench";
 suite("Test Clicking Settings View", ()=>{
     suiteSetup(async function() {
         this.timeout(50000);
-        await VscodeTestsUtils.ensureExtensionIsActivated();
+        await VscodeTestsUtils.doExtensionSetup();
         VscodeTestsSetup.setup();
 
         // Focus the view. Otherwise it will not be instantiated/resolved.

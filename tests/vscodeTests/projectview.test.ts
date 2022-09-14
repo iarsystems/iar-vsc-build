@@ -34,7 +34,7 @@ suite("Test Project View", ()=>{
             return;
         }
         this.timeout(50000);
-        await VscodeTestsUtils.ensureExtensionIsActivated();
+        await VscodeTestsUtils.doExtensionSetup();
         const sandboxPath = VscodeTestsSetup.setup();
         projectDir = Path.join(sandboxPath, "SourceConfiguration/Project");
         libSrcDir = Path.join(sandboxPath, "SourceConfiguration/Library/src");

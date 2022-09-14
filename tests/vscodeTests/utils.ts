@@ -8,8 +8,10 @@ import { TestConfiguration } from "../testconfiguration";
 
 export namespace VscodeTestsUtils {
 
-    // Waits for the extension to be activated.
-    export async function ensureExtensionIsActivated() {
+    /**
+     * Waits for the extension to be activated, and selects an appopriate workbench to test with.
+     */
+    export async function doExtensionSetup() {
         const ext = Vscode.extensions.getExtension("iarsystems.iar-build");
         Assert(ext, "Extension is not installed, did its name change?");
         await ext?.activate();
@@ -21,6 +23,15 @@ export namespace VscodeTestsUtils {
             ExtensionState.getInstance().project.addOnInvalidateHandler(resolve);
         });
         await Promise.all([wbPromise, projectPromise]);
+
+        // Select the workbench to test with
+        const workbenchModel = ExtensionState.getInstance().workbench;
+        const candidates = workbenchModel.workbenches.filter(workbench => workbench.targetIds.includes(TestConfiguration.getConfiguration().target));
+        Assert(candidates.length > 0, "Found no workbench for target " + TestConfiguration.getConfiguration().target);
+        // Prioritize newer workbench versions
+        const candidatesPrioritized = candidates.sort((wb1, wb2) =>
+            (wb2.version.major - wb1.version.major) || (wb2.version.minor - wb1.version.minor) || (wb2.version.patch - wb1.version.patch));
+        workbenchModel.selectWhen(item => item === candidatesPrioritized[0]);
     }
 
     // ---- Helpers for interacting with the extension configuration UI

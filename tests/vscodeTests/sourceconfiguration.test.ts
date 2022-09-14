@@ -30,6 +30,7 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         projectDir = Path.join(sandboxPath, "SourceConfiguration/Project");
         libDir = Path.join(sandboxPath, "SourceConfiguration/Library");
 
+        await VscodeTestsUtils.doExtensionSetup();
         await VscodeTestsUtils.activateProject("SourceConfiguration");
         originalUserDefines = Settings.getDefines();
         await Vscode.workspace.getConfiguration("iar-build").update("defines", [USER_DEFINE_1, USER_DEFINE_2]);

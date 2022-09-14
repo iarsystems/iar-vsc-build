@@ -138,7 +138,7 @@ async function loadTools(addWorkbenchCommand?: Command<unknown>) {
     IarVsc.workbenchesLoading.next(true);
     const roots = Settings.getIarInstallDirectories();
 
-    await IarVsc.toolManager.collectWorkbenches(roots, false);
+    await IarVsc.toolManager.collectWorkbenches(roots, true);
     if (IarVsc.toolManager.workbenches.length === 0 && addWorkbenchCommand) {
         const response = await vscode.window.showErrorMessage("Unable to find any IAR toolchains to use. You must locate one before you can use this extension.", "Add IAR toolchain");
         if (response === "Add IAR toolchain") {

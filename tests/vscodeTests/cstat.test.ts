@@ -9,7 +9,6 @@ import { VscodeTestsUtils } from "./utils";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { readdir, unlink } from "fs/promises";
 import { VscodeTestsSetup } from "./setup";
-import { ExtensionState } from "../../src/extension/extensionstate";
 import { FsUtils } from "../../src/utils/fs";
 import escapeHTML = require("escape-html");
 import { TestConfiguration } from "../testconfiguration";
@@ -46,8 +45,9 @@ suite("Test C-STAT", () => {
     let originalFilterLevel: string | undefined;
     let originalAutoOpen: boolean | undefined;
 
-    suiteSetup(async() => {
-        await VscodeTestsUtils.ensureExtensionIsActivated();
+    suiteSetup(async function() {
+        this.timeout(50000);
+        await VscodeTestsUtils.doExtensionSetup();
         sandboxPath = VscodeTestsSetup.setup();
         originalFilterLevel = Vscode.workspace.getConfiguration("iar-build").get("c-stat.filterLevel");
         originalAutoOpen = Vscode.workspace.getConfiguration("iar-build").get("c-stat.autoOpenReports");
@@ -136,115 +136,104 @@ suite("Test C-STAT", () => {
     ];
 
     test("Run C-STAT on all listed EWs", async function() {
-        this.timeout(50000);
         await Vscode.workspace.getConfiguration("iar-build").update("c-stat.filterLevel", "Low");
-        const listedEws = ExtensionState.getInstance().workbench.workbenches;
-        console.log(listedEws);
-        for (const ew of listedEws) {
-            VscodeTestsUtils.activateWorkbench(ew.name);
 
-            // Make sure diagnostics are empty before we start
-            let diagnostics = getDiagnostics().flatMap(pair => pair[1]);
-            Assert.deepStrictEqual(diagnostics, [], "There were diagnostics before starting C-STAT task, check the test setup, or a previous test failed");
+        // Make sure diagnostics are empty before we start
+        let diagnostics = getDiagnostics().flatMap(pair => pair[1]);
+        Assert.deepStrictEqual(diagnostics, [], "There were diagnostics before starting C-STAT task, check the test setup, or a previous test failed");
 
-            await VscodeTestsUtils.runTaskForProject(ANALYSIS_TASK, TARGET_PROJECT, "Debug");
-            const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
-            Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only). Found these diagnostics:\n" + formatDiagnostics(fileDiagnostics));
-            Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, srcFilePath));
+        await VscodeTestsUtils.runTaskForProject(ANALYSIS_TASK, TARGET_PROJECT, "Debug");
+        const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
+        Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only). Found these diagnostics:\n" + formatDiagnostics(fileDiagnostics));
+        Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, srcFilePath));
 
-            diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
-            const expectedDiagnostics = generateExpectedDiagnostics();
-            if (TestConfiguration.getConfiguration().strictCstatCheck) {
-                Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
-                diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-                expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-                diagnostics.forEach((diag, i) => {
-                    Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
-                });
-            } else {
-                Assert(diagnostics.length >= expectedDiagnostics.length);
-            }
-
-            // Check that we can generate HTML reports
-            {
-                await VscodeTestsUtils.runTaskForProject(REPORT_SUMMARY_TASK, TARGET_PROJECT, "Debug");
-                const reportPath = path.join(sandboxPath, TARGET_PROJECT, `Debug/${TestConfiguration.getConfiguration().cstatOutputDir}/C-STAT report.html`);
-                Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
-            }
-            {
-                await VscodeTestsUtils.runTaskForProject(REPORT_FULL_TASK, TARGET_PROJECT, "Debug");
-                const reportPath = path.join(sandboxPath, TARGET_PROJECT, `Debug/${TestConfiguration.getConfiguration().cstatOutputDir}/main.c1.html`);
-                Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
-                const contents = await fsPromises.readFile(reportPath);
-                expectedDiagnostics.forEach(diagnostic => {
-                    // Escape the message to html. Some characters are not escaped for some reason, or escaped unconventionally
-                    Assert(contents.toString().includes(escapeHTML(diagnostic.message).replace(/&#39;/g, "'").replace(/&lt;/g, "&lt").replace(/&gt;/g, "&gt")),
-                        `Message '${diagnostic.message}' was not in the report`);
-                });
-            }
-
-            await VscodeTestsUtils.runTaskForProject(CLEAR_TASK, TARGET_PROJECT, "Debug");
-            diagnostics = getDiagnostics().flatMap(pair => pair[1]);
-            Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
-
-            // Finally, check that no backup files were created (VSC-192)
-            const backups = (await fsPromises.readdir(path.join(sandboxPath, TARGET_PROJECT))).filter(entry => entry.match(/Backup \(\d+\) of /));
-            Assert.strictEqual(backups.length, 0, "The following backups were created: " + backups.join(", "));
+        diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
+        const expectedDiagnostics = generateExpectedDiagnostics();
+        if (TestConfiguration.getConfiguration().strictCstatCheck) {
+            Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
+            diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+            expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+            diagnostics.forEach((diag, i) => {
+                Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
+            });
+        } else {
+            Assert(diagnostics.length >= expectedDiagnostics.length);
         }
+
+        // Check that we can generate HTML reports
+        {
+            await VscodeTestsUtils.runTaskForProject(REPORT_SUMMARY_TASK, TARGET_PROJECT, "Debug");
+            const reportPath = path.join(sandboxPath, TARGET_PROJECT, `Debug/${TestConfiguration.getConfiguration().cstatOutputDir}/C-STAT report.html`);
+            Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
+        }
+        {
+            await VscodeTestsUtils.runTaskForProject(REPORT_FULL_TASK, TARGET_PROJECT, "Debug");
+            const reportPath = path.join(sandboxPath, TARGET_PROJECT, `Debug/${TestConfiguration.getConfiguration().cstatOutputDir}/main.c1.html`);
+            Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
+            const contents = await fsPromises.readFile(reportPath);
+            expectedDiagnostics.forEach(diagnostic => {
+                // Escape the message to html. Some characters are not escaped for some reason, or escaped unconventionally
+                Assert(contents.toString().includes(escapeHTML(diagnostic.message).replace(/&#39;/g, "'").replace(/&lt;/g, "&lt").replace(/&gt;/g, "&gt")),
+                    `Message '${diagnostic.message}' was not in the report`);
+            });
+        }
+
+        await VscodeTestsUtils.runTaskForProject(CLEAR_TASK, TARGET_PROJECT, "Debug");
+        diagnostics = getDiagnostics().flatMap(pair => pair[1]);
+        Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
+
+        // Finally, check that no backup files were created (VSC-192)
+        const backups = (await fsPromises.readdir(path.join(sandboxPath, TARGET_PROJECT))).filter(entry => entry.match(/Backup \(\d+\) of /));
+        Assert.strictEqual(backups.length, 0, "The following backups were created: " + backups.join(", "));
     });
 
     test("Run C-STAT with configured tasks", async()=>{
         await Vscode.workspace.getConfiguration("iar-build").update("c-stat.filterLevel", "Low");
         // Activate another project, to test that tasks are not dependent on the project being selected/loaded
         VscodeTestsUtils.activateProject("BasicDebugging");
-        const listedEws = ExtensionState.getInstance().workbench.workbenches;
-        for (const ew of listedEws) {
-            VscodeTestsUtils.activateWorkbench(ew.name);
+        // Make sure diagnostics are empty before we start
+        let diagnostics = getDiagnostics().flatMap(pair => pair[1]);
+        Assert.deepStrictEqual(diagnostics, [], "There were diagnostics before starting C-STAT task, check the test setup, or a previous test failed");
 
-            // Make sure diagnostics are empty before we start
-            let diagnostics = getDiagnostics().flatMap(pair => pair[1]);
-            Assert.deepStrictEqual(diagnostics, [], "There were diagnostics before starting C-STAT task, check the test setup, or a previous test failed");
+        await VscodeTestsUtils.runTask(ANALYSIS_TASK_CONFIGURED);
+        const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
+        Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only). Found these diagnostics:\n" + formatDiagnostics(fileDiagnostics));
+        Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, srcFilePath));
 
-            await VscodeTestsUtils.runTask(ANALYSIS_TASK_CONFIGURED);
-            const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
-            Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only). Found these diagnostics:\n" + formatDiagnostics(fileDiagnostics));
-            Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, srcFilePath));
-
-            diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
-            const expectedDiagnostics = generateExpectedDiagnostics();
-            if (TestConfiguration.getConfiguration().strictCstatCheck) {
-                Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
-                diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-                expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-                diagnostics.forEach((diag, i) => {
-                    Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
-                });
-            } else {
-                Assert(diagnostics.length >= expectedDiagnostics.length);
-            }
-
-            // Check that we can generate HTML reports
-            {
-                await VscodeTestsUtils.runTask(REPORT_SUMMARY_TASK_CONFIGURED);
-                const reportPath = path.join(sandboxPath, TARGET_PROJECT, "Release/C-STAT/C-STAT report.html");
-                Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
-            }
-            {
-                await VscodeTestsUtils.runTask(REPORT_FULL_TASK_CONFIGURED);
-                const reportPath = path.join(sandboxPath, TARGET_PROJECT, "Release/C-STAT/main.c1.html");
-                Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
-                const contents = await fsPromises.readFile(reportPath);
-                expectedDiagnostics.forEach(diagnostic => {
-                    // Escape the message to html. Some characters are not escaped for some reason, or escaped unconventionally
-                    Assert(contents.toString().includes(escapeHTML(diagnostic.message).replace(/&#39;/g, "'").replace(/&lt;/g, "&lt").replace(/&gt;/g, "&gt")),
-                        `Message '${diagnostic.message}' was not in the report`);
-                });
-            }
-
-            await VscodeTestsUtils.runTask(CLEAR_TASK_CONFIGURED);
-            diagnostics = getDiagnostics().flatMap(pair => pair[1]);
-            Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
+        diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
+        const expectedDiagnostics = generateExpectedDiagnostics();
+        if (TestConfiguration.getConfiguration().strictCstatCheck) {
+            Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
+            diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+            expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+            diagnostics.forEach((diag, i) => {
+                Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
+            });
+        } else {
+            Assert(diagnostics.length >= expectedDiagnostics.length);
         }
+
+        // Check that we can generate HTML reports
+        {
+            await VscodeTestsUtils.runTask(REPORT_SUMMARY_TASK_CONFIGURED);
+            const reportPath = path.join(sandboxPath, TARGET_PROJECT, "Release/C-STAT/C-STAT report.html");
+            Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
+        }
+        {
+            await VscodeTestsUtils.runTask(REPORT_FULL_TASK_CONFIGURED);
+            const reportPath = path.join(sandboxPath, TARGET_PROJECT, "Release/C-STAT/main.c1.html");
+            Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
+            const contents = await fsPromises.readFile(reportPath);
+            expectedDiagnostics.forEach(diagnostic => {
+                // Escape the message to html. Some characters are not escaped for some reason, or escaped unconventionally
+                Assert(contents.toString().includes(escapeHTML(diagnostic.message).replace(/&#39;/g, "'").replace(/&lt;/g, "&lt").replace(/&gt;/g, "&gt")),
+                    `Message '${diagnostic.message}' was not in the report`);
+            });
+        }
+
+        await VscodeTestsUtils.runTask(CLEAR_TASK_CONFIGURED);
+        diagnostics = getDiagnostics().flatMap(pair => pair[1]);
+        Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
     });
     const generateExpectedDiagnosticsHigh: () => Vscode.Diagnostic[] = () => [
         { message: "Calling standard library function `printf' without detecting and handling errors or casting explicitly to `void'", code: "CERT-ERR33-C_c [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(19, 5), relatedInformation: [
@@ -265,36 +254,31 @@ suite("Test C-STAT", () => {
         const targetProject = "C-STATProject";
         await Vscode.workspace.getConfiguration("iar-build").update("c-stat.filterLevel", "High");
 
-        const listedEws = ExtensionState.getInstance().workbench.workbenches;
-        for (const ew of listedEws) {
-            VscodeTestsUtils.activateWorkbench(ew.name);
+        // Make sure diagnostics are empty before we start
+        let diagnostics = getDiagnostics().flatMap(pair => pair[1]);
+        Assert.deepStrictEqual(diagnostics, [], "There were diagnostics before starting C-STAT task, check the test setup, or a previous test failed");
 
-            // Make sure diagnostics are empty before we start
-            let diagnostics = getDiagnostics().flatMap(pair => pair[1]);
-            Assert.deepStrictEqual(diagnostics, [], "There were diagnostics before starting C-STAT task, check the test setup, or a previous test failed");
+        await VscodeTestsUtils.runTaskForProject(ANALYSIS_TASK, targetProject, "Debug");
+        const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
+        Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only). Found these diagnostics:\n" + formatDiagnostics(fileDiagnostics));
+        Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, srcFilePath));
 
-            await VscodeTestsUtils.runTaskForProject(ANALYSIS_TASK, targetProject, "Debug");
-            const fileDiagnostics = getDiagnostics().filter(diag => diag[1].length > 0);
-            Assert.strictEqual(fileDiagnostics.length, 1, "Expected diagnostics in main file (only). Found these diagnostics:\n" + formatDiagnostics(fileDiagnostics));
-            Assert(OsUtils.pathsEqual(fileDiagnostics[0]![0].fsPath, srcFilePath));
-
-            diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
-            const expectedDiagnosticsHigh = generateExpectedDiagnosticsHigh();
-            if (TestConfiguration.getConfiguration().strictCstatCheck) {
-                Assert.strictEqual(diagnostics.length, expectedDiagnosticsHigh.length, "Actual and expected diagnostics are not the same length");
-                diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-                expectedDiagnosticsHigh.sort((a, b) => a.message < b.message ? -1 : 1);
-                diagnostics.forEach((diag, i) => {
-                    Utils.assertDiagnosticEquals(diag, expectedDiagnosticsHigh[i]!);
-                });
-            } else {
-                Assert(diagnostics.length >= expectedDiagnosticsHigh.length);
-            }
-
-            await VscodeTestsUtils.runTaskForProject(CLEAR_TASK_CONFIGURED, targetProject, "Debug");
-            diagnostics = getDiagnostics().flatMap(pair => pair[1]);
-            Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
+        diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
+        const expectedDiagnosticsHigh = generateExpectedDiagnosticsHigh();
+        if (TestConfiguration.getConfiguration().strictCstatCheck) {
+            Assert.strictEqual(diagnostics.length, expectedDiagnosticsHigh.length, "Actual and expected diagnostics are not the same length");
+            diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
+            expectedDiagnosticsHigh.sort((a, b) => a.message < b.message ? -1 : 1);
+            diagnostics.forEach((diag, i) => {
+                Utils.assertDiagnosticEquals(diag, expectedDiagnosticsHigh[i]!);
+            });
+        } else {
+            Assert(diagnostics.length >= expectedDiagnosticsHigh.length);
         }
+
+        await VscodeTestsUtils.runTaskForProject(CLEAR_TASK_CONFIGURED, targetProject, "Debug");
+        diagnostics = getDiagnostics().flatMap(pair => pair[1]);
+        Assert.deepStrictEqual(diagnostics, [], "Not all C-STAT warnings were cleared");
     });
 
     function formatDiagnostics(diagnostics: Array<[Vscode.Uri, Vscode.Diagnostic[]]>): string {
