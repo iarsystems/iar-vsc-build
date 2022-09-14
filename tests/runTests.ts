@@ -4,18 +4,31 @@
 
 import {runTestsIn} from "iar-vsc-common/testutils/testRunner";
 import * as path from "path";
+import { TestConfiguration } from "./testconfiguration";
 import { VscodeTestsSetup } from "./vscodeTests/setup";
 
+/**
+ * Runs all tests from the command line. Use --test-configuration=<config> to specify what to test, see
+ * {@link TestConfiguration.TEST_CONFIGURATIONS}.
+ */
 async function main() {
-    const cmdlineEnvs = getEnvs();
+    const envs = getEnvs();
 
-    await runTestsIn(path.resolve(__dirname), "../..", "./unitTests/index", cmdlineEnvs);
-    await runTestsIn(path.resolve(__dirname), "../..", "./integrationTests/index", cmdlineEnvs);
+    const testConfigurationName = envs["test-configuration"];
+    if (testConfigurationName) {
+        envs[TestConfiguration.ENV_KEY] = testConfigurationName;
+        if (TestConfiguration.TEST_CONFIGURATIONS[testConfigurationName]) {
+            TestConfiguration.setParameters(TestConfiguration.TEST_CONFIGURATIONS[testConfigurationName]!);
+        }
+    }
+
+    await runTestsIn(path.resolve(__dirname), "../..", "./unitTests/index", envs);
+    await runTestsIn(path.resolve(__dirname), "../..", "./integrationTests/index", envs);
     // A temp workspace ("sandbox") needs to be set up _before_ we launch vscode,
     // so that the projects are detected correctly
     const workspaceDir = VscodeTestsSetup.setup();
-    await runTestsIn(path.resolve(__dirname), "../..", "./vscodeTests/index", cmdlineEnvs, workspaceDir);
-    await runTestsIn(path.resolve(__dirname), "../..", "./miscTests/index", cmdlineEnvs);
+    await runTestsIn(path.resolve(__dirname), "../..", "./vscodeTests/index", envs, workspaceDir);
+    await runTestsIn(path.resolve(__dirname), "../..", "./miscTests/index", envs);
 }
 
 /**
