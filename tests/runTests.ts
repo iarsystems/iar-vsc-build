@@ -22,13 +22,13 @@ async function main() {
         }
     }
 
-    await runTestsIn(path.resolve(__dirname), "../..", "./unitTests/index", envs);
-    await runTestsIn(path.resolve(__dirname), "../..", "./integrationTests/index", envs);
+    await runTestsIn(path.resolve(__dirname), "../..", "./unitTests/index", envs, undefined, envs["test-configuration"]);
+    await runTestsIn(path.resolve(__dirname), "../..", "./integrationTests/index", envs, undefined, envs["test-configuration"]);
     // A temp workspace ("sandbox") needs to be set up _before_ we launch vscode,
     // so that the projects are detected correctly
     const workspaceDir = VscodeTestsSetup.setup();
-    await runTestsIn(path.resolve(__dirname), "../..", "./vscodeTests/index", envs, workspaceDir);
-    await runTestsIn(path.resolve(__dirname), "../..", "./miscTests/index", envs);
+    await runTestsIn(path.resolve(__dirname), "../..", "./vscodeTests/index", envs, workspaceDir, envs["test-configuration"]);
+    await runTestsIn(path.resolve(__dirname), "../..", "./miscTests/index", envs, undefined, envs["test-configuration"]);
 }
 
 /**
