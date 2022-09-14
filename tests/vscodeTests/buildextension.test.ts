@@ -64,7 +64,7 @@ suite("Test build extension", ()=>{
 
     suiteSetup(async() => {
         console.log("Test build extension");
-        await VscodeTestsUtils.ensureExtensionIsActivated();
+        await VscodeTestsUtils.doExtensionSetup();
         sandboxPath = VscodeTestsSetup.setup();
         sandbox = VscodeTestsSetup.sandbox!;
         // Remove any build results from previous runs
@@ -119,36 +119,30 @@ suite("Test build extension", ()=>{
     test("Build and clean project with all listed EW:s", async function() {
         this.timeout(50000);
         const ewpFile = path.join(path.join(Utils.EXTENSION_ROOT, "tests/vscodeTests/BasicProject", "BasicProject.ewp"));
-        const listedEws = ExtensionState.getInstance().workbench.workbenches;
         let id = 1;
-        for (const ew of listedEws) {
-            VscodeTestsUtils.activateWorkbench(ew.name);
-            if (ew.targetIds.includes(TestConfiguration.getConfiguration().target)) {
-                // Generate a testproject to build using the generic template
-                const testEwp = Utils.setupProject(id++, TestConfiguration.getConfiguration().target.toUpperCase(), ewpFile, sandbox);
-                // Build the project.
-                await VscodeTestsUtils.runTaskForProject(Utils.BUILD, path.basename(testEwp.ewp, ".ewp"), "Debug");
-                // Check that an output file has been created
-                const exeFile = path.join(testEwp.folder, "Debug", "Exe", path.basename(testEwp.ewp, ".ewp") + ".out");
-                await Utils.assertFileExists(exeFile);
-                // Check that warnings are parsed correctly
-                // Doesn't seem like diagnostics are populated instantly after running tasks, so wait a bit
-                await new Promise((p, _) => setTimeout(p, 2000));
-                const srcFile = path.join(testEwp.folder, "main.c");
-                const diagnostics = vscode.languages.getDiagnostics(vscode.Uri.file(srcFile));
-                assert.strictEqual(diagnostics[0]?.message,  "variable \"unused\" was declared but never referenced");
-                assert.deepStrictEqual(diagnostics[0]?.range, new vscode.Range(new vscode.Position(2, 0), new vscode.Position(2, 0)));
-                assert.strictEqual(diagnostics[0]?.severity, vscode.DiagnosticSeverity.Warning);
+        // Generate a testproject to build using the generic template
+        const testEwp = Utils.setupProject(id++, TestConfiguration.getConfiguration().target.toUpperCase(), ewpFile, sandbox);
+        // Build the project.
+        await VscodeTestsUtils.runTaskForProject(Utils.BUILD, path.basename(testEwp.ewp, ".ewp"), "Debug");
+        // Check that an output file has been created
+        const exeFile = path.join(testEwp.folder, "Debug", "Exe", path.basename(testEwp.ewp, ".ewp") + ".out");
+        await Utils.assertFileExists(exeFile);
+        // Check that warnings are parsed correctly
+        // Doesn't seem like diagnostics are populated instantly after running tasks, so wait a bit
+        await new Promise((p, _) => setTimeout(p, 2000));
+        const srcFile = path.join(testEwp.folder, "main.c");
+        const diagnostics = vscode.languages.getDiagnostics(vscode.Uri.file(srcFile));
+        assert.strictEqual(diagnostics[0]?.message,  "variable \"unused\" was declared but never referenced");
+        assert.deepStrictEqual(diagnostics[0]?.range, new vscode.Range(new vscode.Position(2, 0), new vscode.Position(2, 0)));
+        assert.strictEqual(diagnostics[0]?.severity, vscode.DiagnosticSeverity.Warning);
 
-                // Clean the project.
-                await VscodeTestsUtils.runTaskForProject(Utils.CLEAN, path.basename(testEwp.ewp, ".ewp"), "Debug");
-                await Utils.assertFileNotExists(exeFile);
+        // Clean the project.
+        await VscodeTestsUtils.runTaskForProject(Utils.CLEAN, path.basename(testEwp.ewp, ".ewp"), "Debug");
+        await Utils.assertFileNotExists(exeFile);
 
-                // Finally, check that no backup files were created (VSC-192)
-                const backups = fs.readdirSync(path.dirname(testEwp.folder)).filter(entry => entry.match(/Backup \(\d+\) of /));
-                assert.strictEqual(backups.length, 0, "The following backups were created: " + backups.join(", "));
-            }
-        }
+        // Finally, check that no backup files were created (VSC-192)
+        const backups = fs.readdirSync(path.dirname(testEwp.folder)).filter(entry => entry.match(/Backup \(\d+\) of /));
+        assert.strictEqual(backups.length, 0, "The following backups were created: " + backups.join(", "));
     });
 
     test("Check that all EW's are listed", ()=>{
@@ -161,7 +155,7 @@ suite("Test build extension", ()=>{
         // Get the list of selectable ew:s
         const listedEws = ExtensionState.getInstance().workbench.workbenches;
         // Check that the lists are the same.
-        assert.deepStrictEqual(configuredEws?.length, listedEws.length);
+        assert(configuredEws?.length <= listedEws.length);
         for (const configuredEw of configuredEws) {
             const ewId: string = path.basename(configuredEw.toString());
             assert(listedEws.some(ew => ew.name.startsWith(ewId)));

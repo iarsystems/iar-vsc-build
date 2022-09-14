@@ -19,7 +19,7 @@ suite("Test Public TS Api", function() {
     suiteSetup(async function() {
         console.log("TS API tests");
         this.timeout(50000);
-        await VscodeTestsUtils.ensureExtensionIsActivated();
+        await VscodeTestsUtils.doExtensionSetup();
         VscodeTestsSetup.setup();
         api = Vscode.extensions.getExtension("iarsystems.iar-build")!.exports;
 
