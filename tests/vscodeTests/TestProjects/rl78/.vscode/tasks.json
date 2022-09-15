@@ -1,0 +1,49 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		// These are used to test that C-STAT tasks work both with and without a tasks.json file
+		{
+			"type": "iar-cstat",
+			"label": "iar-cstat: Run C-STAT Analysis (configured)",
+			"action": "run",
+			"project": "${workspaceFolder}/C-STATProject/C-STATProject.ewp",
+			"config": "Release",
+			"toolchain": "${command:iar-config.toolchain}",
+			"problemMatcher": []
+		},
+		{
+			"type": "iar-cstat",
+			"label": "iar-cstat: Clear C-STAT Diagnostics (configured)",
+			"action": "clear",
+			"project": "${workspaceFolder}/C-STATProject/C-STATProject.ewp",
+			"config": "Release",
+			"toolchain": "${command:iar-config.toolchain}",
+			"problemMatcher": []
+		},
+		{
+			"type": "iar-cstat",
+			"label": "iar-cstat: Generate Full HTML Report (configured)",
+			"action": "report-full",
+			"project": "${workspaceFolder}/C-STATProject/C-STATProject.ewp",
+			"config": "Release",
+			"toolchain": "${command:iar-config.toolchain}",
+			"problemMatcher": []
+		},
+		{
+			"type": "iar-cstat",
+			"label": "iar-cstat: Generate HTML Summary (configured)",
+			"action": "report-summary",
+			"project": "${workspaceFolder}/C-STATProject/C-STATProject.ewp",
+			"config": "Release",
+			"toolchain": "${command:iar-config.toolchain}",
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "create temp file",
+			"command": "touch",
+			"args": ["${command:iar-config.project-file}.tmp"],
+			"dependsOn": "iar: Build Project",
+		}
+	]
+}

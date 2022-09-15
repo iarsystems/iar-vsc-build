@@ -157,7 +157,7 @@ suite("Test C-STAT", () => {
                 Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
             });
         } else {
-            Assert(diagnostics.length >= expectedDiagnostics.length);
+            Assert.notStrictEqual(diagnostics.length, 0);
         }
 
         // Check that we can generate HTML reports
@@ -210,7 +210,7 @@ suite("Test C-STAT", () => {
                 Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
             });
         } else {
-            Assert(diagnostics.length >= expectedDiagnostics.length);
+            Assert.notStrictEqual(diagnostics.length, 0);
         }
 
         // Check that we can generate HTML reports
@@ -273,7 +273,7 @@ suite("Test C-STAT", () => {
                 Utils.assertDiagnosticEquals(diag, expectedDiagnosticsHigh[i]!);
             });
         } else {
-            Assert(diagnostics.length >= expectedDiagnosticsHigh.length);
+            Assert.notStrictEqual(diagnostics.length, 0);
         }
 
         await VscodeTestsUtils.runTaskForProject(CLEAR_TASK_CONFIGURED, targetProject, "Debug");
