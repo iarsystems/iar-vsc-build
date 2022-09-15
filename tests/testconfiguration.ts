@@ -143,5 +143,27 @@ export namespace TestConfiguration {
             defaultIncludePaths: [new RegExp("rh850[/\\\\]inc[/\\\\]"), new RegExp("rh850[/\\\\]inc[/\\\\]c")],
             architectureDefine: "__ICCRH850__",
         },
+        rl78: {
+            target: "rl78",
+            testThriftSupport: false,
+            vscodeTestProjectsDir: Path.join(__dirname, "../../tests/vscodeTests/TestProjects/rl78"),
+            strictCstatCheck: false,
+            cstatOutputDir: "Obj",
+            cstatHeaderQuoting: ["`", "'"],
+            integrationTestProjectsDir: Path.resolve(__dirname, "../../tests/integrationTests/TestProjects/rl78"),
+            defaultIncludePaths: [new RegExp("rl78[/\\\\]inc[/\\\\]"), new RegExp("rl78[/\\\\]inc[/\\\\]c")],
+            architectureDefine: "__ICCRL78__",
+        },
+        rx: {
+            target: "rx",
+            testThriftSupport: false,
+            vscodeTestProjectsDir: Path.join(__dirname, "../../tests/vscodeTests/TestProjects/rx"),
+            strictCstatCheck: false,
+            cstatOutputDir: "Obj",
+            cstatHeaderQuoting: ["`", "'"],
+            integrationTestProjectsDir: Path.resolve(__dirname, "../../tests/integrationTests/TestProjects/rx"),
+            defaultIncludePaths: [new RegExp("rx[/\\\\]inc[/\\\\]"), new RegExp("rx[/\\\\]inc[/\\\\]c")],
+            architectureDefine: "__ICCRX__",
+        },
     };
 }
