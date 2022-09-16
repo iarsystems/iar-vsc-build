@@ -187,7 +187,7 @@ suite("Test C-STAT", () => {
         Assert.strictEqual(backups.length, 0, "The following backups were created: " + backups.join(", "));
     });
 
-    test("Run C-STAT with configured tasks", async()=>{
+    test("Run C-STAT with configured tasks", async function() {
         await Vscode.workspace.getConfiguration("iar-build").update("c-stat.filterLevel", "Low");
         // Activate another project, to test that tasks are not dependent on the project being selected/loaded
         VscodeTestsUtils.activateProject("BasicDebugging");
@@ -250,7 +250,7 @@ suite("Test C-STAT", () => {
             // new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(9, 1)), "Return NULL"),
         ] },
     ];
-    test("Run C-STAT with high filter level", async()=>{
+    test("Run C-STAT with high filter level", async function() {
         const targetProject = "C-STATProject";
         await Vscode.workspace.getConfiguration("iar-build").update("c-stat.filterLevel", "High");
 
