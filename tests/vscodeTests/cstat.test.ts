@@ -169,9 +169,10 @@ suite("Test C-STAT", () => {
         {
             await VscodeTestsUtils.runTaskForProject(REPORT_FULL_TASK, TARGET_PROJECT, "Debug");
             const reportPath = path.join(sandboxPath, TARGET_PROJECT, `Debug/${TestConfiguration.getConfiguration().cstatOutputDir}/main.c1.html`);
-            Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
-            const contents = await fsPromises.readFile(reportPath);
-            expectedDiagnostics.forEach(diagnostic => {
+            const reportPath2 = path.join(sandboxPath, TARGET_PROJECT, `Debug/${TestConfiguration.getConfiguration().cstatOutputDir}/main.c.html`);
+            Assert(await FsUtils.exists(reportPath) || await FsUtils.exists(reportPath2), `Expected ${reportPath} or ${reportPath2} to exist`);
+            const contents = await fsPromises.readFile(await FsUtils.exists(reportPath) ? reportPath : reportPath2);
+            diagnostics.forEach(diagnostic => {
                 // Escape the message to html. Some characters are not escaped for some reason, or escaped unconventionally
                 Assert(contents.toString().includes(escapeHTML(diagnostic.message).replace(/&#39;/g, "'").replace(/&lt;/g, "&lt").replace(/&gt;/g, "&gt")),
                     `Message '${diagnostic.message}' was not in the report`);
@@ -216,15 +217,16 @@ suite("Test C-STAT", () => {
         // Check that we can generate HTML reports
         {
             await VscodeTestsUtils.runTask(REPORT_SUMMARY_TASK_CONFIGURED);
-            const reportPath = path.join(sandboxPath, TARGET_PROJECT, "Release/C-STAT/C-STAT report.html");
+            const reportPath = path.join(sandboxPath, TARGET_PROJECT, `Debug/${TestConfiguration.getConfiguration().cstatOutputDir}/C-STAT report.html`);
             Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
         }
         {
             await VscodeTestsUtils.runTask(REPORT_FULL_TASK_CONFIGURED);
-            const reportPath = path.join(sandboxPath, TARGET_PROJECT, "Release/C-STAT/main.c1.html");
-            Assert(await FsUtils.exists(reportPath), `Expected ${reportPath} to exist`);
-            const contents = await fsPromises.readFile(reportPath);
-            expectedDiagnostics.forEach(diagnostic => {
+            const reportPath = path.join(sandboxPath, TARGET_PROJECT, `Debug/${TestConfiguration.getConfiguration().cstatOutputDir}/main.c1.html`);
+            const reportPath2 = path.join(sandboxPath, TARGET_PROJECT, `Debug/${TestConfiguration.getConfiguration().cstatOutputDir}/main.c.html`);
+            Assert(await FsUtils.exists(reportPath) || await FsUtils.exists(reportPath2), `Expected ${reportPath} or ${reportPath2} to exist`);
+            const contents = await fsPromises.readFile(await FsUtils.exists(reportPath) ? reportPath : reportPath2);
+            diagnostics.forEach(diagnostic => {
                 // Escape the message to html. Some characters are not escaped for some reason, or escaped unconventionally
                 Assert(contents.toString().includes(escapeHTML(diagnostic.message).replace(/&#39;/g, "'").replace(/&lt;/g, "&lt").replace(/&gt;/g, "&gt")),
                     `Message '${diagnostic.message}' was not in the report`);

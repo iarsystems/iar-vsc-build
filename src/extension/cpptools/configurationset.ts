@@ -208,7 +208,10 @@ namespace ConfigGenerator {
                         const argDelimRegex = /"\s+"/;
                         let match: RegExpExecArray | null;
                         while ((match = argDelimRegex.exec(argsRaw)) !== null) {
-                            args.push(stripQuotes(argsRaw.slice(0, match.index)));
+                            const unquotedArg = stripQuotes(argsRaw.slice(0, match.index+1));
+                            // Quotes inside parameters are escaped on the command line, but we want the unescaped parameters
+                            const arg = unquotedArg.replace(/\\"/g, "\"");
+                            args.push(arg);
                             argsRaw = argsRaw.slice(match.index + 1);
                         }
                         args.push(stripQuotes(argsRaw));
