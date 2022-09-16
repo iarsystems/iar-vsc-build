@@ -108,7 +108,7 @@ def create_vscode_test_projects(source_file, target_id):
     ewt = ET.parse(ewt_file)
     for target in ewt.findall(".//toolchain/name[.='ARM']"):
         target.text = target_id.upper()
-    if target_id == "riscv":
+    if target_id == "riscv" or target_id == "rh850":
         # targets that do not have thrift PM support should use the default c-stat output directory, so the extension can find it
         ewt.find(".//outputDir").text = "Debug/C-STAT"
     ewt.write(ewt_file)

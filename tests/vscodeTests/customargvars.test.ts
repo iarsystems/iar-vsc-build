@@ -6,7 +6,7 @@ import * as Assert from "assert";
 import * as Path from "path";
 import { IarConfigurationProvider } from "../../src/extension/cpptools/configurationprovider";
 import { ExtensionState } from "../../src/extension/extensionstate";
-import { WorkbenchVersions } from "../../src/iar/tools/workbenchversionregistry";
+import { WorkbenchFeatures } from "../../src/iar/tools/workbenchfeatureregistry";
 import { FsUtils } from "../../src/utils/fs";
 import { TestConfiguration } from "../testconfiguration";
 import { VscodeTestsSetup } from "./setup";
@@ -29,7 +29,7 @@ suite("Test .custom_argvars project support", () => {
         if (!TestConfiguration.getConfiguration().testThriftSupport) {
             this.skip();
         }
-        if (!WorkbenchVersions.doCheck(ExtensionState.getInstance().workbench.selected!, WorkbenchVersions.supportsPMWorkspaces)) {
+        if (!WorkbenchFeatures.supportsFeature(ExtensionState.getInstance().workbench.selected!, WorkbenchFeatures.PMWorkspaces)) {
             this.skip();
         }
         await VscodeTestsUtils.activateArgVarFile("ArgVarFile1.custom_argvars");

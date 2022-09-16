@@ -12,7 +12,7 @@ import { ExtendedWorkbench } from "../../iar/extendedworkbench";
 import { InputModel } from "../model/model";
 import { AsyncObservable } from "../model/asyncobservable";
 import { Subject } from "rxjs";
-import { WorkbenchVersions } from "../../iar/tools/workbenchversionregistry";
+import { WorkbenchFeatures } from "../../iar/tools/workbenchfeatureregistry";
 
 /**
  * Shows a view to the left of all files/groups in the project, and all configurations in the project.
@@ -43,10 +43,10 @@ export class TreeProjectView {
                 this.view.message = "Loading...";
             } else {
                 if (!hasExtendedWb && workbenchModel.selected !== undefined) {
-                    if (!WorkbenchVersions.doCheck(workbenchModel.selected, WorkbenchVersions.supportsThriftPM)) {
+                    if (!WorkbenchFeatures.supportsFeature(workbenchModel.selected, WorkbenchFeatures.ThriftPM)) {
                         // The workbench is too old to support the files view.
                         // Try to display the minimum product version required to see it.
-                        const minProductVersion = WorkbenchVersions.getMinProductVersions(workbenchModel.selected, WorkbenchVersions.supportsThriftPM).join(", ");
+                        const minProductVersion = WorkbenchFeatures.getMinProductVersions(workbenchModel.selected, WorkbenchFeatures.ThriftPM).join(", ");
                         if (minProductVersion) {
                             this.view.message = `The IAR project view requires ${minProductVersion} or later.`;
                         } else {

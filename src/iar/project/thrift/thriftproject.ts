@@ -10,7 +10,7 @@ import { QtoPromise } from "../../../utils/promise";
 import { Workbench } from "iar-vsc-common/workbench";
 import Int64 = require("node-int64");
 import { InformationMessage, InformationMessageType } from "../../../extension/ui/informationmessage";
-import { WorkbenchVersions } from "../../tools/workbenchversionregistry";
+import { WorkbenchFeatures } from "../../tools/workbenchfeatureregistry";
 import { Config } from "../config";
 
 /**
@@ -36,7 +36,7 @@ export class ThriftProject implements ExtendedProject {
     }
     public setNode(node: Node, indexPath: number[]): Promise<void> {
         return this.performOperation(async() => {
-            if (WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.supportsSetNodeByIndex)) {
+            if (WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.SetNodeByIndex)) {
                 await this.projectMgr.SetNodeByIndex(this.context, indexPath.map(i => new Int64(i)), node, true);
             } else {
                 // eslint-disable-next-line deprecation/deprecation
@@ -48,12 +48,14 @@ export class ThriftProject implements ExtendedProject {
 
     getCStatOutputDirectory(config: string): Promise<string | undefined> {
         return this.performOperation(async() => {
-            if (this.findConfiguration(config) === undefined) {
+            const fullConfig = this.findConfiguration(config);
+            if (fullConfig === undefined) {
                 return Promise.reject(new Error(`Project '${this.name}' has no configuration '${config}'.`));
             }
-            if (!WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.canFetchProjectOptions)) {
+            if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.FetchProjectOptions, fullConfig.targetId)) {
                 return undefined;
             }
+
             const options = await this.projectMgr.GetOptionsForConfiguration(this.context, config);
             const outDir = options.find(option => option.id === "C-STAT.OutputDir")?.value;
             if (outDir !== undefined) {
@@ -65,10 +67,11 @@ export class ThriftProject implements ExtendedProject {
 
     getCSpyArguments(config: string): Promise<string[] | undefined> {
         return this.performOperation(() => {
-            if (this.findConfiguration(config) === undefined) {
+            const fullConfig = this.findConfiguration(config);
+            if (fullConfig === undefined) {
                 throw new Error(`Project '${this.name}' has no configuration '${config}'.`);
             }
-            if (!WorkbenchVersions.doCheck(this.owner, WorkbenchVersions.canFetchProjectOptions)) {
+            if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.FetchToolArguments, fullConfig.targetId)) {
                 return Promise.resolve(undefined);
             }
             return QtoPromise(this.projectMgr.GetToolArgumentsForConfiguration(this.context, "C-SPY", config));
@@ -122,7 +125,7 @@ export namespace ThriftProject {
         });
 
         // VSC-233 Warn users about having several groups with the same name
-        if (!WorkbenchVersions.doCheck(owner, WorkbenchVersions.supportsSetNodeByIndex)) {
+        if (!WorkbenchFeatures.supportsFeature(owner, WorkbenchFeatures.SetNodeByIndex)) {
             const node = await pm.GetRootNode(context);
             if (hasDuplicateGroupNames(new Set(), node)) {
                 const prompt = `The project ${Path.basename(path.toString())} has several groups with the same name. This may cause unwanted behaviour when adding or removing files.`;

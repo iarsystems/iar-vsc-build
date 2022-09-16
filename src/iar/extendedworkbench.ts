@@ -21,7 +21,7 @@ import { ArgVarsFile } from "./project/argvarfile";
 import { Mutex } from "async-mutex";
 import { tmpdir } from "os";
 import { createHash } from "crypto";
-import { WorkbenchVersions } from "./tools/workbenchversionregistry";
+import { WorkbenchFeatures } from "./tools/workbenchfeatureregistry";
 
 /**
  * A workbench with some extra capabilities,
@@ -111,7 +111,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     }
 
     public loadArgVars(argVars: ArgVarsFile | undefined) {
-        if (!WorkbenchVersions.doCheck(this.workbench, WorkbenchVersions.supportsPMWorkspaces)) {
+        if (!WorkbenchFeatures.supportsFeature(this.workbench, WorkbenchFeatures.PMWorkspaces)) {
             return Promise.resolve();
         }
         return this.mtx.runExclusive(async() => {
@@ -136,7 +136,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
             logger.debug("Unloading " + project.name);
             const context = this.loadedContexts.get(project.path);
             if (context !== undefined) {
-                if (WorkbenchVersions.doCheck(this.workbench, WorkbenchVersions.supportsPMWorkspaces)) {
+                if (WorkbenchFeatures.supportsFeature(this.workbench, WorkbenchFeatures.PMWorkspaces)) {
                     await this.projectMgr.service.RemoveProject(context);
                 } else {
                     await this.projectMgr.service.CloseProject(context);

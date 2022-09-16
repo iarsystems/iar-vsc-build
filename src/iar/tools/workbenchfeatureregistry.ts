@@ -6,54 +6,63 @@
 import { Workbench, WorkbenchType } from "iar-vsc-common/workbench";
 
 /**
- * Allows looking up information about a workbench based on its IDE platform version.
- * This can be used e.g. to handle API changes between versions or to handle bugs in specific versions.
+ * Allows looking up feature support for a workbench based on its IDE platform version.
+ * This can be used e.g. to handle API changes between platform versions or to handle bugs in specific platform versions.
  */
-export namespace WorkbenchVersions {
-    enum Type {
+export namespace WorkbenchFeatures {
+    // These types are export for testing only
+    export enum Type {
         BxAndEw,
         EwOnly,
     }
-    type MinVersion = [[number, number, number], Type];
+    type PlatformVersion = [number, number, number];
+    export interface FeatureRequirement {
+        baseVersion: PlatformVersion;
+        type: Type,
+        targetOverrides?: Record<string, PlatformVersion>;
+    }
 
     /**
      * We make no attempt to support versions below this; some things may still work... */
-    export const supportsVSCode: MinVersion = [[8,0,0], Type.BxAndEw];
+    export const VSCodeIntegration: FeatureRequirement = { baseVersion: [8,0,0], type: Type.BxAndEw };
     /**
-     * Whether this workbench can return correct options or tool arguments via thrift.
+     * Whether this workbench can return project/configuration options via thrift.
      * Previous versions may fail to expand some argvars, see MAJ-156. */
-    export const canFetchProjectOptions: MinVersion = [[9,1,1], Type.BxAndEw];
+    export const FetchProjectOptions: FeatureRequirement = {
+        baseVersion: [9,1,1],
+        type: Type.BxAndEw,
+        targetOverrides: {
+            // See IDE-6272
+            rh850: [9,2,0],
+        }
+    };
+    /**
+     * Whether this workbench can return tool arguments (e.g. C-SPY command lines) via thrift.
+     * Previous versions may fail to expand some argvars, see MAJ-156. */
+    export const FetchToolArguments: FeatureRequirement = { baseVersion: [9,1,1], type: Type.BxAndEw };
     /**
      * Whether this workbench supports the SetNodeByIndex thrift procedure, which
      * fixes issues with the previous SetNode procedure. See VSC-233. */
-    export const supportsSetNodeByIndex: MinVersion = [[9,1,1], Type.BxAndEw];
+    export const SetNodeByIndex: FeatureRequirement = { baseVersion: [9,1,1], type: Type.BxAndEw };
     /**
      * Whether this workbench supports the thrift project manager. */
-    export const supportsThriftPM: MinVersion = [[9,0,11], Type.EwOnly];
+    export const ThriftPM: FeatureRequirement = { baseVersion: [9,0,11], type: Type.EwOnly };
     /**
      * Whether this workbench supports loading workspaces from the thrift project manager (e.g. to load .custom_argvars files). */
-    export const supportsPMWorkspaces: MinVersion = [[9,1,1], Type.BxAndEw];
+    export const PMWorkspaces: FeatureRequirement = { baseVersion: [9,1,1], type: Type.BxAndEw };
 
 
     /**
      * Checks whether a workbench version meets the given minimum version.
      */
-    export function doCheck(workbench: Workbench, minVer: MinVersion) {
-        if (minVer[1] === Type.EwOnly && workbench.type === WorkbenchType.BX) {
+    export function supportsFeature(workbench: Workbench, requirement: FeatureRequirement, target?: string) {
+        if (requirement.type === Type.EwOnly && workbench.type === WorkbenchType.BX) {
             return false;
         }
 
-        const ewVersion = [workbench.version.major, workbench.version.minor, workbench.version.patch];
-        for (let i = 0; i < 3; i++) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            if (ewVersion[i]! > minVer[0][i]!) {
-                return true;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            } else if (ewVersion[i]! < minVer[0][i]!) {
-                return false;
-            }
-        }
-        return true;
+        const minVer = calculateMinimumVersion(requirement, target ?? workbench.targetIds);
+        const ewVersion: PlatformVersion = [workbench.version.major, workbench.version.minor, workbench.version.patch];
+        return comparePlatformVersions(ewVersion, minVer) >= 0;
     }
 
     /**
@@ -67,11 +76,12 @@ export namespace WorkbenchVersions {
      * @param workbench A workbench to check
      * @param minVer The version the workbench should meet
      */
-    export function getMinProductVersions(workbench: Workbench, minVer: MinVersion): string[] {
-        // Do we know the production version for this target and platform version?
-        const minVersionString = `${minVer[0][0]}.${minVer[0][1]}.${minVer[0][2]}`;
+    export function getMinProductVersions(workbench: Workbench, feature: FeatureRequirement): string[] {
 
         return workbench.targetIds.map(target => {
+            const minVer = calculateMinimumVersion(feature, target);
+            // Do we know the production version for this target and platform version?
+            const minVersionString = `${minVer[0]}.${minVer[1]}.${minVer[2]}`;
             const productVersion = productVersionTable[target]?.[minVersionString];
             if (productVersion === undefined) {
                 return undefined;
@@ -83,6 +93,37 @@ export namespace WorkbenchVersions {
 
             return "IAR " + (useBuildTools ? "Build Tools" : "Embedded Workbench") + " for " + targetDisplayName + " " + productVersion;
         }).filter((product): product is string => !!product);
+    }
+
+    // Calculates the minimum required ide version to support a feature for the given target(s)
+    function calculateMinimumVersion(requirement: FeatureRequirement, targetIds: string | string[]): PlatformVersion {
+        if (!Array.isArray(targetIds)) {
+            targetIds = [targetIds];
+        }
+
+        let minVer = requirement.baseVersion;
+        if (requirement.targetOverrides) {
+            for (const targetId of targetIds) {
+                const overrideVersion = requirement.targetOverrides[targetId];
+                if (overrideVersion && comparePlatformVersions(minVer, overrideVersion) < 0) {
+                    minVer = overrideVersion;
+                }
+            }
+        }
+        return minVer;
+    }
+
+    function comparePlatformVersions(a: PlatformVersion, b: PlatformVersion): number {
+        for (let i = 0; i < 3; i++) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            if (a[i]! > b[i]!) {
+                return 1;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            } else if (a[i]! < b[i]!) {
+                return -1;
+            }
+        }
+        return 0;
     }
 
     // Maps IDE platform versions to (user-visible) product versions

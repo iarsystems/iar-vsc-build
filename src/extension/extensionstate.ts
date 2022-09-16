@@ -14,7 +14,7 @@ import { ExtendedWorkbench, ThriftWorkbench } from "../iar/extendedworkbench";
 import { AsyncObservable } from "./model/asyncobservable";
 import { BehaviorSubject } from "rxjs";
 import { InformationMessage, InformationMessageType } from "./ui/informationmessage";
-import { WorkbenchVersions } from "../iar/tools/workbenchversionregistry";
+import { WorkbenchFeatures } from "../iar/tools/workbenchfeatureregistry";
 import { logger } from "iar-vsc-common/logger";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Workbench } from "iar-vsc-common/workbench";
@@ -221,9 +221,9 @@ class State {
         // Early versions of the thrift project manager cannot load .custom_argvars files. Warn the user if relevant.
         this.extendedWorkbench.onValueDidChange(exWb => {
             if (exWb) {
-                if (this.argVarsFile.selected && !WorkbenchVersions.doCheck(exWb.workbench, WorkbenchVersions.supportsPMWorkspaces)) {
+                if (this.argVarsFile.selected && !WorkbenchFeatures.supportsFeature(exWb.workbench, WorkbenchFeatures.PMWorkspaces)) {
                     let message = "The selected IAR toolchain does not fully support loading .custom_argvars files. You may experience some unexpected behaviour.";
-                    const minVersions = WorkbenchVersions.getMinProductVersions(exWb.workbench, WorkbenchVersions.supportsPMWorkspaces);
+                    const minVersions = WorkbenchFeatures.getMinProductVersions(exWb.workbench, WorkbenchFeatures.PMWorkspaces);
                     if (minVersions.length > 0) {
                         message += ` To fix this, please upgrade to ${minVersions.join(", ")} or later.`;
                     }
@@ -234,8 +234,8 @@ class State {
         });
 
         this.workbench.addOnSelectedHandler(model => {
-            if (model.selected !== undefined && !WorkbenchVersions.doCheck(model.selected, WorkbenchVersions.supportsVSCode)) {
-                const minVersions = WorkbenchVersions.getMinProductVersions(model.selected, WorkbenchVersions.supportsVSCode);
+            if (model.selected !== undefined && !WorkbenchFeatures.supportsFeature(model.selected, WorkbenchFeatures.VSCodeIntegration)) {
+                const minVersions = WorkbenchFeatures.getMinProductVersions(model.selected, WorkbenchFeatures.VSCodeIntegration);
                 InformationMessage.show(
                     "unsupportedWorkbench",
                     "The selected IAR toolchain is not supported by this extension." + (minVersions.length > 0 ? ` The minimum supported version is ${minVersions.join(", ")}.`: ""),
