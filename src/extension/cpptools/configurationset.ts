@@ -131,9 +131,9 @@ namespace ConfigGenerator {
             }
             // Have iarbuild create the json compilation database
             output?.appendLine("Generating compilation database...");
-            const extraArgs = Settings.getExtraBuildArguments();
+            let extraArgs = Settings.getExtraBuildArguments();
             if (argVarFile) {
-                extraArgs.unshift("-varfile", argVarFile.path);
+                extraArgs = [...extraArgs, "-varfile", argVarFile.path];
             }
 
             // VSC-192 Invoke iarbuild and clean up any backups created
@@ -175,9 +175,9 @@ namespace ConfigGenerator {
      * Uses iarbuild -dryrun -log all, parsing the output to find compilation flags for each file, then calls {@link generateFromCompilerArgs}
      */
     export function generateArgsForBeforeFilifjonkan(project: Project, config: Config, workbench: Workbench, argVarFile?: ArgVarsFile, workspaceFolder?: string, output?: vscode.OutputChannel): Promise<Map<string, string[]>> {
-        const extraArgs = Settings.getExtraBuildArguments();
+        let extraArgs = Settings.getExtraBuildArguments();
         if (argVarFile) {
-            extraArgs.unshift("-varfile", argVarFile.path);
+            extraArgs = [...extraArgs, "-varfile", argVarFile.path];
         }
 
         // VSC-192 clean up any backups created by iarbuild
