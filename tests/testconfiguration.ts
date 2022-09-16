@@ -115,7 +115,7 @@ export namespace TestConfiguration {
             testThriftSupport: true,
             vscodeTestProjectsDir: Path.join(__dirname, "../../tests/vscodeTests/TestProjects/rh850"),
             strictCstatCheck: false,
-            cstatOutputDir: "Obj",
+            cstatOutputDir: "C-STAT",
             cstatHeaderQuoting: ["`", "'"],
             cspyCommandLine: (wb, proj) => [
                 "/file",

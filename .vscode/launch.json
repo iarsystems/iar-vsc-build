@@ -70,6 +70,7 @@
             ],
             "env": {
                 "log-to-console": "true",
+                "TEST_CONFIGURATION_NAME": "arm"
             },
             "preLaunchTask": "npm: test-compile",
             "presentation": {

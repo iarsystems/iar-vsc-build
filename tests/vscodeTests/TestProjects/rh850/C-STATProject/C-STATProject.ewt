@@ -21,7 +21,7 @@
                     <enableFalsePositives>0</enableFalsePositives>
                     <messagesLimitEnabled>1</messagesLimitEnabled>
                     <messagesLimit>100</messagesLimit>
-                    <outputDir>Debug/C-STAT Output</outputDir>
+                    <outputDir>Debug/C-STAT</outputDir>
                 </cstatargs>
                 <cstat_settings>
                     <cstat_version>2.3.2</cstat_version>

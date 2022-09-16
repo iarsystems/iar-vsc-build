@@ -14,7 +14,7 @@ import { ExtendedWorkbench, ThriftWorkbench } from "../iar/extendedworkbench";
 import { AsyncObservable } from "./model/asyncobservable";
 import { BehaviorSubject } from "rxjs";
 import { InformationMessage, InformationMessageType } from "./ui/informationmessage";
-import { WorkbenchVersions } from "../iar/tools/workbenchversionregistry";
+import { WorkbenchFeatures } from "../iar/tools/workbenchfeatureregistry";
 import { logger } from "iar-vsc-common/logger";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Workbench } from "iar-vsc-common/workbench";
@@ -194,8 +194,8 @@ class State {
         });
 
         this.workbench.addOnSelectedHandler(model => {
-            if (model.selected !== undefined && !WorkbenchVersions.doCheck(model.selected, WorkbenchVersions.supportsVSCode)) {
-                const minVersions = WorkbenchVersions.getMinProductVersions(model.selected, WorkbenchVersions.supportsVSCode);
+            if (model.selected !== undefined && !WorkbenchFeatures.supportsFeature(model.selected, WorkbenchFeatures.VSCodeIntegration)) {
+                const minVersions = WorkbenchFeatures.getMinProductVersions(model.selected, WorkbenchFeatures.VSCodeIntegration);
                 InformationMessage.show(
                     "unsupportedWorkbench",
                     "The selected IAR toolchain is not supported by this extension." + (minVersions.length > 0 ? ` The minimum supported version is ${minVersions.join(", ")}.`: ""),
