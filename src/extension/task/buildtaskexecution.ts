@@ -60,15 +60,16 @@ export class BuildTaskExecution extends StylizedTerminal {
             configName,
             "-log", "info" // VSC-124 This gives the same verbosity as EW
         ];
-        if (this.definition.argumentVariablesFile) {
-            args.push("-varfile", this.definition.argumentVariablesFile);
-        }
         let extraArgs = this.definition.extraBuildArguments;
         if (extraArgs === undefined) {
             extraArgs = Settings.getExtraBuildArguments();
         }
         if (extraArgs.length !== 0) {
             args.push(...extraArgs);
+        }
+        // Some versions of the IDE require that -varfile is added last
+        if (this.definition.argumentVariablesFile) {
+            args.push("-varfile", this.definition.argumentVariablesFile);
         }
 
         const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(projectPath))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;

@@ -77,7 +77,8 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     private async generateDiagnostics(projectPath: string, configName: string, toolchain: string, workspaceFolder?: string): Promise<void> {
         const extraArgs = this.definition.extraBuildArguments ?? Settings.getExtraBuildArguments();
         if (this.definition.argumentVariablesFile) {
-            extraArgs.unshift("-varfile", this.definition.argumentVariablesFile);
+            // Some IDE versions require -varfile to be last
+            extraArgs.push("-varfile", this.definition.argumentVariablesFile);
         }
 
         this.writeEmitter.fire("Running C-STAT...\r\n");
