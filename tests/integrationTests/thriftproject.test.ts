@@ -81,4 +81,13 @@ suite("Thrift project", function() {
         Assert.strictEqual(groupNode.children[0]?.name, sourceNode.name);
     });
 
+    // VSC-300 Generated nodes (e.g. output files) should not be included in the nodes from getRootNode()
+    test("No generated nodes", async() => {
+        const rootNode = await project.getRootNode();
+        const assertNoGeneratedDescendants = (node: Node) =>{
+            Assert(!node.isGenerated, "Found the following generated node: " + JSON.stringify(node));
+            node.children.forEach(child => assertNoGeneratedDescendants(child));
+        };
+        assertNoGeneratedDescendants(rootNode);
+    });
 });
