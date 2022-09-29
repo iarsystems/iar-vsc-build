@@ -32,7 +32,17 @@ export class ThriftProject implements ExtendedProject {
     }
 
     public getRootNode(): Promise<Node> {
-        return this.performOperation(() => QtoPromise(this.projectMgr.GetRootNode(this.context)));
+        return this.performOperation(async() => {
+            const root = await this.projectMgr.GetRootNode(this.context);
+            // VSC-300 Generated nodes cannot be trusted to be up-to-date, and should not be used at all.
+            // Thus, we hide them here, as close to the source as possible.
+            const recurseRemoveGeneratedNodes = (node: Node) => {
+                node.children = node.children.filter(child => !child.isGenerated);
+                node.children.forEach(child => recurseRemoveGeneratedNodes(child));
+            };
+            recurseRemoveGeneratedNodes(root);
+            return root;
+        });
     }
     public setNode(node: Node, indexPath: number[]): Promise<void> {
         return this.performOperation(async() => {
