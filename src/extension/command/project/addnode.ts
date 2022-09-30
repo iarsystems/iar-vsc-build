@@ -14,27 +14,55 @@ import { logger } from "iar-vsc-common/logger";
 
 
 /**
- * This command adds a file to a project (using a thrift ProjectManager)
+ * This command adds a file to an existing group
  */
 export class AddFileCommand extends ProjectCommand {
     constructor() {
         super("iar-build.addFile");
     }
 
-    async execute(source: FilesNode | undefined, project: ExtendedProject) {
+    execute(source: FilesNode | undefined, project: ExtendedProject) {
+        if (source === undefined) {
+            return;
+        }
+        return AddFile.execute(source, project);
+    }
+}
+/**
+ * This command adds a file to the root (top) level of a project
+ */
+export class AddFileToRootCommand extends ProjectCommand {
+    constructor() {
+        super("iar-build.addFileToRoot");
+    }
+
+    execute(_source: FilesNode, project: ExtendedProject) {
+        return AddFile.execute(undefined, project);
+    }
+}
+
+
+namespace AddFile {
+    /**
+     * Adds file(s) to the given node, or to the project root if the target is undefined.
+     * @param target The node to add the file(s) under
+     * @param project The project to which to add files
+     * @returns
+     */
+    export async function execute(target: FilesNode | undefined, project: ExtendedProject) {
         try {
             const projectDir = Path.dirname(project.path.toString());
             const uris = await Vscode.window.showOpenDialog({
                 canSelectFiles: true,
                 canSelectMany: true,
                 defaultUri: Vscode.Uri.file(projectDir),
-                filters: AddFileCommand.filePickerFilters,
+                filters: filePickerFilters,
             });
             if (uris === undefined || uris.length === 0) {
                 return;
             }
             const rootNode = await project.getRootNode();
-            const parent = source === undefined ? rootNode : source.iarNode;
+            const parent = target === undefined ? rootNode : target.iarNode;
             logger.debug(`Adding [${uris.join(", ")}] to node '${parent.name}' in '${project.name}'`);
 
 
@@ -43,7 +71,7 @@ export class AddFileCommand extends ProjectCommand {
                 parent.children.push(new Node({ children: [], name: name, type: NodeType.File, path: uri.fsPath, ...getNodeDefaults(), isGenerated: false }));
             });
 
-            await project.setNode(parent, source ? source.indexPath : []);
+            await project.setNode(parent, target ? target.indexPath : []);
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
                 Vscode.window.showErrorMessage("Unable to add file(s): " + e.toString());
@@ -55,7 +83,7 @@ export class AddFileCommand extends ProjectCommand {
     }
 
     // Same filters as used in EW
-    private static readonly filePickerFilters =
+    const filePickerFilters =
         {
             "Source Files": [ "c", "cpp", "cc", "h", "hpp", "s*", "msa", "asm", "vsp" ],
             "C/C++ Files": [ "c", "cpp", "cc", "h", "hpp" ],
@@ -69,17 +97,45 @@ export class AddFileCommand extends ProjectCommand {
 }
 
 /**
- * This command adds a group to a project (using a thrift ProjectManager)
+ * This command adds a group to an existing group
  */
 export class AddGroupCommand extends ProjectCommand {
     constructor() {
         super("iar-build.addGroup");
     }
 
-    async execute(source: FilesNode | undefined, project: ExtendedProject) {
+    execute(source: FilesNode | undefined, project: ExtendedProject) {
+        if (source === undefined) {
+            return;
+        }
+        return AddGroup.addGroup(source, project);
+    }
+}
+
+/**
+ * This command adds a group to the root (top) level of a project
+ */
+export class AddGroupToRootCommand extends ProjectCommand {
+    constructor() {
+        super("iar-build.addGroupToRoot");
+    }
+
+    execute(_source: FilesNode | undefined, project: ExtendedProject) {
+        return AddGroup.addGroup(undefined, project);
+    }
+}
+
+namespace AddGroup {
+    /**
+     * Adds a group to the given node, or to the project root if the target is undefined.
+     * @param target The node to add the group under
+     * @param project The project to which to add the group
+     * @returns
+     */
+    export async function addGroup(target: FilesNode | undefined, project: ExtendedProject) {
         try {
             const rootNode = await project.getRootNode();
-            const parent = source === undefined ? rootNode : source.iarNode;
+            const parent = target === undefined ? rootNode : target.iarNode;
 
             const name = await Vscode.window.showInputBox({ prompt: "Enter a name for the group", placeHolder: "MyGroup" });
             if (!name) {
@@ -90,7 +146,7 @@ export class AddGroupCommand extends ProjectCommand {
             const fullPath = Path.join(Path.dirname(project.path.toString()), name);
             const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath, ...getNodeDefaults(), isGenerated: false });
             parent.children.push(node);
-            await project.setNode(parent, source ? source.indexPath : []);
+            await project.setNode(parent, target ? target.indexPath : []);
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
                 Vscode.window.showErrorMessage("Unable to add group: " + e.toString());
