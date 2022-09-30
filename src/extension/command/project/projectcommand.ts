@@ -30,7 +30,8 @@ export abstract class ProjectCommand {
 
     /**
      * Called to run the command
-     * @param source The item in the tree view that was clicked to spawn this command
+     * @param source The item in the tree view that was clicked to spawn this command.
+     *      For command buttons in the view title, this is the tree item that is currently focused (or undefined if no item is focused)
      */
     abstract execute(source: FilesNode | undefined, project: ExtendedProject): void | Promise<void>;
 }
