@@ -41,6 +41,8 @@
     "onCommand:iar-build.selectConfiguration",
     "onCommand:iar-build.selectIarWorkspace",
     "onCommand:iar-build.addToolchain",
+    "onCommand:iar-build.addFileToRoot",
+    "onCommand:iar-build.addGroupToRoot",
     "onCommand:iar-build.addFile",
     "onCommand:iar-build.addGroup",
     "onCommand:iar-build.removeNode",
@@ -92,6 +94,18 @@
         "command": "iar-config.project-name",
         "title": "Get the selected project name",
         "category": "IAR Settings"
+      },
+      {
+        "command": "iar-build.addFileToRoot",
+        "title": "Add file(s) to project",
+        "category": "IAR Build",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "iar-build.addGroupToRoot",
+        "title": "Add group to project",
+        "category": "IAR Build",
+        "icon": "$(new-folder)"
       },
       {
         "command": "iar-build.addFile",
@@ -154,12 +168,12 @@
           "when": "view == iar-project"
         },
         {
-          "command": "iar-build.addFile",
+          "command": "iar-build.addFileToRoot",
           "when": "view == iar-project && iar-build.extendedProjectLoaded",
           "group": "navigation"
         },
         {
-          "command": "iar-build.addGroup",
+          "command": "iar-build.addGroupToRoot",
           "when": "view == iar-project && iar-build.extendedProjectLoaded",
           "group": "navigation"
         }
@@ -182,6 +196,14 @@
         }
       ],
       "commandPalette": [
+        {
+          "command": "iar-build.addFileToRoot",
+          "when": "false"
+        },
+        {
+          "command": "iar-build.addGroupToRoot",
+          "when": "false"
+        },
         {
           "command": "iar-build.addFile",
           "when": "false"
