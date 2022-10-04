@@ -72,7 +72,7 @@ export namespace TestConfiguration {
             vscodeTestProjectsDir: Path.join(__dirname, "../../tests/vscodeTests/TestProjects/arm"),
             strictCstatCheck: true,
             cstatOutputDir: "C-STAT Output",
-            cstatHeaderQuoting: ["<", ">"],
+            cstatHeaderQuoting: ["`", "'"],
             cspyCommandLine: (wb, proj) => [
                 "/file",
                 Path.join(Path.dirname(proj), "Debug/Exe/BasicDebugging.out"),
