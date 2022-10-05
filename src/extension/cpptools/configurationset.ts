@@ -297,7 +297,7 @@ namespace ConfigGenerator {
         }
         // Hash the filename to avoid collisions when running in parallel
         const macrosOutFile = Path.join(tmpDir, createHash("md5").update(compilerArgs[0]).digest("hex") + ".predef_macros");
-        const args = ["--IDE3", "--NCG", "--predef-macros", macrosOutFile].concat(compilerArgs);
+        const args = ["--IDE3", "--NCG", "--predef_macros", macrosOutFile].concat(compilerArgs);
         const compilerProc = spawn(compiler, args);
         return new Promise((resolve, _reject) => {
             compilerProc.on("error", (err) => {
