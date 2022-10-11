@@ -86,7 +86,7 @@ export namespace CStat {
                 Fs.unlinkSync(dbPath);
             }
         });
-        const args = [projectPath, "-cstat_analyze", configurationName, "-log", "info"].concat(extraBuildArguments);
+        const args = [projectPath, "-cstat_analyze", configurationName].concat(extraBuildArguments);
         onWrite?.(`> '${builderPath}' ${args.map(arg => `'${arg}'`).join(" ")}\n`);
         await BackupUtils.doWithBackupCheck(projectPath, async() => {
             const iarbuild = spawn(builderPath, args, {cwd: workingDirectory});

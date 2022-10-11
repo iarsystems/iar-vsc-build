@@ -58,7 +58,8 @@ export class BuildTaskExecution extends StylizedTerminal {
             projectPath,
             iarbuildCommand,
             configName,
-            "-log", "info" // VSC-124 This gives the same verbosity as EW
+            "-log",
+            Settings.getBuildOutputLogLevel()
         ];
         let extraArgs = this.definition.extraBuildArguments;
         if (extraArgs === undefined) {

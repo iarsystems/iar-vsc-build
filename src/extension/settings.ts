@@ -19,6 +19,7 @@ export namespace Settings {
         CstatAutoOpenReports = "c-stat.autoOpenReports",
         ColorizeBuildOutput = "colorizeBuildOutput",
         ProjectsToExclude = "projectsToExclude",
+        BuildOutputLogLevel = "buildOutputLogLevel",
     }
 
     export enum LocalSettingsField {
@@ -115,6 +116,20 @@ export namespace Settings {
     }
     export function getProjectsToExclude(): string | undefined {
         return Vscode.workspace.getConfiguration(section).get<string>(ExtensionSettingsField.ProjectsToExclude);
+    }
+    export function getBuildOutputLogLevel(): "all" | "info" | "warnings" | "errors" {
+        // we map the user-facing "pretty" values to the iarbuild parameter equivalents
+        const lvl = Vscode.workspace.getConfiguration(section).get<string>(ExtensionSettingsField.BuildOutputLogLevel);
+        if (lvl === undefined) {
+            return "info";
+        }
+        const map: Record<string, ReturnType<typeof getBuildOutputLogLevel>> = {
+            "All": "all",
+            "Messages": "info",
+            "Warnings": "warnings",
+            "Errors": "errors",
+        };
+        return map[lvl] ?? "info";
     }
 
     function generateSettingsFilePath(): Fs.PathLike | undefined  {

@@ -333,6 +333,17 @@
           "type": "boolean",
           "description": "Whether to apply colors to the output from the Build, Rebuild and Clean tasks.",
           "default": true
+        },
+        "iar-build.buildOutputLogLevel": {
+          "type": "string",
+          "description": "The level of messages to output when build a project or running C-STAT.",
+          "default": "Messages",
+          "enum": [
+            "All",
+            "Messages",
+            "Warnings",
+            "Errors"
+          ]
         }
       }
     },

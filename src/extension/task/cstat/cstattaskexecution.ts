@@ -75,7 +75,8 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
      * Runs C-STAT on the current project and updates the warnings displayed in VS Code
      */
     private async generateDiagnostics(projectPath: string, configName: string, toolchain: string, workspaceFolder?: string): Promise<void> {
-        const extraArgs = this.definition.extraBuildArguments ?? Settings.getExtraBuildArguments();
+        const extraArgs = ["-log", Settings.getBuildOutputLogLevel()];
+        extraArgs.push(...(this.definition.extraBuildArguments ?? Settings.getExtraBuildArguments()));
         if (this.definition.argumentVariablesFile) {
             // Some IDE versions require -varfile to be last
             extraArgs.push("-varfile", this.definition.argumentVariablesFile);
