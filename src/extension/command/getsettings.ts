@@ -18,17 +18,19 @@ export enum GetSettingsCommand {
     ArgVarFile = "iar-config.argument-variables-file",
 }
 
-class GetSettings implements Command<string | undefined> {
+class GetSettings implements Command<string> {
 
     constructor(readonly id: GetSettingsCommand, private readonly field: Settings.LocalSettingsField) {
     }
 
-    execute(_autoTriggered: boolean): string | undefined {
-        return Settings.getLocalSetting(this.field);
+    execute(_autoTriggered: boolean): string {
+        // We should not return undefined here. These commands are used as variables in e.g. tasks, and returning
+        // undefined from a command variable will make the task fail silently.
+        return Settings.getLocalSetting(this.field) ?? "";
     }
 
     register(context: Vscode.ExtensionContext): void {
-        const cmd = Vscode.commands.registerCommand(this.id, (): string | undefined => {
+        const cmd = Vscode.commands.registerCommand(this.id, (): string => {
             return this.execute(false);
         }, this);
 
