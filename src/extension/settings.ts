@@ -28,6 +28,8 @@ export namespace Settings {
         Configuration = "configuration",
         ArgVarFile = "argumentVariablesFile"
     }
+    /** Local settings field that are paths, and should support ${workspaceFolder} expansion */
+    const localSettingsPathFields = [LocalSettingsField.Workbench, LocalSettingsField.Ewp, LocalSettingsField.ArgVarFile];
 
     const section = "iar-build";
 
@@ -50,10 +52,17 @@ export namespace Settings {
     }
 
     export function getLocalSetting(field: LocalSettingsField): string | undefined {
-        return getSettingsFile()?.get(field);
+        let value = getSettingsFile()?.get(field);
+        if (localSettingsPathFields.includes(field) && value) {
+            value = resolvePath(value);
+        }
+        return value;
     }
 
     export function setLocalSetting(field: LocalSettingsField, value: string) {
+        if (localSettingsPathFields.includes(field) && value) {
+            value = encodePath(value);
+        }
         getSettingsFile()?.set(field, value);
     }
 
@@ -151,6 +160,24 @@ export namespace Settings {
 
         return settingsFile;
     }
+
+    function resolvePath(path: string): string {
+        const folders = Vscode.workspace.workspaceFolders;
+        if (folders !== undefined && folders[0] !== undefined) {
+            path = path.replace("${workspaceFolder}", folders[0].uri.fsPath);
+        }
+        return path;
+    }
+    function encodePath(path: string): string {
+        const folders = Vscode.workspace.workspaceFolders;
+        if (folders !== undefined && folders[0] !== undefined) {
+            const wsRelativePath = Path.relative(folders[0].uri.fsPath, path);
+            if (!wsRelativePath.startsWith("..") && !Path.isAbsolute(wsRelativePath)) {
+                return Path.join("${workspaceFolder}", wsRelativePath);
+            }
+        }
+        return path;
+    }
 }
 
 interface LocalSettings {
@@ -207,12 +234,8 @@ class LocalSettingsFile {
         Fs.writeFileSync(this.path, JSON.stringify(this.json_, undefined, 4));
     }
 
-    public static exists(path: Fs.PathLike): boolean {
-        return Fs.existsSync(path);
-    }
-
     private static loadFile(path: Fs.PathLike): LocalSettings  {
-        if (!LocalSettingsFile.exists(path)) {
+        if (!Fs.existsSync(path)) {
             return {};
         } else {
             try {
