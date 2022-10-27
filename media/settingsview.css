@@ -21,6 +21,7 @@ body {
 }
 .section {
     margin-bottom: 3em;
+    position: relative;
 }
 .dropdown-label {
     margin-bottom: .1em;
@@ -70,8 +71,7 @@ body {
 
 .help-icon {
     display: inline-block !important;
-    position: relative;
-    top: 4px;
+    vertical-align: bottom;
     margin-left: 5px;
     color: var(--vscode-tab-inactiveForeground);
 }
@@ -91,11 +91,11 @@ body {
     font-family: var(--vscode-font-family);
     font-size: var(--vscode-font-size);
     background-color: var(--vscode-editorHoverWidget-background);
+    box-shadow: 2px 2px 6px var(--vscode-widget-shadow);
     position: absolute;
     padding: .5em;
-    width: 24em;
-    margin-left: -15em;
-    top: 1.2em;
+    left: 0;
+    top: 1.4em;
     border: 1px solid var(--vscode-editorHoverWidget-border);
     z-index: 1;
 }
