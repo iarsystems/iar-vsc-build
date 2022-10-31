@@ -352,6 +352,7 @@
         "name": "iar-cc",
         "owner": "cpp",
         "fileLocation": "absolute",
+        "severity": "info",
         "pattern": {
           "regexp": "^([^(]*)\\((\\d*)\\)\\s*:\\s*([^\\[]*)[^:]*:\\s*(.*)",
           "file": 1,
@@ -364,6 +365,7 @@
         "name": "iar-linker",
         "owner": "cpp",
         "fileLocation": "absolute",
+        "severity": "info",
         "pattern": {
           "regexp": "^([^\\[]*)[^\\]]*\\]\\s*:\\s*([^\\(]*)\\[.*?((?:\\/|\\w:).*)\\s*\\]",
           "file": 3,
