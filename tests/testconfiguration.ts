@@ -1,6 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+import { OsUtils } from "iar-vsc-common/osUtils";
 import * as Path from "path";
 
 /**
@@ -85,13 +86,13 @@ export namespace TestConfiguration {
                 "--semihosting",
                 "--multicore_nr_of_cores=1",
                 "/driver",
-                Path.join(wb, "arm\\bin\\armSIM2.dll"),
+                Path.join(wb, OsUtils.detectOsType() === OsUtils.OsType.Windows ? "arm\\bin\\armSIM2.dll" : "arm/bin/libarmSIM2.so"),
                 "/proc",
-                Path.join(wb, "arm\\bin\\armPROC.dll"),
+                Path.join(wb, OsUtils.detectOsType() === OsUtils.OsType.Windows ? "arm\\bin\\armPROC.dll" : "arm/bin/libarmPROC.so"),
                 "/plugin",
-                Path.join(wb, "arm\\bin\\armlibsupport.dll"),
+                Path.join(wb, OsUtils.detectOsType() === OsUtils.OsType.Windows ? "arm\\bin\\armlibsupport.dll" : "arm/bin/libarmLibSupportEclipse.so"),
                 "/kernel",
-                "kernel.dll",
+                OsUtils.detectOsType() === OsUtils.OsType.Windows ? "kernel.dll" : "libkernel.so",
                 "/ilink"
             ],
             integrationTestProjectsDir: Path.resolve(__dirname, "../../tests/integrationTests/TestProjects/arm"),
