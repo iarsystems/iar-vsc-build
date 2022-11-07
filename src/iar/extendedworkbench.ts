@@ -10,7 +10,8 @@ import * as Path from "path";
 import { Workbench } from "iar-vsc-common/workbench";
 import { PROJECTMANAGER_ID, ProjectContext } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { ExtendedProject, Project } from "./project/project";
-import { ThriftServiceManager } from "./project/thrift/thriftservicemanager";
+import { ThriftServiceManager } from "iar-vsc-common/thrift/thriftServiceManager";
+import { ProjectManagerLauncher } from "./project/thrift/projectmanagerlauncher";
 import { ThriftClient } from "iar-vsc-common/thrift/thriftClient";
 import { ThriftProject } from "./project/thrift/thriftproject";
 import { BackupUtils } from "../utils/utils";
@@ -71,7 +72,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
      * Creates and returns a new {@link ThriftWorkbench} from the given workbench.
      */
     static async from(workbench: Workbench): Promise<ThriftWorkbench> {
-        const serviceManager = await ThriftServiceManager.fromWorkbench(workbench);
+        const serviceManager = await ProjectManagerLauncher.launchFromWorkbench(workbench);
         const projectManager = await serviceManager.findService(PROJECTMANAGER_ID, ProjectManager);
         return new ThriftWorkbench(workbench, serviceManager, projectManager);
     }
@@ -157,7 +158,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
             return Promise.resolve();
         }));
         this.projectMgr.close();
-        await this.serviceMgr.stop();
+        await this.serviceMgr.dispose();
     }
 
     public onCrash(handler: (code: number | null) => void) {
