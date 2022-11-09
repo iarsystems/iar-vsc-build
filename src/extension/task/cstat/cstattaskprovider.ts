@@ -6,6 +6,14 @@ import * as Vscode from "vscode";
 import { CStatTaskExecution } from "./cstattaskexecution";
 
 export namespace CStatTaskProvider {
+    // These are useful to have exported to run tasks programmatically
+    export enum TaskNames {
+        Run = "Run C-STAT Analysis",
+        Clear = "Clear C-STAT Diagnostics",
+        FullReport = "Generate Full HTML Report",
+        SummaryReport = "Generate HTML Summary",
+    }
+
     let taskProvider: Vscode.Disposable | undefined = undefined;
 
     export function register(context: Vscode.ExtensionContext) {
@@ -52,10 +60,10 @@ class CStatProvider implements Vscode.TaskProvider {
         const tasks: Vscode.Task[] = [];
         const taskVariants: Array<[string, "run" | "clear" | "report-full" | "report-summary"]> =
             [
-                ["Run C-STAT Analysis", "run"],
-                ["Clear C-STAT Diagnostics", "clear"],
-                ["Generate Full HTML Report", "report-full"],
-                ["Generate HTML Summary", "report-summary"],
+                [CStatTaskProvider.TaskNames.Run, "run"],
+                [CStatTaskProvider.TaskNames.Clear, "clear"],
+                [CStatTaskProvider.TaskNames.FullReport, "report-full"],
+                [CStatTaskProvider.TaskNames.SummaryReport, "report-summary"],
             ];
         for (const [label, action] of taskVariants) {
             const definition = this.getDefaultTaskDefinition(label, action);

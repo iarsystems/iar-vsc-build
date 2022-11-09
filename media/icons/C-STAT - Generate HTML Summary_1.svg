@@ -1,0 +1,15 @@
+<svg
+	xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+	<defs>
+		<style>.cls-1{opacity:.5;}.cls-2{fill:#fff;}.cls-3{fill:#3b3435;}.cls-4{fill:#fa6708;}.cls-5{fill:#393536;}</style>
+	</defs>
+	<g id="Layer_2" data-name="Layer 2">
+		<g id="_32x32" data-name="32x32" transform-origin="center", transform="scale(1.1, 1.1) translate(2, 1)">
+			<rect fill="var(--vscode-foreground)" x="10" y="14" width="12" height="2"/>
+			<rect fill="var(--vscode-foreground)" x="10" y="18" width="12" height="2"/>
+			<rect fill="var(--vscode-foreground)" x="10" y="22" width="12" height="2"/>
+			<path fill="var(--vscode-foreground)" d="M7.67,2l4.62,7.8a.82.82,0,0,1-.6,1.21H2.45a.82.82,0,0,1-.6-1.21L6.47,2.06A.71.71,0,0,1,7.67,2Z"/>
+			<polygon fill="var(--vscode-foreground)" points="22 4 20 4 12 4 12 6 20 6 20 10 24 10 24 26 8 26 8 13 6 13 6 28 26 28 26 10 26 8 22 4"/>
+		</g>
+	</g>
+</svg>

@@ -47,6 +47,7 @@
     "onCommand:iar-build.addFile",
     "onCommand:iar-build.addGroup",
     "onCommand:iar-build.removeNode",
+    "onCommand:iar-build.toggleCstatToolbar",
     "onCommand:iar-build.reloadProject",
     "onCommand:iar-config.toolchain",
     "onCommand:iar-config.project-file",
@@ -79,13 +80,13 @@
       },
       {
         "command": "iar-build.selectArgumentVariablesFile",
-        "title": "Select Configuration",
+        "title": "Select Argument Variables File",
         "category": "IAR Build"
       },
       {
         "command": "iar-config.toolchain",
         "title": "Get the selected toolchain location",
-        "category": "IAR Settings"
+        "category": "IAR toggleCstatToolbar"
       },
       {
         "command": "iar-config.project-file",
@@ -138,6 +139,11 @@
         "icon": "$(trash)"
       },
       {
+        "command": "iar-build.toggleCstatToolbar",
+        "title": "Toggle C-STAT Toolbar Visibility",
+        "category": "IAR Build"
+      },
+      {
         "command": "iar-build.reloadProject",
         "title": "Reload project",
         "category": "IAR Build",
@@ -161,15 +167,23 @@
     "views": {
       "iar-build": [
         {
+          "id": "iar-toolbar",
+          "name": "Toolbar",
+          "type": "webview",
+          "initialSize": 1
+        },
+        {
           "id": "iar-configuration",
           "name": "Extension Configuration",
-          "type": "webview"
+          "type": "webview",
+          "initialSize": 3
         },
         {
           "id": "iar-project",
           "name": "Files",
           "type": "tree",
-          "contextualTitle": "IAR Project"
+          "contextualTitle": "IAR Project",
+          "initialSize": 3
         }
       ]
     },
@@ -188,6 +202,10 @@
           "command": "iar-build.addGroupToRoot",
           "when": "view == iar-project && iar-build.extendedProjectLoaded",
           "group": "navigation"
+        },
+        {
+          "command": "iar-build.toggleCstatToolbar",
+          "when": "view == iar-toolbar"
         }
       ],
       "view/item/context": [
@@ -226,6 +244,10 @@
         },
         {
           "command": "iar-build.removeNode",
+          "when": "false"
+        },
+        {
+          "command": "iar-build.toggleCstatToolbar",
           "when": "false"
         },
         {
@@ -315,6 +337,11 @@
         },
         "iar-build.c-stat.autoOpenReports": {
           "description": "Whether to automatically open HTML reports in your browser when they are created.",
+          "type": "boolean",
+          "default": true
+        },
+        "iar-build.c-stat.showInToolbar": {
+          "description": "Whether to show buttons for C-STAT tasks in the IAR Build toolbar.",
           "type": "boolean",
           "default": true
         },

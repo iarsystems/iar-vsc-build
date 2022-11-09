@@ -28,6 +28,8 @@ import { StatusBarItem } from "./ui/statusbaritem";
 import { BehaviorSubject } from "rxjs";
 import { ArgVarsFile } from "../iar/project/argvarfile";
 import { ArgVarFileWatcherService } from "./argvarfilewatcher";
+import { ToolbarWebview } from "./ui/toolbarview";
+import { ToggleCstatToolbarCommand } from "./command/togglecstattoolbar";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
@@ -44,6 +46,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     new AddFileCommand().register(context);
     new AddGroupCommand().register(context);
     new RemoveNodeCommand().register(context);
+    new ToggleCstatToolbarCommand().register(context);
     const addWorkbenchCmd = new AddWorkbenchCommand(IarVsc.toolManager);
     addWorkbenchCmd.register(context);
     const workbenchCmd = Command.createSelectWorkbenchCommand(ExtensionState.getInstance().workbench);
@@ -62,6 +65,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
 
     IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, projectModel, configModel, argVarModel, addWorkbenchCmd, IarVsc.workbenchesLoading);
     vscode.window.registerWebviewViewProvider(SettingsWebview.VIEW_TYPE, IarVsc.settingsView);
+    vscode.window.registerWebviewViewProvider(ToolbarWebview.VIEW_TYPE, new ToolbarWebview(context.extensionUri));
     IarVsc.projectTreeView = new TreeProjectView(
         projectModel,
         ExtensionState.getInstance().extendedProject,

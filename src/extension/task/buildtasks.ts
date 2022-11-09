@@ -19,13 +19,14 @@ export interface BuildTaskDefinition {
     readonly extraBuildArguments: string[] | undefined;
 }
 
-enum TaskNames {
-    Build = "Build Project",
-    Rebuild = "Rebuild Project",
-    Clean = "Clean Project",
-}
 
 export namespace BuildTasks {
+    export enum TaskNames {
+        Build = "Build Project",
+        Rebuild = "Rebuild Project",
+        Clean = "Clean Project",
+    }
+
     export function generateTasks(dstMap: Map<string, Vscode.Task>): void {
         if (dstMap.get(TaskNames.Build) === undefined) {
             const task = generateTask(TaskNames.Build, "build");

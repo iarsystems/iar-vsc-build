@@ -17,6 +17,7 @@ export namespace Settings {
         CstatFilterLevel = "c-stat.filterLevel",
         CstatDisplayLowSeverityWarningsAsHints = "c-stat.displayLowSeverityWarningsAsHints",
         CstatAutoOpenReports = "c-stat.autoOpenReports",
+        CstatShowInToolbar = "c-stat.showInToolbar",
         ColorizeBuildOutput = "colorizeBuildOutput",
         ProjectsToExclude = "projectsToExclude",
         BuildOutputLogLevel = "buildOutputLogLevel",
@@ -118,6 +119,13 @@ export namespace Settings {
     export function getCstatAutoOpenReports(): boolean {
         const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.CstatAutoOpenReports);
         return val ?? false;
+    }
+    export function getCstatShowInToolbar(): boolean {
+        const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.CstatShowInToolbar);
+        return val ?? true;
+    }
+    export function setCstatShowInToolbar(value:  boolean) {
+        Vscode.workspace.getConfiguration(section).update(ExtensionSettingsField.CstatShowInToolbar, value);
     }
     export function getColorizeBuildOutput(): boolean {
         const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.ColorizeBuildOutput);
