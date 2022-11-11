@@ -25,6 +25,10 @@ suite("Test .custom_argvars project support", () => {
         await VscodeTestsUtils.activateProject("ArgVars");
     });
 
+    setup(function() {
+        console.log("\n==========================================================" + this.currentTest!.title + "==========================================================\n");
+    });
+
     test("Can load project with .custom_argvars", async function() {
         if (!TestConfiguration.getConfiguration().testThriftSupport) {
             this.skip();
@@ -59,7 +63,8 @@ suite("Test .custom_argvars project support", () => {
     });
     test("Source config provider handles project with .custom_argvars", async() => {
         await VscodeTestsUtils.activateArgVarFile("ArgVarFile1.custom_argvars");
-        await new Promise((res) => setTimeout(res, 2000));
+        // Make sure the source configuration has updated before proceeding
+        await IarConfigurationProvider.instance?.forceUpdate();
         Assert(IarConfigurationProvider.instance);
         // It is enough to test that it generates a configuration at all, since we already test elsewhere that
         // the configuration is correct.

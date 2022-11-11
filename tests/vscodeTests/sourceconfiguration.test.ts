@@ -37,10 +37,6 @@ suite("Test Source Configuration (intelliSense)", ()=>{
 
         const prov = IarConfigurationProvider.instance;
         Assert(prov, "Config provider should be initialized by now");
-        // We need to wait for config provider to finish updating, but implementing a method
-        // for waiting for it is too much work (forceUpdate can be canceled by other parts of the extension).
-        // Instead just sleep for a long time.
-        await new Promise((res, _) => setTimeout(res, 10000));
         await prov.forceUpdate();
         provider = prov;
     });
@@ -88,6 +84,7 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         let path = Path.join(projectDir, "main.c");
         Assert(provider.isProjectFile(path));
         let config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
+        console.log(JSON.stringify(config));
         assertConfig(config!.configuration);
 
         path = Path.join(libDir, "src/gpio.c");

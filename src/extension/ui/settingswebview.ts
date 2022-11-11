@@ -20,6 +20,7 @@ enum MessageSubject {
     ArgVarsSelected = "ArgVars",
     AddWorkbench = "AddWorkbench",
     OpenSettings = "OpenSettings",
+    ViewLoaded = "ViewLoaded",
 }
 export enum DropdownIds {
     Workbench = "workbench",
@@ -40,6 +41,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
     public static readonly VIEW_TYPE = "iar-configuration";
 
     private view?: vscode.WebviewView;
+    private viewLoaded: Promise<void> = Promise.reject(new Error("View is not attached yet"));
     private workbenchesLoading = false;
 
     /**
@@ -91,8 +93,10 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
                 vscode.Uri.joinPath(this.extensionUri, "node_modules"),
             ]
         };
+        let onViewLoaded: (() => void) | undefined = undefined;
+        this.viewLoaded = new Promise(resolve => onViewLoaded = resolve);
         // These messages are sent by our view (media/settingsview.js)
-        this.view.webview.onDidReceiveMessage(async(message: {subject: string, index: number }) => {
+        this.view.webview.onDidReceiveMessage(async(message: { subject: string, index: number }) => {
             logger.debug(`Message from settings view: ${JSON.stringify(message)}`);
             switch (message.subject) {
             case MessageSubject.WorkbenchSelected:
@@ -118,6 +122,9 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
             case MessageSubject.OpenSettings:
                 vscode.commands.executeCommand("workbench.action.openSettings", "@ext:iarsystems.iar-build");
                 break;
+            case MessageSubject.ViewLoaded:
+                onViewLoaded?.();
+                break;
             default:
                 logger.error("Settings view got unknown subject: " + message.subject);
                 break;
@@ -133,11 +140,15 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         this.view.webview.html = Rendering.getWebviewContent(this.view.webview, this.extensionUri, this.workbenches, this.projects, this.configs, this.argVarFiles, this.workbenchesLoading);
     }
 
-    // ! Exposed for testing only. Selects a specific option from a dropdown.
-    selectFromDropdown(dropdown: DropdownIds, index: number) {
+    // ! Exposed for testing only.
+    awaitViewLoaded() {
+        return this.viewLoaded;
+    }
+    async selectFromDropdown(dropdown: DropdownIds, index: number) {
         if (this.view === undefined) {
             throw new Error("View is not attached");
         }
+        await this.viewLoaded;
         this.view.webview.postMessage({subject: "select", target: dropdown, index: index});
     }
 }

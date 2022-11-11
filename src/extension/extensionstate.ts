@@ -284,6 +284,7 @@ class State {
 
     private addArgVarsFileListeners(): void {
         this.argVarsFile.addOnSelectedHandler(async() => {
+            logger.debug(`ArgVars: selected '${this.argVarsFile.selected?.name}' (index ${this.argVarsFile.selectedIndex})`);
             const eWb = await this.extendedWorkbench.getValue();
             if (eWb === undefined) {
                 return;

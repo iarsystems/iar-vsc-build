@@ -8,6 +8,7 @@ const MessageSubject = {
     ArgVarsSelected: "ArgVars",
     AddWorkbench: "AddWorkbench",
     OpenSettings: "OpenSettings",
+    ViewLoaded: "ViewLoaded",
 }
 
 const vscode = acquireVsCodeApi();
@@ -74,6 +75,8 @@ function main() {
             triggerEvent(target, "change");
         }
     });
+
+    vscode.postMessage({ subject: MessageSubject.ViewLoaded });
 }
 
 function triggerEvent(elem, eventName) {
