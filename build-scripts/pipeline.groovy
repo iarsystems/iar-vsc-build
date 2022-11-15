@@ -1,5 +1,3 @@
-@Library('common@tags/1.3.0') _
-
 node('a_windows || a_linux') {
 	stage('Load pipeline') {
 		deleteDir()
