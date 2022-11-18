@@ -89,12 +89,14 @@ export namespace TestConfiguration {
                 Path.join(wb, OsUtils.detectOsType() === OsUtils.OsType.Windows ? "arm\\bin\\armSIM2.dll" : "arm/bin/libarmSIM2.so"),
                 "/proc",
                 Path.join(wb, OsUtils.detectOsType() === OsUtils.OsType.Windows ? "arm\\bin\\armPROC.dll" : "arm/bin/libarmPROC.so"),
+            ].concat(OsUtils.detectOsType() !== OsUtils.OsType.Windows ? [] : [
                 "/plugin",
-                Path.join(wb, OsUtils.detectOsType() === OsUtils.OsType.Windows ? "arm\\bin\\armlibsupport.dll" : "arm/bin/libarmLibSupportEclipse.so"),
+                Path.join(wb, "arm\\bin\\armlibsupport.dll"),
+            ]).concat([
                 "/kernel",
                 OsUtils.detectOsType() === OsUtils.OsType.Windows ? "kernel.dll" : "libkernel.so",
                 "/ilink"
-            ],
+            ]),
             integrationTestProjectsDir: Path.resolve(__dirname, "../../tests/integrationTests/TestProjects/arm"),
             defaultIncludePaths: [new RegExp("arm[/\\\\]inc[/\\\\]"), new RegExp("arm[/\\\\]inc[/\\\\]c[/\\\\]aarch32")],
             architectureDefine: "__ARM_ARCH",
