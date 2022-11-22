@@ -18,13 +18,15 @@ import { WorkbenchType } from "iar-vsc-common/workbench";
  */
 suite("Test Clicking Settings View", ()=>{
     suiteSetup(async function() {
-        this.timeout(50000);
+        // VS Code can take a really long time to load our view sometimes, hence the long timeout.
+        this.timeout(80000);
         await VscodeTestsUtils.doExtensionSetup();
         VscodeTestsSetup.setup();
 
         // Focus the view. Otherwise it will not be instantiated/resolved.
         await Vscode.commands.executeCommand("iar-configuration.focus");
         await new Promise((res, _) => setTimeout(res, 1000));
+        await IarVsc.settingsView.awaitViewLoaded();
     });
 
     setup(function() {
