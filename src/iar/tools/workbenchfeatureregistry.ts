@@ -142,6 +142,8 @@ export namespace WorkbenchFeatures {
             "8.0.0": "1.10", // not a real release
             "8.3.2": "1.10",
             "9.1.0": "3.10.1",
+            "9.1.1": "3.11.1", // not a real release
+            "9.1.3": "3.11.1",
         },
         "430": {
             "8.0.0": "7.10.1", // not a real release
