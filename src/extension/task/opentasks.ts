@@ -8,9 +8,9 @@ import * as Vscode from "vscode";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { Workbench } from "iar-vsc-common/workbench";
 
-const OPEN_TASK_NAME = "Open Workspace in IAR Embedded Workbench";
 
 export namespace OpenTasks {
+    export const OPEN_TASK_NAME = "Open Workspace in IAR Embedded Workbench";
     export function generateTasks(dstMap: Map<string, Vscode.Task>): void {
         if (OsUtils.detectOsType() !== OsUtils.OsType.Windows) {
             return; // VSC-216 We don't have a linux workbech GUI

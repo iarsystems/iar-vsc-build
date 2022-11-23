@@ -26,9 +26,11 @@ To select the Embedded Workbench project to work with, choose **File>Open Folder
 
 * To select the IAR Embedded Workbench or IAR Build Tools installation, choose it from the dropdown menu under **IAR Embedded Workbench or IAR Build Tools installation**.
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![Side bar](images/VSCode_IARBuildSidebar_01.png)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![Side bar](images/VSCode_IARBuildSidebar_02.png)
 
 * To select the project and build configuration, choose it from the dropdown menu under **Active Project and Configuration**.
+
+* IAR Embedded Workbench supports global and workspace-local custom argument variables. To select a file with custom argument variables, choose it from the dropdown menu under **Custom Argument Variables File**. For more information, see the *IAR Embedded Workbench IDE Project Management and Building Guide* (PDF).
 
 * To view the source files of the project, select the IAR Build icon in the Activity Bar. The source files are displayed in the **Files** view of the Side Bar.
 
@@ -44,9 +46,7 @@ To quickly change the active project or configuration, use the commands on the c
 
 To make settings for IAR Build, choose **File>Preferences>Settings** and select the **Extensions** category in the side pane of the **Settings** view, and locate **IAR Build** in the list of extensions. There is also a shortcut link to the **Settings** view in the VS Code Side Bar when IAR Build is the active extension.
 
-For every setting, you can click on the cog wheel that is shown when you hover over the setting name to reset the setting to its factory setting, copy the setting ID, or copy the setting in JSON format.
-
-![Settings](images/VSCode_IARBuildSettings_01.png)
+For every setting, you can click on the cog wheel to the right of the setting name to reset the setting to its factory setting, copy the setting ID, or copy the setting in JSON format.
 
 Each setting has a short description. For information about the **Extra Build Arguments**, see the documentation for `iarbuild.exe` in the *IAR Embedded Workbench IDE Project Management and Building Guide* (PDF).
 
@@ -60,14 +60,12 @@ To switch from IAR Embedded Workbench to VS Code, add a custom command to the IA
 
 1. In the IAR Embedded Workbench IDE, choose **Tools>Configure Tools** to open the **Configure Tools** dialog box. Click **New** if you already have custom tools commands.
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![Configure switch IDE<>VSCode](images/VSCode_IARConfigureSwitchinIDE_01.png)
-
 2. Set the **Menu Text** to `Open in V&S Code`.
 
-2. By default, VS Code is installed in `\AppData\Local\Programs\Microsoft VS Code`. Based on this, set the **Command** to (using a Windows standard environment variable): 
+2. By default, VS Code is installed in `\AppData\Local\Programs\Microsoft VS Code`. Based on this, set the **Command** to (using a Windows standard environment variable):
 
     `$_localappdata_$\Programs\Microsoft VS Code\Code.exe`
- 
+
 3. Set the **Argument** to `$WS_DIR$ -g $FILE_PATH$:$CUR_LINE$` and click **OK**.
 
 You can now open the current file and line in VS Code at any time by choosing **Tools>Open in VS Code**.
@@ -78,7 +76,9 @@ Adding and removing source files in the project is straightforward. The **Files*
 
 <h2 id="IARBuildTasks">IAR Build tasks</h2>
 
-Most of the functionality in the IAR Build extension is implemented in the form of tasks to run.
+Most of the functionality in the IAR Build extension is implemented in the form of tasks to run. They are available from the **Terminal>Run Task** submenu, or from the toolbar at the top of the Side Bar.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![Side bar](images/VSCode_IARBuildToolbar_01.png)
 
 <h3 id="tasksbuildtasks">Build tasks</h3>
 
@@ -133,25 +133,25 @@ This is an example `tasks.json` file with a configured Build Project task:
 
 ```
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "type": "iar",
-            "command": "build",
-            "project": "${workspaceFolder}/MyProject.ewp",
-            "config": "*",
-            "builder": "${command:iar-config.toolchain}/common/bin/iarbuild.exe",
-            "label": "Build MyProject",
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "iar",
+			"command": "build",
+			"project": "${workspaceFolder}/MyProject.ewp",
+			"config": "*",
+			"builder": "${command:iar-config.toolchain}/common/bin/iarbuild.exe",
+			"label": "Build MyProject",
             "extraBuildArguments": [
                 "-parallel",
                 "8"
             ],
-            "problemMatcher": [
-                "$iar-cc",
-                "$iar-linker"
-            ]
-        }
-    ]
+			"problemMatcher": [
+				"$iar-cc",
+				"$iar-linker"
+			]
+		}
+	]
 }
 ```
 

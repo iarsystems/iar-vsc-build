@@ -15,16 +15,18 @@ export interface BuildTaskDefinition {
     readonly builder: string;
     readonly project: string;
     readonly config: string;
+    readonly argumentVariablesFile: string | undefined;
     readonly extraBuildArguments: string[] | undefined;
 }
 
-enum TaskNames {
-    Build = "Build Project",
-    Rebuild = "Rebuild Project",
-    Clean = "Clean Project",
-}
 
 export namespace BuildTasks {
+    export enum TaskNames {
+        Build = "Build Project",
+        Rebuild = "Rebuild Project",
+        Clean = "Clean Project",
+    }
+
     export function generateTasks(dstMap: Map<string, Vscode.Task>): void {
         if (dstMap.get(TaskNames.Build) === undefined) {
             const task = generateTask(TaskNames.Build, "build");
@@ -65,6 +67,7 @@ export namespace BuildTasks {
             builder: "${command:iar-config.toolchain}/" + Workbench.builderSubPath,
             project: "${command:iar-config.project-file}",
             config: "${command:iar-config.project-configuration}",
+            argumentVariablesFile:  "${command:iar-config.argument-variables-file}",
             extraBuildArguments: undefined,
             problemMatcher: ["$iar-cc", "$iar-linker"]
         };

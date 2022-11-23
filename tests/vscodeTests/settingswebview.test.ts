@@ -18,13 +18,15 @@ import { WorkbenchType } from "iar-vsc-common/workbench";
  */
 suite("Test Clicking Settings View", ()=>{
     suiteSetup(async function() {
-        this.timeout(50000);
+        // VS Code can take a really long time to load our view sometimes, hence the long timeout.
+        this.timeout(80000);
         await VscodeTestsUtils.doExtensionSetup();
         VscodeTestsSetup.setup();
 
         // Focus the view. Otherwise it will not be instantiated/resolved.
         await Vscode.commands.executeCommand("iar-configuration.focus");
         await new Promise((res, _) => setTimeout(res, 1000));
+        await IarVsc.settingsView.awaitViewLoaded();
     });
 
     setup(function() {
@@ -91,6 +93,15 @@ suite("Test Clicking Settings View", ()=>{
         await modelChange;
 
         Assert.strictEqual(ExtensionState.getInstance().config.selectedIndex, 1);
+    });
+    test("Clicking argVar updates model", async() => {
+        await VscodeTestsUtils.activateArgVarFile("ArgVarFile1.custom_argvars");
+        Assert(ExtensionState.getInstance().argVarsFile.selectedIndex !== 1);
+        const modelChange = waitForModelChange(ExtensionState.getInstance().argVarsFile);
+        IarVsc.settingsView.selectFromDropdown(DropdownIds.ArgVarsFile, 1);
+        await modelChange;
+
+        Assert.strictEqual(ExtensionState.getInstance().argVarsFile.selectedIndex, 1);
     });
 
     const waitForModelChange = function<T>(model: ListInputModel<T>) {

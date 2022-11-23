@@ -21,6 +21,7 @@ body {
 }
 .section {
     margin-bottom: 3em;
+    position: relative;
 }
 .dropdown-label {
     margin-bottom: .1em;
@@ -62,4 +63,39 @@ body {
 
 #workbench-error *:first-child {
     margin-right: .3em;
+}
+
+.disabled {
+    color: var(--vscode-disabledForeground)
+}
+
+.help-icon {
+    display: inline-block !important;
+    vertical-align: bottom;
+    margin-left: 5px;
+    color: var(--vscode-tab-inactiveForeground);
+}
+
+.help-icon:hover {
+    color: var(--vscode-editor-foreground);
+}
+
+.help-icon:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity .3s;
+}
+.help-icon .tooltip {
+    visibility: hidden;
+    opacity: 0;
+    font-family: var(--vscode-font-family);
+    font-size: var(--vscode-font-size);
+    background-color: var(--vscode-editorHoverWidget-background);
+    box-shadow: 2px 2px 6px var(--vscode-widget-shadow);
+    position: absolute;
+    padding: .5em;
+    left: 0;
+    top: 1.4em;
+    border: 1px solid var(--vscode-editorHoverWidget-border);
+    z-index: 1;
 }

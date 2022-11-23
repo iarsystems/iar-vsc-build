@@ -1,0 +1,99 @@
+body {
+    padding: 1em;
+}
+
+.icon-button:hover {
+    background: var(--button-icon-hover-background);
+    cursor: pointer;
+}
+
+.icon-button {
+    display: inline-flex;
+    background: var(--button-icon-background);
+    border-radius: var(--button-icon-corner-radius);
+    padding: var(--button-icon-padding);
+
+    background: transparent;
+    height: inherit;
+    flex-grow: 1;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    outline: none;
+    text-decoration: none;
+    border: calc(var(--border-width) * 1px) solid var(--button-border);
+    color: inherit;
+    fill: inherit;
+    cursor: inherit;
+    font-family: inherit;
+    max-width: 300px;
+}
+
+.icon-button svg {
+    /* display: inline-flex; */
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+}
+
+.center-contents {
+    text-align: center;
+    width: fit-content;
+    display: inline-block;
+}
+
+#outer {
+    width: 100%;
+}
+
+.segment {
+    margin: 0 .5em;
+    position: relative;
+}
+
+tooltip-container {
+    position: relative;
+    padding: 0;
+}
+
+.tooltip-trigger {
+    z-index: 3;
+}
+
+.tooltip-popup {
+    display: none;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    margin: 0;
+    margin-top: .3em;
+}
+
+.tooltip-popup-content {
+    font-family: var(--vscode-font-family);
+    font-size: var(--vscode-font-size);
+    background-color: var(--vscode-editorHoverWidget-background);
+    box-shadow: 2px 2px 6px var(--vscode-widget-shadow);
+    padding: .5em;
+    width: max-content;
+    border: 1px solid var(--vscode-editorHoverWidget-border);
+    box-sizing: border-box;
+}
+
+@keyframes delayedFadeIn {
+  0% {
+    opacity: 0;
+  }
+  75% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+tooltip-container:hover .tooltip-popup {
+    display: block;
+    animation: delayedFadeIn .7s;
+}

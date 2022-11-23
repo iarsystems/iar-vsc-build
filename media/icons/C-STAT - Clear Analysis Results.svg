@@ -1,0 +1,19 @@
+<svg
+	xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+    <defs>
+        <!-- The clipping here is done do achieve an inner stroke, so it doesn't clip -->
+        <path id="outline" d="M17.92 3.68 31.6928 26.5664C32.5376 28 31.5264 29.28 29.8752 29.28H2.1248c-1.6512 0-2.6624-1.28-1.8176-2.7136L14.08 3.68A2.2784 2.2784 90 0117.92 3.68Z"/>
+        <clipPath id="clip">
+            <use xlink:href="#outline"/>
+        </clipPath>
+    </defs>
+	<g id="Layer_2" data-name="Layer 2">
+		<g id="_32x32" data-name="32x32">
+            <use xlink:href="#outline" stroke="var(--vscode-foreground)" fill="none" stroke-width="4.5" clip-path="url(#clip)"/>
+            <g transform="translate(-0.5, 1)">
+                <rect fill="var(--vscode-foreground)" x="12.36" y="17.69" width="8.29" height="1.61" transform="translate(17.91 -6.25) rotate(45)"/>
+                <rect fill="var(--vscode-foreground)" x="12.36" y="17.69" width="8.29" height="1.61" transform="translate(41.25 19.91) rotate(135)"/>
+            </g>
+		</g>
+	</g>
+</svg>

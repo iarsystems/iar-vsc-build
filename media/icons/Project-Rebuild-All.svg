@@ -1,0 +1,9 @@
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 16 15">
+	<g id="Layer_43" data-name="Layer 43">
+		<polygon stroke="var(--vscode-foreground)" stroke-width="1.2" fill="none" points="8 -0.25 15 3.15 15 11.65 8 14.75 1 11.65 1 3.15 8 -0.25" transform-origin="center" transform="scale(0.95, 0.95)"/>
+		<path stroke="var(--vscode-foreground)" fill="none" d="M10.7,8.45a3,3,0,1,1-1-3.53,3.06,3.06,0,0,1,.58.56"/>
+		<polygon fill="var(--vscode-foreground)" stroke="none" points="12.16 6.91 8.7 6.52 10.02 5.22 10.97 3.6 12.16 6.91"/>
+	</g>
+</svg>

@@ -5,8 +5,10 @@ const MessageSubject = {
     WorkbenchSelected: "Workbench",
     ProjectSelected: "Project",
     ConfigSelected: "Config",
+    ArgVarsSelected: "ArgVars",
     AddWorkbench: "AddWorkbench",
     OpenSettings: "OpenSettings",
+    ViewLoaded: "ViewLoaded",
 }
 
 const vscode = acquireVsCodeApi();
@@ -34,6 +36,7 @@ function sendDropdownMessage(dropdown, subject) {
 function main() {
     connectDropdown(document.getElementById("project"), MessageSubject.ProjectSelected);
     connectDropdown(document.getElementById("config"), MessageSubject.ConfigSelected);
+    connectDropdown(document.getElementById("argvarsfile"), MessageSubject.ArgVarsSelected);
 
     // The workbench dropdown is special, since the last option allows the user to add a new workbench
     const workbenchDropdown = document.getElementById("workbench");
@@ -72,6 +75,8 @@ function main() {
             triggerEvent(target, "change");
         }
     });
+
+    vscode.postMessage({ subject: MessageSubject.ViewLoaded });
 }
 
 function triggerEvent(elem, eventName) {

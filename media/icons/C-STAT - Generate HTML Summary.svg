@@ -1,0 +1,16 @@
+<svg
+	xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+    <mask id="mask2">
+        <rect x="0" y="0" width="32" height="32" fill="white"/>
+        <rect x="6" y="10" width="14" height="18" fill="black"/>
+    </mask>
+	<g id="Layer_2" data-name="Layer 2">
+		<g id="_32x32" data-name="32x32">
+			<path fill="var(--vscode-foreground)"  d="M24,2H10V24H28V6Zm2,20H12V4H22V8h4Z" mask="url( #mask2 )"/>
+			<path fill="var(--vscode-foreground)" d="M18,8H4V30H22V12Zm2,20H6V10H16v4h4Z"/>
+			<rect fill="var(--vscode-foreground)" x="8" y="19" width="10" height="2"/>
+			<rect fill="var(--vscode-foreground)" x="8" y="23" width="10" height="2"/>
+			<path fill="var(--vscode-foreground)" d="M11.34,11.92l2.6,4.4a.46.46,0,0,1-.34.68H8.4a.46.46,0,0,1-.34-.68L10.66,12A.4.4,0,0,1,11.34,11.92Z"/>
+		</g>
+	</g>
+</svg>

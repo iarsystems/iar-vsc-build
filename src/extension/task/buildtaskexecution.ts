@@ -58,7 +58,8 @@ export class BuildTaskExecution extends StylizedTerminal {
             projectPath,
             iarbuildCommand,
             configName,
-            "-log", "info" // VSC-124 This gives the same verbosity as EW
+            "-log",
+            Settings.getBuildOutputLogLevel()
         ];
         let extraArgs = this.definition.extraBuildArguments;
         if (extraArgs === undefined) {
@@ -66,6 +67,10 @@ export class BuildTaskExecution extends StylizedTerminal {
         }
         if (extraArgs.length !== 0) {
             args.push(...extraArgs);
+        }
+        // Some versions of the IDE require that -varfile is added last
+        if (this.definition.argumentVariablesFile) {
+            args.push("-varfile", this.definition.argumentVariablesFile);
         }
 
         const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(projectPath))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;

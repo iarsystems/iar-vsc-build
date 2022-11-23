@@ -16,6 +16,8 @@ import { Project } from "../../src/iar/project/project";
 import { ListInputModel, ListInputModelBase } from "../../src/extension/model/model";
 import { IarToolManager } from "../../src/iar/tools/manager";
 import { BehaviorSubject, Subject } from "rxjs";
+import { ArgVarListModel } from "../../src/extension/model/selectargvars";
+import { ArgVarsFile } from "../../src/iar/project/argvarfile";
 
 namespace Utils {
     // A fake view we can receive html to, and then inspect it.
@@ -45,6 +47,7 @@ suite("Test settings view", () => {
     let workbenchModel: ListInputModelBase<Workbench>;
     let projectModel: ListInputModelBase<Project>;
     let configModel: ListInputModelBase<Config>;
+    let argVarModel: ListInputModelBase<ArgVarsFile>;
     let loading: Subject<boolean>;
 
     let settingsView: SettingsWebview;
@@ -55,6 +58,7 @@ suite("Test settings view", () => {
         workbenchModel = new WorkbenchListModel();
         projectModel = new ProjectListModel();
         configModel = new ConfigurationListModel();
+        argVarModel = new ArgVarListModel();
         loading = new BehaviorSubject<boolean>(false);
 
         const extensionUri = vscode.Uri.file("../../");
@@ -63,6 +67,7 @@ suite("Test settings view", () => {
             workbenchModel,
             projectModel,
             configModel,
+            argVarModel,
             new AddWorkbenchCommand(new IarToolManager()),
             loading,
         );
@@ -106,6 +111,11 @@ suite("Test settings view", () => {
         projectModel.select(0);
         configModel.set( { name: "Debug", targetId: "arm" }, { name: "Release", targetId: "arm"} );
         configModel.select(1);
+        argVarModel.set(
+            { name: "MyWorkspace.custom_argvars", path: "/path/test/MyWorkspace.custom_argvars" },
+            { name: "Test.custom_argvars", path: "C:\\directory\\Test.custom_argvars" },
+        );
+        argVarModel.select(0);
         updateDocument();
 
         const assertDropdownMatchesModel = function<T>(dropdownId: string, model: ListInputModel<T>)  {
@@ -122,6 +132,7 @@ suite("Test settings view", () => {
         };
         assertDropdownMatchesModel(DropdownIds.Project, projectModel);
         assertDropdownMatchesModel(DropdownIds.Configuration, configModel);
+        assertDropdownMatchesModel(DropdownIds.ArgVarsFile, argVarModel);
 
         // test workbench dropdown separately, since it has an additional option
         const dropdown = document.getElementById(DropdownIds.Workbench);

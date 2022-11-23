@@ -39,6 +39,7 @@
     "onCommand:iar-build.selectToolchain",
     "onCommand:iar-build.selectProject",
     "onCommand:iar-build.selectConfiguration",
+    "onCommand:iar-build.selectArgumentVariablesFile",
     "onCommand:iar-build.selectIarWorkspace",
     "onCommand:iar-build.addToolchain",
     "onCommand:iar-build.addFileToRoot",
@@ -46,11 +47,13 @@
     "onCommand:iar-build.addFile",
     "onCommand:iar-build.addGroup",
     "onCommand:iar-build.removeNode",
+    "onCommand:iar-build.toggleCstatToolbar",
     "onCommand:iar-build.reloadProject",
     "onCommand:iar-config.toolchain",
     "onCommand:iar-config.project-file",
     "onCommand:iar-config.project-configuration",
     "onCommand:iar-config.project-name",
+    "onCommand:iar-config.argument-variables-file",
     "onView:iar-configuration",
     "onView:iar-project",
     "workspaceContains:**/*.ewp",
@@ -76,9 +79,14 @@
         "category": "IAR Build"
       },
       {
+        "command": "iar-build.selectArgumentVariablesFile",
+        "title": "Select Argument Variables File",
+        "category": "IAR Build"
+      },
+      {
         "command": "iar-config.toolchain",
         "title": "Get the selected toolchain location",
-        "category": "IAR Settings"
+        "category": "IAR toggleCstatToolbar"
       },
       {
         "command": "iar-config.project-file",
@@ -93,6 +101,11 @@
       {
         "command": "iar-config.project-name",
         "title": "Get the selected project name",
+        "category": "IAR Settings"
+      },
+      {
+        "command": "iar-config.argument-variables-file",
+        "title": "Get the selected .custom_argvars file",
         "category": "IAR Settings"
       },
       {
@@ -126,6 +139,11 @@
         "icon": "$(trash)"
       },
       {
+        "command": "iar-build.toggleCstatToolbar",
+        "title": "Toggle C-STAT Toolbar Visibility",
+        "category": "IAR Build"
+      },
+      {
         "command": "iar-build.reloadProject",
         "title": "Reload project",
         "category": "IAR Build",
@@ -149,15 +167,23 @@
     "views": {
       "iar-build": [
         {
+          "id": "iar-toolbar",
+          "name": "Toolbar",
+          "type": "webview",
+          "initialSize": 1
+        },
+        {
           "id": "iar-configuration",
           "name": "Extension Configuration",
-          "type": "webview"
+          "type": "webview",
+          "initialSize": 3
         },
         {
           "id": "iar-project",
           "name": "Files",
           "type": "tree",
-          "contextualTitle": "IAR Project"
+          "contextualTitle": "IAR Project",
+          "initialSize": 3
         }
       ]
     },
@@ -176,6 +202,10 @@
           "command": "iar-build.addGroupToRoot",
           "when": "view == iar-project && iar-build.extendedProjectLoaded",
           "group": "navigation"
+        },
+        {
+          "command": "iar-build.toggleCstatToolbar",
+          "when": "view == iar-toolbar"
         }
       ],
       "view/item/context": [
@@ -217,6 +247,10 @@
           "when": "false"
         },
         {
+          "command": "iar-build.toggleCstatToolbar",
+          "when": "false"
+        },
+        {
           "command": "iar-config.toolchain",
           "when": "false"
         },
@@ -253,6 +287,11 @@
     "configuration": {
       "title": "IAR Build",
       "properties": {
+        "iar-build.projectsToExclude": {
+          "type": "string",
+          "markdownDescription": "All projects that match this regex will be ignored. Empty regex means no ignore.",
+          "default": ""
+        },
         "iar-build.iarInstallDirectories": {
           "type": "array",
           "items": {
@@ -301,6 +340,11 @@
           "type": "boolean",
           "default": true
         },
+        "iar-build.c-stat.showInToolbar": {
+          "description": "Whether to show buttons for C-STAT tasks in the IAR Build toolbar.",
+          "type": "boolean",
+          "default": true
+        },
         "iar-build.extraBuildArguments": {
           "type": "array",
           "markdownDescription": "Extra command line arguments to supply to iarbuild (e.g. [\"-parallel\", \"4\"].",
@@ -316,6 +360,17 @@
           "type": "boolean",
           "description": "Whether to apply colors to the output from the Build, Rebuild and Clean tasks.",
           "default": true
+        },
+        "iar-build.buildOutputLogLevel": {
+          "type": "string",
+          "description": "The level of messages to output when build a project or running C-STAT.",
+          "default": "Messages",
+          "enum": [
+            "All",
+            "Messages",
+            "Warnings",
+            "Errors"
+          ]
         }
       }
     },
@@ -324,6 +379,7 @@
         "name": "iar-cc",
         "owner": "cpp",
         "fileLocation": "absolute",
+        "severity": "info",
         "pattern": {
           "regexp": "^([^(]*)\\((\\d*)\\)\\s*:\\s*([^\\[]*)[^:]*:\\s*(.*)",
           "file": 1,
@@ -336,6 +392,7 @@
         "name": "iar-linker",
         "owner": "cpp",
         "fileLocation": "absolute",
+        "severity": "info",
         "pattern": {
           "regexp": "^([^\\[]*)[^\\]]*\\]\\s*:\\s*([^\\(]*)\\[.*?((?:\\/|\\w:).*)\\s*\\]",
           "file": 3,
@@ -383,6 +440,10 @@
           "label": {
             "type": "string",
             "description": "The name for this task. Will be shown in the VS Code UI."
+          },
+          "argumentVariablesFile": {
+            "type": "string",
+            "description": "Optional .custom_argvars file to use when building."
           },
           "extraBuildArguments": {
             "type": "array",
@@ -432,6 +493,10 @@
           "toolchain": {
             "type": "string",
             "description": "The IAR toolchain to use."
+          },
+          "argumentVariablesFile": {
+            "type": "string",
+            "description": "Optional .custom_argvars file to use when running C-STAT."
           },
           "extraBuildArguments": {
             "type": "array",
@@ -495,7 +560,7 @@
     "csv-parse": "4.8.8",
     "escape-html": "^1.0.3",
     "fast-deep-equal": "2.0.1",
-    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#6e7cd31a",
+		"iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#0c53401e",
     "jsdom": "^19.0.0",
     "rxjs": "^7.5.2",
     "sanitize-html": "^2.6.1",

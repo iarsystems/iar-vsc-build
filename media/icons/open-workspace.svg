@@ -1,0 +1,23 @@
+<svg
+	xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 15">
+	<defs>
+		<style>.cls-1{fill:#393536;}.cls-2{fill:#fff;}.cls-3{fill:#007cc1;}.cls-4{fill:none;stroke:#007cc1;stroke-miterlimit:10;}</style>
+	</defs>
+    <mask id="mask">
+		<rect width="16" height="15" fill="white"/>
+		<rect x="3" y="5" width="12" height="8" fill="black"/>
+		<rect x="14" y="3" width="1" height="1" fill="black"/>
+		<rect x="12" y="3" width="1" height="1"/>
+		<rect x="10" y="3" width="1" height="1"/>
+    </mask>
+	<g id="Layer_43" data-name="Layer 43">
+		<polygon fill="var(--vscode-foreground)" points="7 2 7 6 2 6 2 14 16 14 16 3.71 16 2 7 2" mask="url( #mask )"/>
+		<!-- <rect class="cls-2" x="2" y="3" width="5" height="3"/> -->
+		<!-- <rect class="cls-2" x="3" y="5" width="12" height="8"/>
+		<rect class="cls-2" x="14" y="3" width="1" height="1"/>
+		<rect class="cls-2" x="12" y="3" width="1" height="1"/>
+		<rect class="cls-2" x="10" y="3" width="1" height="1"/> -->
+		<polygon fill="var(--vscode-foreground)" points="4 1 6 4 2.02 4 4 1"/>
+		<path stroke="var(--vscode-foreground)" fill="none" d="M4,3C4,6,5,7,7,7"/>
+	</g>
+</svg>

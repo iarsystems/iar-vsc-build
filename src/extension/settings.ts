@@ -17,14 +17,20 @@ export namespace Settings {
         CstatFilterLevel = "c-stat.filterLevel",
         CstatDisplayLowSeverityWarningsAsHints = "c-stat.displayLowSeverityWarningsAsHints",
         CstatAutoOpenReports = "c-stat.autoOpenReports",
-        ColorizeBuildOutput = "colorizeBuildOutput"
+        CstatShowInToolbar = "c-stat.showInToolbar",
+        ColorizeBuildOutput = "colorizeBuildOutput",
+        ProjectsToExclude = "projectsToExclude",
+        BuildOutputLogLevel = "buildOutputLogLevel",
     }
 
     export enum LocalSettingsField {
         Workbench = "toolchain",
         Ewp = "ewp",
         Configuration = "configuration",
+        ArgVarFile = "argumentVariablesFile"
     }
+    /** Local settings field that are paths, and should support ${workspaceFolder} expansion */
+    const localSettingsPathFields = [LocalSettingsField.Workbench, LocalSettingsField.Ewp, LocalSettingsField.ArgVarFile];
 
     const section = "iar-build";
 
@@ -47,10 +53,17 @@ export namespace Settings {
     }
 
     export function getLocalSetting(field: LocalSettingsField): string | undefined {
-        return getSettingsFile()?.get(field);
+        let value = getSettingsFile()?.get(field);
+        if (localSettingsPathFields.includes(field) && value) {
+            value = resolvePath(value);
+        }
+        return value;
     }
 
     export function setLocalSetting(field: LocalSettingsField, value: string) {
+        if (localSettingsPathFields.includes(field) && value) {
+            value = encodePath(value);
+        }
         getSettingsFile()?.set(field, value);
     }
 
@@ -107,9 +120,33 @@ export namespace Settings {
         const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.CstatAutoOpenReports);
         return val ?? false;
     }
+    export function getCstatShowInToolbar(): boolean {
+        const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.CstatShowInToolbar);
+        return val ?? true;
+    }
+    export function setCstatShowInToolbar(value:  boolean) {
+        Vscode.workspace.getConfiguration(section).update(ExtensionSettingsField.CstatShowInToolbar, value);
+    }
     export function getColorizeBuildOutput(): boolean {
         const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.ColorizeBuildOutput);
         return val ?? false;
+    }
+    export function getProjectsToExclude(): string | undefined {
+        return Vscode.workspace.getConfiguration(section).get<string>(ExtensionSettingsField.ProjectsToExclude);
+    }
+    export function getBuildOutputLogLevel(): "all" | "info" | "warnings" | "errors" {
+        // we map the user-facing "pretty" values to the iarbuild parameter equivalents
+        const lvl = Vscode.workspace.getConfiguration(section).get<string>(ExtensionSettingsField.BuildOutputLogLevel);
+        if (lvl === undefined) {
+            return "info";
+        }
+        const map: Record<string, ReturnType<typeof getBuildOutputLogLevel>> = {
+            "All": "all",
+            "Messages": "info",
+            "Warnings": "warnings",
+            "Errors": "errors",
+        };
+        return map[lvl] ?? "info";
     }
 
     function generateSettingsFilePath(): Fs.PathLike | undefined  {
@@ -131,6 +168,24 @@ export namespace Settings {
 
         return settingsFile;
     }
+
+    function resolvePath(path: string): string {
+        const folders = Vscode.workspace.workspaceFolders;
+        if (folders !== undefined && folders[0] !== undefined) {
+            path = path.replace("${workspaceFolder}", folders[0].uri.fsPath);
+        }
+        return path;
+    }
+    function encodePath(path: string): string {
+        const folders = Vscode.workspace.workspaceFolders;
+        if (folders !== undefined && folders[0] !== undefined) {
+            const wsRelativePath = Path.relative(folders[0].uri.fsPath, path);
+            if (!wsRelativePath.startsWith("..") && !Path.isAbsolute(wsRelativePath)) {
+                return Path.join("${workspaceFolder}", wsRelativePath);
+            }
+        }
+        return path;
+    }
 }
 
 interface LocalSettings {
@@ -138,6 +193,7 @@ interface LocalSettings {
     compiler?: string;
     toolchain?: string;
     configuration?: string;
+    argumentVariablesFile?: string;
 }
 
 /**
@@ -186,12 +242,8 @@ class LocalSettingsFile {
         Fs.writeFileSync(this.path, JSON.stringify(this.json_, undefined, 4));
     }
 
-    public static exists(path: Fs.PathLike): boolean {
-        return Fs.existsSync(path);
-    }
-
     private static loadFile(path: Fs.PathLike): LocalSettings  {
-        if (!LocalSettingsFile.exists(path)) {
+        if (!Fs.existsSync(path)) {
             return {};
         } else {
             try {

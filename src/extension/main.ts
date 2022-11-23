@@ -26,7 +26,10 @@ import { EwpFileWatcherService } from "./ewpfilewatcher";
 import { API } from "./api";
 import { StatusBarItem } from "./ui/statusbaritem";
 import { BehaviorSubject } from "rxjs";
-import { InformationMessage, InformationMessageType } from "./ui/informationmessage";
+import { ArgVarsFile } from "../iar/project/argvarfile";
+import { ArgVarFileWatcherService } from "./argvarfilewatcher";
+import { ToolbarWebview } from "./ui/toolbarview";
+import { ToggleCstatToolbarCommand } from "./command/togglecstattoolbar";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
@@ -43,6 +46,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     new AddFileCommand().register(context);
     new AddGroupCommand().register(context);
     new RemoveNodeCommand().register(context);
+    new ToggleCstatToolbarCommand().register(context);
     const addWorkbenchCmd = new AddWorkbenchCommand(IarVsc.toolManager);
     addWorkbenchCmd.register(context);
     const workbenchCmd = Command.createSelectWorkbenchCommand(ExtensionState.getInstance().workbench);
@@ -51,14 +55,17 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     projectCmd.register(context);
     const configCmd = Command.createSelectConfigurationCommand(ExtensionState.getInstance().config);
     configCmd.register(context);
+    Command.createSelectArgVarsFileCommand(ExtensionState.getInstance().argVarsFile).register(context);
 
     // --- initialize custom GUI
     const workbenchModel = ExtensionState.getInstance().workbench;
     const projectModel = ExtensionState.getInstance().project;
     const configModel = ExtensionState.getInstance().config;
+    const argVarModel = ExtensionState.getInstance().argVarsFile;
 
-    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, projectModel, configModel, addWorkbenchCmd, IarVsc.workbenchesLoading);
+    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, projectModel, configModel, argVarModel, addWorkbenchCmd, IarVsc.workbenchesLoading);
     vscode.window.registerWebviewViewProvider(SettingsWebview.VIEW_TYPE, IarVsc.settingsView);
+    vscode.window.registerWebviewViewProvider(ToolbarWebview.VIEW_TYPE, new ToolbarWebview(context.extensionUri));
     IarVsc.projectTreeView = new TreeProjectView(
         projectModel,
         ExtensionState.getInstance().extendedProject,
@@ -78,13 +85,15 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     // --- start cpptools interface
     IarConfigurationProvider.init();
 
-    // --- watch for creating/deleting/modifying projects in the workspace
+    // --- watch for creating/deleting/modifying projects and .custom_argvars files in the workspace
     IarVsc.ewpFilesWatcher = new EwpFileWatcherService();
+    IarVsc.argVarsFilesWatcher = new ArgVarFileWatcherService();
 
-    // --- find and add all .ewp projects
+    // --- find and add all .ewp projects and.custom_argvars files
     // note that we do not await here, this operation can be slow and we want activation to be quick
-    findProjectsInWorkspace();
-    context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => findProjectsInWorkspace()));
+    findIARFilesInWorkspace();
+    context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => findIARFilesInWorkspace()));
+    Settings.observeSetting(Settings.ExtensionSettingsField.ProjectsToExclude, () => findIARFilesInWorkspace());
 
     // --- find and add workbenches
     loadTools(addWorkbenchCmd);
@@ -106,9 +115,15 @@ export async function deactivate() {
     await ExtensionState.getInstance().dispose();
 }
 
-async function findProjectsInWorkspace() {
+// Finds .ewp and .custom_argvars files
+async function findIARFilesInWorkspace() {
     if (vscode.workspace.workspaceFolders !== undefined) {
-        const projectFiles = (await vscode.workspace.findFiles("**/*.ewp")).filter(uri => !Project.isBackupFile(uri.fsPath));
+        const doneFindingArgVars = vscode.workspace.findFiles("**/*.custom_argvars").then(files => {
+            const argVarsFiles = files.map(file => ArgVarsFile.fromFile(file.fsPath));
+            ExtensionState.getInstance().argVarsFile.set(...argVarsFiles.sort((av1, av2) => av1.name.localeCompare(av2.name)));
+        });
+
+        const projectFiles = (await vscode.workspace.findFiles("**/*.ewp")).filter(uri => !Project.isIgnoredFile(uri.fsPath));
         logger.debug(`Found ${projectFiles.length} project(s) in the workspace`);
         const projects: Project[] = [];
         projectFiles.forEach(uri => {
@@ -119,11 +134,9 @@ async function findProjectsInWorkspace() {
                 vscode.window.showErrorMessage(`Could not parse project file '${uri.fsPath}': ${e}`);
             }
         });
+        // ArgVars should be set before the projects, since an argvars file may be required to load the project
+        await doneFindingArgVars;
         ExtensionState.getInstance().project.set(...projects.sort((a, b) => a.name.localeCompare(b.name)));
-        // VSC-275 Using argvar files gives various cryptic errors, we need an explicit warning about what causes them.
-        if ((await vscode.workspace.findFiles("**/*.custom_argvars")).length > 0) {
-            InformationMessage.show("customArgvarsUnsupported", "One or more projects in the workspace appears to use a .custom_argvars file. These are not yet supported by this extension.", InformationMessageType.Warning);
-        }
     }
 }
 
@@ -150,4 +163,5 @@ export namespace IarVsc {
     export let settingsView: SettingsWebview;
     export let projectTreeView: TreeProjectView;
     export let ewpFilesWatcher: EwpFileWatcherService;
+    export let argVarsFilesWatcher: ArgVarFileWatcherService;
 }
