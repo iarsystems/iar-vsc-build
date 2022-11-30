@@ -49,7 +49,7 @@ The supported versions are the same for IAR Build Tools installations, but IAR B
 
 | IAR EW/BX version  | Limitation
 |--------------|---------
-| Arm v9.20.4 or later <br>RISC-V v3.10 or later <br>RH850 v3.10 or later <br> | None |
+| Arm v9.20.4 or later <br>RISC-V v3.10 or later <br>RH850 v3.10 or later <br>RL78 v5.10 or later <br>AVR v8.10 or later | None |
 | Arm v8.10-9.20.3<br>RISC-V v1.10-2.11<br>430 v7.10 or later<br>RL78 v3.10 or later<br>RX v3.10 or later<br>RH850 v2.10-2.21<br>AVR v7.10 or later<br>8051 v10.10 or later<br>| File view and possibility to add/remove files from a project is not supported. |
 
 </details>
