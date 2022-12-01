@@ -143,6 +143,10 @@ namespace AddGroup {
             }
             logger.debug(`Adding '${name}' to node '${parent.name}' in '${project.name}'`);
 
+            if (parent.children.some(child => child.type === NodeType.Group && child.name === name)) {
+                throw new Error("A group with the same name already exists.");
+            }
+
             const fullPath = Path.join(Path.dirname(project.path.toString()), name);
             const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath, ...getNodeDefaults(), isGenerated: false });
             parent.children.push(node);
