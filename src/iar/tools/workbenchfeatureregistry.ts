@@ -34,6 +34,9 @@ export namespace WorkbenchFeatures {
         targetOverrides: {
             // See IDE-6272
             rh850: [9,2,0],
+            rl78:  [9,2,0],
+            avr:   [9,2,0],
+            riscv: [9,2,0],
         }
     };
     /**
