@@ -59,7 +59,7 @@ export class ConfigurationSet {
         }
     }
 
-    private browseInfo: PartialSourceFileConfiguration = { includes: [], defines: [], preincludes: [] };
+    private readonly browseInfo: PartialSourceFileConfiguration = { includes: [], defines: [], preincludes: [] };
     private readonly cachedResults: Map<string, PartialSourceFileConfiguration> = new Map();
 
     private constructor(
