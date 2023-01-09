@@ -49,6 +49,12 @@ export class ThriftProject implements ExtendedProject {
             if (WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.SetNodeByIndex)) {
                 await this.projectMgr.SetNodeByIndex(this.context, indexPath.map(i => new Int64(i)), node, true);
             } else {
+                if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.SetNodeCanRemoveNodes)) {
+                    // Mitigate a backend bug causing duplicated groups by trying to only send *new* children.
+                    const existingNode = findNodeByIndexPath(await this.getRootNode(), indexPath);
+                    filterNewNodes(node, existingNode);
+                    console.log(node.children);
+                }
                 // eslint-disable-next-line deprecation/deprecation
                 await this.projectMgr.SetNode(this.context, node);
             }
@@ -154,4 +160,25 @@ function hasDuplicateGroupNames(discoveredGroupNames: Set<string>, node: Node): 
         discoveredGroupNames.add(node.name);
     }
     return node.children.some(child => hasDuplicateGroupNames(discoveredGroupNames, child));
+}
+
+function findNodeByIndexPath(root: Node, path: number[]) {
+    let node: Node | undefined = root;
+    path.forEach(index => {
+        node = node?.children[index];
+    });
+    return node;
+}
+
+/**
+ * Modifies 'updated' in-place to include the smallest possible set of dependent necessary
+ * to represent the new nodes (i.e. those note present in 'original').
+ */
+function filterNewNodes(updated: Node, original: Node) {
+    console.log(updated, original);
+    updated.children = updated.children.filter(child => {
+        const origChild = original.children.find(candidate => candidate.name === child.name);
+        return origChild === undefined || filterNewNodes(child, origChild);
+    });
+    return updated.children.length > 0;
 }

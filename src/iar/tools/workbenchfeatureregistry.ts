@@ -48,6 +48,11 @@ export namespace WorkbenchFeatures {
      * fixes issues with the previous SetNode procedure. See VSC-233. */
     export const SetNodeByIndex: FeatureRequirement = { baseVersion: [9,1,1], type: Type.BxAndEw };
     /**
+     * Whether this workbench removes nodes from the project tree when calling SetNodes with an
+     * updated node that has had some of its children removed. Other workbench version will only add
+     * new children, but not remove children. See VSC-122. */
+    export const SetNodeCanRemoveNodes: FeatureRequirement = { baseVersion: [9,1,0], type: Type.BxAndEw };
+    /**
      * Whether this workbench supports the thrift project manager. */
     export const ThriftPM: FeatureRequirement = { baseVersion: [9,0,11], type: Type.EwOnly };
     /**
