@@ -11,6 +11,8 @@ import { ProjectCommand } from "./projectcommand";
 import { NodeType, Node } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { ExtendedProject } from "../../../iar/project/project";
 import { logger } from "iar-vsc-common/logger";
+import { WorkbenchFeatures } from "../../../iar/tools/workbenchfeatureregistry";
+import { ExtensionState } from "../../extensionstate";
 
 /**
  * This command removes a file or group from a project (using a thrift ProjectManager)
@@ -21,6 +23,17 @@ export class RemoveNodeCommand extends ProjectCommand {
     }
 
     async execute(source: FilesNode, project: ExtendedProject) {
+        const workbench = ExtensionState.getInstance().workbench.selected;
+        if (workbench && !WorkbenchFeatures.supportsFeature(workbench, WorkbenchFeatures.SetNodeCanRemoveNodes)) {
+            let errMsg = "Due to a bug, this Embedded Workbench version can not remove project members from VS Code.";
+            const minVersions = WorkbenchFeatures.getMinProductVersions(workbench, WorkbenchFeatures.SetNodeCanRemoveNodes);
+            if (minVersions.length > 0) {
+                errMsg += ` Please upgrade to ${minVersions.join(", ")} or later.`;
+            }
+            Vscode.window.showErrorMessage(errMsg);
+            return;
+        }
+
         const typeString = source.iarNode.type === NodeType.File ? "file" : "group";
         try {
             const toRemove = source.iarNode;

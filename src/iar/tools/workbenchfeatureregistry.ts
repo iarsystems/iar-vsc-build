@@ -144,6 +144,7 @@ export namespace WorkbenchFeatures {
             "8.0.0": "8.10.1", // there wasn't actually a release using 8.0.0, but add it so we can match the supportsVSCode FixVersion
             "8.0.4": "8.10.1",
             "9.0.11": "9.20.4",
+            "9.1.0": "9.30.1", // not a real release
             "9.1.1": "9.30.1",
         },
         "riscv": {
