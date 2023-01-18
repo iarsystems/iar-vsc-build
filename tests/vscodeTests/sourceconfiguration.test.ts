@@ -33,7 +33,7 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         await VscodeTestsUtils.doExtensionSetup();
         await VscodeTestsUtils.activateProject("SourceConfiguration");
         originalUserDefines = Settings.getDefines();
-        await Vscode.workspace.getConfiguration("iar-build").update("defines", [USER_DEFINE_1, USER_DEFINE_2]);
+        await Vscode.workspace.getConfiguration("iar-build").update("defines", originalUserDefines.concat([USER_DEFINE_1, USER_DEFINE_2]));
 
         const prov = IarConfigurationProvider.instance;
         Assert(prov, "Config provider should be initialized by now");

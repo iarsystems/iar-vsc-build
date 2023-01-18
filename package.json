@@ -317,7 +317,11 @@
             "__spec_string=",
             "__func__=\"\"",
             "__alignof__(a)=1",
-            "__ALIGNOF__=__alignof__"
+            "__ALIGNOF__=__alignof__",
+            "__section_begin(x)=((void*)0)",
+            "__section_end(x)=((void*)0)",
+            "__section_size(x)=((size_t)0)",
+            "__attribute__(x)="
           ]
         },
         "iar-build.c-stat.filterLevel": {
