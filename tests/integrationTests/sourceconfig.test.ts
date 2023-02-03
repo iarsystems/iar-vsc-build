@@ -9,7 +9,7 @@ import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 import * as Path from "path";
 import { OsUtils } from "iar-vsc-common/osUtils";
-import { ConfigurationSet } from "../../src/extension/cpptools/configurationset";
+import { ProjectConfigurationSet } from "../../src/extension/cpptools/configurationset";
 import { TestConfiguration } from "../testconfiguration";
 
 suite("Test source configuration providers", function() {
@@ -34,7 +34,7 @@ suite("Test source configuration providers", function() {
     test("Finds project-wide configs", async() => {
         // This file has no overriden settings, so it should use the project-defined include paths etc.
         const projectFile = Path.join(projectDir, "util.c");
-        const configSet = await ConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench);
+        const configSet = await ProjectConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench);
         await configSet.getConfigurationFor(projectFile);
         const config = configSet.getFallbackConfiguration();
         Assert(config.includes.some(path => OsUtils.pathsEqual(path.path.toString(), Path.join(projectDir, "inc"))), `Includes were: ${config.includes.map(i => i.absolutePath.toString())}`);
@@ -46,7 +46,7 @@ suite("Test source configuration providers", function() {
     test("Finds compiler configs", async() => {
         // Any file would work here
         const projectFile = Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
-        const configSet = await ConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench);
+        const configSet = await ProjectConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench);
         // Load a file so there is a valid browse config
         await configSet.getConfigurationFor(projectFile);
         const config = configSet.getFallbackConfiguration();
@@ -60,7 +60,7 @@ suite("Test source configuration providers", function() {
     test("Finds c++ configs", async() => {
         // This file uses c++ settings
         const projectFile = Path.join(projectDir, "cpp.cpp");
-        const configSet = await ConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench);
+        const configSet = await ProjectConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench);
         // Load a file so there is a valid browse config
         await configSet.getConfigurationFor(projectFile);
         const config = configSet.getFallbackConfiguration();
@@ -72,7 +72,7 @@ suite("Test source configuration providers", function() {
     test("Finds file specific configs", async() => {
         // This file has overriden include paths and defines
         const projectFile = Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
-        const config = await (await ConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench)).getConfigurationFor(projectFile);
+        const config = await (await ProjectConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench)).getConfigurationFor(projectFile);
         Assert(config.includes!.some(path => OsUtils.pathsEqual(path.path.toString(), Path.join(projectDir, "inc2"))));
         Assert(config.defines!.some(define => define.identifier === "FILE_SYMBOL"));
     });

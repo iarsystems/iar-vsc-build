@@ -22,24 +22,95 @@ import { OsUtils } from "iar-vsc-common/osUtils";
 import { Mutex } from "async-mutex";
 import { ArgVarsFile } from "../../iar/project/argvarfile";
 
+export abstract class ConfigurationSet {
+    protected readonly browseInfo: PartialSourceFileConfiguration = { includes: [], defines: [], preincludes: [] };
+
+    protected constructor(
+        protected readonly outputChannel?: vscode.OutputChannel,
+    ) {}
+
+    abstract isFileIncluded(file: string): boolean;
+    abstract getConfigurationFor(file: string): Promise<PartialSourceFileConfiguration>;
+
+    /**
+     * Gets the fallback configuration for this workspace, i.e. the configuration to use when a file-specific configuration
+     * is not available (e.g. for some headers). This is just the sum of all file-specific configurations we've loaded so far.
+     * Also used as the "browse configuration" for cpptools' tag parser.
+     */
+    getFallbackConfiguration(): PartialSourceFileConfiguration {
+        return this.browseInfo;
+    }
+}
+
+export class VSCodeWorkspaceConfigurationSet extends ConfigurationSet {
+    static async loadFromWorkspace(projects: ReadonlyArray<Project>, workspaceFolder: string, config: Config, workbench: Workbench, argVarFile?: ArgVarsFile, outputChannel?: vscode.OutputChannel): Promise<VSCodeWorkspaceConfigurationSet> {
+        try {
+            const projectConfigurations: ProjectConfigurationSet[] = [];
+            await Promise.all(projects.map(async (p) => {
+                try {
+                    const configuration = await ProjectConfigurationSet.loadFromProject(p, config, workbench, argVarFile, workspaceFolder, outputChannel);
+                    projectConfigurations.push(configuration);
+                }
+                catch (err) {
+                    if (err instanceof Error) {
+                        outputChannel?.appendLine("Source configuration did not complete for a project in the workspace: " + err.message);
+                    }
+                }
+            }));
+
+            if (projectConfigurations.length === 0) {
+                outputChannel?.appendLine("No source configurations for this workspace were generated");
+                throw Error("No source configurations for this workspace were generated");
+            }
+
+            return new VSCodeWorkspaceConfigurationSet(projectConfigurations, outputChannel);
+        } catch (err) {
+            if (err instanceof Error) {
+                outputChannel?.appendLine("Source configuration did not complete: " + err.message);
+            }
+            throw err;
+        }
+    }
+
+    private constructor(
+        private readonly projectConfigurations: ReadonlyArray<ProjectConfigurationSet>,
+        override readonly outputChannel?: vscode.OutputChannel,
+    ) {
+        super(outputChannel);
+    }
+
+    isFileIncluded(file: string): boolean {
+        return this.projectConfigurations.filter(p => p.isFileIncluded(file)).length > 0;
+    }
+    getConfigurationFor(file: string): Promise<PartialSourceFileConfiguration> {
+        const project = this.projectConfigurations.find(p => p.isFileIncluded(file));
+        if (project) {
+            this.browseInfo.includes = ListUtils.mergeUnique(inc => inc.absolutePath.toString(), project.getFallbackConfiguration().includes, this.browseInfo.includes);
+            this.browseInfo.defines = ListUtils.mergeUnique(def => def.makeString(), project.getFallbackConfiguration().defines, this.browseInfo.defines);
+            this.browseInfo.preincludes = ListUtils.mergeUnique(inc => inc.absolutePath.toString(), project.getFallbackConfiguration().preincludes, this.browseInfo.preincludes);
+            return project?.getConfigurationFor(file);
+        }
+        return Promise.reject(new Error("File is not in the project"));
+    }
+}
+
 /**
  * Provides intellisense configuration (see {@link PartialSourceFileConfiguration}) for a project.
  * This is done lazily; when the project is loaded, the compilation flags for all files are loaded,
  * and when a configuration is requested for a specific file, the compiler is invoked to get the information.
  */
-export class ConfigurationSet {
-
+export class ProjectConfigurationSet extends ConfigurationSet {
     /**
      * Loads a new configuration set for the given project and config, that can then be used to retrieve
      * intellisense configuration for specific files.
      * @param project The project to provide intellisense configuration for
-     * @param config The project config (e.g. Debug/Release) to providue intellisense configuration for
+     * @param config The project config (e.g. Debug/Release) to provide intellisense configuration for
      * @param workbench The workbench to use to generate the configuration
      * @param argVarFile A .custom_argvars file to pass to iarbuild
      * @param workspaceFolder The workspace folder the project is in. Used to resolve relative paths
      * @param outputChannel The channel to display output in
      */
-    static async loadFromProject(project: Project, config: Config, workbench: Workbench, argVarFile?: ArgVarsFile, workspaceFolder?: string, outputChannel?: vscode.OutputChannel): Promise<ConfigurationSet> {
+    static async loadFromProject(project: Project, config: Config, workbench: Workbench, argVarFile?: ArgVarsFile, workspaceFolder?: string, outputChannel?: vscode.OutputChannel): Promise<ProjectConfigurationSet> {
         // select how to generate configs for this workbench
         const builderOutput = spawnSync(workbench.builderPath.toString()).stdout.toString(); // Spawn without args to get help list
         try {
@@ -50,7 +121,7 @@ export class ConfigurationSet {
                 args = await ConfigGenerator.generateArgsForBeforeFilifjonkan(project, config, workbench, argVarFile, workspaceFolder, outputChannel);
             }
             outputChannel?.appendLine("Done!");
-            return new ConfigurationSet(args, project, outputChannel);
+            return new ProjectConfigurationSet(args, project, outputChannel);
         } catch (err) {
             if (err instanceof Error) {
                 outputChannel?.appendLine("Source configuration did not complete: " + err.message);
@@ -59,19 +130,20 @@ export class ConfigurationSet {
         }
     }
 
-    private readonly browseInfo: PartialSourceFileConfiguration = { includes: [], defines: [], preincludes: [] };
     private readonly cachedResults: Map<string, PartialSourceFileConfiguration> = new Map();
 
     private constructor(
         private readonly compilationArgs: Map<string, string[]>,
         private readonly project: Project,
-        private readonly outputChannel?: vscode.OutputChannel,
-    ) { }
+        override readonly outputChannel?: vscode.OutputChannel,
+    ) {
+        super(outputChannel);
+    }
 
     /**
      * Checks whether the file is in this project.
      */
-    isFileInProject(file: string): boolean {
+    isFileIncluded(file: string): boolean {
         return this.compilationArgs.has(OsUtils.normalizePath(file));
     }
 
@@ -97,15 +169,6 @@ export class ConfigurationSet {
         this.browseInfo.defines = ListUtils.mergeUnique(def => def.makeString(), config.defines, this.browseInfo.defines);
         this.browseInfo.preincludes = ListUtils.mergeUnique(inc => inc.absolutePath.toString(), config.preincludes, this.browseInfo.preincludes);
         return config;
-    }
-
-    /**
-     * Gets the fallback configuration for this project, i.e. the configuration to use when a file-specific ocnfiguration
-     * is not available (e.g. for some headers). This is just the sum of all file-specific configurations we've loaded so far.
-     * Also used as the "browse configuration" for cpptools' tag parser.
-     */
-    getFallbackConfiguration(): PartialSourceFileConfiguration {
-        return this.browseInfo;
     }
 }
 

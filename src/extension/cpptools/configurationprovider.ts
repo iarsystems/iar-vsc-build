@@ -15,7 +15,7 @@ import { IarOsUtils } from "iar-vsc-common/osUtils";
 import { FsUtils } from "../../utils/fs";
 import { Keyword } from "./data/keyword";
 import { Define } from "./data/define";
-import { ConfigurationSet } from "./configurationset";
+import { ConfigurationSet, ProjectConfigurationSet, VSCodeWorkspaceConfigurationSet } from "./configurationset";
 import { PartialSourceFileConfiguration } from "./data/partialsourcefileconfiguration";
 import { logger } from "iar-vsc-common/logger";
 
@@ -67,7 +67,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
      * Returns whether a file belongs to the current project. Exposed for testing purposes.
      */
     public isProjectFile(file: string) {
-        return this.currentConfiguration?.isFileInProject(file) ?? false;
+        return this.currentConfiguration?.isFileIncluded(file) ?? false;
     }
 
     /**
@@ -119,7 +119,7 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
             }
             try {
                 let partialConfig: PartialSourceFileConfiguration;
-                if (!this.currentConfiguration.isFileInProject(uri.fsPath)) {
+                if (!this.currentConfiguration.isFileIncluded(uri.fsPath)) {
                     logger.debug(`Using fallback intellisense configuration for '${uri.fsPath}'`);
                     partialConfig = this.currentConfiguration.getFallbackConfiguration();
                 } else {
@@ -207,14 +207,19 @@ export class IarConfigurationProvider implements CustomConfigurationProvider {
         const workbench = ExtensionState.getInstance().workbench.selected;
         const config = ExtensionState.getInstance().config.selected;
         const project = ExtensionState.getInstance().project.selected;
-        if (!workbench || !config || !project) {
+        const projects = ExtensionState.getInstance().project.projects;
+        if (!workbench || !config || !project || !projects) {
             return false;
         }
         const argVarFile = ExtensionState.getInstance().argVarsFile.selected;
         logger.debug(`Generating intellisense config for '${project.name}':'${config.name}'...`);
         const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(project.path))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         try {
-            this.currentConfiguration = await ConfigurationSet.loadFromProject(project, config, workbench, argVarFile, workspaceFolder, this.output);
+            if (workspaceFolder) {
+                this.currentConfiguration = await VSCodeWorkspaceConfigurationSet.loadFromWorkspace(projects, workspaceFolder, config, workbench, argVarFile, this.output);
+            } else {
+                this.currentConfiguration = await ProjectConfigurationSet.loadFromProject(project, config, workbench, argVarFile, workspaceFolder, this.output);
+            }
             return true;
         } catch (err) {
             this.currentConfiguration = undefined;

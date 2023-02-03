@@ -3,7 +3,7 @@
 */**
 
 # Include only the files that should be in the .vsix
-!out/src/extension/main.js
+!dist/main.js
 !README.md
 !CHANGELOG.md
 !LICENSE
