@@ -46,12 +46,15 @@ export class VSCodeWorkspaceConfigurationSet extends ConfigurationSet {
     static async loadFromWorkspace(projects: ReadonlyArray<Project>, workspaceFolder: string, config: Config, workbench: Workbench, argVarFile?: ArgVarsFile, outputChannel?: vscode.OutputChannel): Promise<VSCodeWorkspaceConfigurationSet> {
         try {
             const projectConfigurations: ProjectConfigurationSet[] = [];
-            await Promise.all(projects.map(async (p) => {
+            await Promise.all(projects.map(async(p) => {
                 try {
-                    const configuration = await ProjectConfigurationSet.loadFromProject(p, config, workbench, argVarFile, workspaceFolder, outputChannel);
-                    projectConfigurations.push(configuration);
-                }
-                catch (err) {
+                    // If the project doesn't have a config the same name as the user's selected one, pick an arbitrary config
+                    const actualConfig = p.findConfiguration(config.name) ?? p.configurations[0];
+                    if (actualConfig) {
+                        const configuration = await ProjectConfigurationSet.loadFromProject(p, actualConfig, workbench, argVarFile, workspaceFolder, outputChannel);
+                        projectConfigurations.push(configuration);
+                    }
+                } catch (err) {
                     if (err instanceof Error) {
                         outputChannel?.appendLine("Source configuration did not complete for a project in the workspace: " + err.message);
                     }
