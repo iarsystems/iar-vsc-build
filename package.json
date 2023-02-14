@@ -36,31 +36,12 @@
     "multi-root ready"
   ],
   "activationEvents": [
-    "onCommand:iar-build.selectToolchain",
-    "onCommand:iar-build.selectProject",
-    "onCommand:iar-build.selectConfiguration",
-    "onCommand:iar-build.selectArgumentVariablesFile",
     "onCommand:iar-build.selectIarWorkspace",
-    "onCommand:iar-build.addToolchain",
-    "onCommand:iar-build.addFileToRoot",
-    "onCommand:iar-build.addGroupToRoot",
-    "onCommand:iar-build.addFile",
-    "onCommand:iar-build.addGroup",
-    "onCommand:iar-build.removeNode",
-    "onCommand:iar-build.toggleCstatToolbar",
-    "onCommand:iar-build.reloadProject",
-    "onCommand:iar-config.toolchain",
-    "onCommand:iar-config.project-file",
-    "onCommand:iar-config.project-configuration",
-    "onCommand:iar-config.project-name",
-    "onCommand:iar-config.argument-variables-file",
-    "onView:iar-configuration",
-    "onView:iar-project",
     "workspaceContains:**/*.ewp",
     "onTaskType:iar",
     "onTaskType:iar-cstat"
   ],
-  "main": "./dist/main.js",
+  "main": "./out/src/extension/main.js",
   "contributes": {
     "commands": [
       {
