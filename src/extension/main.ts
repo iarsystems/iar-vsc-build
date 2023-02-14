@@ -8,7 +8,7 @@ import { IarToolManager } from "../iar/tools/manager";
 import { Settings } from "./settings";
 import { IarTaskProvider } from "./task/provider";
 import { GetSettingsCommand } from "./command/getsettings";
-import { IarConfigurationProvider } from "./cpptools/configurationprovider";
+import { CpptoolsIntellisenseService } from "./intellisense/cpptoolsintellisenseservice";
 import { CStatTaskProvider } from "./task/cstat/cstattaskprovider";
 import { TreeProjectView } from "./ui/treeprojectview";
 import { SelectIarWorkspace } from "./command/selectIarWorkspace";
@@ -83,7 +83,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     CStatTaskProvider.register(context);
 
     // --- start cpptools interface
-    IarConfigurationProvider.init();
+    CpptoolsIntellisenseService.init();
 
     // --- watch for creating/deleting/modifying projects and .custom_argvars files in the workspace
     IarVsc.ewpFilesWatcher = new EwpFileWatcherService();
@@ -107,8 +107,8 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
 export async function deactivate() {
     logger.debug("Deactivating extension");
     IarVsc.ewpFilesWatcher?.dispose();
-    if (IarConfigurationProvider.instance) {
-        IarConfigurationProvider.instance.close();
+    if (CpptoolsIntellisenseService.instance) {
+        CpptoolsIntellisenseService.instance.close();
     }
     IarTaskProvider.unregister();
     CStatTaskProvider.unRegister();
