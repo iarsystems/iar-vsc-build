@@ -12,7 +12,7 @@ const config = {
     path: path.resolve(__dirname, "out/src/extension"),
     filename: "main.js",
     libraryTarget: "commonjs2",
-    devtoolModuleFilenameTemplate: "../[resource-path]"
+    devtoolModuleFilenameTemplate: "../../../[resource-path]"
   },
   devtool: "source-map",
   externals: {

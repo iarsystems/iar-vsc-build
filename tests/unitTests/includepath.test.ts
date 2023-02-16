@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Assert from "assert";
-import { IncludePath } from "../../src/extension/cpptools/data/includepath";
+import { IncludePath } from "../../src/extension/intellisense/data/includepath";
 
 suite("Test includepath parsers", () => {
     suite("Test compile output", () => {

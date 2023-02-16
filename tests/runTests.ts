@@ -28,7 +28,6 @@ async function main() {
     // so that the projects are detected correctly
     const workspaceDir = VscodeTestsSetup.setup();
     await runTestsIn(path.resolve(__dirname), "../..", "./vscodeTests/index", envs, workspaceDir, envs["test-configuration"]);
-    await runTestsIn(path.resolve(__dirname), "../..", "./miscTests/index", envs, undefined, envs["test-configuration"]);
 }
 
 /**

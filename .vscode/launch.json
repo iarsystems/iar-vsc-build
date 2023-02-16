@@ -10,13 +10,14 @@
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
+            "outFiles": [
+                "${workspaceFolder}/out/src/extension/main.js",
+            ],
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
-            "outFiles": [
-                "${workspaceFolder}/Extension/dist/**/*.js"
-            ],
-            "preLaunchTask": "npm: webpack-watch"
+            "preLaunchTask": "npm: webpack-watch",
+            "trace": true
         },
         {
             "name": "Extension Tests",
@@ -28,7 +29,7 @@
                 "--extensionTestsPath=${workspaceFolder}/out/tests/unitTests"
             ],
             "outFiles": [
-                "${workspaceFolder}/out/test/**/*.js"
+                "${workspaceFolder}/out/**/*.js"
             ],
             "preLaunchTask": "npm: test-compile",
             "presentation": {
@@ -45,7 +46,7 @@
                 "--extensionTestsPath=${workspaceFolder}/out/tests/integrationTests"
             ],
             "outFiles": [
-                "${workspaceFolder}/out/test/**/*.js"
+                "${workspaceFolder}/out/**/*.js"
             ],
             "env": {
                 "log-to-console": "true",
@@ -66,7 +67,7 @@
                 "${workspaceFolder}/test-sandbox/UiTestProjects/"
             ],
             "outFiles": [
-                "${workspaceFolder}/out/test/**/*.js"
+                "${workspaceFolder}/out/**/*.js"
             ],
             "env": {
                 "log-to-console": "true",
@@ -87,7 +88,7 @@
                 "--extensionTestsPath=${workspaceFolder}/out/tests/miscTests"
             ],
             "outFiles": [
-                "${workspaceFolder}/out/test/**/*.js"
+                "${workspaceFolder}/out/**/*.js"
             ],
             "preLaunchTask": "npm: test-compile",
             "presentation": {

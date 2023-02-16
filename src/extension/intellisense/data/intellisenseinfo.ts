@@ -9,9 +9,10 @@ import { PreIncludePath } from "./preincludepath";
 import { Define } from "./define";
 
 /**
- * The parts of a source file configuration we need to generate. Other parts are either irrelevent, or found from settings.
+ * The intellisense info we can generate for a source file from its project.
+ * Other data may be able to be derived from these.
  */
-export interface PartialSourceFileConfiguration {
+export interface IntellisenseInfo {
     includes: IncludePath[];
     preincludes: PreIncludePath[];
     defines: Define[];

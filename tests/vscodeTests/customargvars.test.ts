@@ -4,7 +4,7 @@
 
 import * as Assert from "assert";
 import * as Path from "path";
-import { IarConfigurationProvider } from "../../src/extension/cpptools/configurationprovider";
+import { CpptoolsIntellisenseService } from "../../src/extension/intellisense/cpptoolsintellisenseservice";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { WorkbenchFeatures } from "../../src/iar/tools/workbenchfeatureregistry";
 import { FsUtils } from "../../src/utils/fs";
@@ -61,13 +61,14 @@ suite("Test .custom_argvars project support", () => {
         const exeFile = Path.join(sandBoxDir, "ArgVars/Debug/Exe/ArgVars.out");
         Assert(await FsUtils.exists(exeFile), `Expected ${exeFile} to exist`);
     });
-    test("Source config provider handles project with .custom_argvars", async() => {
+    test("Source config provider handles project with .custom_argvars", async function() {
+        this.timeout(80000);
         await VscodeTestsUtils.activateArgVarFile("ArgVarFile1.custom_argvars");
         // Make sure the source configuration has updated before proceeding
-        await IarConfigurationProvider.instance?.forceUpdate();
-        Assert(IarConfigurationProvider.instance);
+        await CpptoolsIntellisenseService.instance?.forceUpdate();
+        Assert(CpptoolsIntellisenseService.instance);
         // It is enough to test that it generates a configuration at all, since we already test elsewhere that
         // the configuration is correct.
-        Assert(IarConfigurationProvider.instance.isProjectFile(Path.join(sandBoxDir, "ArgVars/Fibonacci.c")));
+        Assert(CpptoolsIntellisenseService.instance.canHandleFile(Path.join(sandBoxDir, "ArgVars/Fibonacci.c")));
     });
 });

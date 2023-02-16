@@ -4,7 +4,7 @@
 import * as Assert from "assert";
 import * as Vscode from "vscode";
 import * as Path from "path";
-import { IarConfigurationProvider } from "../../src/extension/cpptools/configurationprovider";
+import { CpptoolsIntellisenseService } from "../../src/extension/intellisense/cpptoolsintellisenseservice";
 import { VscodeTestsUtils } from "./utils";
 import { VscodeTestsSetup } from "./setup";
 import { OsUtils } from "iar-vsc-common/osUtils";
@@ -18,14 +18,14 @@ suite("Test Source Configuration (intelliSense)", ()=>{
     const USER_DEFINE_1 = "MY_DEFINE";
     const USER_DEFINE_2 = "MY_DEFINE2='test'";
 
-    let provider: IarConfigurationProvider;
+    let provider: CpptoolsIntellisenseService;
     let projectDir: string;
     let libDir: string;
 
     let originalUserDefines: string[];
 
     suiteSetup(async function() {
-        this.timeout(40000);
+        this.timeout(120000);
         const sandboxPath = VscodeTestsSetup.setup();
         projectDir = Path.join(sandboxPath, "SourceConfiguration/Project");
         libDir = Path.join(sandboxPath, "SourceConfiguration/Library");
@@ -35,7 +35,7 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         originalUserDefines = Settings.getDefines();
         await Vscode.workspace.getConfiguration("iar-build").update("defines", originalUserDefines.concat([USER_DEFINE_1, USER_DEFINE_2]));
 
-        const prov = IarConfigurationProvider.instance;
+        const prov = CpptoolsIntellisenseService.instance;
         Assert(prov, "Config provider should be initialized by now");
         await prov.forceUpdate();
         provider = prov;
@@ -72,7 +72,7 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         Assert(config.defines.some(define => define.match(/__VERSION__=".+"/)));
 
         // User settings
-        Assert(config.defines.some(define => define === USER_DEFINE_1));
+        Assert(config.defines.some(define => define === USER_DEFINE_1 + "="));
         Assert(config.defines.some(define => define === USER_DEFINE_2));
 
         // IAR keywords
@@ -82,13 +82,12 @@ suite("Test Source Configuration (intelliSense)", ()=>{
 
     test("Handles project files", async() => {
         let path = Path.join(projectDir, "main.c");
-        Assert(provider.isProjectFile(path));
+        Assert(provider.canHandleFile(path));
         let config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
-        console.log(JSON.stringify(config));
         assertConfig(config!.configuration);
 
         path = Path.join(libDir, "src/gpio.c");
-        Assert(provider.isProjectFile(path));
+        Assert(provider.canHandleFile(path));
         config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
         assertConfig(config!.configuration);
 
@@ -99,13 +98,24 @@ suite("Test Source Configuration (intelliSense)", ()=>{
 
     test("Handles non-project files", async() => {
         let path = "thisfiledoesnotexist.c";
-        Assert(!provider.isProjectFile(path));
+        Assert(!provider.canHandleFile(path));
         let config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
         assertConfig(config!.configuration);
 
         path = Path.join(projectDir, "main.h");
-        Assert(!provider.isProjectFile(path));
+        Assert(!provider.canHandleFile(path));
         config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
+        assertConfig(config!.configuration);
+    });
+
+    test("Provides configs for non-active projects", async function() {
+        this.timeout(60000);
+        await VscodeTestsUtils.activateProject("BasicDebugging");
+        await provider.forceUpdate();
+
+        const path = Path.join(projectDir, "main.c");
+        Assert(provider.canHandleFile(path));
+        const config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
         assertConfig(config!.configuration);
     });
 

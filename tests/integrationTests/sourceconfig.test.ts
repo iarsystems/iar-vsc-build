@@ -9,7 +9,7 @@ import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 import * as Path from "path";
 import { OsUtils } from "iar-vsc-common/osUtils";
-import { ConfigurationSet } from "../../src/extension/cpptools/configurationset";
+import { WorkspaceIntellisenseProvider } from "../../src/extension/intellisense/workspaceintellisenseprovider";
 import { TestConfiguration } from "../testconfiguration";
 
 suite("Test source configuration providers", function() {
@@ -34,22 +34,21 @@ suite("Test source configuration providers", function() {
     test("Finds project-wide configs", async() => {
         // This file has no overriden settings, so it should use the project-defined include paths etc.
         const projectFile = Path.join(projectDir, "util.c");
-        const configSet = await ConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench);
-        await configSet.getConfigurationFor(projectFile);
-        const config = configSet.getFallbackConfiguration();
-        Assert(config.includes.some(path => OsUtils.pathsEqual(path.path.toString(), Path.join(projectDir, "inc"))), `Includes were: ${config.includes.map(i => i.absolutePath.toString())}`);
-        Assert(config.defines.some(define => define.identifier === "MY_SYMBOL" && define.value === "42"));
-        Assert(config.defines.some(define => define.identifier === "MY_SYMBOL2" && define.value === "\"test\""));
-        Assert(config.preincludes.some(inc => inc.path === "preincluded.h"));
+        const intellisenseProv = await WorkspaceIntellisenseProvider.loadProjects([project], workbench, "Debug");
+        const intellisenseInfo = await intellisenseProv.getIntellisenseInfoFor(projectFile);
+        Assert(intellisenseInfo.includes.some(path => OsUtils.pathsEqual(path.path.toString(), Path.join(projectDir, "inc"))), `Includes were: ${intellisenseInfo.includes.map(i => i.absolutePath.toString())}`);
+        Assert(intellisenseInfo.defines.some(define => define.identifier === "MY_SYMBOL" && define.value === "42"));
+        Assert(intellisenseInfo.defines.some(define => define.identifier === "MY_SYMBOL2" && define.value === "\"test\""));
+        Assert(intellisenseInfo.preincludes.some(inc => inc.path === "preincluded.h"));
     });
 
     test("Finds compiler configs", async() => {
         // Any file would work here
         const projectFile = Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
-        const configSet = await ConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench);
+        const intellisenseProv = await WorkspaceIntellisenseProvider.loadProjects([project], workbench, "Debug");
         // Load a file so there is a valid browse config
-        await configSet.getConfigurationFor(projectFile);
-        const config = configSet.getFallbackConfiguration();
+        await intellisenseProv.getIntellisenseInfoFor(projectFile);
+        const config = intellisenseProv.getBrowseInfo();
         for (const regex of TestConfiguration.getConfiguration().defaultIncludePaths) {
             Assert(config.includes.some(path => path.absolutePath.toString().match(regex)));
         }
@@ -60,10 +59,10 @@ suite("Test source configuration providers", function() {
     test("Finds c++ configs", async() => {
         // This file uses c++ settings
         const projectFile = Path.join(projectDir, "cpp.cpp");
-        const configSet = await ConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench);
+        const intellisenseProv = await WorkspaceIntellisenseProvider.loadProjects([project], workbench, "Debug");
         // Load a file so there is a valid browse config
-        await configSet.getConfigurationFor(projectFile);
-        const config = configSet.getFallbackConfiguration();
+        await intellisenseProv.getIntellisenseInfoFor(projectFile);
+        const config = intellisenseProv.getBrowseInfo();
         Assert(config.includes.some(path => path.absolutePath.toString().endsWith("cpp")), `Does not include c++ header directory. Includes were: ${config.includes.map(i => i.absolutePath.toString())}`);
         // Assumes this define is always there, but might not be if using an old c++ standard?
         Assert(config.defines.some(define => define.identifier === "__cpp_constexpr"), "Does not include c++ defines");
@@ -72,7 +71,7 @@ suite("Test source configuration providers", function() {
     test("Finds file specific configs", async() => {
         // This file has overriden include paths and defines
         const projectFile = Path.join(projectDir, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
-        const config = await (await ConfigurationSet.loadFromProject(project, project.findConfiguration("Debug")!, workbench)).getConfigurationFor(projectFile);
+        const config = await (await WorkspaceIntellisenseProvider.loadProjects([project], workbench, "Debug")).getIntellisenseInfoFor(projectFile);
         Assert(config.includes!.some(path => OsUtils.pathsEqual(path.path.toString(), Path.join(projectDir, "inc2"))));
         Assert(config.defines!.some(define => define.identifier === "FILE_SYMBOL"));
     });
