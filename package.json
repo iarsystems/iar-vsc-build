@@ -270,7 +270,7 @@
       "properties": {
         "iar-build.projectsToExclude": {
           "type": "string",
-          "markdownDescription": "All projects that match this regex will be ignored. Empty regex means no ignore.",
+          "markdownDescription": "All projects whose file path matches this regex will be ignored. An empty regex means no projects are ignored.",
           "default": ""
         },
         "iar-build.iarInstallDirectories": {

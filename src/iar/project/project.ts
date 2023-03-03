@@ -65,7 +65,13 @@ export namespace Project {
 
         // All projects that match this regex should be ignored
         const projectsToExclude = Settings.getProjectsToExclude();
-        const isIgnoredFile = !!projectsToExclude && RegExp(projectsToExclude).test(projectFile);
+        const flags = OsUtils.detectOsType() === OsUtils.OsType.Windows ? "i" : undefined;
+        let isIgnoredFile = !!projectsToExclude && RegExp(projectsToExclude, flags).test(projectFile);
+        // On windows, allow matching against forward slashes too
+        if (!isIgnoredFile && OsUtils.detectOsType() === OsUtils.OsType.Windows) {
+            const withForwardSlashes = projectFile.replace(/\\/g, "/");
+            isIgnoredFile = !!projectsToExclude && RegExp(projectsToExclude, flags).test(withForwardSlashes);
+        }
 
         return isBackupFile || isIgnoredFile;
     }
