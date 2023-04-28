@@ -10,61 +10,63 @@ import { Workbench, WorkbenchType } from "iar-vsc-common/workbench";
  * This can be used e.g. to handle API changes between platform versions or to handle bugs in specific platform versions.
  */
 export namespace WorkbenchFeatures {
-    // These types are export for testing only
-    export enum Type {
-        BxAndEw,
-        EwOnly,
-    }
     type PlatformVersion = [number, number, number];
+    // Exported for testing only
     export interface FeatureRequirement {
         baseVersion: PlatformVersion;
-        type: Type,
+        minProductType: WorkbenchType,
         targetOverrides?: Record<string, PlatformVersion>;
     }
 
     /**
      * We make no attempt to support versions below this; some things may still work... */
-    export const VSCodeIntegration: FeatureRequirement = { baseVersion: [8,0,0], type: Type.BxAndEw };
+    export const VSCodeIntegration: FeatureRequirement =
+        { baseVersion: [8,0,0], minProductType: WorkbenchType.LEGACY_BX };
     /**
      * Whether this workbench can return project/configuration options via thrift.
      * Previous versions may fail to expand some argvars, see MAJ-156. */
     export const FetchProjectOptions: FeatureRequirement = {
         baseVersion: [9,1,1],
-        type: Type.BxAndEw,
+        minProductType: WorkbenchType.LEGACY_BX,
         targetOverrides: {
             // See IDE-6272
             rh850: [9,2,0],
-            rl78:  [9,2,0],
-            avr:   [9,2,0],
-            riscv: [9,2,0],
+            rl78:  [9,1,7],
+            avr:   [9,1,7],
+            riscv: [9,1,7],
         }
     };
     /**
      * Whether this workbench can return tool arguments (e.g. C-SPY command lines) via thrift.
      * Previous versions may fail to expand some argvars, see MAJ-156. */
-    export const FetchToolArguments: FeatureRequirement = { baseVersion: [9,1,1], type: Type.BxAndEw };
+    export const FetchToolArguments: FeatureRequirement =
+        { baseVersion: [9,1,1], minProductType: WorkbenchType.LEGACY_BX };
     /**
      * Whether this workbench supports the SetNodeByIndex thrift procedure, which
      * fixes issues with the previous SetNode procedure. See VSC-233. */
-    export const SetNodeByIndex: FeatureRequirement = { baseVersion: [9,1,1], type: Type.BxAndEw };
+    export const SetNodeByIndex: FeatureRequirement =
+        { baseVersion: [9,1,1], minProductType: WorkbenchType.LEGACY_BX };
     /**
      * Whether this workbench removes nodes from the project tree when calling SetNodes with an
      * updated node that has had some of its children removed. Other workbench version will only add
      * new children, but not remove children. See VSC-122. */
-    export const SetNodeCanRemoveNodes: FeatureRequirement = { baseVersion: [9,1,0], type: Type.BxAndEw };
+    export const SetNodeCanRemoveNodes: FeatureRequirement
+        = { baseVersion: [9,1,0], minProductType: WorkbenchType.LEGACY_BX };
     /**
      * Whether this workbench supports the thrift project manager. */
-    export const ThriftPM: FeatureRequirement = { baseVersion: [9,0,11], type: Type.EwOnly };
+    export const ThriftPM: FeatureRequirement =
+        { baseVersion: [9,0,11], minProductType: WorkbenchType.EXTENDED_BX };
     /**
      * Whether this workbench supports loading workspaces from the thrift project manager (e.g. to load .custom_argvars files). */
-    export const PMWorkspaces: FeatureRequirement = { baseVersion: [9,1,1], type: Type.BxAndEw };
+    export const PMWorkspaces: FeatureRequirement =
+        { baseVersion: [9,1,1], minProductType: WorkbenchType.LEGACY_BX };
 
 
     /**
      * Checks whether a workbench version meets the given minimum version.
      */
     export function supportsFeature(workbench: Workbench, requirement: FeatureRequirement, target?: string) {
-        if (requirement.type === Type.EwOnly && workbench.type === WorkbenchType.BX) {
+        if (requirement.minProductType > workbench.type) {
             return false;
         }
 
@@ -85,22 +87,37 @@ export namespace WorkbenchFeatures {
      * @param minVer The version the workbench should meet
      */
     export function getMinProductVersions(workbench: Workbench, feature: FeatureRequirement): string[] {
+        const preferredProductType = Math.max(workbench.type, feature.minProductType);
 
         return workbench.targetIds.map(target => {
             const minVer = calculateMinimumVersion(feature, target);
-            // Do we know the production version for this target and platform version?
-            const minVersionString = `${minVer[0]}.${minVer[1]}.${minVer[2]}`;
-            const productVersion = productVersionTable[target]?.[minVersionString];
-            if (productVersion === undefined) {
-                return undefined;
-            }
-            // It would be weird to recommend BX users to upgrade to EW, so
-            // if they're using BX and BX meets the requirements we can return a BX product name.
-            const useBuildTools = minVer[1] === Type.BxAndEw && workbench.type === WorkbenchType.BX;
-            const targetDisplayName = Workbench.getTargetDisplayName(target) ?? target;
 
-            return "IAR " + (useBuildTools ? "Build Tools" : "Embedded Workbench") + " for " + targetDisplayName + " " + productVersion;
-        }).filter((product): product is string => !!product);
+            const results: string[] = [];
+
+            // Extended BX:s aren't always available, so we have to take special care with them
+            const preferredMatch = getProductSatisfyingConstraints(minVer, target, preferredProductType);
+            if (preferredMatch) {
+                results.push(preferredMatch[1]);
+
+                // We found a satisfactory extended BX, but there may also be an earlier IDE that satisfies the
+                // requirement. In that case, recommend both products.
+                if (preferredProductType === WorkbenchType.EXTENDED_BX && workbench.type === WorkbenchType.LEGACY_BX) {
+                    const ideMatch = getProductSatisfyingConstraints(minVer, target, WorkbenchType.IDE);
+                    if (ideMatch && ideMatch[0] < preferredMatch[0]) {
+                        results.unshift(ideMatch[1]);
+                    }
+                }
+            } else if (preferredProductType === WorkbenchType.EXTENDED_BX) {
+                // We may have failed to find a product simply because there are no extended BX:s for this target,
+                // so check for an IDE too.
+                const ideMatch = getProductSatisfyingConstraints(minVer, target, WorkbenchType.IDE);
+                if (ideMatch) {
+                    results.push(ideMatch[1]);
+                }
+            }
+
+            return results;
+        }).flat();
     }
 
     // Calculates the minimum required ide version to support a feature for the given target(s)
@@ -134,53 +151,75 @@ export namespace WorkbenchFeatures {
         return 0;
     }
 
-    // Maps IDE platform versions to (user-visible) product versions
-    // Note that {@link getMinProductVersions} matches against exact fix versions. To be able to match
-    // against a fix version for which there was no release for the target, you must add a "bogus" entry, see below.
-    // We could try to match against the next release after the fix version, but that means we might return incorrect
-    // product versions if we don't keep this table complete (and it is not complete ATM).
-    const productVersionTable: { [target: string]: { [ver: string]: string} } = {
-        "arm": {
-            "8.0.0": "8.10.1", // there wasn't actually a release using 8.0.0, but add it so we can match the supportsVSCode FixVersion
-            "8.0.4": "8.10.1",
-            "9.0.11": "9.20.4",
-            "9.1.0": "9.30.1", // not a real release
-            "9.1.1": "9.30.1",
-        },
-        "riscv": {
-            "8.0.0": "1.10", // not a real release
-            "8.3.2": "1.10",
-            "9.1.0": "3.10.1",
-            "9.1.1": "3.11.1", // not a real release
-            "9.1.3": "3.11.1",
-        },
-        "430": {
-            "8.0.0": "7.10.1", // not a real release
-            "8.0.4": "7.10.1",
-        },
-        "avr": {
-            "8.0.0": "7.10", // not a real release
-            "8.0.7": "7.10",
-        },
-        "rh850": {
-            "8.0.0": "2.10", // not a real release
-            "8.1.1": "2.10",
-            "9.0.11": "3.10", // not a real release
-            "9.1.0": "3.10", // not a real release
-            "9.1.1": "3.10", // not a real release
-            "9.1.2": "3.10",
-        },
-        "rl78": {
-            "8.0.0": "3.10", // not a real release
-            "8.0.9": "3.10",
-        },
-        "rx": {
-            "8.0.0": "3.10", // not a real release
-            "8.0.6": "3.10",
-        },
-        "stm8": {
-            "8.0.0": "5.10", // not a real release
-            "8.1.2": "5.10",
-        },
-    };
+    // If found, returns the platform version and display name of the minimum version product to satisfy the constraints.
+    function getProductSatisfyingConstraints(
+        platformVersion: PlatformVersion,
+        target: string,
+        type: WorkbenchType
+    ): [PlatformVersion, string] | undefined {
+
+        const productRelease = productReleasesFor(target).find(product => {
+            return product.platformVersion >= platformVersion &&
+                (type !== WorkbenchType.EXTENDED_BX || product.bxIsExtended);
+        });
+        if (productRelease === undefined) {
+            return undefined;
+        }
+
+        const targetDisplayName = Workbench.getTargetDisplayName(target) ?? target;
+        const productTypeName = type === WorkbenchType.IDE ? "Embedded Workbench" : "Build Tools";
+
+        return [productRelease.platformVersion,
+            "IAR " + productTypeName + " for " + targetDisplayName + " " + productRelease.productVersion];
+    }
+
+    class ProductRelease {
+        constructor(
+            public readonly platformVersion: PlatformVersion,
+            // Whether the BX for this release is a WorkbenchType.EXTENDED_BX
+            public readonly bxIsExtended: boolean,
+            public readonly productVersion: string,
+        ) {}
+    }
+
+    function productReleasesFor(target: string): ProductRelease[] {
+        //! NOTE: entries MUST be inserted in ascending order
+        const products: ProductRelease[] = [];
+
+        if (target === "arm") {
+            products.push(new ProductRelease([8,0,4], false, "8.10.1"));
+            products.push(new ProductRelease([9,0,11], false, "9.20.4"));
+            products.push(new ProductRelease([9,1,1], false, "9.30.1"));
+        }
+        if (target === "riscv") {
+            products.push(new ProductRelease([8,3,2], false, "1.10"));
+            products.push(new ProductRelease([9,1,0], false, "3.10.1"));
+            products.push(new ProductRelease([9,1,3], false, "3.11.1"));
+            products.push(new ProductRelease([9,1,7], false, "3.20.1"));
+        }
+        if (target === "430") {
+            products.push(new ProductRelease([8,0,4], false, "7.10.1"));
+            products.push(new ProductRelease([9,1,4], false, "8.10.1"));
+        }
+        if (target === "avr") {
+            products.push(new ProductRelease([8,0,7], false, "7.10"));
+            products.push(new ProductRelease([9,1,7], false, "8.10"));
+        }
+        if (target === "rh850") {
+            products.push(new ProductRelease([8,1,1], false, "2.10"));
+            products.push(new ProductRelease([9,1,2], false, "3.10"));
+        }
+        if (target === "rl78") {
+            products.push(new ProductRelease([8,0,9], false, "3.10"));
+            products.push(new ProductRelease([9,1,7], false, "5.10"));
+        }
+        if (target === "rx") {
+            products.push(new ProductRelease([8,0,6], false, "3.10"));
+        }
+        if (target === "stm8") {
+            products.push(new ProductRelease([8,1,2], false, "5.10"));
+        }
+
+        return products;
+    }
 }

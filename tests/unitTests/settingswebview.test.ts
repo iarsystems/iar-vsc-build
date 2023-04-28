@@ -101,7 +101,7 @@ suite("Test settings view", () => {
     test("Populates dropdowns", () => {
         workbenchModel.set(
             { name: "Embedded Workbench 9.0", path: "/path/Embedded Workbench 9.0", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["arm"], type: WorkbenchType.IDE },
-            { name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.BX }
+            { name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.LEGACY_BX }
         );
 
         projectModel.set(
@@ -155,7 +155,7 @@ suite("Test settings view", () => {
     });
 
     test("Reacts to loading workbenches", () => {
-        workbenchModel.set({ name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.BX });
+        workbenchModel.set({ name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.LEGACY_BX });
         updateDocument();
         {
             const wbs = document.getElementById(DropdownIds.Workbench);

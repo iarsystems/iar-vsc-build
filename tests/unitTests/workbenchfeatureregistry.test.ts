@@ -19,7 +19,7 @@ suite("Test Workbench Version Registry", () => {
                 version: { major: 8, minor: 4, patch: 2},
             };
             const myFeature: WorkbenchFeatures.FeatureRequirement = {
-                type: WorkbenchFeatures.Type.BxAndEw,
+                minProductType: WorkbenchType.LEGACY_BX,
                 baseVersion: [9, 1, 0],
             };
             Assert(!WorkbenchFeatures.supportsFeature(mockEW, myFeature));
@@ -42,7 +42,7 @@ suite("Test Workbench Version Registry", () => {
                 version: { major: 9, minor: 1, patch: 0},
             };
             const myFeature: WorkbenchFeatures.FeatureRequirement = {
-                type: WorkbenchFeatures.Type.BxAndEw,
+                minProductType: WorkbenchType.LEGACY_BX,
                 baseVersion: [9, 1, 0],
                 targetOverrides: {
                     "arm": [9, 2, 0],
@@ -73,16 +73,16 @@ suite("Test Workbench Version Registry", () => {
                 name: "MockBX",
                 path: "",
                 targetIds: [],
-                type: WorkbenchType.BX,
+                type: WorkbenchType.EXTENDED_BX,
                 version: { major: 1, minor: 0, patch: 0},
             };
             const myFeature: WorkbenchFeatures.FeatureRequirement = {
-                type: WorkbenchFeatures.Type.EwOnly,
+                minProductType: WorkbenchType.IDE,
                 baseVersion: [1, 0, 0],
             };
             Assert(WorkbenchFeatures.supportsFeature(mockEW, myFeature));
             Assert(!WorkbenchFeatures.supportsFeature(mockBX, myFeature));
-            myFeature.type = WorkbenchFeatures.Type.BxAndEw;
+            myFeature.minProductType = WorkbenchType.EXTENDED_BX,
             Assert(WorkbenchFeatures.supportsFeature(mockBX, myFeature));
         });
 
