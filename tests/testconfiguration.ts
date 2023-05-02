@@ -24,7 +24,7 @@ export interface TestConfiguration {
     cstatHeaderQuoting: [string, string];
     // The C-SPY command line to expect for the 'Debug' configuration of the 'BasicDebugging' test project.
     // This only needs to be specified for targets that support debugging.
-    cspyCommandLine?: (workbenchPath: string, projectPath: string) => string[];
+    cspyCommandLine?: (workbenchPath: string, projectPath: string) => Array<string | { path: string }>;
     // Path to a directory with the test project to use for the 'integrationTests' suite
     integrationTestProjectsDir: string;
     // The standard include paths (e.g. for the standard library) that should be there for every project
@@ -76,7 +76,7 @@ export namespace TestConfiguration {
             cstatHeaderQuoting: ["`", "'"],
             cspyCommandLine: (wb, proj) => [
                 "/file",
-                Path.join(Path.dirname(proj), "Debug/Exe/BasicDebugging.out"),
+                { path: Path.join(Path.dirname(proj), "Debug/Exe/BasicDebugging.out") },
                 "--crun=disabled",
                 "--endian=little",
                 "--cpu=Cortex-M3",
@@ -86,15 +86,15 @@ export namespace TestConfiguration {
                 "--semihosting",
                 "--multicore_nr_of_cores=1",
                 "/driver",
-                Path.join(wb, OsUtils.detectOsType() === OsUtils.OsType.Windows ? "arm\\bin\\armSIM2.dll" : "arm/bin/libarmSIM2.so"),
+                { path: Path.join(wb, OsUtils.detectOsType() === OsUtils.OsType.Windows ? "arm\\bin\\armSIM2.dll" : "arm/bin/libarmSIM2.so") },
                 "/proc",
-                Path.join(wb, OsUtils.detectOsType() === OsUtils.OsType.Windows ? "arm\\bin\\armPROC.dll" : "arm/bin/libarmPROC.so"),
+                { path: Path.join(wb, OsUtils.detectOsType() === OsUtils.OsType.Windows ? "arm\\bin\\armPROC.dll" : "arm/bin/libarmPROC.so") },
             ].concat(OsUtils.detectOsType() !== OsUtils.OsType.Windows ? [] : [
                 "/plugin",
-                Path.join(wb, "arm\\bin\\armlibsupport.dll"),
+                { path: Path.join(wb, "arm\\bin\\armlibsupport.dll") },
             ]).concat([
                 "/kernel",
-                OsUtils.detectOsType() === OsUtils.OsType.Windows ? "kernel.dll" : "libkernel.so",
+                { path: OsUtils.detectOsType() === OsUtils.OsType.Windows ? "kernel.dll" : "libkernel.so" },
                 "/ilink"
             ]),
             integrationTestProjectsDir: Path.resolve(__dirname, "../../tests/integrationTests/TestProjects/arm"),
@@ -122,7 +122,7 @@ export namespace TestConfiguration {
             cstatHeaderQuoting: ["`", "'"],
             cspyCommandLine: (wb, proj) => [
                 "/file",
-                Path.join(Path.dirname(proj), "Debug/Exe/templproj.out"),
+                { path: Path.join(Path.dirname(proj), "Debug/Exe/templproj.out") },
                 "--core",
                 "g3m",
                 "/runto",
@@ -130,11 +130,11 @@ export namespace TestConfiguration {
                 "/proc",
                 "rh850proc.dll",
                 "/plugin",
-                Path.join(wb, "rh850\\bin\\rh850libsupport.dll"),
+                { path: Path.join(wb, "rh850\\bin\\rh850libsupport.dll") },
                 "/kernel",
                 "kernel.dll",
                 "-p",
-                Path.join(wb, "rh850\\config\\debugger\\iorh850_g3m.ddf"),
+                { path: Path.join(wb, "rh850\\config\\debugger\\iorh850_g3m.ddf") },
                 "--double=64",
                 "-d",
                 "sim",

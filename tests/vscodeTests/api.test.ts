@@ -94,6 +94,23 @@ suite("Test Public TS Api", function() {
         await VscodeTestsUtils.activateProject("BasicDebugging");
         const commands = await api.getCSpyCommandline(basicDebuggingPath, "Debug");
         const expectedCommands = TestConfiguration.getConfiguration().cspyCommandLine?.(ExtensionState.getInstance().workbench.selected!.path, basicDebuggingPath);
-        Assert.deepStrictEqual(commands, expectedCommands);
+        Assert(commands);
+        Assert(expectedCommands);
+
+        const assertionMsg = `Expected:\n  ${JSON.stringify(expectedCommands, null, 2)}\n` +
+            `Got:\n  ${JSON.stringify(commands, null, 2)}`;
+
+        Assert.strictEqual(commands.length, expectedCommands.length, assertionMsg);
+        for (let i = 0; i < commands.length; i++) {
+            const expectedCommand: string | { path: string } = expectedCommands[i]!;
+            if (typeof expectedCommand === "string") {
+                Assert.strictEqual(commands[i], expectedCommand, assertionMsg +
+                                    `\nMismatch in entry ${i}.`);
+            } else {
+                Assert(OsUtils.pathsEqual(commands[i]!, expectedCommand.path), assertionMsg +
+                                   `\nMismatch in entry ${i}. Expected:\n  ${expectedCommands[i]}\n` +
+                                   `which is not path-equal to the actual value:\n  ${commands[i]}`);
+            }
+        }
     });
 });
