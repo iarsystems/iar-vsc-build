@@ -10,6 +10,7 @@ import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
 import { TestConfiguration } from "../testconfiguration";
+import { OsUtils } from "iar-vsc-common/osUtils";
 
 suite("Thrift project", function() {
     this.timeout(0);
@@ -56,7 +57,7 @@ suite("Thrift project", function() {
         const sourceNode = rootNode.children.find(node => node.name === IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE);
         Assert(sourceNode, "No 'main.c' file found in project");
         Assert.strictEqual(sourceNode.type, NodeType.File);
-        Assert.strictEqual(sourceNode.path, Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE));
+        Assert(OsUtils.pathsEqual(sourceNode.path, Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_SOURCE_FILE)));
         rootNode.children = [new Node({
             name: "TestGroup",
             children: [sourceNode],
