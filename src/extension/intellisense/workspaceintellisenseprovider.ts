@@ -330,7 +330,7 @@ namespace ConfigGenerator {
                         }
                         args.push(stripQuotes(argsRaw));
                         compilerInvocations.push(args);
-                    } else if (line.match(/^Linking/)) { // usually the promise finishes here
+                    } else if (line.match(/^Linking/) || line.match(/^リンク中/)) { // usually the promise finishes here
                         lineReader.removeAllListeners();
                         resolve(compilerInvocations);
                         return;
