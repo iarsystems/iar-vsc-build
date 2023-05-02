@@ -4,11 +4,11 @@
 
 
 
-import * as Path from "path";
 import { Config } from "./config";
 import { Node } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { Settings } from "../../extension/settings";
+import { BackupUtils } from "../../utils/utils";
 
 /**
  * An embedded workbench project.
@@ -61,7 +61,9 @@ export namespace Project {
      */
     export function isIgnoredFile(projectFile: string): boolean {
         // Checks whether this is an automatic backup file. These should generally be ignored.
-        const isBackupFile = /^Backup\s+(\(\d+\)\s+)?of.*\.ewp$/.test(Path.basename(projectFile));
+        if (BackupUtils.isBackupFile(projectFile)) {
+            return true;
+        }
 
         // All projects that match this regex should be ignored
         const projectsToExclude = Settings.getProjectsToExclude();
@@ -73,7 +75,7 @@ export namespace Project {
             isIgnoredFile = !!projectsToExclude && RegExp(projectsToExclude, flags).test(withForwardSlashes);
         }
 
-        return isBackupFile || isIgnoredFile;
+        return isIgnoredFile;
     }
 
     export function equal(p1: Project, p2: Project) {

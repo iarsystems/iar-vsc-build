@@ -73,6 +73,10 @@ export namespace ProcessUtils {
 }
 
 export namespace BackupUtils {
+    export function isBackupFile(project: string): boolean {
+        return /^Backup\s+(\(\d+\)\s+)?of.*\.ewp$/.test(Path.basename(project)) ||
+            /^.*\s+のバックアップ(\s+\(\d+\))?\.ewp$/.test(Path.basename(project));
+    }
     /**
      * Performs a task that might erroneously produce a backup of a project file and returns the result of the task.
      * Any backups created while performing the tasks are automatically removed.
@@ -84,13 +88,17 @@ export namespace BackupUtils {
     export async function doWithBackupCheck<T>(project: string, task: () => Promise<T>): Promise<T> {
         // TODO: only do this if we detect from the platform version that it is needed
         const projectDir = Path.dirname(project);
+        const projectNameRegex = RegexUtils.escape(Path.basename(project, ".ewp"));
         // match all backup files for the project (.ewp, .ewt, .ewd)
-        const backupRegex = new RegExp(`Backup\\s+(\\(\\d+\\))?\\s*of ${RegexUtils.escape(Path.basename(project, ".ewp"))}.ew`);
-        const originalBackupFiles = (await FsPromises.readdir(projectDir)).filter(file => file.match(backupRegex));
+        const backupRegexEng = new RegExp(`Backup\\s+(\\(\\d+\\))?\\s*of ${projectNameRegex}\\.ew`);
+        const backupRegexJpn = new RegExp(`${projectNameRegex}\\s+のバックアップ(\\s+\\(\\d+\\))?\\.ew`);
+        const originalBackupFiles = (await FsPromises.readdir(projectDir)).
+            filter(file => file.match(backupRegexEng) || file.match(backupRegexJpn));
 
         const taskPromise = task();
         taskPromise.finally(async() => {
-            const backupFilesAfterExit = (await FsPromises.readdir(Path.dirname(project))).filter(file => file.match(backupRegex));
+            const backupFilesAfterExit = (await FsPromises.readdir(Path.dirname(project))).
+                filter(file => file.match(backupRegexEng) || file.match(backupRegexJpn));
             if (originalBackupFiles.length !== backupFilesAfterExit.length) {
                 const newBackupFiles = backupFilesAfterExit.filter(backupFile => !originalBackupFiles.includes(backupFile));
                 await Promise.allSettled(newBackupFiles.map(file => FsPromises.rm(Path.join(projectDir, file))));
