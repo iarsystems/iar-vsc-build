@@ -62,7 +62,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         } else if (this.definition.action === "report-summary") {
             this.generateHTMLReport(projectPath, configName, toolchain, false, workspaceFolder);
         } else {
-            this.writeEmitter.fire(`Unrecognized action '${this.definition.action}'`);
+            this.write(`Unrecognized action '${this.definition.action}'`);
             this.closeEmitter.fire(0);
         }
     }
@@ -82,7 +82,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             extraArgs.push("-varfile", this.definition.argumentVariablesFile);
         }
 
-        this.writeEmitter.fire("Running C-STAT...\r\n");
+        this.write("Running C-STAT...\n");
 
         try {
             const builderPath = Path.join(toolchain, Workbench.builderSubPath);
@@ -97,7 +97,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
                 workspaceFolder ?? Path.dirname(builderPath),
                 this.write.bind(this));
 
-            this.writeEmitter.fire("Analyzing output...\r\n");
+            this.write("Analyzing output...\n");
             this.diagnostics.clear();
 
             const filterString = Settings.getCstatFilterLevel();
@@ -105,7 +105,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
                 CStat.SeverityStringToSeverityEnum(filterString)
                 : CStat.CStatWarningSeverity.LOW;
             warnings = warnings.filter(w => w.severity >= filterLevel);
-            this.writeEmitter.fire("After filtering, " + warnings.length + " warning(s) remain.\r\n");
+            this.write("After filtering, " + warnings.length + " warning(s) remain.\n");
 
             const fileDiagnostics: [Vscode.Uri, Vscode.Diagnostic[]][] = [];
             warnings.forEach(warning => {
@@ -114,7 +114,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             });
 
             this.diagnostics.set(fileDiagnostics);
-            this.writeEmitter.fire("C-STAT is done!\r\n");
+            this.write("C-STAT is done!\n");
         } catch (e) {
             if (typeof e === "string" || e instanceof Error) {
                 this.onError(e);
@@ -129,7 +129,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
      * Generates an HTML report of all C-STAT warnings
      */
     private async generateHTMLReport(projectPath: string, configName: string, toolchain: string, full: boolean, workspaceFolder?: string): Promise<void> {
-        this.writeEmitter.fire((full ? "Generating Full HTML Report" : "Generating HTML Summary Report") + "...\r\n");
+        this.write((full ? "Generating Full HTML Report" : "Generating HTML Summary Report") + "...\n");
 
         try {
             // In order to find the path to ireport, we need to know the toolchain of this configuration.
@@ -167,19 +167,23 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
      * Clears all C-STAT warnings
      */
     private clearDiagnostics() {
-        this.writeEmitter.fire("Clearing C-STAT Warnings...\r\n");
+        this.write("Clearing C-STAT Warnings...\n");
         this.diagnostics.clear();
         this.closeEmitter.fire(0);
     }
 
     private write(msg: string) {
+        if (process.env["log-to-console"]) {
+            console.log(msg);
+        }
+
         msg = msg.replace(/(?<!\r)\n/g, "\r\n"); // VSC-82: vscode console prefers crlf, so replace all lf with crlf
         this.writeEmitter.fire(msg);
     }
 
     private onError(reason: string | Error) {
         console.log("CSTATERR: " + reason.toString());
-        this.writeEmitter.fire(reason + "\r\n");
+        this.write(reason + "\n");
         this.closeEmitter.fire(1);
     }
 

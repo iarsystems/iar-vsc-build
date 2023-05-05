@@ -29,6 +29,10 @@ export abstract class StylizedTerminal implements Vscode.Pseudoterminal {
             const line = this.buffer.slice(0, newlineIndex);
             this.writeEmitter.fire(this.process(line));
             this.buffer = this.buffer.slice(newlineIndex + 1);
+
+            if (process.env["log-to-console"]) {
+                console.log(line);
+            }
         }
     }
     abstract open(): void | Promise<void>;
