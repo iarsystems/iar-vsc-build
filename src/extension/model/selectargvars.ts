@@ -14,14 +14,14 @@ export class ArgVarListModel extends ListInputModelBase<ArgVarsFile> {
         return this.data;
     }
 
-    label(index: number): string {
-        return this.getFileAt(index).name;
+    override itemLabel(item: ArgVarsFile): string {
+        return item.name;
     }
-    description(): string | undefined {
+    override itemDescription(): string | undefined {
         return undefined;
     }
-    detail(index: number): string | undefined {
-        return this.getFileAt(index).path;
+    override itemDetail(item: ArgVarsFile): string | undefined {
+        return item.path;
     }
     addArgVarsFile(argVars: ArgVarsFile) {
         this.data = this.data.concat([argVars]);
@@ -33,13 +33,5 @@ export class ArgVarListModel extends ListInputModelBase<ArgVarsFile> {
             this.data.splice(index, 1);
             this.fireInvalidateEvent();
         }
-    }
-
-    private getFileAt(index: number): ArgVarsFile {
-        const result = this.data[index];
-        if (result === undefined) {
-            throw new Error(`No configuration with index ${index}`);
-        }
-        return result;
     }
 }
