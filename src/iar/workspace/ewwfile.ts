@@ -3,14 +3,19 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Path from "path";
-import * as Fs from "fs/promises";
+import * as Fs from "fs";
 import { XmlNode } from "../../utils/XmlNode";
 import { EwWorkspace } from "./ewworkspace";
 import { logger } from "iar-vsc-common/logger";
 
 export class EwwFile implements EwWorkspace {
-    static async load(path: string): Promise<EwwFile> {
-        const content = await Fs.readFile(path);
+    readonly path: string;
+    readonly projects: string[];
+
+    constructor(path: string) {
+        this.path = path;
+
+        const content = Fs.readFileSync(path);
         const root = new XmlNode(content.toString());
 
         if (root.tagName !== "workspace") {
@@ -19,24 +24,17 @@ export class EwwFile implements EwWorkspace {
 
         const wsDir = Path.dirname(path);
 
-        const projects: string[] = [];
+        this.projects = [];
         root.getAllChildsByName("project").forEach(project => {
             const projectPath = project.getAllChildsByName("path")[0]?.text;
             if (!projectPath) {
                 logger.warn(`Missing path for project: ${project.text}`);
             } else {
                 const expandedPath = projectPath.replace("$WS_DIR$", wsDir);
-                projects.push(expandedPath);
+                this.projects.push(expandedPath);
             }
         });
-
-        return new EwwFile(path, projects);
     }
-
-    private constructor(
-        readonly path: string,
-        readonly projects: string[],
-    ) {}
 
     get name(): string {
         return Path.basename(this.path, ".eww");

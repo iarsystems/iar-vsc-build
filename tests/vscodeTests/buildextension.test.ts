@@ -85,10 +85,15 @@ suite("Test build extension", ()=>{
 
     test("Load projects in directory", ()=>{
         const allProjects = ExtensionState.getInstance().project.projects;
-        assert(allProjects.some(config => config.name === "ArgVars"));
-        assert(allProjects.some(config => config.name === "BasicDebugging"));
-        assert(allProjects.some(config => config.name === "C-STATProject"));
-        assert(allProjects.some(config => config.name === "SourceConfiguration"));
+        assert(allProjects.some(project => project.name === "ArgVars"));
+        assert(allProjects.some(project => project.name === "BasicDebugging"));
+        assert(allProjects.some(project => project.name === "C-STATProject"));
+        assert(allProjects.some(project => project.name === "SourceConfiguration"));
+    });
+
+    test("Load workspaces in directory", ()=>{
+        const allWorkspaces = ExtensionState.getInstance().workspace.workspaces;
+        assert(allWorkspaces.some(workspace => workspace.name === "TestProjects"));
     });
 
     test("No backups in project list", ()=>{

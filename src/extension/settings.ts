@@ -25,12 +25,14 @@ export namespace Settings {
 
     export enum LocalSettingsField {
         Workbench = "toolchain",
+        Workspace = "eww",
         Ewp = "ewp",
         Configuration = "configuration",
         ArgVarFile = "argumentVariablesFile"
     }
     /** Local settings field that are paths, and should support ${workspaceFolder} expansion */
-    const localSettingsPathFields = [LocalSettingsField.Workbench, LocalSettingsField.Ewp, LocalSettingsField.ArgVarFile];
+    const localSettingsPathFields = [LocalSettingsField.Workbench, LocalSettingsField.Workspace,
+        LocalSettingsField.Ewp, LocalSettingsField.ArgVarFile];
 
     const section = "iar-build";
 
@@ -72,6 +74,12 @@ export namespace Settings {
     }
     export function setWorkbench(path: Fs.PathLike) {
         setLocalSetting(LocalSettingsField.Workbench, path.toString());
+    }
+    export function getWorkspace(): string | undefined {
+        return getLocalSetting(LocalSettingsField.Workspace);
+    }
+    export function setWorkspace(path: Fs.PathLike) {
+        setLocalSetting(LocalSettingsField.Workspace, path.toString());
     }
     export function getEwpFile(): string | undefined {
         return getLocalSetting(LocalSettingsField.Ewp);
@@ -189,9 +197,9 @@ export namespace Settings {
 }
 
 interface LocalSettings {
-    ewp?: string;
-    compiler?: string;
     toolchain?: string;
+    eww?: string;
+    ewp?: string;
     configuration?: string;
     argumentVariablesFile?: string;
 }

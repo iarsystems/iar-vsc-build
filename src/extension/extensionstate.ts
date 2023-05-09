@@ -19,6 +19,7 @@ import { logger } from "iar-vsc-common/logger";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Workbench } from "iar-vsc-common/workbench";
 import { ArgVarListModel } from "./model/selectargvars";
+import { WorkspaceListModel } from "./model/selectworkspace";
 
 /**
  * Holds most extension-wide data, such as the selected workbench, project and configuration, and loaded project etc.
@@ -32,6 +33,7 @@ class State {
 
     // These are values chosen by the user e.g. from a dropdown.
     readonly workbench: WorkbenchListModel;
+    readonly workspace: WorkspaceListModel;
     readonly project: ProjectListModel;
     readonly config: ConfigurationListModel;
     readonly argVarsFile: ArgVarListModel;
@@ -50,6 +52,7 @@ class State {
         this.toolManager = toolManager;
 
         this.workbench = new WorkbenchListModel(...toolManager.workbenches);
+        this.workspace = new WorkspaceListModel();
         this.project = new ProjectListModel();
         this.config = new ConfigurationListModel();
         this.argVarsFile = new ArgVarListModel();
@@ -64,6 +67,8 @@ class State {
                     State.selectWorkbenchMatchingProject(this.project.selected, this.workbench);
                 }
             });
+        this.coupleModelToSetting(this.workspace, Settings.LocalSettingsField.Workspace, workspace => workspace?.path,
+            () => this.workspace.select(0));
         this.coupleModelToSetting(this.project, Settings.LocalSettingsField.Ewp, project => project?.path,
             () => this.project.select(0));
         this.coupleModelToSetting(this.config, Settings.LocalSettingsField.Configuration, config => config?.name,

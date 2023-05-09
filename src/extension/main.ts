@@ -30,6 +30,8 @@ import { ArgVarsFile } from "../iar/project/argvarfile";
 import { ToolbarWebview } from "./ui/toolbarview";
 import { ToggleCstatToolbarCommand } from "./command/togglecstattoolbar";
 import { OsUtils } from "iar-vsc-common/osUtils";
+import { EwWorkspace } from "../iar/workspace/ewworkspace";
+import { EwwFile } from "../iar/workspace/ewwfile";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
@@ -109,6 +111,7 @@ export async function deactivate() {
 }
 
 async function setupFileWatchers(context: vscode.ExtensionContext) {
+    // Argvars
     const argvarsWatcher = await FileListWatcher.initialize("**/*.custom_argvars");
     context.subscriptions.push(argvarsWatcher);
     argvarsWatcher.subscribe(files => {
@@ -117,6 +120,30 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
         ExtensionState.getInstance().argVarsFile.set(...argVarsFiles);
     });
 
+    // Workspaces
+    const ewwWatcher = await FileListWatcher.initialize("**/*.eww");
+    context.subscriptions.push(ewwWatcher);
+
+    ewwWatcher.subscribe(files => {
+        const workspaces: EwWorkspace[] = [];
+        files.
+            filter(file => !Project.isIgnoredFile(file)).
+            forEach(file => {
+                try {
+                    workspaces.push(new EwwFile(file));
+                } catch (e) {
+                    logger.error(`Could not parse workspace file '${file}': ${e}`);
+                    vscode.window.showErrorMessage(
+                        `Could not parse workspace file '${file}': ${e}`
+                    );
+                }
+            });
+        logger.debug(`Found ${workspaces.length} workspace(s) in the VS Code workspace`);
+        workspaces.sort((a, b) => a.name.localeCompare(b.name));
+        ExtensionState.getInstance().workspace.set(...workspaces);
+    });
+
+    // Projects
     const ewpWatcher = await FileListWatcher.initialize("**/*.ewp");
     context.subscriptions.push(ewpWatcher);
 

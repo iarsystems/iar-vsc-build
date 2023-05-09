@@ -11,8 +11,8 @@ const TEST_WORKSPACE_FILE = path.resolve(__dirname, "../../../tests/unitTests/as
 const TEST_PROJECT_FILE = path.resolve(__dirname, "../../../tests/unitTests/assets/test_project.ewp");
 
 suite("Test project parser", () => {
-    test("Load ewp file", async() => {
-        const workspace = await EwwFile.load(TEST_WORKSPACE_FILE);
+    test("Load ewp file", () => {
+        const workspace = new EwwFile(TEST_WORKSPACE_FILE);
 
         Assert.strictEqual(workspace.name, "test_workspace");
         Assert(OsUtils.pathsEqual(workspace.path, TEST_WORKSPACE_FILE));
