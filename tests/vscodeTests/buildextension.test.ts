@@ -47,7 +47,10 @@ namespace Utils {
         // Generate the ewp-file to work with.
         TestUtils.patchEwpFile(target, ewpFile, outputFile);
         // Add the ewp-file to the list of project.
-        ExtensionState.getInstance().project.addProject(new EwpFile(outputFile));
+        ExtensionState.getInstance().project.set(
+            ...ExtensionState.getInstance().project.projects,
+            new EwpFile(outputFile)
+        );
 
         // Remove the unpatched ewp from the sandbox
         fs.unlinkSync(path.join(outputFolder, path.basename(ewpFile)));

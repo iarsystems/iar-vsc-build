@@ -22,14 +22,14 @@ import { BuildExtensionApi } from "iar-vsc-common/buildExtension";
 import { Project } from "../iar/project/project";
 import { logger } from "iar-vsc-common/logger";
 import { EwpFile } from "../iar/project/parsing/ewpfile";
-import { EwpFileWatcherService } from "./ewpfilewatcher";
+import { FileListWatcher } from "./filelistwatcher";
 import { API } from "./api";
 import { StatusBarItem } from "./ui/statusbaritem";
 import { BehaviorSubject } from "rxjs";
 import { ArgVarsFile } from "../iar/project/argvarfile";
-import { ArgVarFileWatcherService } from "./argvarfilewatcher";
 import { ToolbarWebview } from "./ui/toolbarview";
 import { ToggleCstatToolbarCommand } from "./command/togglecstattoolbar";
+import { OsUtils } from "iar-vsc-common/osUtils";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
@@ -85,15 +85,9 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     // --- start cpptools interface
     CpptoolsIntellisenseService.init();
 
-    // --- watch for creating/deleting/modifying projects and .custom_argvars files in the workspace
-    IarVsc.ewpFilesWatcher = new EwpFileWatcherService();
-    IarVsc.argVarsFilesWatcher = new ArgVarFileWatcherService();
-
     // --- find and add all .ewp projects and.custom_argvars files
     // note that we do not await here, this operation can be slow and we want activation to be quick
-    findIARFilesInWorkspace();
-    context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => findIARFilesInWorkspace()));
-    Settings.observeSetting(Settings.ExtensionSettingsField.ProjectsToExclude, () => findIARFilesInWorkspace());
+    setupFileWatchers(context);
 
     // --- find and add workbenches
     loadTools(addWorkbenchCmd);
@@ -106,7 +100,6 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
 
 export async function deactivate() {
     logger.debug("Deactivating extension");
-    IarVsc.ewpFilesWatcher?.dispose();
     if (CpptoolsIntellisenseService.instance) {
         CpptoolsIntellisenseService.instance.close();
     }
@@ -115,29 +108,67 @@ export async function deactivate() {
     await ExtensionState.getInstance().dispose();
 }
 
-// Finds .ewp and .custom_argvars files
-async function findIARFilesInWorkspace() {
-    if (vscode.workspace.workspaceFolders !== undefined) {
-        const doneFindingArgVars = vscode.workspace.findFiles("**/*.custom_argvars").then(files => {
-            const argVarsFiles = files.map(file => ArgVarsFile.fromFile(file.fsPath));
-            ExtensionState.getInstance().argVarsFile.set(...argVarsFiles.sort((av1, av2) => av1.name.localeCompare(av2.name)));
-        });
+async function setupFileWatchers(context: vscode.ExtensionContext) {
+    const argvarsWatcher = await FileListWatcher.initialize("**/*.custom_argvars");
+    context.subscriptions.push(argvarsWatcher);
+    argvarsWatcher.subscribe(files => {
+        const argVarsFiles = files.map(file => ArgVarsFile.fromFile(file));
+        argVarsFiles.sort((av1, av2) => av1.name.localeCompare(av2.name));
+        ExtensionState.getInstance().argVarsFile.set(...argVarsFiles);
+    });
 
-        const projectFiles = (await vscode.workspace.findFiles("**/*.ewp")).filter(uri => !Project.isIgnoredFile(uri.fsPath));
-        logger.debug(`Found ${projectFiles.length} project(s) in the workspace`);
+    const ewpWatcher = await FileListWatcher.initialize("**/*.ewp");
+    context.subscriptions.push(ewpWatcher);
+
+    ewpWatcher.subscribe(files => {
         const projects: Project[] = [];
-        projectFiles.forEach(uri => {
-            try {
-                projects.push(new EwpFile(uri.fsPath));
-            } catch (e) {
-                logger.error(`Could not parse project file '${uri.fsPath}': ${e}`);
-                vscode.window.showErrorMessage(`Could not parse project file '${uri.fsPath}': ${e}`);
-            }
-        });
-        // ArgVars should be set before the projects, since an argvars file may be required to load the project
-        await doneFindingArgVars;
-        ExtensionState.getInstance().project.set(...projects.sort((a, b) => a.name.localeCompare(b.name)));
-    }
+        files.
+            filter(file => !Project.isIgnoredFile(file)).
+            forEach(file => {
+                try {
+                    projects.push(new EwpFile(file));
+                } catch (e) {
+                    logger.error(`Could not parse project file '${file}': ${e}`);
+                    vscode.window.showErrorMessage(
+                        `Could not parse project file '${file}': ${e}`
+                    );
+                }
+            });
+        logger.debug(`Found ${projects.length} project(s) in the VS Code workspace`);
+        projects.sort((a, b) => a.name.localeCompare(b.name));
+        ExtensionState.getInstance().project.set(...projects);
+    });
+
+    ewpWatcher.onFileModified(async modifiedFile => {
+        // Reload the project from disk if it is currently loaded
+        const extendedProject = await ExtensionState.getInstance().extendedProject.getValue();
+        if (extendedProject && OsUtils.pathsEqual(modifiedFile, extendedProject.path)) {
+            await ExtensionState.getInstance().reloadProject();
+        }
+
+        // Update the project list if necessary (e.g. because the project configurations changed)
+        const projectModel = ExtensionState.getInstance().project;
+        const oldProject = projectModel.projects.find(
+            project => OsUtils.pathsEqual(project.path, modifiedFile)
+        );
+        const reloadedProject = new EwpFile(modifiedFile);
+        if (oldProject && !Project.equal(oldProject, reloadedProject)) {
+            const updatedProjects: Project[] = [];
+            projectModel.projects.forEach(project => {
+                if (project === oldProject) {
+                    updatedProjects.push(reloadedProject);
+                } else {
+                    updatedProjects.push(project);
+                }
+            });
+            // This will load the selected project again (i.e. for the second time if we reloaded it above),
+            // but it is probably not noticable to the user.
+            projectModel.set(...updatedProjects);
+        }
+    });
+
+    Settings.observeSetting(Settings.ExtensionSettingsField.ProjectsToExclude, () =>
+        ewpWatcher.refreshFiles());
 }
 
 async function loadTools(addWorkbenchCommand?: Command<unknown>) {
@@ -162,6 +193,4 @@ export namespace IarVsc {
     // exported mostly for testing purposes
     export let settingsView: SettingsWebview;
     export let projectTreeView: TreeProjectView;
-    export let ewpFilesWatcher: EwpFileWatcherService;
-    export let argVarsFilesWatcher: ArgVarFileWatcherService;
 }

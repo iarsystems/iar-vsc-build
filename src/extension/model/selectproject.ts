@@ -25,9 +25,4 @@ export class ProjectListModel extends ListInputModelBase<Project> {
     override itemDetail(item: Project): string | undefined {
         return item.path;
     }
-
-    addProject(project: Project) {
-        this.data = this.data.concat([project]);
-        this.fireInvalidateEvent();
-    }
 }
