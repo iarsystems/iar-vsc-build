@@ -56,14 +56,35 @@ class GetProjectName implements Command<string | undefined> {
     }
 }
 
+class GetArgVarFile implements Command<string> {
+
+    constructor(readonly id: GetSettingsCommand) {
+    }
+
+    execute(_autoTriggered: boolean): string {
+        // We should not return undefined here. This command is used as a variable in e.g. tasks, and returning
+        // undefined from a command variable will make the task fail silently.
+        return ExtensionState.getInstance().workspace.selected?.getArgvarsFile() ?? "";
+    }
+
+    register(context: Vscode.ExtensionContext): void {
+        const cmd = Vscode.commands.registerCommand(this.id, (): string | undefined => {
+            return this.execute(false);
+        }, this);
+
+        context.subscriptions.push(cmd);
+    }
+}
+
 export namespace GetSettingsCommand {
     export function initCommands(context: Vscode.ExtensionContext): void {
         initCommand(context, GetSettingsCommand.Workbench, Settings.LocalSettingsField.Workbench);
         initCommand(context, GetSettingsCommand.ProjectFile, Settings.LocalSettingsField.Ewp);
         initCommand(context, GetSettingsCommand.ProjectConfiguration, Settings.LocalSettingsField.Configuration);
-        initCommand(context, GetSettingsCommand.ArgVarFile, Settings.LocalSettingsField.ArgVarFile);
         const projectNameCmd = new GetProjectName(GetSettingsCommand.ProjectName);
         projectNameCmd.register(context);
+        const argVarCmd = new GetArgVarFile(GetSettingsCommand.ArgVarFile);
+        argVarCmd.register(context);
     }
 
     function initCommand(context: Vscode.ExtensionContext, command: GetSettingsCommand, field: Settings.LocalSettingsField): void {

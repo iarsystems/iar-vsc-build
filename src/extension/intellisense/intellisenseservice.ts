@@ -64,11 +64,6 @@ export class IntellisenseInfoService {
                 this.notifyIntellisenseInfoChanged();
             }
         });
-        ExtensionState.getInstance().argVarsFile.addOnSelectedHandler(async() => {
-            if (await this.generateWorkspaceIntellisenseInfo()) {
-                this.notifyIntellisenseInfoChanged();
-            }
-        });
         ExtensionState.getInstance().project.addOnInvalidateHandler(async() => {
             if (await this.generateWorkspaceIntellisenseInfo()) {
                 this.notifyIntellisenseInfoChanged();
@@ -158,7 +153,7 @@ export class IntellisenseInfoService {
         if (!workbench || !config || !project || !projects) {
             return false;
         }
-        const argVarFile = ExtensionState.getInstance().argVarsFile.selected;
+        const argVarFile = ExtensionState.getInstance().workspace.selected?.getArgvarsFile();
         const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(project.path))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         try {
             this.workspaceIntellisenseInfo = await WorkspaceIntellisenseProvider.loadProjects(projects, workbench, config.name, argVarFile, workspaceFolder, this.output);

@@ -10,7 +10,6 @@ import { ListInputModel } from "../model/model";
 import { Workbench } from "iar-vsc-common/workbench";
 import { Project } from "../../iar/project/project";
 import { Config } from "../../iar/project/config";
-import { ArgVarsFile } from "../../iar/project/argvarfile";
 
 /**
  * A VS Code command.
@@ -70,10 +69,6 @@ export namespace Command {
 
     export function createSelectConfigurationCommand(model: ListInputModel<Config>): ListSelectionCommand<Config> {
         return createInputCommand("iar-build.selectConfiguration", model);
-    }
-
-    export function createSelectArgVarsFileCommand(model: ListInputModel<ArgVarsFile>): ListSelectionCommand<ArgVarsFile> {
-        return createInputCommand("iar-build.selectArgumentVariablesFile", model);
     }
 
     function createInputCommand<T>(command: string, model: ListInputModel<T>): ListSelectionCommand<T> {

@@ -18,7 +18,6 @@ import { WorkbenchFeatures } from "../iar/tools/workbenchfeatureregistry";
 import { logger } from "iar-vsc-common/logger";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Workbench } from "iar-vsc-common/workbench";
-import { ArgVarListModel } from "./model/selectargvars";
 import { WorkspaceListModel } from "./model/selectworkspace";
 
 /**
@@ -36,7 +35,6 @@ class State {
     readonly workspace: WorkspaceListModel;
     readonly project: ProjectListModel;
     readonly config: ConfigurationListModel;
-    readonly argVarsFile: ArgVarListModel;
 
     // If the selected project can also be loaded as an ExtendedProject (majestix-enabled), it will be provided here.
     // Only one project can be loaded at a time. A project is loaded when:
@@ -55,7 +53,6 @@ class State {
         this.workspace = new WorkspaceListModel();
         this.project = new ProjectListModel();
         this.config = new ConfigurationListModel();
-        this.argVarsFile = new ArgVarListModel();
 
         this.extendedProject = new AsyncObservable<ExtendedProject>();
         this.extendedWorkbench = new AsyncObservable<ExtendedWorkbench>();
@@ -73,8 +70,6 @@ class State {
             () => this.project.select(0));
         this.coupleModelToSetting(this.config, Settings.LocalSettingsField.Configuration, config => config?.name,
             () => this.config.select(0));
-        this.coupleModelToSetting(this.argVarsFile, Settings.LocalSettingsField.ArgVarFile, argvar => argvar?.path,
-            () => this.argVarsFile.select(0));
 
         this.addListeners();
     }
@@ -105,21 +100,6 @@ class State {
             });
             this.extendedProject.setWithPromise(reloadTask);
             await this.extendedProject.getValue();
-        }
-    }
-    /**
-     * Reloads the currently selected .custom_argvars file, if any
-     */
-    public async reloadArgVarsFile() {
-        const extWorkbench = await this.extendedWorkbench.getValue();
-        if (extWorkbench && this.argVarsFile.selected !== undefined) {
-            extWorkbench.loadArgVars(this.argVarsFile.selected);
-            const extProject = await this.extendedProject.getValue();
-            this.extendedProject.setWithPromise((async() => {
-                await extProject?.finishRunningOperations();
-                await extWorkbench.loadArgVars(this.argVarsFile.selected);
-                return this.loadSelectedProject();
-            })());
         }
     }
 
@@ -165,11 +145,10 @@ class State {
         this.addWorkbenchModelListeners();
         this.addProjectModelListeners();
         this.addConfigurationModelListeners();
-        this.addArgVarsFileListeners();
     }
 
     private addWorkbenchModelListeners(): void {
-        // Try to load thrift services for the new workbench, and load the current argvars and project with the new services.
+        // Try to load thrift services for the new workbench, and load the current project with the new services.
         this.workbench.addOnSelectedHandler(async workbench => {
             logger.debug(`Toolchain: selected '${this.workbench.selected?.name}' (index ${this.workbench.selectedIndex})`);
             const prevExtWb = this.extendedWorkbench.promise;
@@ -201,8 +180,7 @@ class State {
 
             const extendedProj = await this.extendedProject.getValue();
             const loadingTask = (async() => {
-                extendedProj?.finishRunningOperations();
-                (await this.extendedWorkbench.getValue())?.loadArgVars(this.argVarsFile.selected);
+                await extendedProj?.finishRunningOperations();
                 return this.loadSelectedProject();
             })();
             this.extendedProject.setWithPromise(loadingTask);
@@ -220,21 +198,6 @@ class State {
                     this.extendedWorkbench.setValue(undefined);
                     this.extendedProject.setWithPromise(this.loadSelectedProject());
                 });
-            }
-        });
-
-        // Early versions of the thrift project manager cannot load .custom_argvars files. Warn the user if relevant.
-        this.extendedWorkbench.onValueDidChange(exWb => {
-            if (exWb) {
-                if (this.argVarsFile.selected && !WorkbenchFeatures.supportsFeature(exWb.workbench, WorkbenchFeatures.PMWorkspaces)) {
-                    let message = "The selected IAR toolchain does not fully support loading .custom_argvars files. You may experience some unexpected behaviour.";
-                    const minVersions = WorkbenchFeatures.getMinProductVersions(exWb.workbench, WorkbenchFeatures.PMWorkspaces);
-                    if (minVersions.length > 0) {
-                        message += ` To fix this, please upgrade to ${minVersions.join(", ")} or later.`;
-                    }
-
-                    InformationMessage.show("cannotLoadCustomArgvars", message, InformationMessageType.Warning);
-                }
             }
         });
 
@@ -284,22 +247,6 @@ class State {
                     Vscode.window.showErrorMessage(`The target '${Workbench.getTargetDisplayName(selected.targetId)}' is not supported by the selected IAR toolchain. Please select a different toolchain.`);
                 }
             }
-        });
-    }
-
-    private addArgVarsFileListeners(): void {
-        this.argVarsFile.addOnSelectedHandler(async() => {
-            logger.debug(`ArgVars: selected '${this.argVarsFile.selected?.name}' (index ${this.argVarsFile.selectedIndex})`);
-            const eWb = await this.extendedWorkbench.getValue();
-            if (eWb === undefined) {
-                return;
-            }
-            const ePr = await this.extendedProject.getValue();
-            this.extendedProject.setWithPromise((async() => {
-                await ePr?.finishRunningOperations();
-                await eWb.loadArgVars(this.argVarsFile.selected);
-                return this.loadSelectedProject();
-            })());
         });
     }
 

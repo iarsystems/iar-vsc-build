@@ -26,7 +26,6 @@ import { FileListWatcher } from "./filelistwatcher";
 import { API } from "./api";
 import { StatusBarItem } from "./ui/statusbaritem";
 import { BehaviorSubject } from "rxjs";
-import { ArgVarsFile } from "../iar/project/argvarfile";
 import { ToolbarWebview } from "./ui/toolbarview";
 import { ToggleCstatToolbarCommand } from "./command/togglecstattoolbar";
 import { OsUtils } from "iar-vsc-common/osUtils";
@@ -57,15 +56,13 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     projectCmd.register(context);
     const configCmd = Command.createSelectConfigurationCommand(ExtensionState.getInstance().config);
     configCmd.register(context);
-    Command.createSelectArgVarsFileCommand(ExtensionState.getInstance().argVarsFile).register(context);
 
     // --- initialize custom GUI
     const workbenchModel = ExtensionState.getInstance().workbench;
     const projectModel = ExtensionState.getInstance().project;
     const configModel = ExtensionState.getInstance().config;
-    const argVarModel = ExtensionState.getInstance().argVarsFile;
 
-    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, projectModel, configModel, argVarModel, addWorkbenchCmd, IarVsc.workbenchesLoading);
+    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, projectModel, configModel, addWorkbenchCmd, IarVsc.workbenchesLoading);
     vscode.window.registerWebviewViewProvider(SettingsWebview.VIEW_TYPE, IarVsc.settingsView);
     vscode.window.registerWebviewViewProvider(ToolbarWebview.VIEW_TYPE, new ToolbarWebview(context.extensionUri));
     IarVsc.projectTreeView = new TreeProjectView(
@@ -111,15 +108,6 @@ export async function deactivate() {
 }
 
 async function setupFileWatchers(context: vscode.ExtensionContext) {
-    // Argvars
-    const argvarsWatcher = await FileListWatcher.initialize("**/*.custom_argvars");
-    context.subscriptions.push(argvarsWatcher);
-    argvarsWatcher.subscribe(files => {
-        const argVarsFiles = files.map(file => ArgVarsFile.fromFile(file));
-        argVarsFiles.sort((av1, av2) => av1.name.localeCompare(av2.name));
-        ExtensionState.getInstance().argVarsFile.set(...argVarsFiles);
-    });
-
     // Workspaces
     const ewwWatcher = await FileListWatcher.initialize("**/*.eww");
     context.subscriptions.push(ewwWatcher);

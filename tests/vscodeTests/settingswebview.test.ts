@@ -94,15 +94,6 @@ suite("Test Clicking Settings View", ()=>{
 
         Assert.strictEqual(ExtensionState.getInstance().config.selectedIndex, 1);
     });
-    test("Clicking argVar updates model", async() => {
-        await VscodeTestsUtils.activateArgVarFile("ArgVarFile1.custom_argvars");
-        Assert(ExtensionState.getInstance().argVarsFile.selectedIndex !== 1);
-        const modelChange = waitForModelChange(ExtensionState.getInstance().argVarsFile);
-        IarVsc.settingsView.selectFromDropdown(DropdownIds.ArgVarsFile, 1);
-        await modelChange;
-
-        Assert.strictEqual(ExtensionState.getInstance().argVarsFile.selectedIndex, 1);
-    });
 
     const waitForModelChange = function<T>(model: ListInputModel<T>) {
         return new Promise<void>((res, rej) => {

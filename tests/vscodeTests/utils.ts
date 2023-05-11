@@ -52,13 +52,6 @@ export namespace VscodeTestsUtils {
         }
     }
 
-    export function activateArgVarFile(fileLabel: string) {
-        if (ExtensionState.getInstance().argVarsFile.selected?.name !== fileLabel) {
-            Assert(ExtensionState.getInstance().argVarsFile.selectWhen(file => file.name === fileLabel));
-        }
-
-    }
-
     export async function activateWorkbench(ew: string) {
         if (ExtensionState.getInstance().workbench.selected?.name !== ew) {
             ExtensionState.getInstance().workbench.selectWhen(workbench => workbench.name === ew);

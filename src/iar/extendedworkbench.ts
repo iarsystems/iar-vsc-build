@@ -17,11 +17,7 @@ import { ThriftProject } from "./project/thrift/thriftproject";
 import { BackupUtils } from "../utils/utils";
 import { logger } from "iar-vsc-common/logger";
 import { IarOsUtils } from "iar-vsc-common/osUtils";
-import { copyFile, writeFile } from "fs/promises";
-import { ArgVarsFile } from "./project/argvarfile";
 import { Mutex } from "async-mutex";
-import { tmpdir } from "os";
-import { createHash } from "crypto";
 import { WorkbenchFeatures } from "./tools/workbenchfeatureregistry";
 
 /**
@@ -38,14 +34,6 @@ export interface ExtendedWorkbench {
      * force it to be reloaded from disk, call {@link unloadProject}.
      */
     loadProject(project: Project): Promise<ExtendedProject>;
-    /**
-     * Loads the given .custom_argvars file, making the variables specified in it
-     * available to subsequently loaded projects. This unloads *all* currently
-     * loaded projects, invalidating all existing {@link ExtendedProject}
-     * instances from this workbench.
-     * The projects must be loaded again before they can be used.
-     */
-    loadArgVars(argVars: ArgVarsFile | undefined): Promise<void>;
     /**
      * Unloads the given project if it has previously been loaded.
      * The next time the project is loaded using this workbench, a full load from
@@ -111,27 +99,6 @@ export class ThriftWorkbench implements ExtendedWorkbench {
         });
     }
 
-    public loadArgVars(argVars: ArgVarsFile | undefined) {
-        if (!WorkbenchFeatures.supportsFeature(this.workbench, WorkbenchFeatures.PMWorkspaces)) {
-            return Promise.resolve();
-        }
-        return this.mtx.runExclusive(async() => {
-            logger.debug("Loading argvars file: " + argVars?.name);
-            if (argVars) {
-                // There is no direct thrift API for loading argvars files. Instead, loading an .eww file will automatically
-                // load the .custom_argvars file with the same name. Thus, we create an empty .eww file next to the argvars file and load it.
-                const tmpBasename = Path.join(tmpdir(), "iar-build", createHash("md5").update(argVars?.path).digest("hex"));
-                Fs.mkdirSync(Path.dirname(tmpBasename), { recursive: true });
-                await writeFile(tmpBasename + ".eww", this.ewwContents);
-                await copyFile(argVars.path, tmpBasename + ".custom_argvars");
-                await this.projectMgr.service.LoadEwwFile(tmpBasename + ".eww");
-            } else {
-                await this.projectMgr.service.CloseWorkspace();
-            }
-            this.loadedContexts.clear();
-        });
-    }
-
     public unloadProject(project: Project): Promise<void> {
         return this.mtx.runExclusive(async() => {
             logger.debug("Unloading " + project.name);
@@ -164,10 +131,4 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     public onCrash(handler: (code: number | null) => void) {
         this.serviceMgr.addCrashHandler(handler);
     }
-
-    private readonly ewwContents = `<?xml version="1.0" encoding="UTF-8"?>
-                                    <workspace>
-                                        <batchBuild />
-                                    </workspace>
-                                    `;
 }

@@ -9,4 +9,9 @@ export interface EwWorkspace {
     readonly name: string;
     readonly path: string;
     readonly projects: string[];
+
+    /**
+     * The .custom_argvars file belonging to the workspace, if one exists
+     */
+    getArgvarsFile(): string | undefined;
 }

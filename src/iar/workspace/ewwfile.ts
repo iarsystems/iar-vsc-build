@@ -39,4 +39,16 @@ export class EwwFile implements EwWorkspace {
     get name(): string {
         return Path.basename(this.path, ".eww");
     }
+
+    getArgvarsFile(): string | undefined {
+        const argvarsPath = Path.join(
+            Path.dirname(this.path),
+            Path.basename(this.path, ".eww") + ".custom_argvars"
+        );
+
+        if (Fs.existsSync(argvarsPath)) {
+            return argvarsPath;
+        }
+        return undefined;
+    }
 }

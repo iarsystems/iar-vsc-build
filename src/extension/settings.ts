@@ -28,11 +28,10 @@ export namespace Settings {
         Workspace = "eww",
         Ewp = "ewp",
         Configuration = "configuration",
-        ArgVarFile = "argumentVariablesFile"
     }
     /** Local settings field that are paths, and should support ${workspaceFolder} expansion */
     const localSettingsPathFields = [LocalSettingsField.Workbench, LocalSettingsField.Workspace,
-        LocalSettingsField.Ewp, LocalSettingsField.ArgVarFile];
+        LocalSettingsField.Ewp];
 
     const section = "iar-build";
 
@@ -201,7 +200,6 @@ interface LocalSettings {
     eww?: string;
     ewp?: string;
     configuration?: string;
-    argumentVariablesFile?: string;
 }
 
 /**

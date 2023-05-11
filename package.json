@@ -14,9 +14,9 @@
     "type": "git",
     "url": "https://github.com/IARSystems/iar-vsc-build"
   },
-	"license": "MPL-2.0",
+  "license": "MPL-2.0",
   "homepage": "https://www.iar.com/",
-	"qna": "https://www.iar.com/support/",
+  "qna": "https://www.iar.com/support/",
   "engines": {
     "vscode": "^1.33.0"
   },
@@ -60,11 +60,6 @@
         "category": "IAR Build"
       },
       {
-        "command": "iar-build.selectArgumentVariablesFile",
-        "title": "Select Argument Variables File",
-        "category": "IAR Build"
-      },
-      {
         "command": "iar-config.toolchain",
         "title": "Get the selected toolchain location",
         "category": "IAR toggleCstatToolbar"
@@ -86,7 +81,7 @@
       },
       {
         "command": "iar-config.argument-variables-file",
-        "title": "Get the selected .custom_argvars file",
+        "title": "Get the active .custom_argvars file",
         "category": "IAR Settings"
       },
       {
@@ -245,6 +240,10 @@
         },
         {
           "command": "iar-config.project-name",
+          "when": "false"
+        },
+        {
+          "command": "iar-config.argument-variables-file",
           "when": "false"
         }
       ]

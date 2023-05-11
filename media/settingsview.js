@@ -5,7 +5,6 @@ const MessageSubject = {
     WorkbenchSelected: "Workbench",
     ProjectSelected: "Project",
     ConfigSelected: "Config",
-    ArgVarsSelected: "ArgVars",
     AddWorkbench: "AddWorkbench",
     OpenSettings: "OpenSettings",
     ViewLoaded: "ViewLoaded",
