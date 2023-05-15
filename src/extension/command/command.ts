@@ -10,6 +10,7 @@ import { ListInputModel } from "../model/model";
 import { Workbench } from "iar-vsc-common/workbench";
 import { Project } from "../../iar/project/project";
 import { Config } from "../../iar/project/config";
+import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 
 /**
  * A VS Code command.
@@ -61,6 +62,10 @@ class ListSelectionCommand<T> extends CommandBase<void> {
 export namespace Command {
     export function createSelectWorkbenchCommand(model: ListInputModel<Workbench>): ListSelectionCommand<Workbench> {
         return createInputCommand("iar-build.selectToolchain", model);
+    }
+
+    export function createSelectWorkspaceCommand(model: ListInputModel<EwWorkspace>): ListSelectionCommand<EwWorkspace> {
+        return createInputCommand("iar-build.selectWorkspace", model);
     }
 
     export function createSelectProjectCommand(model: ListInputModel<Project>): ListSelectionCommand<Project> {

@@ -28,7 +28,7 @@ body {
 }
 
 .dropdown-container {
-    display: flex;
+    display: inline-flex;
     width: 100%;
 }
 
@@ -67,4 +67,17 @@ body {
 
 .disabled {
     color: var(--vscode-disabledForeground)
+}
+
+.tree-icon-inline {
+    display: inline-block;
+    height: 34px;
+    margin-right: 4px;
+    margin-top: -8px;
+}
+.tree-icon-block {
+    display: block;
+    height: 24px;
+    margin-top: -9px;
+    margin-bottom: 0px;
 }

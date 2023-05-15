@@ -1,0 +1,13 @@
+<svg
+	class="tree-icon-block"
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 20 26">
+	<defs>
+	</defs>
+    <!-- <rect fill="var(--vscode-disabledForeground)" stroke="none" x="7.5" y="0" width="1" height="26"/> -->
+    <rect fill="var(--vscode-disabledForeground)" stroke="none" x="7.5" y="0" width="1" height="7"/>
+    <rect fill="var(--vscode-disabledForeground)" stroke="none" x="7.5" y="18" width="1" height="8"/>
+    <rect fill="var(--vscode-disabledForeground)" stroke="none" x="7.5" y="9" width="1" height="1"/>
+    <rect fill="var(--vscode-disabledForeground)" stroke="none" x="7.5" y="12" width="1" height="1"/>
+    <rect fill="var(--vscode-disabledForeground)" stroke="none" x="7.5" y="15" width="1" height="1"/>
+</svg>

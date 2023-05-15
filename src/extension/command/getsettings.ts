@@ -12,6 +12,7 @@ import { ExtensionState } from "../extensionstate";
 
 export enum GetSettingsCommand {
     Workbench = "iar-config.toolchain",
+    WorkspaceFile = "iar-config.workspace-file",
     ProjectFile = "iar-config.project-file",
     ProjectConfiguration = "iar-config.project-configuration",
     ProjectName = "iar-config.project-name",
@@ -79,6 +80,7 @@ class GetArgVarFile implements Command<string> {
 export namespace GetSettingsCommand {
     export function initCommands(context: Vscode.ExtensionContext): void {
         initCommand(context, GetSettingsCommand.Workbench, Settings.LocalSettingsField.Workbench);
+        initCommand(context, GetSettingsCommand.WorkspaceFile, Settings.LocalSettingsField.Workspace);
         initCommand(context, GetSettingsCommand.ProjectFile, Settings.LocalSettingsField.Ewp);
         initCommand(context, GetSettingsCommand.ProjectConfiguration, Settings.LocalSettingsField.Configuration);
         const projectNameCmd = new GetProjectName(GetSettingsCommand.ProjectName);

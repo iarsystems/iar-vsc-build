@@ -50,6 +50,11 @@
         "category": "IAR Build"
       },
       {
+        "command": "iar-build.selectWorkspace",
+        "title": "Select Workspace",
+        "category": "IAR Build"
+      },
+      {
         "command": "iar-build.selectProject",
         "title": "Select Project",
         "category": "IAR Build"
@@ -63,6 +68,11 @@
         "command": "iar-config.toolchain",
         "title": "Get the selected toolchain location",
         "category": "IAR toggleCstatToolbar"
+      },
+      {
+        "command": "iar-config.workspace-file",
+        "title": "Get the selected workspace file",
+        "category": "IAR Settings"
       },
       {
         "command": "iar-config.project-file",
@@ -228,6 +238,10 @@
         },
         {
           "command": "iar-config.toolchain",
+          "when": "false"
+        },
+        {
+          "command": "iar-config.workspace-file",
           "when": "false"
         },
         {

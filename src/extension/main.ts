@@ -52,6 +52,8 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     addWorkbenchCmd.register(context);
     const workbenchCmd = Command.createSelectWorkbenchCommand(ExtensionState.getInstance().workbench);
     workbenchCmd.register(context);
+    const workspaceCmd = Command.createSelectWorkspaceCommand(ExtensionState.getInstance().workspace);
+    workspaceCmd.register(context);
     const projectCmd = Command.createSelectProjectCommand(ExtensionState.getInstance().project);
     projectCmd.register(context);
     const configCmd = Command.createSelectConfigurationCommand(ExtensionState.getInstance().config);
@@ -59,10 +61,11 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
 
     // --- initialize custom GUI
     const workbenchModel = ExtensionState.getInstance().workbench;
+    const workspaceModel = ExtensionState.getInstance().workspace;
     const projectModel = ExtensionState.getInstance().project;
     const configModel = ExtensionState.getInstance().config;
 
-    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, projectModel, configModel, addWorkbenchCmd, IarVsc.workbenchesLoading);
+    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, workspaceModel, projectModel, configModel, addWorkbenchCmd, IarVsc.workbenchesLoading);
     vscode.window.registerWebviewViewProvider(SettingsWebview.VIEW_TYPE, IarVsc.settingsView);
     vscode.window.registerWebviewViewProvider(ToolbarWebview.VIEW_TYPE, new ToolbarWebview(context.extensionUri));
     IarVsc.projectTreeView = new TreeProjectView(
@@ -73,9 +76,10 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
         ExtensionState.getInstance().loading,
     );
 
-    StatusBarItem.createFromModel("iar.workbench", ExtensionState.getInstance().workbench, workbenchCmd, "IAR Toolchain: ", 4);
-    StatusBarItem.createFromModel("iar.project", ExtensionState.getInstance().project, projectCmd, "Project: ", 3);
-    StatusBarItem.createFromModel("iar.configuration", ExtensionState.getInstance().config, configCmd, "Configuration: ", 2);
+    StatusBarItem.createFromModel("iar.workbench", workbenchModel, workbenchCmd, "IAR Toolchain: ", 5);
+    StatusBarItem.createFromModel("iar.workspace", workspaceModel, workspaceCmd, "Workspace: ", 4);
+    StatusBarItem.createFromModel("iar.project", projectModel, projectCmd, "Project: ", 3);
+    StatusBarItem.createFromModel("iar.configuration", configModel, configCmd, "Configuration: ", 2);
 
     // --- register tasks
     IarTaskProvider.register();

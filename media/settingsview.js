@@ -3,6 +3,7 @@
 // Make sure this matches the enum in settingswebview.ts! AFAIK we cannot share code between here and the regular extension
 const MessageSubject = {
     WorkbenchSelected: "Workbench",
+    WorkspaceSelected: "Workspace",
     ProjectSelected: "Project",
     ConfigSelected: "Config",
     AddWorkbench: "AddWorkbench",
@@ -33,6 +34,7 @@ function sendDropdownMessage(dropdown, subject) {
 }
 
 function main() {
+    connectDropdown(document.getElementById("workspace"), MessageSubject.WorkspaceSelected);
     connectDropdown(document.getElementById("project"), MessageSubject.ProjectSelected);
     connectDropdown(document.getElementById("config"), MessageSubject.ConfigSelected);
 
@@ -45,6 +47,7 @@ function main() {
             sendDropdownMessage(workbenchDropdown, MessageSubject.WorkbenchSelected);
         }
     });
+    // The workbench dropdown is special, since the last option allows the user to add a new workbench
 
     const addWorkbenchLink = document.getElementById("link-add");
     addWorkbenchLink.addEventListener("click", function() {
