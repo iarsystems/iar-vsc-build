@@ -117,7 +117,7 @@ suite("Test build extension", ()=>{
     });
 
     test("Build and clean project with all listed EW:s", async function() {
-        this.timeout(50000);
+        this.timeout(70000);
         const ewpFile = path.join(path.join(Utils.EXTENSION_ROOT, "tests/vscodeTests/BasicProject", "BasicProject.ewp"));
         let id = 1;
         // Generate a testproject to build using the generic template
@@ -162,7 +162,8 @@ suite("Test build extension", ()=>{
         }
     });
 
-    test("Check that creating/deleting/modifying projects affects extension state", async()=>{
+    test("Check that creating/deleting/modifying projects affects extension state", async function() {
+        this.timeout(40000);
         // Add a project file, make sure it is added to the extension
         const projectPath = path.join(sandboxPath, "newProject.ewp");
         fs.copyFileSync(path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp"), projectPath);

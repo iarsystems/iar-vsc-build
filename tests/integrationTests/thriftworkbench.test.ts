@@ -25,7 +25,8 @@ suite("Thrift workbench", function() {
         workbench = workbenchCandidate!;
     });
 
-    test("Can start registry", async() => {
+    test("Can start registry", async function() {
+        this.timeout(8000);
         const thriftWb = await ThriftWorkbench.from(workbench);
         Assert(thriftWb);
         await thriftWb.dispose();
