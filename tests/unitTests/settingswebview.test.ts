@@ -16,6 +16,8 @@ import { Project } from "../../src/iar/project/project";
 import { ListInputModel, ListInputModelBase } from "../../src/extension/model/model";
 import { IarToolManager } from "../../src/iar/tools/manager";
 import { BehaviorSubject, Subject } from "rxjs";
+import { EwWorkspace } from "../../src/iar/workspace/ewworkspace";
+import { WorkspaceListModel } from "../../src/extension/model/selectworkspace";
 
 namespace Utils {
     // A fake view we can receive html to, and then inspect it.
@@ -43,6 +45,7 @@ namespace Utils {
 
 suite("Test settings view", () => {
     let workbenchModel: ListInputModelBase<Workbench>;
+    let workspaceModel: ListInputModelBase<EwWorkspace>;
     let projectModel: ListInputModelBase<Project>;
     let configModel: ListInputModelBase<Config>;
     let loading: Subject<boolean>;
@@ -53,6 +56,7 @@ suite("Test settings view", () => {
 
     setup(async() => {
         workbenchModel = new WorkbenchListModel();
+        workspaceModel = new WorkspaceListModel();
         projectModel = new ProjectListModel();
         configModel = new ConfigurationListModel();
         loading = new BehaviorSubject<boolean>(false);
@@ -61,6 +65,7 @@ suite("Test settings view", () => {
         settingsView = new SettingsWebview(
             extensionUri,
             workbenchModel,
+            workspaceModel,
             projectModel,
             configModel,
             new AddWorkbenchCommand(new IarToolManager()),
@@ -78,7 +83,7 @@ suite("Test settings view", () => {
     };
 
     test("Disables dropdowns on empty models", () => {
-        const dropdownIds = [DropdownIds.Workbench, DropdownIds.Project, DropdownIds.Configuration];
+        const dropdownIds = [DropdownIds.Workbench, DropdownIds.Workspace, DropdownIds.Project, DropdownIds.Configuration];
         dropdownIds.forEach(id => {
             const dropdown = document.getElementById(id);
             Assert(dropdown);
@@ -98,6 +103,12 @@ suite("Test settings view", () => {
             { name: "Embedded Workbench 9.0", path: "/path/Embedded Workbench 9.0", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["arm"], type: WorkbenchType.IDE },
             { name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.LEGACY_BX }
         );
+
+        workspaceModel.set(
+            { name: "LedFlasher", path: "/some/directory/LedFlasher.eww", projects: [], getArgvarsFile: () => undefined },
+            { name: "A workspace", path:"C:\\test\\A project.eww", projects: [], getArgvarsFile: () => undefined },
+        );
+        workspaceModel.select(0);
 
         projectModel.set(
             { name: "LedFlasher", path: "/some/directory/LedFlasher.ewp", configurations: [], findConfiguration: () => undefined },
@@ -120,6 +131,7 @@ suite("Test settings view", () => {
                 Assert.strictEqual(options.item(i)?.getAttribute("selected"), model.selectedIndex === i ? "" : null, `Incorrect option ${i}`);
             }
         };
+        assertDropdownMatchesModel(DropdownIds.Workspace, workspaceModel);
         assertDropdownMatchesModel(DropdownIds.Project, projectModel);
         assertDropdownMatchesModel(DropdownIds.Configuration, configModel);
 
