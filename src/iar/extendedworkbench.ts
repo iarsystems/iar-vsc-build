@@ -22,7 +22,7 @@ import { ArgVarsFile } from "./project/argvarfile";
 import { Mutex } from "async-mutex";
 import { tmpdir } from "os";
 import { createHash } from "crypto";
-import { WorkbenchFeatures } from "./tools/workbenchfeatureregistry";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 
 /**
  * A workbench with some extra capabilities,

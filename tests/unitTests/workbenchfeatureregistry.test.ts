@@ -4,7 +4,7 @@
 
 import * as Assert from "assert";
 import { Workbench, WorkbenchType } from "iar-vsc-common/workbench";
-import { WorkbenchFeatures } from "../../src/iar/tools/workbenchfeatureregistry";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 
 suite("Test Workbench Version Registry", () => {
     suite("supportsFeature", () => {

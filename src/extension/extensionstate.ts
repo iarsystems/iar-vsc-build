@@ -14,7 +14,7 @@ import { ExtendedWorkbench, ThriftWorkbench } from "../iar/extendedworkbench";
 import { AsyncObservable } from "./model/asyncobservable";
 import { BehaviorSubject } from "rxjs";
 import { InformationMessage, InformationMessageType } from "./ui/informationmessage";
-import { WorkbenchFeatures } from "../iar/tools/workbenchfeatureregistry";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { logger } from "iar-vsc-common/logger";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Workbench } from "iar-vsc-common/workbench";

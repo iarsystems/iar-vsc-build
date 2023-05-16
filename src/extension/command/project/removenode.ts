@@ -11,7 +11,7 @@ import { ProjectCommand } from "./projectcommand";
 import { NodeType, Node } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { ExtendedProject } from "../../../iar/project/project";
 import { logger } from "iar-vsc-common/logger";
-import { WorkbenchFeatures } from "../../../iar/tools/workbenchfeatureregistry";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { ExtensionState } from "../../extensionstate";
 
 /**
