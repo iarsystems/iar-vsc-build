@@ -10,7 +10,7 @@ import { QtoPromise } from "../../../utils/promise";
 import { Workbench } from "iar-vsc-common/workbench";
 import Int64 = require("node-int64");
 import { InformationMessage, InformationMessageType } from "../../../extension/ui/informationmessage";
-import { WorkbenchFeatures } from "../../tools/workbenchfeatureregistry";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { Config } from "../config";
 
 /**
