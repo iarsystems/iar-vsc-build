@@ -181,8 +181,14 @@ namespace Rendering {
 
         // To be able to use VS Code's CSS variables (for correct theming), the SVGs must be placed directly in the html.
         // Therefore we read the file contents here instead of generating a webview uri to use in an <img/> tag.
-        const loadSvg = (filename: string) =>
-            Fs.readFileSync(vscode.Uri.joinPath(extensionUri, "media/icons", filename).fsPath, {encoding: "utf8"});
+        const loadSvg = (filename: string) => {
+            try {
+                return Fs.readFileSync(vscode.Uri.joinPath(extensionUri, "media/icons", filename).fsPath, {encoding: "utf8"});
+            } catch (e) {
+                logger.error("Failed to load icon: " + filename);
+                return "";
+            }
+        };
         const treeL = loadSvg("tree-L.svg");
         const treeI = loadSvg("tree-I.svg");
         const treeIBroken = loadSvg("tree-I-broken.svg");
