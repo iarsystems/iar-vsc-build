@@ -19,6 +19,7 @@ import { logger } from "iar-vsc-common/logger";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Workbench } from "iar-vsc-common/workbench";
 import { WorkspaceListModel } from "./model/selectworkspace";
+import { EwpFile } from "../iar/project/parsing/ewpfile";
 
 /**
  * Holds most extension-wide data, such as the selected workbench, project and configuration, and loaded project etc.
@@ -143,6 +144,7 @@ class State {
         });
 
         this.addWorkbenchModelListeners();
+        this.addWorkspaceModelListeners();
         this.addProjectModelListeners();
         this.addConfigurationModelListeners();
     }
@@ -173,7 +175,15 @@ class State {
                     }
                 })());
                 // Wait for workbench to finish loading
-                await this.extendedWorkbench.getValue();
+                const newWorkbench = await this.extendedWorkbench.getValue();
+                if (this.workspace.selected) {
+                    try {
+                        await newWorkbench?.loadWorkspace(this.workspace.selected);
+                    } catch (e) {
+                        // TODO: log something amazing
+                        logger.error("Failed to load workspace: " + e);
+                    }
+                }
             } else {
                 this.extendedWorkbench.setValue(undefined);
             }
@@ -208,6 +218,36 @@ class State {
                     "unsupportedWorkbench",
                     "The selected IAR toolchain is not supported by this extension." + (minVersions.length > 0 ? ` The minimum supported version is ${minVersions.join(", ")}.`: ""),
                     InformationMessageType.Error);
+            }
+        });
+    }
+
+    private addWorkspaceModelListeners(): void {
+        this.workspace.addOnSelectedHandler(async() => {
+            logger.debug(`Workspace: selected '${this.workspace.selected?.name}' (index ${this.workspace.selectedIndex})`);
+            if (this.workspace.selected) {
+                const exWb = await this.extendedWorkbench.getValue();
+                if (exWb) {
+                    try {
+                        await exWb.loadWorkspace(this.workspace.selected);
+                    } catch (e) {
+                        // TODO: log something amazing
+                        logger.error("Failed to load workspace: " + e);
+                    }
+                }
+                const projects: Project[] = [];
+                this.workspace.selected.projects.forEach(projFile => {
+                    try {
+                        projects.push(new EwpFile(projFile));
+                    } catch (e) {
+                        // TODO: log something amazing
+                        logger.error("Failed to load project: " + e);
+                    }
+                });
+                this.project.set(...projects);
+            } else {
+                // TODO: set from global list
+                this.project.set();
             }
         });
     }

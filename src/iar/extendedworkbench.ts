@@ -16,9 +16,10 @@ import { ThriftClient } from "iar-vsc-common/thrift/thriftClient";
 import { ThriftProject } from "./project/thrift/thriftproject";
 import { BackupUtils } from "../utils/utils";
 import { logger } from "iar-vsc-common/logger";
-import { IarOsUtils } from "iar-vsc-common/osUtils";
+import { IarOsUtils, OsUtils } from "iar-vsc-common/osUtils";
 import { Mutex } from "async-mutex";
 import { WorkbenchFeatures } from "./tools/workbenchfeatureregistry";
+import { EwWorkspace } from "./workspace/ewworkspace";
 
 /**
  * A workbench with some extra capabilities,
@@ -41,6 +42,8 @@ export interface ExtendedWorkbench {
      * Note that this invalidates all currently loaded instances of the project.
      */
     unloadProject(project: Project): Promise<void>;
+
+    loadWorkspace(workspace: EwWorkspace | undefined): Promise<void>;
 
     dispose(): Promise<void>;
 
@@ -81,6 +84,33 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     constructor(public workbench:   Workbench,
                 private readonly serviceMgr: ThriftServiceManager,
                 private readonly projectMgr: ThriftClient<ProjectManager.Client>) {
+    }
+
+    public loadWorkspace(workspace: EwWorkspace | undefined): Promise<void> {
+        if (!WorkbenchFeatures.supportsFeature(this.workbench, WorkbenchFeatures.PMWorkspaces)) {
+            throw new Error("Tried to load workspace with unsupported toolchain");
+        }
+        return this.mtx.runExclusive(async() => {
+            logger.debug(`Loading thrift workspace: ${workspace?.name}`);
+            if (workspace) {
+                await this.projectMgr.service.LoadEwwFile(workspace.path);
+
+                const contexts = await this.projectMgr.service.GetLoadedProjects();
+                this.loadedContexts.clear();
+                for (const projFile of workspace.projects) {
+                    const context = contexts.find(ctx => OsUtils.pathsEqual(ctx.filename, projFile));
+                    if (!context) {
+                        logger.warn(`Found no context for '${projFile}'. It probably failed to load.`);
+                    } else {
+                        this.loadedContexts.set(projFile, context);
+                    }
+                }
+                logger.debug(`Successfully loaded ${this.loadedContexts.size} projects in workspace`);
+            } else {
+                await this.projectMgr.service.CloseWorkspace();
+                this.loadedContexts.clear();
+            }
+        });
     }
 
     public loadProject(project: Project): Promise<ThriftProject> {

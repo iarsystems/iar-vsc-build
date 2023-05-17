@@ -119,7 +119,6 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
     ewwWatcher.subscribe(files => {
         const workspaces: EwWorkspace[] = [];
         files.
-            filter(file => !Project.isIgnoredFile(file)).
             forEach(file => {
                 try {
                     workspaces.push(new EwwFile(file));
