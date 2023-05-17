@@ -154,7 +154,9 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
             });
         logger.debug(`Found ${projects.length} project(s) in the VS Code workspace`);
         projects.sort((a, b) => a.name.localeCompare(b.name));
-        ExtensionState.getInstance().project.set(...projects);
+        if (JSON.stringify(projects) !== JSON.stringify(ExtensionState.getInstance().project.projects)) {
+            ExtensionState.getInstance().project.set(...projects);
+        }
     });
 
     ewpWatcher.onFileModified(async modifiedFile => {
