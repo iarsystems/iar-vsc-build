@@ -93,7 +93,10 @@ export class ThriftWorkbench implements ExtendedWorkbench {
         return this.mtx.runExclusive(async() => {
             logger.debug(`Loading thrift workspace: ${workspace?.name}`);
             if (workspace) {
-                await this.projectMgr.service.LoadEwwFile(workspace.path);
+                // Remove backups so this has the same behavior as loadProject
+                await BackupUtils.doWithBackupCheck(workspace.projects, async() => {
+                    await this.projectMgr.service.LoadEwwFile(workspace.path);
+                });
 
                 const contexts = await this.projectMgr.service.GetLoadedProjects();
                 this.loadedContexts.clear();
