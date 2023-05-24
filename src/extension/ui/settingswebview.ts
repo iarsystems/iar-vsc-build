@@ -190,7 +190,6 @@ namespace Rendering {
             }
         };
         const treeL = loadSvg("tree-L.svg");
-        const treeI = loadSvg("tree-I.svg");
         const treeIBroken = loadSvg("tree-I-broken.svg");
 
         // install the es6-string-html extension for syntax highlighting here
@@ -230,12 +229,18 @@ namespace Rendering {
             <div class="section">
                     <p>Workspace, project and configuration:</p>
                     ${makeDropdown(workspaces, DropdownIds.Workspace, "window", workspaces.amount === 0, "No workspaces found")}
-                    ${workspaces.selected === undefined ? treeIBroken : treeI}
-                    ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.amount === 0, "No projects found")}
-                    <div class="dropdown-container">
-                        ${treeL}
-                        ${makeDropdown(configs, DropdownIds.Configuration, "settings-gear", configs.amount === 0, "No configurations found")}
+                    ${workspaces.selected === undefined ? treeIBroken : ""}
+                    <div class="wide-container">
+                        ${workspaces.selected === undefined ? "" : treeL}
+                        ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.amount === 0, "No projects found")}
                     </div>
+                    <div class="wide-container">
+                        <div class="wide-container${workspaces.selected !== undefined ? " configs" : ""}">
+                            ${treeL}
+                            ${makeDropdown(configs, DropdownIds.Configuration, "settings-gear", configs.amount === 0, "No configurations found")}
+                        </div>
+                    </div>
+
             </div>
         </div>
 
@@ -256,7 +261,7 @@ namespace Rendering {
         extraOptions?: string
     ) {
         return /*html*/`
-            <div class="dropdown-container">
+            <div class="wide-container">
                 <span class="codicon codicon-${iconName} dropdown-icon ${isDisabled ? "disabled" : ""}"></span>
                 <vscode-dropdown id="${id}" class="dropdown" ${isDisabled ? "disabled" : ""}>
                     ${getDropdownOptions(model, emptyMsg)}
