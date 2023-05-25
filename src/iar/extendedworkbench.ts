@@ -61,6 +61,8 @@ export interface ExtendedWorkbench {
      */
     closeWorkspace(): Promise<void>;
 
+
+
     dispose(): Promise<void>;
 
     /**
@@ -96,9 +98,9 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     // concurrently), we only allow one operation at a time.
     private readonly mtx = new Mutex();
 
-    constructor(public workbench:   Workbench,
-                private readonly serviceMgr: ThriftServiceManager,
-                private readonly projectMgr: ThriftClient<ProjectManager.Client>) {
+    constructor(public workbench: Workbench,
+        private readonly serviceMgr: ThriftServiceManager,
+        private readonly projectMgr: ThriftClient<ProjectManager.Client>) {
     }
 
     public loadWorkspace(workspace: EwWorkspace): Promise<ThriftWorkspace> {

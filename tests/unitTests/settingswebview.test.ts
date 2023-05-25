@@ -23,7 +23,7 @@ namespace Utils {
     // A fake view we can receive html to, and then inspect it.
     export function createMockView(): vscode.WebviewView {
         const mockEvent = () => {
-            return { dispose: () => {/**/}};
+            return { dispose: () => {/**/ } };
         };
         return {
             onDidChangeVisibility: mockEvent,
@@ -41,6 +41,10 @@ namespace Utils {
             }
         };
     }
+
+    export const emptyPromise: Promise<undefined> = new Promise(() => {
+        return undefined;
+    });
 }
 
 suite("Test settings view", () => {
@@ -54,7 +58,7 @@ suite("Test settings view", () => {
     let mockView: vscode.WebviewView;
     let document: Document;
 
-    setup(async() => {
+    setup(async () => {
         workbenchModel = new WorkbenchListModel();
         workspaceModel = new WorkspaceListModel();
         projectModel = new ProjectListModel();
@@ -78,7 +82,7 @@ suite("Test settings view", () => {
         updateDocument();
     });
 
-    const updateDocument = function() {
+    const updateDocument = function () {
         document = new JSDOM(mockView.webview.html).window.document;
     };
 
@@ -105,21 +109,21 @@ suite("Test settings view", () => {
         );
 
         workspaceModel.set(
-            { name: "LedFlasher", path: "/some/directory/LedFlasher.eww", projects: [], getArgvarsFile: () => undefined },
-            { name: "A workspace", path:"C:\\test\\A project.eww", projects: [], getArgvarsFile: () => undefined },
+            { name: "LedFlasher", path: "/some/directory/LedFlasher.eww", projects: [], getArgvarsFile: () => undefined, getBatchBuilds: () => Utils.emptyPromise, setBatchBuilds: () => Utils.emptyPromise },
+            { name: "A workspace", path: "C:\\test\\A project.eww", projects: [], getArgvarsFile: () => undefined, getBatchBuilds: () => Utils.emptyPromise, setBatchBuilds: () => Utils.emptyPromise },
         );
         workspaceModel.select(0);
 
         projectModel.set(
             { name: "LedFlasher", path: "/some/directory/LedFlasher.ewp", configurations: [], findConfiguration: () => undefined },
-            { name: "A project", path:"C:\\test\\A project.ewp", configurations: [], findConfiguration: () => undefined },
+            { name: "A project", path: "C:\\test\\A project.ewp", configurations: [], findConfiguration: () => undefined },
         );
         projectModel.select(0);
-        configModel.set( { name: "Debug", targetId: "arm" }, { name: "Release", targetId: "arm"} );
+        configModel.set({ name: "Debug", targetId: "arm" }, { name: "Release", targetId: "arm" });
         configModel.select(1);
         updateDocument();
 
-        const assertDropdownMatchesModel = function<T>(dropdownId: string, model: ListInputModel<T>)  {
+        const assertDropdownMatchesModel = function <T>(dropdownId: string, model: ListInputModel<T>) {
             const dropdown = document.getElementById(dropdownId);
             Assert(dropdown);
             Assert.strictEqual(dropdown.getAttribute("disabled"), null, `Dropdown '${dropdownId}' should be enabled`);
@@ -182,7 +186,7 @@ suite("Test settings view", () => {
 
     test("Escapes HTML tags", () => {
         // HTML tags must be escaped to prevent injections
-        configModel.set( { name: "<script>alert('Hello')</script><b>Debug</b>", targetId: "arm" } );
+        configModel.set({ name: "<script>alert('Hello')</script><b>Debug</b>", targetId: "arm" });
         configModel.select(0);
         updateDocument();
 
