@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Assert from "assert";
-import { AsyncObservable } from "../../src/extension/model/asyncobservable";
+import { AsyncObservable } from "../../src/utils/asyncobservable";
 
 suite("Test AsyncObservable", () => {
 

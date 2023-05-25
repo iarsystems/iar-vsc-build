@@ -170,17 +170,28 @@ suite("Test build extension", ()=>{
         }
     });
 
-    test("Check that creating/deleting/modifying projects affects extension state", async function() {
+    test("Check that creating/deleting workspaces affects extension state", async function() {
         this.timeout(40000);
-        // Add a project file, make sure it is added to the extension
-        const projectPath = path.join(sandboxPath, "newProject.ewp");
-        fs.copyFileSync(path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp"), projectPath);
+        // Add a workspace file, make sure it is added to the extension
+        const workspacePath = path.join(sandboxPath, "newWorkspace.eww");
+        fs.copyFileSync(path.join(sandboxPath, "TestProjects.eww"), workspacePath);
         // Give vs code time to react
         await new Promise((p, _) => setTimeout(p, 1000));
-        assert(ExtensionState.getInstance().project.projects.some(project => project.name === "newProject"), "The created project was not added to the project list");
-        await VscodeTestsUtils.activateProject("newProject");
+        assert(ExtensionState.getInstance().workspace.workspaces.some(workspace => workspace.name === "newWorkspace"), "The created workspace was not added to the workspace list");
+
+        // Remove the project file, make sure it is removed from the extension
+        fs.unlinkSync(workspacePath);
+        // Give vs code time to react
+        await new Promise((p, _) => setTimeout(p, 1000));
+        assert(!ExtensionState.getInstance().workspace.workspaces.some(workspace => workspace.name === "newWorkspace"), "The created workspace was not removed from the workspace list");
+    });
+
+    test("Check that creating/deleting/modifying projects affects extension state", async function() {
+        this.timeout(40000);
+        await VscodeTestsUtils.activateProject("BasicDebugging");
 
         // Change a configuration name and a file name, make sure the extension reacts
+        const projectPath = path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp");
         let ewpContents = fs.readFileSync(projectPath).toString();
         ewpContents = ewpContents.replace("<name>Release</name>", "<name>TheNewConfig</name>");
         ewpContents = ewpContents.replace("Fibonacci.c", "TheNewFile.c");
@@ -194,11 +205,6 @@ suite("Test build extension", ()=>{
             assert((await extProject?.getRootNode())?.children.some(node => node.name === "TheNewFile.c"));
         }
 
-        // Remove the project file, make sure it is removed from the extension
-        fs.unlinkSync(projectPath);
-        // Give vs code time to react
-        await new Promise((p, _) => setTimeout(p, 1000));
-        assert(!ExtensionState.getInstance().project.projects.some(project => project.name === "newProject"), "The created project was not removed from the project list");
     });
 
     test("Check that build task failures are communicated to VS Code", async()=>{

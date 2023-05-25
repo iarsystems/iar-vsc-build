@@ -29,10 +29,8 @@ export interface ExtendedWorkbench {
     readonly workbench: Workbench;
 
     /**
-     * Loads the given project into a {@link ExtendedProject}.
-     * This method uses caching; loaded projects are kept in memory to speed up
-     * subsequent loads of the same project. To evict a project from memory and
-     * force it to be reloaded from disk, call {@link unloadProject}.
+     * Loads the given project into a {@link ExtendedProject}. Loaded projects are kept in memory (i.e. in a workspace).
+     * To evict a project from memory and force it to be reloaded from disk, call {@link unloadProject}.
      */
     loadProject(project: Project): Promise<ExtendedProject>;
     /**
@@ -43,6 +41,12 @@ export interface ExtendedWorkbench {
      */
     unloadProject(project: Project): Promise<void>;
 
+    /**
+     * Loads the given workspace, or closes the current workspace if passed 'undefined'.
+     *
+     * This affects e.g. how some argvars are expanded. Calling this unloads *all* currently loaded projects,
+     * invalidating all existing {@link ExtendedProject} instances from this workbench.
+     */
     loadWorkspace(workspace: EwWorkspace | undefined): Promise<void>;
 
     dispose(): Promise<void>;
@@ -77,8 +81,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     private readonly loadedContexts = new Map<string, ProjectContext>();
 
     // To avoid conflicting operations running at the same time (e.g. loading and unloading the same project
-    // concurrently), we only allow one operation at a time. This can probably be optimized to allow unrelated
-    // operations (e.g. for separate projects) to run concurrently.
+    // concurrently), we only allow one operation at a time.
     private readonly mtx = new Mutex();
 
     constructor(public workbench:   Workbench,
@@ -149,16 +152,18 @@ export class ThriftWorkbench implements ExtendedWorkbench {
 
     public async dispose() {
         logger.debug(`Shutting down thrift workbench '${this.workbench.name}'`);
-        // unload all loaded projects
-        const contexts = await Promise.allSettled(this.loadedContexts.values());
-        await Promise.allSettled(contexts.map(result => {
-            if (result.status === "fulfilled") {
-                return this.projectMgr.service.CloseProject(result.value);
-            }
-            return Promise.resolve();
-        }));
-        this.projectMgr.close();
-        await this.serviceMgr.dispose();
+        await this.mtx.runExclusive(async() => {
+            // unload all loaded projects
+            const contexts = await Promise.allSettled(this.loadedContexts.values());
+            await Promise.allSettled(contexts.map(result => {
+                if (result.status === "fulfilled") {
+                    return this.projectMgr.service.CloseProject(result.value);
+                }
+                return Promise.resolve();
+            }));
+            this.projectMgr.close();
+            await this.serviceMgr.dispose();
+        });
     }
 
     public onCrash(handler: (code: number | null) => void) {

@@ -4,10 +4,10 @@
         <path>$WS_DIR$/ArgVars/ArgVars.ewp</path>
     </project>
     <project>
-        <path>$WS_DIR$/C-STATProject/C-STATProject.ewp</path>
+        <path>$WS_DIR$/GettingStarted/BasicDebugging.ewp</path>
     </project>
     <project>
-        <path>$WS_DIR$/GettingStarted/BasicDebugging.ewp</path>
+        <path>$WS_DIR$/C-STATProject/C-STATProject.ewp</path>
     </project>
     <project>
         <path>$WS_DIR$/SourceConfiguration/Project/SourceConfiguration.ewp</path>

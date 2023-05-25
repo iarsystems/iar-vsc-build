@@ -152,38 +152,37 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
                     );
                 }
             });
-        logger.debug(`Found ${projects.length} project(s) in the VS Code workspace`);
         projects.sort((a, b) => a.name.localeCompare(b.name));
         if (JSON.stringify(projects) !== JSON.stringify(ExtensionState.getInstance().project.projects)) {
-            ExtensionState.getInstance().project.set(...projects);
+            if (!ExtensionState.getInstance().workspace.selected) {
+                logger.debug(`Found ${projects.length} project(s) in the VS Code workspace`);
+                ExtensionState.getInstance().project.set(...projects);
+            }
         }
     });
 
     ewpWatcher.onFileModified(async modifiedFile => {
-        // Reload the project from disk if it is currently loaded
-        const extendedProject = await ExtensionState.getInstance().extendedProject.getValue();
-        if (extendedProject && OsUtils.pathsEqual(modifiedFile, extendedProject.path)) {
-            await ExtensionState.getInstance().reloadProject();
-        }
-
-        // Update the project list if necessary (e.g. because the project configurations changed)
         const projectModel = ExtensionState.getInstance().project;
         const oldProject = projectModel.projects.find(
             project => OsUtils.pathsEqual(project.path, modifiedFile)
         );
-        const reloadedProject = new EwpFile(modifiedFile);
-        if (oldProject && !Project.equal(oldProject, reloadedProject)) {
-            const updatedProjects: Project[] = [];
-            projectModel.projects.forEach(project => {
-                if (project === oldProject) {
-                    updatedProjects.push(reloadedProject);
-                } else {
-                    updatedProjects.push(project);
-                }
-            });
-            // This will load the selected project again (i.e. for the second time if we reloaded it above),
-            // but it is probably not noticable to the user.
-            projectModel.set(...updatedProjects);
+        if (oldProject) {
+            await ExtensionState.getInstance().reloadProject(oldProject);
+
+            const reloadedProject = new EwpFile(modifiedFile);
+            if (!Project.equal(oldProject, reloadedProject)) {
+                const updatedProjects: Project[] = [];
+                projectModel.projects.forEach(project => {
+                    if (project === oldProject) {
+                        updatedProjects.push(reloadedProject);
+                    } else {
+                        updatedProjects.push(project);
+                    }
+                });
+                // This will load the selected project again (i.e. for the second time if we reloaded it above),
+                // but it is probably not noticable to the user.
+                projectModel.set(...updatedProjects);
+            }
         }
     });
 

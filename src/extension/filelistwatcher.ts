@@ -58,14 +58,14 @@ export class FileListWatcher implements vscode.Disposable {
         this.subscriptions.push(this.watcher);
 
         this.watcher.onDidCreate(path => {
-            logger.debug("Detected new file: " + path);
+            logger.debug("Detected new file: " + path.fsPath);
             this.setFiles(this.data.concat([path.fsPath]));
         });
 
         this.watcher.onDidDelete(path => {
             const keptFiles = this.data.filter(file => !OsUtils.pathsEqual(file, path.fsPath));
             if (keptFiles.length !== this.data.length) {
-                logger.debug("Removing deleted item: " + path.fsPath);
+                logger.debug("Detected deleted file: " + path.fsPath);
                 this.setFiles(keptFiles);
             }
         });
