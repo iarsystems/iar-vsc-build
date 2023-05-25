@@ -6,6 +6,7 @@
 
 import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
 import * as Fs from "fs";
+import * as Vscode from "vscode";
 import * as Path from "path";
 import { Workbench } from "iar-vsc-common/workbench";
 import { PROJECTMANAGER_ID, ProjectContext } from "iar-vsc-common/thrift/bindings/projectmanager_types";
@@ -19,7 +20,8 @@ import { logger } from "iar-vsc-common/logger";
 import { IarOsUtils, OsUtils } from "iar-vsc-common/osUtils";
 import { Mutex } from "async-mutex";
 import { WorkbenchFeatures } from "./tools/workbenchfeatureregistry";
-import { EwWorkspace } from "./workspace/ewworkspace";
+import { EwWorkspace, ExtendedEwWorkspace } from "./workspace/ewworkspace";
+import { ThriftWorkspace } from "./workspace/thriftworkspace";
 
 /**
  * A workbench with some extra capabilities,
@@ -42,12 +44,22 @@ export interface ExtendedWorkbench {
     unloadProject(project: Project): Promise<void>;
 
     /**
-     * Loads the given workspace, or closes the current workspace if passed 'undefined'.
+     * Loads the given workspace.
      *
-     * This affects e.g. how some argvars are expanded. Calling this unloads *all* currently loaded projects,
-     * invalidating all existing {@link ExtendedProject} instances from this workbench.
+     * This affects e.g. how some argvars are expanded. Calling this unloads
+     * *all* currently loaded projects, invalidating all existing
+     * {@link ExtendedProject} instances from this workbench.
      */
-    loadWorkspace(workspace: EwWorkspace | undefined): Promise<void>;
+    loadWorkspace(workspace: EwWorkspace): Promise<ExtendedEwWorkspace>;
+
+    /**
+     * Closes the current workspace.
+     *
+     * This affects e.g. how some argvars are expanded. Calling this unloads
+     * *all* currently loaded projects, invalidating all existing
+     * {@link ExtendedProject} instances from this workbench.
+     */
+    closeWorkspace(): Promise<void>;
 
     dispose(): Promise<void>;
 
@@ -89,33 +101,40 @@ export class ThriftWorkbench implements ExtendedWorkbench {
                 private readonly projectMgr: ThriftClient<ProjectManager.Client>) {
     }
 
-    public loadWorkspace(workspace: EwWorkspace | undefined): Promise<void> {
+    public loadWorkspace(workspace: EwWorkspace): Promise<ThriftWorkspace> {
         if (!WorkbenchFeatures.supportsFeature(this.workbench, WorkbenchFeatures.PMWorkspaces)) {
             throw new Error("Tried to load workspace with unsupported toolchain");
         }
         return this.mtx.runExclusive(async() => {
-            logger.debug(`Loading thrift workspace: ${workspace?.name}`);
-            if (workspace) {
-                // Remove backups so this has the same behavior as loadProject
-                await BackupUtils.doWithBackupCheck(workspace.projects, async() => {
-                    await this.projectMgr.service.LoadEwwFile(workspace.path);
-                });
+            logger.debug(`Loading thrift workspace: ${workspace.name}`);
+            // Remove backups so this has the same behavior as loadProject
+            await BackupUtils.doWithBackupCheck(workspace.projects, async() => {
+                await this.projectMgr.service.LoadEwwFile(workspace.path);
+            });
 
-                const contexts = await this.projectMgr.service.GetLoadedProjects();
-                this.loadedContexts.clear();
-                for (const projFile of workspace.projects) {
-                    const context = contexts.find(ctx => OsUtils.pathsEqual(ctx.filename, projFile));
-                    if (!context) {
-                        logger.warn(`Found no context for '${projFile}'. It probably failed to load.`);
-                    } else {
-                        this.loadedContexts.set(projFile, context);
-                    }
+            const contexts = await this.projectMgr.service.GetLoadedProjects();
+            this.loadedContexts.clear();
+            for (const projFile of workspace.projects) {
+                const context = contexts.find(ctx => OsUtils.pathsEqual(ctx.filename, projFile));
+                if (!context) {
+                    Vscode.window.showErrorMessage(`Failed to load workspace project: ${projFile}`);
+                } else {
+                    this.loadedContexts.set(projFile, context);
                 }
-                logger.debug(`Successfully loaded ${this.loadedContexts.size} projects in workspace`);
-            } else {
-                await this.projectMgr.service.CloseWorkspace();
-                this.loadedContexts.clear();
             }
+            logger.debug(`Successfully loaded ${this.loadedContexts.size} projects in workspace`);
+            return ThriftWorkspace.fromService(this.projectMgr.service, workspace.path);
+        });
+    }
+
+    public closeWorkspace(): Promise<void> {
+        if (!WorkbenchFeatures.supportsFeature(this.workbench, WorkbenchFeatures.PMWorkspaces)) {
+            throw new Error("Tried to close workspace with unsupported toolchain");
+        }
+        return this.mtx.runExclusive(async() => {
+            logger.debug("Closing thrift workspace");
+            await this.projectMgr.service.CloseWorkspace();
+            this.loadedContexts.clear();
         });
     }
 

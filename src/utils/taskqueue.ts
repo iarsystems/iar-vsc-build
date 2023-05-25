@@ -27,7 +27,6 @@ export class TaskQueue<T> {
             Promise.resolve();
         const preamble = prevPromise.then(() => {
             if (cancelTokenSource.token.isCancellationRequested) {
-                // console.log(`Canceled: ${JSON.stringify(id)}`);
                 throw new Error("Task canceled");
             }
             if (this.queue.shift()?.id !== id) {

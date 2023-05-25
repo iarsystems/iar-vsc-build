@@ -23,7 +23,7 @@ export class ThriftProject implements ExtendedProject {
     constructor(public path:                 string,
                 public configurations:       ReadonlyArray<Config>,
                 private readonly projectMgr: ProjectManager.Client,
-                private readonly context:             ProjectContext,
+                private readonly context:    ProjectContext,
                 private readonly owner:      Workbench) {
     }
 

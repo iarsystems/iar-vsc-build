@@ -21,7 +21,7 @@ import { Workbench } from "iar-vsc-common/workbench";
 import { WorkspaceListModel } from "./model/selectworkspace";
 import { EwpFile } from "../iar/project/parsing/ewpfile";
 import { LoadingService } from "./loadingservice";
-import { EwWorkspace } from "../iar/workspace/ewworkspace";
+import { EwWorkspace, ExtendedEwWorkspace } from "../iar/workspace/ewworkspace";
 import { OsUtils } from "iar-vsc-common/osUtils";
 
 /**
@@ -47,7 +47,7 @@ class State {
     // * The selected workbench (above) changes.
     readonly extendedProject: AsyncObservable<ExtendedProject>;
     // TODO; docstring
-    readonly loadedWorkspace: AsyncObservable<EwWorkspace>;
+    readonly loadedWorkspace: AsyncObservable<ExtendedEwWorkspace>;
     // If the selected workbench has extended (majestix) capabilities, it will be provided here
     readonly extendedWorkbench: AsyncObservable<ExtendedWorkbench>;
     // Notifies whether a project or workbench is currently loading
@@ -137,7 +137,7 @@ class State {
                 defaultChoiceStrategy();
             }
         };
-        model.addOnInvalidateHandler(() => { console.log("Invalidated"); setFromStoredValue(); });
+        model.addOnInvalidateHandler(() => setFromStoredValue());
         model.addOnSelectedHandler((_, value) => {
             if (value) {
                 Settings.setLocalSetting(field, toSettingsValue(value) ?? "");

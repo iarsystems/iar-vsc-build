@@ -5,14 +5,15 @@
 import * as Path from "path";
 import * as Fs from "fs";
 import { XmlNode } from "../../utils/XmlNode";
-import { EwWorkspace } from "./ewworkspace";
+import { EwWorkspaceBase } from "./ewworkspace";
 import { logger } from "iar-vsc-common/logger";
 
-export class EwwFile implements EwWorkspace {
+export class EwwFile extends EwWorkspaceBase {
     readonly path: string;
     readonly projects: string[];
 
     constructor(path: string) {
+        super();
         this.path = path;
 
         const content = Fs.readFileSync(path);
@@ -34,21 +35,5 @@ export class EwwFile implements EwWorkspace {
                 this.projects.push(expandedPath);
             }
         });
-    }
-
-    get name(): string {
-        return Path.basename(this.path, ".eww");
-    }
-
-    getArgvarsFile(): string | undefined {
-        const argvarsPath = Path.join(
-            Path.dirname(this.path),
-            Path.basename(this.path, ".eww") + ".custom_argvars"
-        );
-
-        if (Fs.existsSync(argvarsPath)) {
-            return argvarsPath;
-        }
-        return undefined;
     }
 }

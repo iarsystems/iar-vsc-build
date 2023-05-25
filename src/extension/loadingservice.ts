@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { ExtendedProject, Project } from "../iar/project/project";
-import { EwWorkspace } from "../iar/workspace/ewworkspace";
+import { EwWorkspace, ExtendedEwWorkspace } from "../iar/workspace/ewworkspace";
 import { AsyncObservable } from "../utils/asyncobservable";
 import { Workbench } from "iar-vsc-common/workbench";
 import { TaskQueue } from "../utils/taskqueue";
@@ -30,7 +30,7 @@ export class LoadingService {
      */
     constructor(
         private readonly loadedWorkbench: AsyncObservable<ExtendedWorkbench>,
-        private readonly loadedWorkspace: AsyncObservable<EwWorkspace>,
+        private readonly loadedWorkspace: AsyncObservable<ExtendedEwWorkspace>,
         private readonly loadedProject:   AsyncObservable<ExtendedProject>,
     ) {
     }
@@ -95,8 +95,12 @@ export class LoadingService {
             const task = this.pendingTasks.pushTask(specification, async() => {
                 const loadedWorkbench = await extendedWb;
                 if (loadedWorkbench) {
-                    await loadedWorkbench.loadWorkspace(specification.workspace);
-                    return specification.workspace;
+                    if (specification.workspace) {
+                        return loadedWorkbench.loadWorkspace(specification.workspace);
+                    } else {
+                        await loadedWorkbench.closeWorkspace();
+                        return undefined;
+                    }
                 }
                 return undefined;
             });
