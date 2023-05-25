@@ -8,6 +8,7 @@ import { AsyncObservable } from "../utils/asyncobservable";
 import { Workbench } from "iar-vsc-common/workbench";
 import { TaskQueue } from "../utils/taskqueue";
 import { ExtendedWorkbench, ThriftWorkbench } from "../iar/extendedworkbench";
+import { WorkbenchFeatures } from "../iar/tools/workbenchfeatureregistry";
 
 type TaskSpecification =
     | { tag: "loadWorkbench"; workbench: Workbench | undefined }
@@ -74,7 +75,7 @@ export class LoadingService {
             const prevExtWb = this.loadedWorkbench.promise;
 
             const task = this.pendingTasks.pushTask(specification, () => {
-                if (specification.workbench) {
+                if (specification.workbench && ThriftWorkbench.hasThriftSupport(specification.workbench)) {
                     return ThriftWorkbench.from(specification.workbench);
                 }
                 return Promise.resolve(undefined);
@@ -91,10 +92,15 @@ export class LoadingService {
         {
             this.pendingTasks.cancelWhile(it => ["loadProject", "unloadProject", "loadWorkspace"].includes(it.tag));
 
-            const extendedWb = this.loadedWorkbench.promise;
+            const workbenchPromise = this.loadedWorkbench.promise.catch(() => undefined);
             const task = this.pendingTasks.pushTask(specification, async() => {
-                const loadedWorkbench = await extendedWb;
+                const loadedWorkbench = await workbenchPromise;
                 if (loadedWorkbench) {
+                    if (!WorkbenchFeatures.supportsFeature(loadedWorkbench.workbench,
+                        WorkbenchFeatures.PMWorkspaces)) {
+                        return undefined;
+                    }
+
                     if (specification.workspace) {
                         return loadedWorkbench.loadWorkspace(specification.workspace);
                     } else {
@@ -114,10 +120,10 @@ export class LoadingService {
         {
             this.pendingTasks.cancelWhile(it => it.tag === "loadProject");
 
-            const extendedWb = this.loadedWorkbench.promise;
+            const workbenchPromise = this.loadedWorkbench.promise.catch(() => undefined);
             const task = this.pendingTasks.pushTask(specification, async() => {
                 if (specification.project) {
-                    const loadedWorkbench = await extendedWb;
+                    const loadedWorkbench = await workbenchPromise;
                     return loadedWorkbench?.loadProject(specification.project);
                 }
                 return undefined;
@@ -131,9 +137,9 @@ export class LoadingService {
         {
             this.pendingTasks.cancelWhile(it => it.tag === "loadProject" && it.project === specification.project);
 
-            const extendedWb = this.loadedWorkbench.promise;
+            const workbenchPromise = this.loadedWorkbench.promise.catch(() => undefined);
             return this.pendingTasks.pushTask(specification, async() => {
-                const loadedWorkbench = await extendedWb;
+                const loadedWorkbench = await workbenchPromise;
                 await loadedWorkbench?.unloadProject(specification.project);
             });
         }

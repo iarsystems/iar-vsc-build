@@ -19,25 +19,27 @@ export class TaskQueue<T> {
 
     /**
      * Adds a task to run, resolving when the task has completed.
+     * Returns undefined if the task was canceled.
      */
-    pushTask<U>(id: T, task: () => Promise<U>): Promise<U> {
+    pushTask<U>(id: T, task: () => Promise<U>): Promise<U | undefined> {
         const cancelTokenSource = new vscode.CancellationTokenSource();
 
         const prevPromise = this.queue[this.queue.length - 1]?.promise ??
             Promise.resolve();
-        const preamble = prevPromise.then(() => {
+        const taskPromise = prevPromise.then(() => {
             if (cancelTokenSource.token.isCancellationRequested) {
-                throw new Error("Task canceled");
-            }
-            if (this.queue.shift()?.id !== id) {
-                logger.error(`Handling task that is not first in line, this should never happen!`);
+                return undefined;
+            } else {
+                if (this.queue.shift()?.id !== id) {
+                    logger.error(`Handling task that is not first in line, this should never happen!`);
+                }
+                return task();
             }
         });
-        const taskPromise = preamble.then(task);
 
         this.queue.push({
             id,
-            promise: taskPromise.catch(() => { /* swallow canceled tasks & errors */ }),
+            promise: taskPromise.catch(() => { /* swallow tasks errors */ }),
             cancelToken: cancelTokenSource,
         });
 

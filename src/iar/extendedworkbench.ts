@@ -102,9 +102,6 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     }
 
     public loadWorkspace(workspace: EwWorkspace): Promise<ThriftWorkspace> {
-        if (!WorkbenchFeatures.supportsFeature(this.workbench, WorkbenchFeatures.PMWorkspaces)) {
-            throw new Error("Tried to load workspace with unsupported toolchain");
-        }
         return this.mtx.runExclusive(async() => {
             logger.debug(`Loading thrift workspace: ${workspace.name}`);
             // Remove backups so this has the same behavior as loadProject
@@ -112,7 +109,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
                 await this.projectMgr.service.LoadEwwFile(workspace.path);
             });
 
-            const contexts = await this.projectMgr.service.GetLoadedProjects();
+            const contexts = await this.projectMgr.service.GetProjects();
             this.loadedContexts.clear();
             for (const projFile of workspace.projects) {
                 const context = contexts.find(ctx => OsUtils.pathsEqual(ctx.filename, projFile));

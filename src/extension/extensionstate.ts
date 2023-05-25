@@ -103,7 +103,8 @@ class State {
         ];
         if (this.project.selected === project) {
             tasks.push(
-                this.loadingService.loadProject(project)
+                this.loadingService.loadProject(project).
+                    catch(this.projectErrorHandler(project))
             );
         }
         await Promise.all(tasks);
@@ -165,11 +166,14 @@ class State {
             logger.debug(`Toolchain: selected '${this.workbench.selected?.name}' (index ${this.workbench.selectedIndex})`);
             const selectedWb = workbench.selected;
 
-            this.loadingService.loadWorkbench(selectedWb);
+            this.loadingService.loadWorkbench(selectedWb).
+                catch(this.workbenchErrorHandler(selectedWb));
             if (this.workspace.selected) {
-                this.loadingService.loadWorkspace(this.workspace.selected);
+                this.loadingService.loadWorkspace(this.workspace.selected).
+                    catch(this.workspaceErrorHandler(this.workspace.selected));
             }
-            this.loadingService.loadProject(this.project.selected);
+            this.loadingService.loadProject(this.project.selected).
+                catch(this.projectErrorHandler(this.project.selected));
         });
 
         // If workbench crashes, fall back to non-extended (non-thrift) functionality.
@@ -214,7 +218,8 @@ class State {
     private addWorkspaceModelListeners(): void {
         this.workspace.addOnSelectedHandler(() => {
             logger.debug(`Workspace: selected '${this.workspace.selected?.name}' (index ${this.workspace.selectedIndex})`);
-            this.loadingService.loadWorkspace(this.workspace.selected);
+            this.loadingService.loadWorkspace(this.workspace.selected).
+                catch(this.workspaceErrorHandler(this.workspace.selected));
             if (this.workspace.selected) {
                 const projects: Project[] = [];
                 this.workspace.selected.projects.forEach(projFile => {
@@ -248,7 +253,8 @@ class State {
                     return;
                 }
             }
-            this.loadingService.loadProject(this.project.selected);
+            this.loadingService.loadProject(this.project.selected).
+                catch(this.projectErrorHandler(this.project.selected));
         });
 
         this.extendedProject.onValueDidChange(project => {
@@ -314,6 +320,31 @@ class State {
             );
         }
         return true;
+    }
+
+    private workbenchErrorHandler(workbench: Workbench | undefined) {
+        return (e: unknown) => {
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage(`Error initiating IAR toolchain backend. Some functionality may be unavailable (${e.toString()}).`);
+                logger.debug(`Error loading thrift workbench '${workbench?.name}': ${e.toString()}`);
+            }
+        };
+    }
+    private workspaceErrorHandler(workspace: EwWorkspace | undefined) {
+        return (e: unknown) => {
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage(`IAR: Error while loading the workspace. Some functionality may be unavailable (${e.toString()}).`);
+                logger.error(`Error loading workspace '${workspace?.name}': ${e.toString()}`);
+            }
+        };
+    }
+    private projectErrorHandler(project: Project | undefined) {
+        return (e: unknown) => {
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage(`IAR: Error while loading the project. Some functionality may be unavailable (${e.toString()}).`);
+                logger.error(`Error loading project '${project?.name}': ${e.toString()}`);
+            }
+        };
     }
 }
 
