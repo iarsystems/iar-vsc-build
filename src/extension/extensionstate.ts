@@ -107,6 +107,7 @@ class State {
                 this.loadingService.loadProject(project).
                     catch(this.projectErrorHandler(project))
             );
+            this.loading.next(true);
         }
         await Promise.all(tasks);
     }
@@ -174,6 +175,7 @@ class State {
             }
             this.loadingService.loadProject(this.project.selected).
                 catch(this.projectErrorHandler(this.project.selected));
+            this.loading.next(true);
         });
 
         // If workbench crashes, fall back to non-extended (non-thrift) functionality.
@@ -255,6 +257,7 @@ class State {
             }
             this.loadingService.loadProject(this.project.selected).
                 catch(this.projectErrorHandler(this.project.selected));
+            this.loading.next(true);
         });
 
         this.extendedProject.onValueDidChange(project => {
