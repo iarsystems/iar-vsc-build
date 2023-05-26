@@ -5,22 +5,21 @@
 import { EwWorkspaceBase, ExtendedEwWorkspace } from "./ewworkspace";
 import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
 import { BatchBuildItem } from "iar-vsc-common/thrift/bindings/projectmanager_types";
-import { ExtensionState } from "../../extension/extensionstate";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { Workbench } from "iar-vsc-common/workbench";
 
 export class ThriftWorkspace extends EwWorkspaceBase implements ExtendedEwWorkspace {
 
-    static async fromService(projectMgr: ProjectManager.Client, path: string): Promise<ThriftWorkspace> {
+    static async fromService(owner: Workbench, projectMgr: ProjectManager.Client, path: string): Promise<ThriftWorkspace> {
         const projectContexts = await projectMgr.GetProjects();
         const projectPaths = projectContexts.map(context => context.filename);
-        return new ThriftWorkspace(path, projectPaths, projectMgr);
-        // return new ThriftWorkspace(path, projectPaths, projectMgr);
+        return new ThriftWorkspace(path, projectPaths, owner, projectMgr);
     }
 
     private constructor(
         readonly path: string,
         readonly projects: string[],
+        private readonly owner: Workbench,
         private readonly projectMgr: ProjectManager.Client,
     ) {
         super();
@@ -28,12 +27,7 @@ export class ThriftWorkspace extends EwWorkspaceBase implements ExtendedEwWorksp
 
 
     public override async getBatchBuilds(): Promise<BatchBuildItem[] | undefined> {
-        const currentWorkbench: Workbench | undefined = ExtensionState.getInstance().workbench.selected;
-        if (!currentWorkbench) {
-            return;
-        }
-
-        if (!WorkbenchFeatures.supportsFeature(currentWorkbench, WorkbenchFeatures.PMWorkspaces)) {
+        if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.PMWorkspaces)) {
             throw new Error("Tried to load batch builds with unsupported toolchain");
         }
 
@@ -42,12 +36,7 @@ export class ThriftWorkspace extends EwWorkspaceBase implements ExtendedEwWorksp
     }
 
     public override async setBatchBuilds(items: BatchBuildItem[]): Promise<BatchBuildItem[] | undefined> {
-        const currentWorkbench: Workbench | undefined = ExtensionState.getInstance().workbench.selected;
-        if (!currentWorkbench) {
-            return;
-        }
-
-        if (!WorkbenchFeatures.supportsFeature(currentWorkbench, WorkbenchFeatures.PMWorkspaces)) {
+        if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.PMWorkspaces)) {
             throw new Error("Tried to set batch builds with unsupported toolchain");
         }
         this.projectMgr.SetBatchBuildItems(items);

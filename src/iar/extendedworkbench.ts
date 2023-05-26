@@ -125,7 +125,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
                 }
             }
             logger.debug(`Successfully loaded ${this.loadedContexts.size} projects in workspace`);
-            return ThriftWorkspace.fromService(this.projectMgr.service, workspace.path);
+            return ThriftWorkspace.fromService(this.workbench, this.projectMgr.service, workspace.path);
         });
     }
 

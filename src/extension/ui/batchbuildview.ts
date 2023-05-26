@@ -11,6 +11,7 @@ import { AsyncObservable } from "../../utils/asyncobservable";
 import { Subject } from "rxjs";
 import { EwWorkspaceBase, ExtendedEwWorkspace } from "../../iar/workspace/ewworkspace";
 import { BatchBuildItem } from "iar-vsc-common/thrift/bindings/projectmanager_types";
+import { WorkbenchFeatures} from "iar-vsc-common/workbenchfeatureregistry";
 
 /** Simplified placeholder to allow batchbuilds for non-existant eww-file projects.*/
 class EwwPlaceHolder extends EwWorkspaceBase {
@@ -23,9 +24,7 @@ class EwwPlaceHolder extends EwWorkspaceBase {
     }
 
     override getBatchBuilds(): Promise<BatchBuildItem[] | undefined> {
-        return new Promise(() => {
-            return this.batchItems;
-        });
+        return Promise.resolve(this.batchItems);
     }
 
     override setBatchBuilds(items: BatchBuildItem[]): Promise<BatchBuildItem[] | undefined> {
@@ -36,8 +35,7 @@ class EwwPlaceHolder extends EwWorkspaceBase {
 
 
 /**
- * Shows a view to the left of all files/groups in the project, and all configurations in the project.
- * This view requires an ExtendedProject, and will show an appropriate message when no such project is available.
+ * Shows a view to the left of all the defined batch-builds with corresponding project-configuration pairs.
  */
 export class TreeBatchBuildView {
     private readonly provider: TreeBatchBuildProvider = new TreeBatchBuildProvider();
@@ -51,9 +49,13 @@ export class TreeBatchBuildView {
         this.view = Vscode.window.createTreeView("iar-batchbuild", { treeDataProvider: this.provider, showCollapseAll: true, dragAndDropController: this.provider });
 
         let isLoading = false;
+        let saveAvailable = false;
+        let oldWorkbench = false;
         const updateMessage = () => {
             if (isLoading) {
                 this.view.message = "Loading...";
+            } else if (!isLoading && (!saveAvailable || oldWorkbench)) {
+                this.view.message = (oldWorkbench? "Selected toolchain does not support modifying workspaces" : "No workspace specified") + ": Batches are not persisted between sessions";
             } else {
                 this.view.message = undefined;
             }
@@ -66,11 +68,16 @@ export class TreeBatchBuildView {
             }
         });
         workspaceModel.onValueDidChange(workspace => {
+            saveAvailable = workspace !== undefined;
             this.provider.setWorkspace(workspace?? new EwwPlaceHolder());
             isLoading = false;
             updateMessage();
         });
-        extWorkbenchModel.onValueDidChange(_extWorkbench => {
+        extWorkbenchModel.onValueDidChange(extWorkbench => {
+            oldWorkbench = false;
+            if (extWorkbench) {
+                oldWorkbench = !WorkbenchFeatures.supportsFeature(extWorkbench.workbench, WorkbenchFeatures.ThriftPM);
+            }
             isLoading = true;
             updateMessage();
         });
@@ -80,14 +87,14 @@ export class TreeBatchBuildView {
     }
 
     // Allow external commands to force an update based on the information in the underlying provider.
-    public Refresh(): void {
-        this.provider.Update();
+    public refresh(): void {
+        this.provider.update();
     }
 
     // Synchronize the current state of the tree with the backend by writing the current state
     // of the tree to the backend before updating the tree based on the current state of the backend.
-    public SyncWithBackend(): void {
-        this.provider.SyncWithBackend();
+    public syncWithBackend(): void {
+        this.provider.syncWithBackend();
     }
 
     /**

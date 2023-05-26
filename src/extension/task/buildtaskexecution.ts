@@ -81,7 +81,7 @@ export class BuildTaskExecution extends StylizedTerminal {
 
             const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(context.project))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
             try {
-                await BackupUtils.doWithBackupCheck(context.project, async () => {
+                await BackupUtils.doWithBackupCheck(context.project, async() => {
                     const iarbuild = spawn(builder, args, { cwd: workspaceFolder });
                     this.write("> " + iarbuild.spawnargs.map(arg => `'${arg}'`).join(" ") + "\n");
                     iarbuild.stdout.on("data", data => {

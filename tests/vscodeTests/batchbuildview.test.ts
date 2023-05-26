@@ -10,7 +10,7 @@ import { ExtensionState } from "../../src/extension/extensionstate";
 import { EwwFile } from "../../src/iar/workspace/ewwfile";
 import path = require("path");
 import { VscodeTestsSetup } from "./setup";
-import { TaskNames } from "../../src/extension/ui/batchbuildcommands";
+import { BatchBuild } from "../../src/extension/ui/batchbuildcommands";
 import { FsUtils } from "../../src/utils/fs";
 
 /**
@@ -21,7 +21,7 @@ import { FsUtils } from "../../src/utils/fs";
 suite("Test batchbuild View", () => {
     let testRoot: string;
 
-    suiteSetup(async function () {
+    suiteSetup(async function() {
         if (!TestConfiguration.getConfiguration().testThriftSupport) {
             this.skip();
             return;
@@ -47,7 +47,7 @@ suite("Test batchbuild View", () => {
         await new Promise((res, _) => setTimeout(res, 3000));
     });
 
-    setup(function () {
+    setup(function() {
         console.log("\n==========================================================" + this.currentTest!.title + "==========================================================\n");
     });
 
@@ -72,7 +72,7 @@ suite("Test batchbuild View", () => {
 
     });
 
-    test("Execute batch commands", async () => {
+    test("Execute batch commands", async() => {
         // Start by checking that the expected set of batches are available.
         const rootNode: BatchBuildNode = IarVsc.batchbuildTreeView._provider.rootNode;
 
@@ -93,7 +93,7 @@ suite("Test batchbuild View", () => {
         // Clean the project and ensure that no remains exists.
         await VscodeTestsUtils.executeCommand("iar-build.cleanBatch", rootNode.children[0]);
         await VscodeTestsUtils.waitForTask((e => {
-            return e.execution.task.name === TaskNames.CleanBatch;
+            return e.execution.task.name === BatchBuild.TaskNames.CleanBatch;
         }));
         for (const exeFile of exeFiles) {
             assert(!(await FsUtils.exists(exeFile)), `${exeFile} still exists, should have been cleaned`);
@@ -102,7 +102,7 @@ suite("Test batchbuild View", () => {
         // Build the batch and make sure that we're successfully built the expected binaries.
         await VscodeTestsUtils.executeCommand("iar-build.buildBatch", rootNode.children[0]);
         await VscodeTestsUtils.waitForTask((e => {
-            return e.execution.task.name === TaskNames.BuildBatch;
+            return e.execution.task.name === BatchBuild.TaskNames.BuildBatch;
         }));
         for (const exeFile of exeFiles) {
             assert((await FsUtils.exists(exeFile)), `${exeFile} does not exist, should have been built`);

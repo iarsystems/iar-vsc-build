@@ -70,7 +70,7 @@ export class TreeBatchBuildProvider implements Vscode.TreeDataProvider<BatchBuil
 
     // This is the root node of the tree. It should NEVER be removed and is the only node that has "undefined" as parent.
     readonly rootNode: BatchBuildNode = new BatchBuildNode("root", NodeType.BatchBuildItem, undefined, []);
-    workspace: EwWorkspace | undefined;
+    private workspace: EwWorkspace | undefined;
 
     // The icons used by the tree.
     private readonly batchLight: string = path.join(__filename, "../../../../media/icons/Batch-light.svg");
@@ -139,7 +139,7 @@ export class TreeBatchBuildProvider implements Vscode.TreeDataProvider<BatchBuil
         }
 
         // Finish of by forcing an update of the tree content.
-        this.Update();
+        this.update();
     }
 
     public async setWorkspace(workspace: EwWorkspace | undefined) {
@@ -155,13 +155,13 @@ export class TreeBatchBuildProvider implements Vscode.TreeDataProvider<BatchBuil
         }
 
         this.unpackData(batches);
-        this.Update();
+        this.update();
     }
 
 
 
     // Exposed API to allow commands to fire updates.
-    public Update(): void {
+    public update(): void {
         this._onDidChangeTreeData.fire(undefined);
     }
 
@@ -203,7 +203,8 @@ export class TreeBatchBuildProvider implements Vscode.TreeDataProvider<BatchBuil
 
     // This method will sync the current state of the tree to the backend
     // before reloading the tree with the state of the backend.
-    public async SyncWithBackend() {
+    public async syncWithBackend() {
+        this.update();
         const toSync: BatchBuildItem[] = [];
         for (const batchItem of this.rootNode.children) {
             toSync.push(batchItem.asBatchBuildItem());
@@ -211,6 +212,7 @@ export class TreeBatchBuildProvider implements Vscode.TreeDataProvider<BatchBuil
 
         const syncResults = await this.workspace?.setBatchBuilds(toSync);
         this.unpackData(syncResults);
+        this.update();
     }
 
     // This method unpacks the thrift BatchBuildItems into the tree view. Should

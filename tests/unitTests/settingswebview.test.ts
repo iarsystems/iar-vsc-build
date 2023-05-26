@@ -41,10 +41,6 @@ namespace Utils {
             }
         };
     }
-
-    export const emptyPromise: Promise<undefined> = new Promise(() => {
-        return undefined;
-    });
 }
 
 suite("Test settings view", () => {
@@ -58,7 +54,7 @@ suite("Test settings view", () => {
     let mockView: vscode.WebviewView;
     let document: Document;
 
-    setup(async () => {
+    setup(async() => {
         workbenchModel = new WorkbenchListModel();
         workspaceModel = new WorkspaceListModel();
         projectModel = new ProjectListModel();
@@ -82,7 +78,7 @@ suite("Test settings view", () => {
         updateDocument();
     });
 
-    const updateDocument = function () {
+    const updateDocument = function() {
         document = new JSDOM(mockView.webview.html).window.document;
     };
 
@@ -109,8 +105,8 @@ suite("Test settings view", () => {
         );
 
         workspaceModel.set(
-            { name: "LedFlasher", path: "/some/directory/LedFlasher.eww", projects: [], getArgvarsFile: () => undefined, getBatchBuilds: () => Utils.emptyPromise, setBatchBuilds: () => Utils.emptyPromise },
-            { name: "A workspace", path: "C:\\test\\A project.eww", projects: [], getArgvarsFile: () => undefined, getBatchBuilds: () => Utils.emptyPromise, setBatchBuilds: () => Utils.emptyPromise },
+            { name: "LedFlasher", path: "/some/directory/LedFlasher.eww", projects: [], getArgvarsFile: () => undefined, getBatchBuilds: () => Promise.resolve(undefined), setBatchBuilds: () => Promise.resolve(undefined) },
+            { name: "A workspace", path: "C:\\test\\A project.eww", projects: [], getArgvarsFile: () => undefined, getBatchBuilds: () => Promise.resolve(undefined), setBatchBuilds: () => Promise.resolve(undefined) },
         );
         workspaceModel.select(0);
 

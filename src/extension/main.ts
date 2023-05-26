@@ -32,7 +32,7 @@ import { OsUtils } from "iar-vsc-common/osUtils";
 import { EwWorkspace } from "../iar/workspace/ewworkspace";
 import { EwwFile } from "../iar/workspace/ewwfile";
 import { TreeBatchBuildView } from "./ui/batchbuildview";
-import { Init } from "./ui/batchbuildcommands";
+import { BatchBuild } from "./ui/batchbuildcommands";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
@@ -78,11 +78,12 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
         ExtensionState.getInstance().loading,
     );
 
+    // Batch build
     IarVsc.batchbuildTreeView = new TreeBatchBuildView(
         ExtensionState.getInstance().loadedWorkspace,
         ExtensionState.getInstance().extendedWorkbench,
         ExtensionState.getInstance().loading);
-    Init(context);
+    BatchBuild.Init(context);
 
     StatusBarItem.createFromModel("iar.workbench", workbenchModel, workbenchCmd, "IAR Toolchain: ", 5);
     StatusBarItem.createFromModel("iar.workspace", workspaceModel, workspaceCmd, "Workspace: ", 4);

@@ -53,15 +53,11 @@ export abstract class EwWorkspaceBase implements EwWorkspace {
     }
 
     getBatchBuilds(): Promise<BatchBuildItem[] | undefined> {
-        return new Promise(() => {
-            return undefined;
-        });
+        return Promise.resolve(undefined);
     }
 
     setBatchBuilds(_items: BatchBuildItem[]): Promise<BatchBuildItem[] | undefined> {
-        return new Promise(() => {
-            return undefined;
-        });
+        return Promise.resolve(undefined);
     }
 }
 

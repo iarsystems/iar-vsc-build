@@ -376,6 +376,10 @@
       {
         "view": "iar-project",
         "contents": "When an IAR project is loaded, you can see and manage its contents here."
+      },
+      {
+        "view": "iar-batchbuild",
+        "contents": "When an IAR workspace is loaded, you can see and manage batch builds here."
       }
     ],
     "grammars": [

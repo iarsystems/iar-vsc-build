@@ -46,7 +46,7 @@ suite("Test Clicking Settings View", ()=>{
                     name: "MockWorkbench",
                     builderPath: "MockWorkbench",
                     idePath: "MockWorkbench",
-                    path: "MockWorkbench",
+                    path: workbenchModel.workbenches[0]?.path?? "MockWorkbench",
                     targetIds: [],
                     type: WorkbenchType.IDE,
                     version: { major: 0, minor: 0, patch: 0 }
