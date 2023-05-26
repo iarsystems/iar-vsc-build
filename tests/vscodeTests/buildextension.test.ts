@@ -149,7 +149,7 @@ suite("Test build extension", ()=>{
         await Utils.assertFileNotExists(exeFile);
 
         // Finally, check that no backup files were created (VSC-192)
-        const backups = fs.readdirSync(path.dirname(testEwp.folder)).filter(entry => entry.match(/Backup \(\d+\) of /));
+        const backups = fs.readdirSync(path.dirname(testEwp.folder)).filter(entry => entry.match(/Backup (\(\d+\) )?of /));
         assert.strictEqual(backups.length, 0, "The following backups were created: " + backups.join(", "));
     });
 
@@ -186,7 +186,7 @@ suite("Test build extension", ()=>{
         assert(!ExtensionState.getInstance().workspace.workspaces.some(workspace => workspace.name === "newWorkspace"), "The created workspace was not removed from the workspace list");
     });
 
-    test("Check that creating/deleting/modifying projects affects extension state", async function() {
+    test("Check that modifying projects affects extension state", async function() {
         this.timeout(40000);
         await VscodeTestsUtils.activateProject("BasicDebugging");
 

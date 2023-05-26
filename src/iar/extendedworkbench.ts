@@ -36,12 +36,11 @@ export interface ExtendedWorkbench {
      */
     loadProject(project: Project): Promise<ExtendedProject>;
     /**
-     * Unloads the given project if it has previously been loaded.
-     * The next time the project is loaded using this workbench, a full load from
-     * disk will be performed.
-     * Note that this invalidates all currently loaded instances of the project.
+     * If the given project has previously been loaded, evicts it from memory
+     * and reloads it from disk. Existing instances of the {@link ExtendedProject}
+     * are not invalidated by this operation.
      */
-    unloadProject(project: Project): Promise<void>;
+    reloadProject(project: Project): Promise<void>;
 
     /**
      * Loads the given workspace.
@@ -151,17 +150,20 @@ export class ThriftWorkbench implements ExtendedWorkbench {
         });
     }
 
-    public unloadProject(project: Project): Promise<void> {
+    public reloadProject(project: Project): Promise<void> {
         return this.mtx.runExclusive(async() => {
-            logger.debug("Unloading " + project.name);
             const context = this.loadedContexts.get(project.path);
             if (context !== undefined) {
+                logger.debug("Reloading " + project.name);
                 if (WorkbenchFeatures.supportsFeature(this.workbench, WorkbenchFeatures.PMWorkspaces)) {
                     await this.projectMgr.service.RemoveProject(context);
                 } else {
                     await this.projectMgr.service.CloseProject(context);
                 }
-                this.loadedContexts.delete(project.path);
+
+                await BackupUtils.doWithBackupCheck(project.path, async() => {
+                    return await this.projectMgr.service.LoadEwpFile(project.path);
+                });
             }
         });
     }

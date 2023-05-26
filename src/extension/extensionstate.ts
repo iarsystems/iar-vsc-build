@@ -99,7 +99,8 @@ class State {
      */
     public async reloadProject(project: Project) {
         const tasks = [
-            this.loadingService.unloadProject(project)
+            this.loadingService.reloadProject(project).
+                catch(this.projectErrorHandler(project)),
         ];
         if (this.project.selected === project) {
             tasks.push(
@@ -131,7 +132,6 @@ class State {
                     (item: T) => settingsValue === toSettingsValue(item);
                 if (!model.selectWhen(comparator) && model.amount > 0) {
                     logger.debug(`Could not match item to ${field}: ${settingsValue} in iar-vsc.json`);
-                    logger.debug(this.project.projects.map(p => p.path).join(","));
                     defaultChoiceStrategy();
                 }
             } else {

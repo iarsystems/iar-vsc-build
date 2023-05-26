@@ -14,7 +14,7 @@ type TaskSpecification =
     | { tag: "loadWorkbench"; workbench: Workbench | undefined }
     | { tag: "loadWorkspace"; workspace: EwWorkspace | undefined }
     | { tag: "loadProject"; project: Project | undefined }
-    | { tag: "unloadProject"; project: Project };
+    | { tag: "reloadProject"; project: Project };
 
 /**
  * Manages the loading and unloading of workbenches, workspaces and projects.
@@ -61,9 +61,13 @@ export class LoadingService {
         await this.pushTask({ tag: "loadProject", project });
     }
 
-    // TO BE CHANGED
-    async unloadProject(project: Project) {
-        await this.pushTask({ tag: "unloadProject", project });
+    /**
+     * Requests that the given project be reloaded from disk.
+     * This uses the workbench from the last call to {@link loadWorkbench}.
+     * This does not affect any of the observables.
+     */
+    async reloadProject(project: Project) {
+        await this.pushTask({ tag: "reloadProject", project });
     }
 
     private pushTask(specification: TaskSpecification): Promise<unknown> {
@@ -90,7 +94,7 @@ export class LoadingService {
         }
         case "loadWorkspace":
         {
-            this.pendingTasks.cancelWhile(it => ["loadProject", "unloadProject", "loadWorkspace"].includes(it.tag));
+            this.pendingTasks.cancelWhile(it => ["loadProject", "reloadProject", "loadWorkspace"].includes(it.tag));
 
             const workbenchPromise = this.loadedWorkbench.promise.catch(() => undefined);
             const task = this.pendingTasks.pushTask(specification, async() => {
@@ -133,14 +137,14 @@ export class LoadingService {
 
             return task;
         }
-        case "unloadProject":
+        case "reloadProject":
         {
             this.pendingTasks.cancelWhile(it => it.tag === "loadProject" && it.project === specification.project);
 
             const workbenchPromise = this.loadedWorkbench.promise.catch(() => undefined);
             return this.pendingTasks.pushTask(specification, async() => {
                 const loadedWorkbench = await workbenchPromise;
-                await loadedWorkbench?.unloadProject(specification.project);
+                await loadedWorkbench?.reloadProject(specification.project);
             });
         }
         default:
