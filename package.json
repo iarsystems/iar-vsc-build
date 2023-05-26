@@ -407,6 +407,7 @@
           "description": "Paths to search for IAR toolchain (IAR Embedded Workbench or IAR Build Tools) installations. This can be used to manually locate installations that are not found automatically.",
           "scope": "machine",
           "default": [
+            "/opt/iarsystems",
             "C:\\Program Files\\IAR Systems",
             "C:\\Program Files (x86)\\IAR Systems"
           ]
