@@ -35,6 +35,9 @@ class State {
     private readonly toolManager: ToolManager;
     private readonly loadingService: LoadingService;
 
+    // The projects to populate our ProjectListModel with when no workspace is selected
+    private fallbackProjects: Project[] = [];
+
     // These are values chosen by the user e.g. from a dropdown.
     readonly workbench: WorkbenchListModel;
     readonly workspace: WorkspaceListModel;
@@ -42,11 +45,9 @@ class State {
     readonly config: ConfigurationListModel;
 
     // If the selected project can also be loaded as an ExtendedProject (majestix-enabled), it will be provided here.
-    // Only one project can be loaded at a time. A project is loaded when:
-    // * The selected project (above) changes.
-    // * The selected workbench (above) changes.
+    // Only one project can be loaded at a time.
     readonly extendedProject: AsyncObservable<ExtendedProject>;
-    // TODO; docstring
+    // If the selected workspace file is loaded as an ExtendedEwWorkspace, it will be provided here
     readonly loadedWorkspace: AsyncObservable<ExtendedEwWorkspace>;
     // If the selected workbench has extended (majestix) capabilities, it will be provided here
     readonly extendedWorkbench: AsyncObservable<ExtendedWorkbench>;
@@ -110,6 +111,20 @@ class State {
             this.loading.next(true);
         }
         await Promise.all(tasks);
+    }
+
+    /**
+     * Sets the projects to populate the project list with when no workspace
+     * file is selected (i.e. when no workspace files are available).
+     */
+    public setFallbackProjects(projects: Project[]) {
+        this.fallbackProjects = projects;
+        if (!this.workspace.selected) {
+            this.project.set(...projects);
+        }
+    }
+    public getFallbackProjects() {
+        return this.fallbackProjects;
     }
 
     // Connects a list model to a persistable setting in the iar-vsc.json file, so that:
@@ -234,8 +249,7 @@ class State {
                 });
                 this.project.set(...projects);
             } else {
-                // TODO: set from global list
-                this.project.set();
+                this.project.set(...this.fallbackProjects);
             }
         });
     }

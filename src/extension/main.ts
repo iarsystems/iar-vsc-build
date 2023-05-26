@@ -162,11 +162,9 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
                 }
             });
         projects.sort((a, b) => a.name.localeCompare(b.name));
-        if (JSON.stringify(projects) !== JSON.stringify(ExtensionState.getInstance().project.projects)) {
-            if (!ExtensionState.getInstance().workspace.selected) {
-                logger.debug(`Found ${projects.length} project(s) in the VS Code workspace`);
-                ExtensionState.getInstance().project.set(...projects);
-            }
+        if (JSON.stringify(projects) !== JSON.stringify(ExtensionState.getInstance().getFallbackProjects())) {
+            logger.debug(`Found ${projects.length} project(s) in the VS Code workspace`);
+            ExtensionState.getInstance().setFallbackProjects(projects);
         }
     });
 
