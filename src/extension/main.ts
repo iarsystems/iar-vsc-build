@@ -11,7 +11,6 @@ import { GetSettingsCommand } from "./command/getsettings";
 import { CpptoolsIntellisenseService } from "./intellisense/cpptoolsintellisenseservice";
 import { CStatTaskProvider } from "./task/cstat/cstattaskprovider";
 import { TreeProjectView } from "./ui/treeprojectview";
-import { SelectIarWorkspace } from "./command/selectIarWorkspace";
 import { ReloadProjectCommand } from "./command/project/reloadproject";
 import { RemoveNodeCommand } from "./command/project/removenode";
 import { AddFileCommand, AddFileToRootCommand, AddGroupCommand, AddGroupToRootCommand } from "./command/project/addnode";
@@ -42,7 +41,6 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
 
     // --- create and register commands
     GetSettingsCommand.initCommands(context);
-    new SelectIarWorkspace().register(context);
     new ReloadProjectCommand().register(context);
     new AddFileToRootCommand().register(context);
     new AddGroupToRootCommand().register(context);

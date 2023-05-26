@@ -36,7 +36,6 @@
     "multi-root ready"
   ],
   "activationEvents": [
-    "onCommand:iar-build.selectIarWorkspace",
     "workspaceContains:**/*.ewp",
     "onTaskType:iar",
     "onTaskType:iar-cstat"
