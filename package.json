@@ -139,6 +139,51 @@
         "command": "iar-build.addToolchain",
         "title": "Add an IAR Embedded Workbench or IAR Build Tools installation",
         "category": "IAR Build"
+      },
+      {
+        "command": "iar-build.addBatch",
+        "title": "Add a new batch.",
+        "category": "IAR Build",
+        "icon": "$(add)"
+      },
+      {
+        "command": "iar-build.addToBatch",
+        "title": "Add project and configuration to batch",
+        "category": "IAR Build",
+        "icon": "$(add)"
+      },
+      {
+        "command": "iar-build.deleteBatch",
+        "title": "Remove the entry",
+        "category": "IAR Build",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "iar-build.rebuildBatch",
+        "title": "Rebuild the batch",
+        "category": "IAR Build",
+        "icon": {
+          "dark": "media/icons/Rebuild-dark.svg",
+          "light": "media/icons/Rebuild-light.svg"
+        }
+      },
+      {
+        "command": "iar-build.cleanBatch",
+        "title": "Clean the batch",
+        "category": "IAR Build",
+        "icon": {
+          "dark": "media/icons/Clean-dark.svg",
+          "light": "media/icons/Clean-light.svg"
+        }
+      },
+      {
+        "command": "iar-build.buildBatch",
+        "title": "Build the batch",
+        "category": "IAR Build",
+        "icon": {
+          "dark": "media/icons/Build-dark.svg",
+          "light": "media/icons/Build-light.svg"
+        }
       }
     ],
     "viewsContainers": {
@@ -163,6 +208,12 @@
           "name": "Extension Configuration",
           "type": "webview",
           "initialSize": 3
+        },
+        {
+          "id": "iar-batchbuild",
+          "name": "Batch build",
+          "type": "tree",
+          "initialSize": 1
         },
         {
           "id": "iar-project",
@@ -192,6 +243,11 @@
         {
           "command": "iar-build.toggleCstatToolbar",
           "when": "view == iar-toolbar"
+        },
+        {
+          "command": "iar-build.addBatch",
+          "when": "view == iar-batchbuild && iar-build.extendedProjectLoaded",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -209,6 +265,36 @@
           "command": "iar-build.addFile",
           "when": "view == iar-project && viewItem == group",
           "group": "inline"
+        },
+        {
+          "command": "iar-build.deleteBatch",
+          "when": "view == iar-batchbuild && viewItem == batchitem",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "iar-build.addToBatch",
+          "when": "view == iar-batchbuild && viewItem == batchitem",
+          "group": "1_actions@0"
+        },
+        {
+          "command": "iar-build.deleteBatch",
+          "when": "view == iar-batchbuild && viewItem == builditem",
+          "group": "inline"
+        },
+        {
+          "command": "iar-build.buildBatch",
+          "when": "view == iar-batchbuild && viewItem == batchitem",
+          "group": "inline@0"
+        },
+        {
+          "command": "iar-build.cleanBatch",
+          "when": "view == iar-batchbuild && viewItem == batchitem",
+          "group": "inline@1"
+        },
+        {
+          "command": "iar-build.rebuildBatch",
+          "when": "view == iar-batchbuild && viewItem == batchitem",
+          "group": "inline@2"
         }
       ],
       "commandPalette": [
@@ -259,6 +345,30 @@
         {
           "command": "iar-config.argument-variables-file",
           "when": "false"
+        },
+        {
+          "command": "iar-build.addBatch",
+          "when": "false"
+        },
+        {
+          "command": "iar-build.deleteBatch",
+          "when": "false"
+        },
+        {
+          "command": "iar-build.addToBatch",
+          "when": "false"
+        },
+        {
+          "command": "iar-build.rebuildBatch",
+          "when": "false"
+        },
+        {
+          "command": "iar-build.cleanBatch",
+          "when": "false"
+        },
+        {
+          "command": "iar-build.buildBatch",
+          "when": "false"
         }
       ]
     },
@@ -266,6 +376,10 @@
       {
         "view": "iar-project",
         "contents": "When an IAR project is loaded, you can see and manage its contents here."
+      },
+      {
+        "view": "iar-batchbuild",
+        "contents": "When an IAR workspace is loaded, you can see and manage batch builds here."
       }
     ],
     "grammars": [
@@ -423,6 +537,24 @@
             "type": "string",
             "description": "The project configuration to use. Enter * to use all configurations."
           },
+          "contexts": {
+            "type": "array",
+            "description": "A list of project and configuration pairs to build.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "project": {
+                  "type": "string",
+                  "description": "The project (.ewp) file to use.",
+                  "format": "string"
+                },
+                "config": {
+                  "type": "string",
+                  "description": "The project configuration to use. Enter * to use all configurations."
+                }
+              }
+            }
+          },
           "workbench": {
             "type": "string",
             "description": "The IAR Embedded Workbench IDE to use to open workspaces."
@@ -559,7 +691,7 @@
     "csv-parse": "4.8.8",
     "escape-html": "^1.0.3",
     "fast-deep-equal": "2.0.1",
-    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#7f98fd9b",
+    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#28ee11cc",
     "jsdom": "^19.0.0",
     "rxjs": "^7.5.2",
     "sanitize-html": "^2.6.1",

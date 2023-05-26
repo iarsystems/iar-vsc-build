@@ -8,13 +8,20 @@ import * as Vscode from "vscode";
 import { Workbench } from "iar-vsc-common/workbench";
 import { BuildTaskExecution } from "./buildtaskexecution";
 
+
+export interface Context{
+    readonly project: string,
+    readonly config: string
+}
+
 export interface BuildTaskDefinition {
     readonly label: string;
     readonly type: string;
     readonly command: string;
     readonly builder: string;
-    readonly project: string;
-    readonly config: string;
+    readonly project: string,
+    readonly config: string,
+    readonly contexts: Context[];
     readonly argumentVariablesFile: string | undefined;
     readonly extraBuildArguments: string[] | undefined;
 }
@@ -65,9 +72,9 @@ export namespace BuildTasks {
             type: "iar",
             command: command,
             builder: "${command:iar-config.toolchain}/" + Workbench.builderSubPath,
-            project: "${command:iar-config.project-file}",
             config: "${command:iar-config.project-configuration}",
-            argumentVariablesFile:  "${command:iar-config.argument-variables-file}",
+            project: "${command:iar-config.project-file}",
+            argumentVariablesFile: "${command:iar-config.argument-variables-file}",
             extraBuildArguments: undefined,
             problemMatcher: ["$iar-cc", "$iar-linker"]
         };
@@ -76,7 +83,7 @@ export namespace BuildTasks {
     }
 
     // Creates a custom task execution. VS Code will provide a task definition with e.g. command variables resolved
-    function getExecution(): Vscode.CustomExecution {
+    export function getExecution(): Vscode.CustomExecution {
         return new Vscode.CustomExecution(resolvedDefinition => {
             return Promise.resolve(
                 new BuildTaskExecution(resolvedDefinition)

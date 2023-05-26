@@ -46,6 +46,14 @@ export namespace VscodeTestsUtils {
         }
     }
 
+    export async function activateWorkspace(workspaceLabel: string) {
+        const toSelectFrom: any = ExtensionState.getInstance().workspace.workspaces;
+        console.log(toSelectFrom);
+        if ((await ExtensionState.getInstance().workspace.selected?.name !== workspaceLabel)) {
+            ExtensionState.getInstance().workspace.selectWhen(workspace => workspace.name === workspaceLabel);
+        }
+    }
+
     export function activateConfiguration(configurationTag: string) {
         if (ExtensionState.getInstance().config.selected?.name !== configurationTag) {
             Assert(ExtensionState.getInstance().config.selectWhen(config => config.name === configurationTag));
@@ -83,6 +91,11 @@ export namespace VscodeTestsUtils {
         });
     }
 
+
+    export async function executeCommand<T>(commandId: string, item: T): Promise<void> {
+        await Vscode.commands.executeCommand(commandId, item);
+    }
+
     // ---- Helpers for running tasks
 
     /**
@@ -95,15 +108,19 @@ export namespace VscodeTestsUtils {
      export async function executeTask(task: Vscode.Task, matcher: (taskEvent: Vscode.TaskEndEvent) => boolean) {
          await Vscode.tasks.executeTask(task);
 
-         return new Promise<void>(resolve => {
-             const disposable = Vscode.tasks.onDidEndTask(e => {
-                 if (matcher(e)) {
-                     disposable.dispose();
-                     resolve();
-                 }
-             });
-         });
+         return waitForTask(matcher);
      }
+
+    export function waitForTask(matcher: (taskEvent: Vscode.TaskEndEvent) => boolean): Promise<void> {
+        return new Promise<void>(resolve => {
+            const disposable = Vscode.tasks.onDidEndTask(e => {
+                if (matcher(e)) {
+                    disposable.dispose();
+                    resolve();
+                }
+            });
+        });
+    }
 
     /**
      * Run a task with the given name for the a project and configuration. Returns a promise that resolves
