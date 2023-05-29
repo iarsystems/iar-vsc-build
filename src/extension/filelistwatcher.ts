@@ -105,7 +105,7 @@ export class FileListWatcher implements Vscode.Disposable {
 
         this.watcher.onDidDelete(path => {
             const normalizedPath = Path.normalize(path.fsPath);
-            const keptFiles = this.data.filter(file => file.path === normalizedPath);
+            const keptFiles = this.data.filter(file => file.path !== normalizedPath);
             if (keptFiles.length !== this.data.length) {
                 logger.debug("Detected deleted file: " + normalizedPath);
                 this.setFiles(keptFiles);
