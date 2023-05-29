@@ -22,6 +22,7 @@ suite("Test Clicking Settings View", ()=>{
         this.timeout(80000);
         await VscodeTestsUtils.doExtensionSetup();
         VscodeTestsSetup.setup();
+        await VscodeTestsUtils.activateWorkspace("TestProjects");
 
         // Focus the view. Otherwise it will not be instantiated/resolved.
         await Vscode.commands.executeCommand("iar-configuration.focus");
@@ -75,6 +76,19 @@ suite("Test Clicking Settings View", ()=>{
             }
         });
     });
+
+    test("Clicking workspace updates model", async() => {
+        Assert(ExtensionState.getInstance().workspace.selectedIndex !== 1);
+        const modelChange = waitForModelChange(ExtensionState.getInstance().workspace);
+        IarVsc.settingsView.selectFromDropdown(DropdownIds.Workspace, 1);
+        await modelChange;
+
+        Assert.strictEqual(ExtensionState.getInstance().workspace.selectedIndex, 1);
+
+        // Restore workspace since other tests depend on it
+        await VscodeTestsUtils.activateWorkspace("TestProjects");
+    });
+
 
     test("Clicking project updates model", async() => {
         await VscodeTestsUtils.activateProject("BasicDebugging");

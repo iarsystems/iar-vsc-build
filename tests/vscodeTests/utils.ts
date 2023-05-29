@@ -52,6 +52,10 @@ export namespace VscodeTestsUtils {
         if ((await ExtensionState.getInstance().workspace.selected?.name !== workspaceLabel)) {
             ExtensionState.getInstance().workspace.selectWhen(workspace => workspace.name === workspaceLabel);
         }
+        if (TestConfiguration.getConfiguration().testThriftSupport &&
+            (await ExtensionState.getInstance().loadedWorkspace.getValue())?.name !== workspaceLabel) {
+            await VscodeTestsUtils.workspaceLoaded(workspaceLabel);
+        }
     }
 
     export function activateConfiguration(configurationTag: string) {
@@ -87,6 +91,22 @@ export namespace VscodeTestsUtils {
                     resolved = true;
                     reject(new Error("Timed out waiting for project to load."));
                 }
+            }, 30000);
+        });
+    }
+
+    export async function workspaceLoaded(name: string) {
+        if ((await ExtensionState.getInstance().extendedWorkbench.getValue()) === undefined) {
+            return Promise.reject(new Error("No thrift workbench available, did it crash in a previous test?"));
+        }
+        return new Promise<void>((resolve, reject) => {
+            ExtensionState.getInstance().loadedWorkspace.onValueDidChange((ws) => {
+                if (ws !== undefined && (name === undefined || ws.name === name)) {
+                    resolve();
+                }
+            });
+            setTimeout(() => {
+                reject(new Error("Timed out waiting for workspace to load."));
             }, 30000);
         });
     }

@@ -26,6 +26,7 @@ suite("Test Public TS Api", function() {
         const sandboxPath = VscodeTestsSetup.setup();
         sourceConfigPath = Path.join(sandboxPath, "SourceConfiguration/Project/SourceConfiguration.ewp");
         basicDebuggingPath = Path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp");
+        await VscodeTestsUtils.activateWorkspace("TestProjects");
         // Wait for a project to be loaded (this means both the workbench and project has settled)
         await ExtensionState.getInstance().extendedProject.getValue();
     });

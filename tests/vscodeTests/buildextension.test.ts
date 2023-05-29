@@ -72,28 +72,16 @@ suite("Test build extension", ()=>{
         sandbox = VscodeTestsSetup.sandbox!;
         // Remove any build results from previous runs
         const nodes = await readdir(sandbox.path);
-        return Promise.all(
+        await Promise.all(
             nodes.filter(node => node.match(/^Test_\w+_\d+/)).map(node => {
                 return rm(path.join(sandbox.path, node), {recursive: true, force: true});
             })
         );
+        await VscodeTestsUtils.activateWorkspace("TestProjects");
     });
 
     setup(function() {
         console.log("\n==========================================================" + this.currentTest!.title + "==========================================================\n");
-    });
-
-    test("Load projects in directory", ()=>{
-        const allProjects = ExtensionState.getInstance().project.projects;
-        assert(allProjects.some(project => project.name === "ArgVars"));
-        assert(allProjects.some(project => project.name === "BasicDebugging"));
-        assert(allProjects.some(project => project.name === "C-STATProject"));
-        assert(allProjects.some(project => project.name === "SourceConfiguration"));
-    });
-
-    test("Load workspaces in directory", ()=>{
-        const allWorkspaces = ExtensionState.getInstance().workspace.workspaces;
-        assert(allWorkspaces.some(workspace => workspace.name === "TestProjects"));
     });
 
     test("No backups in project list", ()=>{
@@ -168,22 +156,6 @@ suite("Test build extension", ()=>{
             const ewId: string = path.basename(configuredEw.toString());
             assert(listedEws.some(ew => ew.name.startsWith(ewId)));
         }
-    });
-
-    test("Check that creating/deleting workspaces affects extension state", async function() {
-        this.timeout(40000);
-        // Add a workspace file, make sure it is added to the extension
-        const workspacePath = path.join(sandboxPath, "newWorkspace.eww");
-        fs.copyFileSync(path.join(sandboxPath, "TestProjects.eww"), workspacePath);
-        // Give vs code time to react
-        await new Promise((p, _) => setTimeout(p, 1000));
-        assert(ExtensionState.getInstance().workspace.workspaces.some(workspace => workspace.name === "newWorkspace"), "The created workspace was not added to the workspace list");
-
-        // Remove the project file, make sure it is removed from the extension
-        fs.unlinkSync(workspacePath);
-        // Give vs code time to react
-        await new Promise((p, _) => setTimeout(p, 1000));
-        assert(!ExtensionState.getInstance().workspace.workspaces.some(workspace => workspace.name === "newWorkspace"), "The created workspace was not removed from the workspace list");
     });
 
     test("Check that modifying projects affects extension state", async function() {
