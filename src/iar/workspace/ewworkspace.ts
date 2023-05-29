@@ -5,6 +5,7 @@
 import * as Path from "path";
 import * as Fs from "fs";
 import { BatchBuildItem } from "iar-vsc-common/thrift/bindings/projectmanager_types";
+import { OsUtils } from "iar-vsc-common/osUtils";
 
 /**
  * An Embedded Workbench workspace. This is unrelated to VS Code's workspace concept.
@@ -68,4 +69,23 @@ export abstract class EwWorkspaceBase implements EwWorkspace {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ExtendedEwWorkspace extends EwWorkspace {
 
+}
+
+export namespace EwWorkspace {
+    export async function equal(ws1: EwWorkspace, ws2: EwWorkspace): Promise<boolean> {
+        if (!OsUtils.pathsEqual(ws1.path, ws2.path)) {
+            return false;
+        }
+        for (let i = 0; i < Math.max(ws1.projects.length, ws2.projects.length); i++) {
+            const p1 = ws1.projects[i];
+            const p2 = ws2.projects[i];
+            if (p1 === undefined || p2 === undefined || !OsUtils.pathsEqual(p1, p2)) {
+                return false;
+            }
+        }
+
+        const b1 = await ws1.getBatchBuilds();
+        const b2 = await ws2.getBatchBuilds();
+        return JSON.stringify(b1) === JSON.stringify(b2);
+    }
 }

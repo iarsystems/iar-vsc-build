@@ -96,6 +96,19 @@ class State {
     }
 
     /**
+     * Reloads the selected workspace (if any)
+     */
+    public async reloadWorkspace() {
+        this.loading.next(true);
+        await Promise.all([
+            this.loadingService.loadWorkspace(this.workspace.selected).
+                catch(this.workspaceErrorHandler(this.workspace.selected)),
+            this.loadingService.loadProject(this.project.selected).
+                catch(this.projectErrorHandler(this.project.selected)),
+        ]);
+    }
+
+    /**
      * Reloads the given project if it's currently loaded
      */
     public async reloadProject(project: Project) {

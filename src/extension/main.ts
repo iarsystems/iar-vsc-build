@@ -120,10 +120,10 @@ export async function deactivate() {
 
 async function setupFileWatchers(context: vscode.ExtensionContext) {
     // Workspaces
-    const ewwWatcher = await FileListWatcher.initialize("**/*.eww");
-    context.subscriptions.push(ewwWatcher);
+    IarVsc.ewwWatcher = await FileListWatcher.initialize("**/*.eww");
+    context.subscriptions.push(IarVsc.ewwWatcher);
 
-    ewwWatcher.subscribe(files => {
+    IarVsc.ewwWatcher.subscribe(files => {
         const workspaces: EwWorkspace[] = [];
         files.
             forEach(file => {
@@ -141,11 +141,36 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
         ExtensionState.getInstance().workspace.set(...workspaces);
     });
 
-    // Projects
-    const ewpWatcher = await FileListWatcher.initialize("**/*.ewp");
-    context.subscriptions.push(ewpWatcher);
+    IarVsc.ewwWatcher.onFileModified(async modifiedFile => {
+        const workspaceModel = ExtensionState.getInstance().workspace;
+        const oldWorkspace = workspaceModel.workspaces.find(
+            ws => OsUtils.pathsEqual(ws.path, modifiedFile)
+        );
+        if (oldWorkspace) {
+            const reloadedWorkspace = new EwwFile(modifiedFile);
+            if (!await EwWorkspace.equal(oldWorkspace, reloadedWorkspace)) {
+                const updatedWorkspaces: EwWorkspace[] = [];
+                workspaceModel.workspaces.forEach(workspace => {
+                    if (workspace === oldWorkspace) {
+                        updatedWorkspaces.push(reloadedWorkspace);
+                    } else {
+                        updatedWorkspaces.push(workspace);
+                    }
+                });
+                workspaceModel.set(...updatedWorkspaces);
+            } else {
+                if (ExtensionState.getInstance().workspace.selected === oldWorkspace) {
+                    await ExtensionState.getInstance().reloadWorkspace();
+                }
+            }
+        }
+    });
 
-    ewpWatcher.subscribe(files => {
+    // Projects
+    IarVsc.ewpWatcher = await FileListWatcher.initialize("**/*.ewp");
+    context.subscriptions.push(IarVsc.ewpWatcher);
+
+    IarVsc.ewpWatcher.subscribe(files => {
         const projects: Project[] = [];
         files.
             filter(file => !Project.isIgnoredFile(file)).
@@ -166,7 +191,7 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
         }
     });
 
-    ewpWatcher.onFileModified(async modifiedFile => {
+    IarVsc.ewpWatcher.onFileModified(async modifiedFile => {
         const projectModel = ExtensionState.getInstance().project;
         const oldProject = projectModel.projects.find(
             project => OsUtils.pathsEqual(project.path, modifiedFile)
@@ -184,15 +209,13 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
                         updatedProjects.push(project);
                     }
                 });
-                // This will load the selected project again (i.e. for the second time if we reloaded it above),
-                // but it is probably not noticable to the user.
                 projectModel.set(...updatedProjects);
             }
         }
     });
 
     Settings.observeSetting(Settings.ExtensionSettingsField.ProjectsToExclude, () =>
-        ewpWatcher.refreshFiles());
+        IarVsc.ewpWatcher?.refreshFiles());
 }
 
 async function loadTools(addWorkbenchCommand?: Command<unknown>) {
@@ -214,6 +237,8 @@ export namespace IarVsc {
     export let extensionContext: vscode.ExtensionContext | undefined;
     export const toolManager = new IarToolManager();
     export const workbenchesLoading = new BehaviorSubject<boolean>(false);
+    export let ewwWatcher: FileListWatcher | undefined;
+    export let ewpWatcher: FileListWatcher | undefined;
     // exported mostly for testing purposes
     export let settingsView: SettingsWebview;
     export let projectTreeView: TreeProjectView;

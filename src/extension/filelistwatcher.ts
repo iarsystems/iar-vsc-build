@@ -2,31 +2,59 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import { logger } from "iar-vsc-common/logger";
-import { OsUtils } from "iar-vsc-common/osUtils";
-import * as vscode from "vscode";
+import * as Vscode from "vscode";
+import * as Fs from "fs/promises";
+import * as Path from "path";
+import { createHash } from "crypto";
+
+interface FileStatus {
+    path: string,
+    hash: string,
+}
 
 /**
  * Watches the VS Code workspace folder(s) to keep an up-to-date list of
  * all files matching some glob pattern. See {@link subscribe} to
  * get notified of file changes.
  */
-export class FileListWatcher implements vscode.Disposable {
-    private readonly watcher: vscode.FileSystemWatcher;
-    private subscriptions: vscode.Disposable[] = [];
+export class FileListWatcher implements Vscode.Disposable {
+    private readonly watcher: Vscode.FileSystemWatcher;
+    private subscriptions: Vscode.Disposable[] = [];
 
     private readonly filesCallbacks: Array<(files: ReadonlyArray<string>) => void> = [];
     private readonly fileModifiedCallbacks: Array<(file: string) => void> = [];
 
+    private readonly supressedFiles = new Set<string>();
+
     static async initialize(
         glob: string,
     ): Promise<FileListWatcher> {
-        const files = (await vscode.workspace.findFiles(glob)).map(uri => uri.fsPath);
-        return new FileListWatcher(glob, files);
+        const files = (await Vscode.workspace.findFiles(glob)).map(uri => uri.fsPath);
+        const entries = await this.readFileEntries(files);
+        return new FileListWatcher(glob, entries);
+    }
+
+    private static async readFileEntry(path: string): Promise<FileStatus> {
+        const contents = await Fs.readFile(path);
+        return {
+            path: Path.normalize(path),
+            hash: createHash("md5").update(contents).digest("hex"),
+        };
+    }
+    private static async readFileEntries(files: string[]): Promise<FileStatus[]> {
+        return (await Promise.allSettled(files.map(this.readFileEntry))).
+            reduce((acc, result) => {
+                if (result.status === "fulfilled") {
+                    acc.push(result.value);
+                }
+                return acc;
+            }, [] as FileStatus[]);
     }
 
     async refreshFiles() {
-        const foundFiles = (await vscode.workspace.findFiles(this.glob)).map(uri => uri.fsPath);
-        this.setFiles(foundFiles);
+        const foundFiles = (await Vscode.workspace.findFiles(this.glob)).map(uri => uri.fsPath);
+        const entries = await FileListWatcher.readFileEntries(foundFiles);
+        this.setFiles(entries);
     }
 
     /**
@@ -35,7 +63,7 @@ export class FileListWatcher implements vscode.Disposable {
      */
     subscribe(callback: (files: ReadonlyArray<string>) => void) {
         this.filesCallbacks.push(callback);
-        callback(this.data);
+        callback(this.data.map(entry => entry.path));
     }
 
     /**
@@ -45,36 +73,64 @@ export class FileListWatcher implements vscode.Disposable {
         this.fileModifiedCallbacks.push(callback);
     }
 
-    private setFiles(newData: string[]) {
+    /**
+     * Prevents the next modification of the given file from being detected.
+     */
+    supressNextFileModificationFor(path: string) {
+        const normalizedPath = Path.normalize(path);
+        this.supressedFiles.add(normalizedPath);
+        // Just in case the file isn't then modified
+        setTimeout(() => this.supressedFiles.delete(normalizedPath), 2000);
+    }
+
+    private setFiles(newData: FileStatus[]) {
         this.data = newData;
-        this.filesCallbacks.forEach(handler => handler(this.data));
+
+        const paths = this.data.map(entry => entry.path);
+        this.filesCallbacks.forEach(handler => handler(paths));
     }
 
     private constructor(
         private readonly glob: string,
-        private data: ReadonlyArray<string>,
+        private data: ReadonlyArray<FileStatus>,
     ) {
-        this.watcher = vscode.workspace.createFileSystemWatcher(glob);
+        this.watcher = Vscode.workspace.createFileSystemWatcher(glob);
         this.subscriptions.push(this.watcher);
 
-        this.watcher.onDidCreate(path => {
+        this.watcher.onDidCreate(async path => {
             logger.debug("Detected new file: " + path.fsPath);
-            this.setFiles(this.data.concat([path.fsPath]));
+            const entry = await FileListWatcher.readFileEntry(path.fsPath);
+            this.setFiles(this.data.concat([entry]));
         });
 
         this.watcher.onDidDelete(path => {
-            const keptFiles = this.data.filter(file => !OsUtils.pathsEqual(file, path.fsPath));
+            const normalizedPath = Path.normalize(path.fsPath);
+            const keptFiles = this.data.filter(file => file.path === normalizedPath);
             if (keptFiles.length !== this.data.length) {
-                logger.debug("Detected deleted file: " + path.fsPath);
+                logger.debug("Detected deleted file: " + normalizedPath);
                 this.setFiles(keptFiles);
             }
         });
 
-        this.watcher.onDidChange(path => {
-            this.fileModifiedCallbacks.forEach(callback => callback(path.fsPath));
+        this.watcher.onDidChange(async path => {
+            const normalizedPath = Path.normalize(path.fsPath);
+            if (this.supressedFiles.has(normalizedPath)) {
+                this.supressedFiles.delete(normalizedPath);
+                return;
+            }
+
+            const oldEntry = this.data.find(entry => entry.path === normalizedPath);
+            if (oldEntry) {
+                const newEntry = await FileListWatcher.readFileEntry(path.fsPath);
+                if (newEntry.hash !== oldEntry.hash) {
+                    logger.debug("Detected modified file: " + normalizedPath);
+                    oldEntry.hash = newEntry.hash;
+                    this.fileModifiedCallbacks.forEach(callback => callback(normalizedPath));
+                }
+            }
         });
 
-        this.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => this.refreshFiles()));
+        this.subscriptions.push(Vscode.workspace.onDidChangeWorkspaceFolders(() => this.refreshFiles()));
     }
 
     dispose() {

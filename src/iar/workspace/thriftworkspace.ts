@@ -7,6 +7,7 @@ import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
 import { BatchBuildItem } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { Workbench } from "iar-vsc-common/workbench";
+import { IarVsc } from "../../extension/main";
 
 export class ThriftWorkspace extends EwWorkspaceBase implements ExtendedEwWorkspace {
 
@@ -40,6 +41,7 @@ export class ThriftWorkspace extends EwWorkspaceBase implements ExtendedEwWorksp
             throw new Error("Tried to set batch builds with unsupported toolchain");
         }
         this.projectMgr.SetBatchBuildItems(items);
+        IarVsc.ewwWatcher?.supressNextFileModificationFor(this.path);
         this.projectMgr.SaveEwwFile();
         const state = await this.projectMgr.GetBatchBuildItems();
         return state;
