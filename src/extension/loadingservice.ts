@@ -8,7 +8,7 @@ import { AsyncObservable } from "../utils/asyncobservable";
 import { Workbench } from "iar-vsc-common/workbench";
 import { TaskQueue } from "../utils/taskqueue";
 import { ExtendedWorkbench, ThriftWorkbench } from "../iar/extendedworkbench";
-import { WorkbenchFeatures } from "../iar/tools/workbenchfeatureregistry";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 
 type TaskSpecification =
     | { tag: "loadWorkbench"; workbench: Workbench | undefined }

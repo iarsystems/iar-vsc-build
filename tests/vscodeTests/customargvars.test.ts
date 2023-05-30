@@ -6,7 +6,7 @@ import * as Assert from "assert";
 import * as Path from "path";
 import { CpptoolsIntellisenseService } from "../../src/extension/intellisense/cpptoolsintellisenseservice";
 import { ExtensionState } from "../../src/extension/extensionstate";
-import { WorkbenchFeatures } from "../../src/iar/tools/workbenchfeatureregistry";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { FsUtils } from "../../src/utils/fs";
 import { TestConfiguration } from "../testconfiguration";
 import { VscodeTestsSetup } from "./setup";

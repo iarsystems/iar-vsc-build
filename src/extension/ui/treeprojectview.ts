@@ -12,7 +12,7 @@ import { ExtendedWorkbench } from "../../iar/extendedworkbench";
 import { InputModel } from "../model/model";
 import { AsyncObservable } from "../../utils/asyncobservable";
 import { Subject } from "rxjs";
-import { WorkbenchFeatures } from "../../iar/tools/workbenchfeatureregistry";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 
 /**
  * Shows a view to the left of all files/groups in the project, and all configurations in the project.

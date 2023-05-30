@@ -1,4 +1,4 @@
-@Library('common@tags/1.7.2') _
+@Library('common@tags/1.9.1') _
 
 node('a_windows || a_linux') {
 	stage('Load pipeline') {

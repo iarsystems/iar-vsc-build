@@ -19,7 +19,7 @@ import { BackupUtils } from "../utils/utils";
 import { logger } from "iar-vsc-common/logger";
 import { IarOsUtils, OsUtils } from "iar-vsc-common/osUtils";
 import { Mutex } from "async-mutex";
-import { WorkbenchFeatures } from "./tools/workbenchfeatureregistry";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { EwWorkspace, ExtendedEwWorkspace } from "./workspace/ewworkspace";
 import { ThriftWorkspace } from "./workspace/thriftworkspace";
 
