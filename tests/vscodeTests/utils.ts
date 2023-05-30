@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import * as Assert from "assert";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import * as Vscode from "vscode";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { TestConfiguration } from "../testconfiguration";
@@ -53,6 +54,7 @@ export namespace VscodeTestsUtils {
             ExtensionState.getInstance().workspace.selectWhen(workspace => workspace.name === workspaceLabel);
         }
         if (TestConfiguration.getConfiguration().testThriftSupport &&
+            WorkbenchFeatures.supportsFeature(ExtensionState.getInstance().workbench.selected!, WorkbenchFeatures.PMWorkspaces) &&
             (await ExtensionState.getInstance().loadedWorkspace.getValue())?.name !== workspaceLabel) {
             await VscodeTestsUtils.workspaceLoaded(workspaceLabel);
         }
