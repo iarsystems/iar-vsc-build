@@ -37,10 +37,9 @@ suite("Test workspace support", () => {
         {
             await VscodeTestsUtils.activateWorkspace("TestProjects");
             const allProjects = ExtensionState.getInstance().project.projects;
-            Assert.strictEqual(allProjects.length, 4,
+            Assert.strictEqual(allProjects.length, 3,
                 "Found projects: " + allProjects.map(p => p.name).join(", "));
             Assert(allProjects.some(project => project.name === "BasicDebugging"));
-            Assert(allProjects.some(project => project.name === "BasicProject"));
             Assert(allProjects.some(project => project.name === "C-STATProject"));
             Assert(allProjects.some(project => project.name === "SourceConfiguration"));
         }

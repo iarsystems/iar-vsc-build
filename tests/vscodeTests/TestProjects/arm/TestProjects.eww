@@ -9,20 +9,4 @@
     <project>
         <path>$WS_DIR$/SourceConfiguration/Project/SourceConfiguration.ewp</path>
     </project>
-    <project>
-        <path>$WS_DIR$/BasicProject/BasicProject.ewp</path>
-    </project>
-    <batchBuild>
-        <batchDefinition>
-            <name>TestBatch</name>
-            <member>
-                <project>BasicProject</project>
-                <configuration>Debug</configuration>
-            </member>
-            <member>
-                <project>BasicProject</project>
-                <configuration>Release</configuration>
-            </member>
-        </batchDefinition>
-    </batchBuild>
 </workspace>
