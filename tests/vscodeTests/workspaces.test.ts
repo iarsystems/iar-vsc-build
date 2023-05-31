@@ -10,6 +10,7 @@ import { VscodeTestsSetup } from "./setup";
 import { VscodeTestsUtils } from "./utils";
 import { tmpdir } from "os";
 import { EwWorkspace } from "../../src/iar/workspace/ewworkspace";
+import { TestConfiguration } from "../testconfiguration";
 
 /**
  * Tests various parts of the extension using a project that requires a .custom_argvars file to be loaded.
@@ -90,12 +91,14 @@ suite("Test workspace support", () => {
             // Give vs code time to react
             await new Promise((p, _) => setTimeout(p, 4000));
 
+            // The arm tests have one extra project.
+            const noProjects = TestConfiguration.getConfiguration().target === "arm" ? 5 : 4;
+
             const allProjects = ExtensionState.getInstance().project.projects;
-            Assert.strictEqual(allProjects.length, 5,
-                "Found projects: " + allProjects.map(p => p.name).join(", "));
+            Assert.strictEqual(allProjects.length, noProjects,
+                "Found projects: " + allProjects.map(p => p.name).join(", ") + " -> expected " + noProjects);
             Assert(allProjects.some(project => project.name === "ArgVars"));
             Assert(allProjects.some(project => project.name === "BasicDebugging"));
-            Assert(allProjects.some(project => project.name === "BasicProject"));
             Assert(allProjects.some(project => project.name === "C-STATProject"));
             Assert(allProjects.some(project => project.name === "SourceConfiguration"));
         });

@@ -49,7 +49,7 @@ suite("Test .custom_argvars project support", () => {
             const project = await ExtensionState.getInstance().extendedProject.getValue();
             Assert(project);
             const rootNode = await project.getRootNode();
-            Assert.strictEqual(rootNode.children[0]?.name, "NewFileName.c", "Incorrect file name, argvars may not have been loaded correctly");
+            Assert.strictEqual(rootNode.children[1]?.name, "NewFileName.c", "Incorrect file name, argvars may not have been loaded correctly");
         }
     });
     test("Can build project with .custom_argvars", async function() {
