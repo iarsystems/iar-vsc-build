@@ -13,7 +13,7 @@ import { Config } from "../../iar/project/config";
 import { createHash } from "crypto";
 import { tmpdir } from "os";
 import { FsUtils } from "../../utils/fs";
-import { Settings } from "../settings";
+import { ExtensionSettings } from "../settings/extensionsettings";
 import { BackupUtils, LanguageUtils, ListUtils, ProcessUtils } from "../../utils/utils";
 import { IncludePath } from "./data/includepath";
 import { Define } from "./data/define";
@@ -242,7 +242,7 @@ namespace ConfigGenerator {
             }
             // Have iarbuild create the json compilation database
             output?.appendLine("Generating compilation database...");
-            let extraArgs = Settings.getExtraBuildArguments();
+            let extraArgs = ExtensionSettings.getExtraBuildArguments();
             if (argVarFile) {
                 extraArgs = [...extraArgs, "-varfile", argVarFile];
             }
@@ -288,7 +288,7 @@ namespace ConfigGenerator {
     export function generateArgsForBeforeFilifjonkan(
         project: Project, config: Config, workbench: Workbench, argVarFile?: string, workspaceFolder?: string, output?: vscode.OutputChannel
     ): Promise<Map<string, string[]>> {
-        let extraArgs = Settings.getExtraBuildArguments();
+        let extraArgs = ExtensionSettings.getExtraBuildArguments();
         if (argVarFile) {
             extraArgs = [...extraArgs, "-varfile", argVarFile];
         }

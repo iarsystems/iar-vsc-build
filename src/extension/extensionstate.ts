@@ -5,7 +5,6 @@
 import * as Vscode from "vscode";
 import { ToolManager } from "../iar/tools/manager";
 import { WorkbenchListModel } from "./model/selectworkbench";
-import { Settings } from "./settings";
 import { ListInputModel } from "./model/model";
 import { Project, ExtendedProject } from "../iar/project/project";
 import { ProjectListModel } from "./model/selectproject";
@@ -23,6 +22,7 @@ import { EwpFile } from "../iar/project/parsing/ewpfile";
 import { LoadingService } from "./loadingservice";
 import { EwWorkspace, ExtendedEwWorkspace } from "../iar/workspace/ewworkspace";
 import { OsUtils } from "iar-vsc-common/osUtils";
+import { LocalSettings } from "./settings/localsettings";
 
 /**
  * Holds most extension-wide data, such as the selected workbench, project and configuration, and loaded project etc.
@@ -57,7 +57,7 @@ class State {
     constructor(toolManager: ToolManager) {
         this.toolManager = toolManager;
 
-        this.workbench = new WorkbenchListModel(...toolManager.workbenches);
+        this.workbench = new WorkbenchListModel();
         this.workspace = new WorkspaceListModel();
         this.project = new ProjectListModel();
         this.config = new ConfigurationListModel();
@@ -68,20 +68,9 @@ class State {
 
         this.loadingService = new LoadingService(this.extendedWorkbench, this.loadedWorkspace, this.extendedProject);
 
-        this.coupleModelToSetting(this.workbench, Settings.LocalSettingsField.Workbench, workbench => workbench?.path.toString(),
-            () => { // The default choice is to try to select a workbench that can load the project.
-                if (this.project.selected) {
-                    State.selectWorkbenchMatchingProject(this.project.selected, this.workbench);
-                }
-            }, true);
-        this.coupleModelToSetting(this.workspace, Settings.LocalSettingsField.Workspace, workspace => workspace?.path,
-            () => this.workspace.select(0)), true;
-        this.coupleModelToSetting(this.project, Settings.LocalSettingsField.Ewp, project => project?.path,
-            () => this.project.select(0), true);
-        this.coupleModelToSetting(this.config, Settings.LocalSettingsField.Configuration, config => config?.name,
-            () => this.config.select(0));
-
         this.addListeners();
+
+        this.workbench.set(...toolManager.workbenches);
     }
 
     public async dispose(): Promise<void> {
@@ -140,44 +129,6 @@ class State {
         return this.fallbackProjects;
     }
 
-    // Connects a list model to a persistable setting in the iar-vsc.json file, so that:
-    // * Changes to the model are stored in the file.
-    // * When the list contents change, tries to restore the selected value from the file.
-    // This means that selected values are remembered between sessions.
-    // When no value could be restored, `defaultChoiceStrategy` is called to make a default choice,
-    // (e.g. select some random item)
-    private coupleModelToSetting<T>(
-        model: ListInputModel<T>,
-        field: Settings.LocalSettingsField,
-        toSettingsValue: (val: T) => string,
-        defaultChoiceStrategy: () => void,
-        isPath = false,
-    ) {
-        const setFromStoredValue = () => {
-            const settingsValue = Settings.getLocalSetting(field);
-            if (settingsValue) {
-                const comparator = isPath ?
-                    (item: T) => OsUtils.pathsEqual(settingsValue, toSettingsValue(item)) :
-                    (item: T) => settingsValue === toSettingsValue(item);
-                if (!model.selectWhen(comparator) && model.amount > 0) {
-                    logger.debug(`Could not match item to ${field}: ${settingsValue} in iar-vsc.json`);
-                    defaultChoiceStrategy();
-                }
-            } else {
-                defaultChoiceStrategy();
-            }
-        };
-        model.addOnInvalidateHandler(() => setFromStoredValue());
-        model.addOnSelectedHandler((_, value) => {
-            if (value) {
-                Settings.setLocalSetting(field, toSettingsValue(value) ?? "");
-            }
-        });
-
-        // Do this once at startup so that previous values are loaded
-        setFromStoredValue();
-    }
-
     private addListeners(): void {
         this.toolManager.addInvalidateListener(() => {
             this.workbench.set(...this.toolManager.workbenches);
@@ -190,6 +141,25 @@ class State {
     }
 
     private addWorkbenchModelListeners(): void {
+        this.workbench.addOnSelectedHandler(() => {
+            if (this.workbench.selected) {
+                LocalSettings.setSelectedWorkbench(this.workbench.selected);
+            }
+        });
+        this.workbench.addOnInvalidateHandler(() => {
+            const storedWbPath = LocalSettings.getSelectedWorkbench();
+            State.selectFromSettingsValue(
+                this.workbench,
+                storedWbPath,
+                (wb, wbPath) => OsUtils.pathsEqual(wb.path, wbPath),
+                () => {
+                    if (this.project.selected) {
+                        State.selectWorkbenchMatchingProject(this.project.selected, this.workbench);
+                    }
+                }
+            );
+        });
+
         // Try to load thrift services for the new workbench, and load the current workspace/project with the new services.
         this.workbench.addOnSelectedHandler(workbench => {
             logger.debug(`Toolchain: selected '${this.workbench.selected?.name}' (index ${this.workbench.selectedIndex})`);
@@ -247,6 +217,21 @@ class State {
 
     private addWorkspaceModelListeners(): void {
         this.workspace.addOnSelectedHandler(() => {
+            if (this.workspace.selected) {
+                LocalSettings.setSelectedWorkspace(this.workspace.selected);
+            }
+        });
+        this.workspace.addOnInvalidateHandler(() => {
+            const storedWsPath = LocalSettings.getSelectedWorkspace();
+            State.selectFromSettingsValue(
+                this.workspace,
+                storedWsPath,
+                (ws, wsPath) => OsUtils.pathsEqual(ws.path, wsPath),
+                () => this.workspace.select(0),
+            );
+        });
+
+        this.workspace.addOnSelectedHandler(() => {
             logger.debug(`Workspace: selected '${this.workspace.selected?.name}' (index ${this.workspace.selectedIndex})`);
             this.loadingService.loadWorkspace(this.workspace.selected).
                 catch(this.workspaceErrorHandler(this.workspace.selected));
@@ -256,8 +241,10 @@ class State {
                     try {
                         projects.push(new EwpFile(projFile));
                     } catch (e) {
-                        // TODO: log something amazing
-                        logger.error("Failed to load project: " + e);
+                        logger.error(`Could not parse project file '${projFile}': ${e}`);
+                        Vscode.window.showErrorMessage(
+                            `Could not parse project file '${projFile}': ${e}`
+                        );
                     }
                 });
                 this.project.set(...projects);
@@ -268,6 +255,21 @@ class State {
     }
 
     private addProjectModelListeners(): void {
+        this.project.addOnSelectedHandler(() => {
+            if (this.project.selected) {
+                LocalSettings.setSelectedProject(this.workspace.selected, this.project.selected);
+            }
+        });
+        this.project.addOnInvalidateHandler(() => {
+            const storedProjPath = LocalSettings.getSelectedProject(this.workspace.selected);
+            State.selectFromSettingsValue(
+                this.project,
+                storedProjPath,
+                (proj, projPath) => OsUtils.pathsEqual(proj.path, projPath),
+                () => this.project.select(0),
+            );
+        });
+
         this.project.addOnSelectedHandler(() => {
             logger.debug(`Project: selected '${this.project.selected?.name}' (index ${this.project.selectedIndex})`);
             if (this.project.selected) {
@@ -295,6 +297,27 @@ class State {
 
     private addConfigurationModelListeners(): void {
         this.config.addOnSelectedHandler(() => {
+            if (this.project.selected && this.config.selected) {
+                LocalSettings.setSelectedConfiguration(
+                    this.workspace.selected,
+                    this.project.selected,
+                    this.config.selected);
+            }
+        });
+        this.config.addOnInvalidateHandler(() => {
+            if (this.project.selected) {
+                const storedConfigName = LocalSettings.getSelectedConfiguration(
+                    this.workspace.selected, this.project.selected);
+                State.selectFromSettingsValue(
+                    this.config,
+                    storedConfigName,
+                    (config, configName) => config.name === configName,
+                    () => this.config.select(0),
+                );
+            }
+        });
+
+        this.config.addOnSelectedHandler(() => {
             logger.debug(`Configuration: selected '${this.config.selected?.name}' (index ${this.config.selectedIndex})`);
             // Check that the configuration target is supported by the selected workbench.
             const selected = this.config.selected;
@@ -305,6 +328,21 @@ class State {
                 }
             }
         });
+    }
+
+    private static selectFromSettingsValue<T>(
+        model: ListInputModel<T>,
+        value: string | undefined,
+        comparator: (item: T, storedValue: string) => boolean,
+        defaultChoiceStrategy: () => void
+    ) {
+        if (value) {
+            if (!model.selectWhen(item => comparator(item, value)) && model.amount > 0) {
+                defaultChoiceStrategy();
+            }
+        } else {
+            defaultChoiceStrategy();
+        }
     }
 
     /**

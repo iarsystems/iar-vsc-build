@@ -5,7 +5,7 @@
 import * as vscode from "vscode";
 import { ExtensionState } from "./extensionstate";
 import { IarToolManager } from "../iar/tools/manager";
-import { Settings } from "./settings";
+import { ExtensionSettings } from "./settings/extensionsettings";
 import { IarTaskProvider } from "./task/provider";
 import { GetSettingsCommand } from "./command/getsettings";
 import { CpptoolsIntellisenseService } from "./intellisense/cpptoolsintellisenseservice";
@@ -101,7 +101,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
 
     // --- find and add workbenches
     loadTools(addWorkbenchCmd);
-    Settings.observeSetting(Settings.ExtensionSettingsField.IarInstallDirectories, () => loadTools());
+    ExtensionSettings.observeSetting(ExtensionSettings.ExtensionSettingsField.IarInstallDirectories, () => loadTools());
 
 
     // --- provide the public typescript API
@@ -214,13 +214,13 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
         }
     });
 
-    Settings.observeSetting(Settings.ExtensionSettingsField.ProjectsToExclude, () =>
+    ExtensionSettings.observeSetting(ExtensionSettings.ExtensionSettingsField.ProjectsToExclude, () =>
         IarVsc.ewpWatcher?.refreshFiles());
 }
 
 async function loadTools(addWorkbenchCommand?: Command<unknown>) {
     IarVsc.workbenchesLoading.next(true);
-    const roots = Settings.getIarInstallDirectories();
+    const roots = ExtensionSettings.getIarInstallDirectories();
 
     await IarVsc.toolManager.collectWorkbenches(roots, true);
     if (IarVsc.toolManager.workbenches.length === 0 && addWorkbenchCommand) {

@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Vscode from "vscode";
-import { Settings } from "../settings";
+import { ExtensionSettings } from "../settings/extensionsettings";
 import { BuildTaskDefinition } from "./buildtasks";
 import { BackupUtils, ProcessUtils } from "../../utils/utils";
 import { spawn } from "child_process";
@@ -20,7 +20,7 @@ export class BuildTaskExecution extends StylizedTerminal {
      */
     constructor(private readonly definition: Partial<BuildTaskDefinition>) {
         super(
-            Settings.getColorizeBuildOutput() ?
+            ExtensionSettings.getColorizeBuildOutput() ?
                 [
                     line => line.replace(/(:)(?= (?:Warning|Error))/g, stylizePunctuation("$1")),
                     line => line.replace(/(Warning)(\[\w+\]:)/g, stylizeWarning("$1") + stylizePunctuation("$2")),
@@ -65,11 +65,11 @@ export class BuildTaskExecution extends StylizedTerminal {
                 iarbuildCommand,
                 context.config,
                 "-log",
-                Settings.getBuildOutputLogLevel()
+                ExtensionSettings.getBuildOutputLogLevel()
             ];
             let extraArgs = this.definition.extraBuildArguments;
             if (extraArgs === undefined) {
-                extraArgs = Settings.getExtraBuildArguments();
+                extraArgs = ExtensionSettings.getExtraBuildArguments();
             }
             if (extraArgs.length !== 0) {
                 args.push(...extraArgs);

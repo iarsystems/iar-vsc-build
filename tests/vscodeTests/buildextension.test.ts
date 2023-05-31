@@ -8,7 +8,7 @@ import {ExtensionState} from "../../src/extension/extensionstate";
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { Settings } from "../../src/extension/settings";
+import { ExtensionSettings } from "../../src/extension/settings/extensionsettings";
 import { TestUtils } from "iar-vsc-common/testutils/testUtils";
 import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 import { VscodeTestsUtils } from "./utils";
@@ -149,7 +149,7 @@ suite("Test build extension", ()=>{
 
     test("Check that all EW's are listed", ()=>{
         // Get the list of configured workbenches.
-        const configuredEws: string[] | undefined = vscode.workspace.getConfiguration("iar-build").get<string[]>(Settings.ExtensionSettingsField.IarInstallDirectories);
+        const configuredEws: string[] | undefined = vscode.workspace.getConfiguration("iar-build").get<string[]>(ExtensionSettings.ExtensionSettingsField.IarInstallDirectories);
         if (!configuredEws) {
             fail("No listed workbenches found");
         }
