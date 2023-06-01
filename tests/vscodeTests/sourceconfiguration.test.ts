@@ -10,7 +10,7 @@ import { VscodeTestsSetup } from "./setup";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { SourceFileConfiguration } from "vscode-cpptools";
-import { Settings } from "../../src/extension/settings";
+import { ExtensionSettings } from "../../src/extension/settings/extensionsettings";
 import { readdirSync } from "fs";
 import { TestConfiguration } from "../testconfiguration";
 
@@ -31,8 +31,9 @@ suite("Test Source Configuration (intelliSense)", ()=>{
         libDir = Path.join(sandboxPath, "SourceConfiguration/Library");
 
         await VscodeTestsUtils.doExtensionSetup();
+        await VscodeTestsUtils.activateWorkspace("TestProjects");
         await VscodeTestsUtils.activateProject("SourceConfiguration");
-        originalUserDefines = Settings.getDefines();
+        originalUserDefines = ExtensionSettings.getDefines();
         await Vscode.workspace.getConfiguration("iar-build").update("defines", originalUserDefines.concat([USER_DEFINE_1, USER_DEFINE_2]));
 
         const prov = CpptoolsIntellisenseService.instance;

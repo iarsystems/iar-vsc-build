@@ -1,0 +1,9 @@
+<svg
+	class="tree-icon-inline"
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 20 34">
+	<defs>
+	</defs>
+    <rect fill="var(--vscode-foreground)" stroke="none" x="7.5" y="0" width="1" height="22"/>
+    <rect fill="var(--vscode-foreground)" stroke="none" x="7.5" y="22" width="9" height="1"/>
+</svg>

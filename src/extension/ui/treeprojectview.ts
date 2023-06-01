@@ -10,7 +10,7 @@ import { FilesNode, TreeProjectProvider } from "./treeprojectprovider";
 import { Workbench } from "iar-vsc-common/workbench";
 import { ExtendedWorkbench } from "../../iar/extendedworkbench";
 import { InputModel } from "../model/model";
-import { AsyncObservable } from "../model/asyncobservable";
+import { AsyncObservable } from "../../utils/asyncobservable";
 import { Subject } from "rxjs";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 

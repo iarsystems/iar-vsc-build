@@ -12,6 +12,9 @@ export class ReloadProjectCommand extends CommandBase<Promise<void>> {
     }
 
     async executeImpl(_autoTriggered?: boolean): Promise<void> {
-        await ExtensionState.getInstance().reloadProject();
+        const selectedProject = ExtensionState.getInstance().project.selected;
+        if (selectedProject) {
+            await ExtensionState.getInstance().reloadProject(selectedProject);
+        }
     }
 }

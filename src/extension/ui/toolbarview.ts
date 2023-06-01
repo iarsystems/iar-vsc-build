@@ -7,7 +7,7 @@ import * as Fs from "fs/promises";
 import { BuildTasks } from "../task/buildtasks";
 import { CStatTaskProvider } from "../task/cstat/cstattaskprovider";
 import { OpenTasks } from "../task/opentasks";
-import { Settings } from "../settings";
+import { ExtensionSettings } from "../settings/extensionsettings";
 
 // Maps button id:s to the task they should run
 const buttonToTaskMap = {
@@ -72,9 +72,9 @@ export class ToolbarWebview implements vscode.WebviewViewProvider {
             }
         });
 
-        this.showCstatIcons = Settings.getCstatShowInToolbar();
-        Settings.observeSetting(Settings.ExtensionSettingsField.CstatShowInToolbar, () => {
-            this.showCstatIcons = Settings.getCstatShowInToolbar();
+        this.showCstatIcons = ExtensionSettings.getCstatShowInToolbar();
+        ExtensionSettings.observeSetting(ExtensionSettings.ExtensionSettingsField.CstatShowInToolbar, () => {
+            this.showCstatIcons = ExtensionSettings.getCstatShowInToolbar();
             this.updateView();
         });
 

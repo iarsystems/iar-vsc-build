@@ -10,7 +10,7 @@ import * as Path from "path";
 import { Workbench } from "iar-vsc-common/workbench";
 import { EwpFile } from "../../../iar/project/parsing/ewpfile";
 import { ExtensionState } from "../../extensionstate";
-import { Settings } from "../../settings";
+import { ExtensionSettings } from "../../settings/extensionsettings";
 import { logger } from "iar-vsc-common/logger";
 
 /**
@@ -75,8 +75,8 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
      * Runs C-STAT on the current project and updates the warnings displayed in VS Code
      */
     private async generateDiagnostics(projectPath: string, configName: string, toolchain: string, workspaceFolder?: string): Promise<void> {
-        const extraArgs = ["-log", Settings.getBuildOutputLogLevel()];
-        extraArgs.push(...(this.definition.extraBuildArguments ?? Settings.getExtraBuildArguments()));
+        const extraArgs = ["-log", ExtensionSettings.getBuildOutputLogLevel()];
+        extraArgs.push(...(this.definition.extraBuildArguments ?? ExtensionSettings.getExtraBuildArguments()));
         if (this.definition.argumentVariablesFile) {
             // Some IDE versions require -varfile to be last
             extraArgs.push("-varfile", this.definition.argumentVariablesFile);
@@ -100,7 +100,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             this.write("Analyzing output...\n");
             this.diagnostics.clear();
 
-            const filterString = Settings.getCstatFilterLevel();
+            const filterString = ExtensionSettings.getCstatFilterLevel();
             const filterLevel = filterString ?
                 CStat.SeverityStringToSeverityEnum(filterString)
                 : CStat.CStatWarningSeverity.LOW;
@@ -150,7 +150,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
                 workspaceFolder ?? Path.dirname(ireportPath),
                 this.write.bind(this)
             );
-            if (Settings.getCstatAutoOpenReports()) {
+            if (ExtensionSettings.getCstatAutoOpenReports()) {
                 await Vscode.env.openExternal(Vscode.Uri.file(reportPath));
             }
         } catch (e) {
@@ -217,7 +217,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         const range = new Vscode.Range(pos, pos);
 
         let severity = Vscode.DiagnosticSeverity.Warning;
-        if (Settings.getCstatDisplayLowSeverityWarningsAsHints()) {
+        if (ExtensionSettings.getCstatDisplayLowSeverityWarningsAsHints()) {
             if (warning.severity === CStat.CStatWarningSeverity.LOW) {
                 severity = Vscode.DiagnosticSeverity.Hint;
             }

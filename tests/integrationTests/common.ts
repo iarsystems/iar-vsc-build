@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import * as path from "path";
-import { Settings } from "../../src/extension/settings";
+import { ExtensionSettings } from "../../src/extension/settings/extensionsettings";
 import { IarToolManager } from "../../src/iar/tools/manager";
 import * as fs from "fs";
 
@@ -16,7 +16,7 @@ export namespace IntegrationTestsCommon {
 
     export async function findWorkbenchesContainingTarget(target: string) {
         const manager = new IarToolManager();
-        await manager.collectWorkbenches(Settings.getIarInstallDirectories(), false);
+        await manager.collectWorkbenches(ExtensionSettings.getIarInstallDirectories(), false);
 
         return manager.workbenches.filter(wb => {
             return fs.existsSync(path.join(wb.path.toString(), target));

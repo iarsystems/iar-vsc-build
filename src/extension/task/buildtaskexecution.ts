@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Vscode from "vscode";
-import { Settings } from "../settings";
+import { ExtensionSettings } from "../settings/extensionsettings";
 import { BuildTaskDefinition } from "./buildtasks";
 import { BackupUtils, ProcessUtils } from "../../utils/utils";
 import { spawn } from "child_process";
@@ -20,7 +20,7 @@ export class BuildTaskExecution extends StylizedTerminal {
      */
     constructor(private readonly definition: Partial<BuildTaskDefinition>) {
         super(
-            Settings.getColorizeBuildOutput() ?
+            ExtensionSettings.getColorizeBuildOutput() ?
                 [
                     line => line.replace(/(:)(?= (?:Warning|Error))/g, stylizePunctuation("$1")),
                     line => line.replace(/(Warning)(\[\w+\]:)/g, stylizeWarning("$1") + stylizePunctuation("$2")),
@@ -34,16 +34,16 @@ export class BuildTaskExecution extends StylizedTerminal {
     }
 
     override async open() {
-        const projectPath = this.definition.project;
-        if (!projectPath) {
-            this.onError("No project was specificed. Select one in the extension configuration, or configure the task manually.");
+        const contexts = this.definition.contexts ?? [];
+        if (this.definition.project && this.definition.config) {
+            contexts.push({ project: this.definition.project, config: this.definition.config });
+        }
+
+        if (contexts.length === 0) {
+            this.onError("No project and configurations were specificed. Select one in the extension configuration, or configure the task manually.");
             return;
         }
-        const configName = this.definition.config;
-        if (!configName) {
-            this.onError("No project configuration was specificed. Select one in the extension configuration, or configure the task manually.");
-            return;
-        }
+
         const builder = this.definition.builder;
         if (!builder) {
             this.onError("No builder path was specificed. Select a toolchain in the extension configuration, or configure the task manually.");
@@ -54,40 +54,55 @@ export class BuildTaskExecution extends StylizedTerminal {
             this.onError(`Unrecognized command '${this.definition.command}'`);
             return;
         }
-        const args = [
-            projectPath,
-            iarbuildCommand,
-            configName,
-            "-log",
-            Settings.getBuildOutputLogLevel()
-        ];
-        let extraArgs = this.definition.extraBuildArguments;
-        if (extraArgs === undefined) {
-            extraArgs = Settings.getExtraBuildArguments();
-        }
-        if (extraArgs.length !== 0) {
-            args.push(...extraArgs);
-        }
-        // Some versions of the IDE require that -varfile is added last
-        if (this.definition.argumentVariablesFile) {
-            args.push("-varfile", this.definition.argumentVariablesFile);
-        }
 
-        const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(projectPath))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-        try {
-            await BackupUtils.doWithBackupCheck(projectPath, async() => {
-                const iarbuild = spawn(builder, args, {cwd: workspaceFolder});
-                this.write("> " + iarbuild.spawnargs.map(arg => `'${arg}'`).join(" ") + "\n");
-                iarbuild.stdout.on("data", data => {
-                    this.write(data.toString());
+        let currentContext = 0;
+        let returnCode = 0;
+        for (const context of contexts) {
+            currentContext++;
+
+            const args = [
+                context.project,
+                iarbuildCommand,
+                context.config,
+                "-log",
+                ExtensionSettings.getBuildOutputLogLevel()
+            ];
+            let extraArgs = this.definition.extraBuildArguments;
+            if (extraArgs === undefined) {
+                extraArgs = ExtensionSettings.getExtraBuildArguments();
+            }
+            if (extraArgs.length !== 0) {
+                args.push(...extraArgs);
+            }
+            // Some versions of the IDE require that -varfile is added last
+            if (this.definition.argumentVariablesFile) {
+                args.push("-varfile", this.definition.argumentVariablesFile);
+            }
+
+            const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(context.project))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+            try {
+                await BackupUtils.doWithBackupCheck(context.project, async() => {
+                    const iarbuild = spawn(builder, args, { cwd: workspaceFolder });
+                    this.write("> " + iarbuild.spawnargs.map(arg => `'${arg}'`).join(" ") + "\n");
+                    iarbuild.stdout.on("data", data => {
+                        this.write(data.toString());
+                    });
+
+                    returnCode = await ProcessUtils.waitForExitCode(iarbuild) ?? 1;
+                    if (returnCode !== 0 || currentContext === contexts.length) {
+                        this.closeTerminal(returnCode);
+                    }
                 });
+            } catch (e) {
+                const errorMsg = (e instanceof Error || typeof e === "string") ? e.toString() : JSON.stringify(e);
+                this.onError(errorMsg);
+                return;
+            }
 
-                const code = await ProcessUtils.waitForExitCode(iarbuild);
-                this.closeTerminal(code ?? 1);
-            });
-        } catch (e) {
-            const errorMsg = (e instanceof Error || typeof e === "string") ? e.toString() : JSON.stringify(e);
-            this.onError(errorMsg);
+            if (returnCode !== 0 && contexts.length > 1) {
+                this.onError("Batch sequence aborted due to build errors.");
+                return;
+            }
         }
     }
 

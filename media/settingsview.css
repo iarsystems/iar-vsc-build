@@ -27,12 +27,13 @@ body {
     margin-bottom: .1em;
 }
 
-.dropdown-container {
-    display: flex;
+.wide-container {
+    display: inline-flex;
     width: 100%;
+    flex-grow: 1;
 }
 
-.dropdown-container .dropdown-icon {
+.dropdown-icon {
     flex-grow: 0;
     display: inline;
     position: relative;
@@ -40,7 +41,7 @@ body {
     margin-right: 10px;
 }
 
-.dropdown-container .dropdown {
+.dropdown {
     flex-grow: 1;
     margin-right: 1.0em;
     margin-bottom: 0.7em;
@@ -69,33 +70,19 @@ body {
     color: var(--vscode-disabledForeground)
 }
 
-.help-icon {
-    display: inline-block !important;
-    vertical-align: bottom;
-    margin-left: 5px;
-    color: var(--vscode-tab-inactiveForeground);
+.tree-icon-inline {
+    display: inline-block;
+    height: 34px;
+    margin-right: 4px;
+    margin-top: -8px;
+}
+.tree-icon-block {
+    display: block;
+    height: 24px;
+    margin-top: -9px;
+    margin-bottom: 0px;
 }
 
-.help-icon:hover {
-    color: var(--vscode-editor-foreground);
-}
-
-.help-icon:hover .tooltip {
-    visibility: visible;
-    opacity: 1;
-    transition: opacity .3s;
-}
-.help-icon .tooltip {
-    visibility: hidden;
-    opacity: 0;
-    font-family: var(--vscode-font-family);
-    font-size: var(--vscode-font-size);
-    background-color: var(--vscode-editorHoverWidget-background);
-    box-shadow: 2px 2px 6px var(--vscode-widget-shadow);
-    position: absolute;
-    padding: .5em;
-    left: 0;
-    top: 1.4em;
-    border: 1px solid var(--vscode-editorHoverWidget-border);
-    z-index: 1;
+.configs {
+    padding-left: 24px;
 }

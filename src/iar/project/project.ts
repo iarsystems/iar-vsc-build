@@ -7,7 +7,7 @@
 import { Config } from "./config";
 import { Node } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { OsUtils } from "iar-vsc-common/osUtils";
-import { Settings } from "../../extension/settings";
+import { ExtensionSettings } from "../../extension/settings/extensionsettings";
 import { BackupUtils } from "../../utils/utils";
 
 /**
@@ -66,7 +66,7 @@ export namespace Project {
         }
 
         // All projects that match this regex should be ignored
-        const projectsToExclude = Settings.getProjectsToExclude();
+        const projectsToExclude = ExtensionSettings.getProjectsToExclude();
         const flags = OsUtils.detectOsType() === OsUtils.OsType.Windows ? "i" : undefined;
         let isIgnoredFile = !!projectsToExclude && RegExp(projectsToExclude, flags).test(projectFile);
         // On windows, allow matching against forward slashes too

@@ -6,7 +6,7 @@ import { logger } from "iar-vsc-common/logger";
 import * as Vscode from "vscode";
 import * as Path from "path";
 import { ExtensionState } from "../extensionstate";
-import { Settings } from "../settings";
+import { ExtensionSettings } from "../settings/extensionsettings";
 import { WorkspaceIntellisenseProvider } from "./workspaceintellisenseprovider";
 import { Define } from "./data/define";
 import { IntellisenseInfo } from "./data/intellisenseinfo";
@@ -64,17 +64,12 @@ export class IntellisenseInfoService {
                 this.notifyIntellisenseInfoChanged();
             }
         });
-        ExtensionState.getInstance().argVarsFile.addOnSelectedHandler(async() => {
-            if (await this.generateWorkspaceIntellisenseInfo()) {
-                this.notifyIntellisenseInfoChanged();
-            }
-        });
         ExtensionState.getInstance().project.addOnInvalidateHandler(async() => {
             if (await this.generateWorkspaceIntellisenseInfo()) {
                 this.notifyIntellisenseInfoChanged();
             }
         });
-        Settings.observeSetting(Settings.ExtensionSettingsField.Defines, () => {
+        ExtensionSettings.observeSetting(ExtensionSettings.ExtensionSettingsField.Defines, () => {
             this.notifyIntellisenseInfoChanged();
         });
 
@@ -103,7 +98,7 @@ export class IntellisenseInfoService {
             } else {
                 intellisenseInfo = await this.workspaceIntellisenseInfo.getIntellisenseInfoFor(file);
             }
-            const settingsDefines = Settings.getDefines().map(stringDefine => Define.fromString(stringDefine)); // user-defined extra macros
+            const settingsDefines = ExtensionSettings.getDefines().map(stringDefine => Define.fromString(stringDefine)); // user-defined extra macros
             intellisenseInfo.defines = intellisenseInfo.defines.
                 concat(this.keywordDefines).
                 concat(settingsDefines);
@@ -158,7 +153,7 @@ export class IntellisenseInfoService {
         if (!workbench || !config || !project || !projects) {
             return false;
         }
-        const argVarFile = ExtensionState.getInstance().argVarsFile.selected;
+        const argVarFile = ExtensionState.getInstance().workspace.selected?.getArgvarsFile();
         const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(project.path))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         try {
             this.workspaceIntellisenseInfo = await WorkspaceIntellisenseProvider.loadProjects(projects, workbench, config.name, argVarFile, workspaceFolder, this.output);

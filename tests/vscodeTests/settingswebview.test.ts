@@ -22,6 +22,7 @@ suite("Test Clicking Settings View", ()=>{
         this.timeout(80000);
         await VscodeTestsUtils.doExtensionSetup();
         VscodeTestsSetup.setup();
+        await VscodeTestsUtils.activateWorkspace("TestProjects");
 
         // Focus the view. Otherwise it will not be instantiated/resolved.
         await Vscode.commands.executeCommand("iar-configuration.focus");
@@ -46,7 +47,7 @@ suite("Test Clicking Settings View", ()=>{
                     name: "MockWorkbench",
                     builderPath: "MockWorkbench",
                     idePath: "MockWorkbench",
-                    path: "MockWorkbench",
+                    path: workbenchModel.workbenches[0]?.path?? "MockWorkbench",
                     targetIds: [],
                     type: WorkbenchType.IDE,
                     version: { major: 0, minor: 0, patch: 0 }
@@ -76,6 +77,19 @@ suite("Test Clicking Settings View", ()=>{
         });
     });
 
+    test("Clicking workspace updates model", async() => {
+        Assert(ExtensionState.getInstance().workspace.selectedIndex !== 1);
+        const modelChange = waitForModelChange(ExtensionState.getInstance().workspace);
+        IarVsc.settingsView.selectFromDropdown(DropdownIds.Workspace, 1);
+        await modelChange;
+
+        Assert.strictEqual(ExtensionState.getInstance().workspace.selectedIndex, 1);
+
+        // Restore workspace since other tests depend on it
+        await VscodeTestsUtils.activateWorkspace("TestProjects");
+    });
+
+
     test("Clicking project updates model", async() => {
         await VscodeTestsUtils.activateProject("BasicDebugging");
         Assert(ExtensionState.getInstance().project.selectedIndex !== 2, ExtensionState.getInstance().project.selected!.name);
@@ -93,15 +107,6 @@ suite("Test Clicking Settings View", ()=>{
         await modelChange;
 
         Assert.strictEqual(ExtensionState.getInstance().config.selectedIndex, 1);
-    });
-    test("Clicking argVar updates model", async() => {
-        await VscodeTestsUtils.activateArgVarFile("ArgVarFile1.custom_argvars");
-        Assert(ExtensionState.getInstance().argVarsFile.selectedIndex !== 1);
-        const modelChange = waitForModelChange(ExtensionState.getInstance().argVarsFile);
-        IarVsc.settingsView.selectFromDropdown(DropdownIds.ArgVarsFile, 1);
-        await modelChange;
-
-        Assert.strictEqual(ExtensionState.getInstance().argVarsFile.selectedIndex, 1);
     });
 
     const waitForModelChange = function<T>(model: ListInputModel<T>) {

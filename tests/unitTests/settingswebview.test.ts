@@ -16,14 +16,14 @@ import { Project } from "../../src/iar/project/project";
 import { ListInputModel, ListInputModelBase } from "../../src/extension/model/model";
 import { IarToolManager } from "../../src/iar/tools/manager";
 import { BehaviorSubject, Subject } from "rxjs";
-import { ArgVarListModel } from "../../src/extension/model/selectargvars";
-import { ArgVarsFile } from "../../src/iar/project/argvarfile";
+import { EwWorkspace } from "../../src/iar/workspace/ewworkspace";
+import { WorkspaceListModel } from "../../src/extension/model/selectworkspace";
 
 namespace Utils {
     // A fake view we can receive html to, and then inspect it.
     export function createMockView(): vscode.WebviewView {
         const mockEvent = () => {
-            return { dispose: () => {/**/}};
+            return { dispose: () => {/**/ } };
         };
         return {
             onDidChangeVisibility: mockEvent,
@@ -45,9 +45,9 @@ namespace Utils {
 
 suite("Test settings view", () => {
     let workbenchModel: ListInputModelBase<Workbench>;
+    let workspaceModel: ListInputModelBase<EwWorkspace>;
     let projectModel: ListInputModelBase<Project>;
     let configModel: ListInputModelBase<Config>;
-    let argVarModel: ListInputModelBase<ArgVarsFile>;
     let loading: Subject<boolean>;
 
     let settingsView: SettingsWebview;
@@ -56,18 +56,18 @@ suite("Test settings view", () => {
 
     setup(async() => {
         workbenchModel = new WorkbenchListModel();
+        workspaceModel = new WorkspaceListModel();
         projectModel = new ProjectListModel();
         configModel = new ConfigurationListModel();
-        argVarModel = new ArgVarListModel();
         loading = new BehaviorSubject<boolean>(false);
 
         const extensionUri = vscode.Uri.file("../../");
         settingsView = new SettingsWebview(
             extensionUri,
             workbenchModel,
+            workspaceModel,
             projectModel,
             configModel,
-            argVarModel,
             new AddWorkbenchCommand(new IarToolManager()),
             loading,
         );
@@ -83,7 +83,7 @@ suite("Test settings view", () => {
     };
 
     test("Disables dropdowns on empty models", () => {
-        const dropdownIds = [DropdownIds.Workbench, DropdownIds.Project, DropdownIds.Configuration];
+        const dropdownIds = [DropdownIds.Workbench, DropdownIds.Workspace, DropdownIds.Project, DropdownIds.Configuration];
         dropdownIds.forEach(id => {
             const dropdown = document.getElementById(id);
             Assert(dropdown);
@@ -104,21 +104,22 @@ suite("Test settings view", () => {
             { name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.LEGACY_BX }
         );
 
+        workspaceModel.set(
+            { name: "LedFlasher", path: "/some/directory/LedFlasher.eww", projects: [], getArgvarsFile: () => undefined, getBatchBuilds: () => Promise.resolve(undefined), setBatchBuilds: () => Promise.resolve(undefined) },
+            { name: "A workspace", path: "C:\\test\\A project.eww", projects: [], getArgvarsFile: () => undefined, getBatchBuilds: () => Promise.resolve(undefined), setBatchBuilds: () => Promise.resolve(undefined) },
+        );
+        workspaceModel.select(0);
+
         projectModel.set(
             { name: "LedFlasher", path: "/some/directory/LedFlasher.ewp", configurations: [], findConfiguration: () => undefined },
-            { name: "A project", path:"C:\\test\\A project.ewp", configurations: [], findConfiguration: () => undefined },
+            { name: "A project", path: "C:\\test\\A project.ewp", configurations: [], findConfiguration: () => undefined },
         );
         projectModel.select(0);
-        configModel.set( { name: "Debug", targetId: "arm" }, { name: "Release", targetId: "arm"} );
+        configModel.set({ name: "Debug", targetId: "arm" }, { name: "Release", targetId: "arm" });
         configModel.select(1);
-        argVarModel.set(
-            { name: "MyWorkspace.custom_argvars", path: "/path/test/MyWorkspace.custom_argvars" },
-            { name: "Test.custom_argvars", path: "C:\\directory\\Test.custom_argvars" },
-        );
-        argVarModel.select(0);
         updateDocument();
 
-        const assertDropdownMatchesModel = function<T>(dropdownId: string, model: ListInputModel<T>)  {
+        const assertDropdownMatchesModel = function <T>(dropdownId: string, model: ListInputModel<T>) {
             const dropdown = document.getElementById(dropdownId);
             Assert(dropdown);
             Assert.strictEqual(dropdown.getAttribute("disabled"), null, `Dropdown '${dropdownId}' should be enabled`);
@@ -130,9 +131,9 @@ suite("Test settings view", () => {
                 Assert.strictEqual(options.item(i)?.getAttribute("selected"), model.selectedIndex === i ? "" : null, `Incorrect option ${i}`);
             }
         };
+        assertDropdownMatchesModel(DropdownIds.Workspace, workspaceModel);
         assertDropdownMatchesModel(DropdownIds.Project, projectModel);
         assertDropdownMatchesModel(DropdownIds.Configuration, configModel);
-        assertDropdownMatchesModel(DropdownIds.ArgVarsFile, argVarModel);
 
         // test workbench dropdown separately, since it has an additional option
         const dropdown = document.getElementById(DropdownIds.Workbench);
@@ -181,7 +182,7 @@ suite("Test settings view", () => {
 
     test("Escapes HTML tags", () => {
         // HTML tags must be escaped to prevent injections
-        configModel.set( { name: "<script>alert('Hello')</script><b>Debug</b>", targetId: "arm" } );
+        configModel.set({ name: "<script>alert('Hello')</script><b>Debug</b>", targetId: "arm" });
         configModel.select(0);
         updateDocument();
 

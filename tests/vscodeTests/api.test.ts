@@ -26,6 +26,7 @@ suite("Test Public TS Api", function() {
         const sandboxPath = VscodeTestsSetup.setup();
         sourceConfigPath = Path.join(sandboxPath, "SourceConfiguration/Project/SourceConfiguration.ewp");
         basicDebuggingPath = Path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp");
+        await VscodeTestsUtils.activateWorkspace("TestProjects");
         // Wait for a project to be loaded (this means both the workbench and project has settled)
         await ExtensionState.getInstance().extendedProject.getValue();
     });
@@ -44,12 +45,14 @@ suite("Test Public TS Api", function() {
         {
             await VscodeTestsUtils.activateProject("SourceConfiguration");
             const projPath = await api.getSelectedProject();
-            Assert.strictEqual(projPath, sourceConfigPath);
+            Assert(projPath);
+            Assert(OsUtils.pathsEqual(projPath, sourceConfigPath), `Incorrect path: ${projPath}`);
         }
         {
             await VscodeTestsUtils.activateProject("BasicDebugging");
             const projPath = await api.getSelectedProject();
-            Assert.strictEqual(projPath, basicDebuggingPath);
+            Assert(projPath);
+            Assert(OsUtils.pathsEqual(projPath, basicDebuggingPath), `Incorrect path: ${projPath}`);
         }
     });
 

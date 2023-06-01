@@ -51,7 +51,7 @@ export class EwpFile implements Project {
         const stat = Fs.statSync(path);
 
         if (!stat.isFile()) {
-            throw new Error("'${this.path.toString()}' is not a file!");
+            throw new Error(`'${path}' is not a file!`);
         }
 
         const content = Fs.readFileSync(path);

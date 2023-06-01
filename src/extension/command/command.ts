@@ -10,7 +10,7 @@ import { ListInputModel } from "../model/model";
 import { Workbench } from "iar-vsc-common/workbench";
 import { Project } from "../../iar/project/project";
 import { Config } from "../../iar/project/config";
-import { ArgVarsFile } from "../../iar/project/argvarfile";
+import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 
 /**
  * A VS Code command.
@@ -64,16 +64,16 @@ export namespace Command {
         return createInputCommand("iar-build.selectToolchain", model);
     }
 
+    export function createSelectWorkspaceCommand(model: ListInputModel<EwWorkspace>): ListSelectionCommand<EwWorkspace> {
+        return createInputCommand("iar-build.selectWorkspace", model);
+    }
+
     export function createSelectProjectCommand(model: ListInputModel<Project>): ListSelectionCommand<Project> {
         return createInputCommand("iar-build.selectProject", model);
     }
 
     export function createSelectConfigurationCommand(model: ListInputModel<Config>): ListSelectionCommand<Config> {
         return createInputCommand("iar-build.selectConfiguration", model);
-    }
-
-    export function createSelectArgVarsFileCommand(model: ListInputModel<ArgVarsFile>): ListSelectionCommand<ArgVarsFile> {
-        return createInputCommand("iar-build.selectArgumentVariablesFile", model);
     }
 
     function createInputCommand<T>(command: string, model: ListInputModel<T>): ListSelectionCommand<T> {
