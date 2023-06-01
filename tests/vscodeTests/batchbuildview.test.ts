@@ -12,6 +12,8 @@ import path = require("path");
 import { VscodeTestsSetup } from "./setup";
 import { BatchBuild } from "../../src/extension/ui/batchbuildcommands";
 import { FsUtils } from "../../src/utils/fs";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
+import { Workbench } from "iar-vsc-common/workbench";
 
 /**
  *  This is the test-suite for the batch build concept. It assures that we can load the
@@ -27,14 +29,15 @@ suite("Test batchbuild View", () => {
             return;
         }
 
-        if (TestConfiguration.getConfiguration().target !== "arm") {
-            this.skip();
-            return;
-        }
-
         this.timeout(50000);
         await VscodeTestsUtils.doExtensionSetup();
         testRoot = VscodeTestsSetup.setup();
+
+        const activeWorkbench: Workbench | undefined = ExtensionState.getInstance().workbench.selected;
+        if (activeWorkbench === undefined ||
+            !WorkbenchFeatures.supportsFeature(activeWorkbench, WorkbenchFeatures.PMWorkspaces, TestConfiguration.getConfiguration().target)) {
+            this.skip();
+        }
 
         if (!ExtensionState.getInstance().workspace.workspaces.find((workspace) => {
             return workspace.name === "BatchProjects";

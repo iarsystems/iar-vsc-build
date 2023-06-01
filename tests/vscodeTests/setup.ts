@@ -16,7 +16,6 @@ export namespace VscodeTestsSetup {
      */
     export function setup() {
         sandbox ??= new TestSandbox(Path.join(__dirname, "../../../"));
-        sandbox.clear();
         return sandbox.copyToSandbox(TestConfiguration.getConfiguration().vscodeTestProjectsDir, "UiTestProjects");
     }
 }
