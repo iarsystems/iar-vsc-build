@@ -10,7 +10,7 @@ export interface IncludePath {
     readonly absolutePath: Fs.PathLike;
 }
 
-class StringIncludePath implements IncludePath {
+export class IncludePathImpl implements IncludePath {
     private readonly includePath: Fs.PathLike;
     private readonly projectPath: Fs.PathLike | undefined;
 
@@ -50,7 +50,7 @@ export namespace IncludePath {
                     const stat = Fs.statSync(p);
 
                     if (stat.isDirectory()) {
-                        includes.push(new StringIncludePath(p));
+                        includes.push(new IncludePathImpl(p));
                     }
                 } catch (e) {
                 }

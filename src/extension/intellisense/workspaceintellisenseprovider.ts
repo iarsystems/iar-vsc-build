@@ -15,7 +15,7 @@ import { tmpdir } from "os";
 import { FsUtils } from "../../utils/fs";
 import { Settings } from "../settings";
 import { BackupUtils, LanguageUtils, ListUtils, ProcessUtils } from "../../utils/utils";
-import { IncludePath } from "./data/includepath";
+import { IncludePath, IncludePathImpl } from "./data/includepath";
 import { Define } from "./data/define";
 import { PreIncludePath, StringPreIncludePath } from "./data/preincludepath";
 import { OsUtils } from "iar-vsc-common/osUtils";
@@ -74,7 +74,7 @@ export class WorkspaceIntellisenseProvider {
         }
     }
 
-    private readonly browseInfo: IntellisenseInfo = { includes: [], defines: [], preincludes: [] };
+    private readonly browseInfo: IntellisenseInfo;
 
     private constructor(
         private readonly projectCompDbs: Map<Project, ProjectCompilationDatabase>,
@@ -83,6 +83,18 @@ export class WorkspaceIntellisenseProvider {
         private readonly workspaceFolder?: string,
         private readonly outputChannel?: vscode.OutputChannel,
     ) {
+        const sourceDirectories = new Set<string>();
+        for (const compDb of projectCompDbs.values()) {
+            compDb.projectFiles.forEach(
+                sourceFile => sourceDirectories.add(Path.dirname(sourceFile)));
+        }
+        this.browseInfo = {
+            defines: [],
+            // VSC-389 Source paths must be included in browse info, or else
+            // those files won't be parsed.
+            includes: Array.from(sourceDirectories).map(dir => new IncludePathImpl(dir)),
+            preincludes: [],
+        };
     }
 
     /**
@@ -194,6 +206,13 @@ class ProjectCompilationDatabase {
      */
     isFileIncluded(file: string): boolean {
         return this.compilationArgs.has(OsUtils.normalizePath(file));
+    }
+
+    /**
+     * All files in the project
+     */
+    get projectFiles(): string[] {
+        return Array.from(this.compilationArgs.keys());
     }
 
     /**
