@@ -6,7 +6,7 @@ import * as vscode from "vscode";
 import * as Path from "path";
 import * as fsPromises from "fs/promises";
 import * as readline from "readline";
-import { spawn, spawnSync } from "child_process";
+import { spawn } from "child_process";
 import { Workbench } from "iar-vsc-common/workbench";
 import { Project } from "../../iar/project/project";
 import { Config } from "../../iar/project/config";
@@ -20,6 +20,7 @@ import { Define } from "./data/define";
 import { PreIncludePath, StringPreIncludePath } from "./data/preincludepath";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { Mutex } from "async-mutex";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 
 /**
  * Generates and holds intellisense information ({@link IntellisenseInfo}) for a collection of projects (a "workspace").
@@ -170,12 +171,10 @@ class ProjectCompilationDatabase {
     static async loadFromProject(
         project: Project, config: Config, workbench: Workbench, argVarFile?: string, workspaceFolder?: string, outputChannel?: vscode.OutputChannel
     ): Promise<ProjectCompilationDatabase> {
-        // select how to generate configs for this workbench
-        const builderOutput = spawnSync(workbench.builderPath.toString()).stdout.toString(); // Spawn without args to get help list
         try {
             outputChannel?.appendLine(`Preparing intellisense information for '${project.name}'.`);
             let args: Map<string, string[]>;
-            if (builderOutput.includes("-jsondb")) { // Filifjonkan
+            if (WorkbenchFeatures.supportsFeature(workbench, WorkbenchFeatures.JsonDb)) { // Filifjonkan
                 args = await ConfigGenerator.generateArgsForFilifjonkan(project, config, workbench, argVarFile, workspaceFolder, outputChannel);
             } else {
                 args = await ConfigGenerator.generateArgsForBeforeFilifjonkan(project, config, workbench, argVarFile, workspaceFolder, outputChannel);
@@ -312,73 +311,76 @@ namespace ConfigGenerator {
             extraArgs = [...extraArgs, "-varfile", argVarFile];
         }
 
-        // VSC-192 clean up any backups created by iarbuild
-        return BackupUtils.doWithBackupCheck(project.path.toString(), async() => {
-            const builderProc = spawn(
-                workbench.builderPath.toString(),
-                [project.path.toString(), "-dryrun", config.name, "-log", "all"].concat(extraArgs),
-                { cwd: workspaceFolder },
-            );
-            builderProc.on("error", (err) => {
-                return Promise.reject(err);
-            });
-            const exitPromise = ProcessUtils.waitForExit(builderProc);
-
-            // Parse output from iarbuild to find all compiler invocations
-            const compInvs = await new Promise<string[][]>((resolve, _reject) => {
-                const compilerInvocations: string[][] = [];
-                const lineReader = readline.createInterface({
-                    input: builderProc.stdout,
+        // VSC-386 We use a mutex here to throttle the CPU usage
+        return mutex.runExclusive(() => {
+            // VSC-192 clean up any backups created by iarbuild
+            return BackupUtils.doWithBackupCheck(project.path.toString(), async() => {
+                const builderProc = spawn(
+                    workbench.builderPath.toString(),
+                    [project.path.toString(), "-dryrun", config.name, "-log", "all"].concat(extraArgs),
+                    { cwd: workspaceFolder },
+                );
+                builderProc.on("error", (err) => {
+                    return Promise.reject(err);
                 });
-                lineReader.on("line", (line: string) => {
-                    if (line.startsWith(">")) { // this is a compiler invocation
-                        line = line.slice(1); // get rid of the >
-                        const endOfFirstArg = line.search(/\s+/);
-                        const args = [line.slice(0, endOfFirstArg)]; // first arg (compiler name) is unquoted, so handle it specially
-                        let argsRaw = line.slice(endOfFirstArg).trim();
-                        argsRaw = argsRaw.replace(/"\\(\s+)"/g, "\"$1\""); // IarBuild inserts some weird backslashes we want to get rid of
-                        const argDelimRegex = /"\s+"/;
-                        let match: RegExpExecArray | null;
-                        while ((match = argDelimRegex.exec(argsRaw)) !== null) {
-                            const unquotedArg = stripQuotes(argsRaw.slice(0, match.index + 1));
-                            // Quotes inside parameters are escaped on the command line, but we want the unescaped parameters
-                            const arg = unquotedArg.replace(/\\"/g, "\"");
-                            args.push(arg);
-                            argsRaw = argsRaw.slice(match.index + 1);
+                const exitPromise = ProcessUtils.waitForExit(builderProc);
+
+                // Parse output from iarbuild to find all compiler invocations
+                const compInvs = await new Promise<string[][]>((resolve, _reject) => {
+                    const compilerInvocations: string[][] = [];
+                    const lineReader = readline.createInterface({
+                        input: builderProc.stdout,
+                    });
+                    lineReader.on("line", (line: string) => {
+                        if (line.startsWith(">")) { // this is a compiler invocation
+                            line = line.slice(1); // get rid of the >
+                            const endOfFirstArg = line.search(/\s+/);
+                            const args = [line.slice(0, endOfFirstArg)]; // first arg (compiler name) is unquoted, so handle it specially
+                            let argsRaw = line.slice(endOfFirstArg).trim();
+                            argsRaw = argsRaw.replace(/"\\(\s+)"/g, "\"$1\""); // IarBuild inserts some weird backslashes we want to get rid of
+                            const argDelimRegex = /"\s+"/;
+                            let match: RegExpExecArray | null;
+                            while ((match = argDelimRegex.exec(argsRaw)) !== null) {
+                                const unquotedArg = stripQuotes(argsRaw.slice(0, match.index + 1));
+                                // Quotes inside parameters are escaped on the command line, but we want the unescaped parameters
+                                const arg = unquotedArg.replace(/\\"/g, "\"");
+                                args.push(arg);
+                                argsRaw = argsRaw.slice(match.index + 1);
+                            }
+                            args.push(stripQuotes(argsRaw));
+                            compilerInvocations.push(args);
+                        } else if (line.match(/^Linking/) || line.match(/^リンク中/)) { // usually the promise finishes here
+                            lineReader.removeAllListeners();
+                            resolve(compilerInvocations);
+                            return;
                         }
-                        args.push(stripQuotes(argsRaw));
-                        compilerInvocations.push(args);
-                    } else if (line.match(/^Linking/) || line.match(/^リンク中/)) { // usually the promise finishes here
+                        output?.appendLine(line);
+                    });
+                    lineReader.on("close", () => { // safeguard in case the builder crashes
+                        output?.appendLine("WARN: Builder closed without reaching linking stage.");
                         lineReader.removeAllListeners();
                         resolve(compilerInvocations);
+                    });
+                }); /* new Promise */
+                await exitPromise; // Make sure iarbuild exits without error
+
+                // Find the filename of each compiler invocation, and add to the map
+                const compilerInvocationsMap = new Map<string, string[]>();
+                compInvs.forEach(compInv => {
+                    if (compInv?.[0] === undefined || compInv[1] === undefined) return;
+                    const file = compInv[1];
+                    if (LanguageUtils.determineLanguage(file) === undefined) {
+                        output?.appendLine("Skipping file of unsupported type: " + file);
                         return;
                     }
-                    output?.appendLine(line);
+                    // generateFromCompilerArgs expects the first arg to be an absolute path to a compiler
+                    compInv[0] = Path.join(workbench.path.toString(), `${config.targetId}/bin/${compInv[0]}`);
+                    compilerInvocationsMap.set(OsUtils.normalizePath(file), compInv);
                 });
-                lineReader.on("close", () => { // safeguard in case the builder crashes
-                    output?.appendLine("WARN: Builder closed without reaching linking stage.");
-                    lineReader.removeAllListeners();
-                    resolve(compilerInvocations);
-                });
-            }); /* new Promise */
-            await exitPromise; // Make sure iarbuild exits without error
 
-            // Find the filename of each compiler invocation, and add to the map
-            const compilerInvocationsMap = new Map<string, string[]>();
-            compInvs.forEach(compInv => {
-                if (compInv?.[0] === undefined || compInv[1] === undefined) return;
-                const file = compInv[1];
-                if (LanguageUtils.determineLanguage(file) === undefined) {
-                    output?.appendLine("Skipping file of unsupported type: " + file);
-                    return;
-                }
-                // generateFromCompilerArgs expects the first arg to be an absolute path to a compiler
-                compInv[0] = Path.join(workbench.path.toString(), `${config.targetId}/bin/${compInv[0]}`);
-                compilerInvocationsMap.set(OsUtils.normalizePath(file), compInv);
-            });
-
-            return compilerInvocationsMap;
-        }); /* /doWithBackupCheck */
+                return compilerInvocationsMap;
+            }); /* /doWithBackupCheck */
+        }); /* /runExclusive */
     }
 
     /**
