@@ -96,8 +96,7 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
             const lang = LanguageUtils.determineLanguage(uri.fsPath);
 
             const config: SourceFileConfiguration = {
-                // VSC-290 allowed MSVC-style unnamed unions/structs
-                compilerArgs: ["-fms-extensions", "-fno-builtin"],
+                compilerPath: "",
                 defines: defines.map(d => d.makeString()),
                 includePath: includes.map(i => i.absolutePath.toString()),
                 forcedInclude: preincludes.map(i => i.absolutePath.toString()),
