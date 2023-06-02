@@ -12,6 +12,7 @@ import Int64 = require("node-int64");
 import { InformationMessage, InformationMessageType } from "../../../extension/ui/informationmessage";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { Config } from "../config";
+import { IarVsc } from "../../../extension/main";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.
@@ -23,7 +24,7 @@ export class ThriftProject implements ExtendedProject {
     constructor(public path:                 string,
                 public configurations:       ReadonlyArray<Config>,
                 private readonly projectMgr: ProjectManager.Client,
-                private readonly context:             ProjectContext,
+                private readonly context:    ProjectContext,
                 private readonly owner:      Workbench) {
     }
 
@@ -46,6 +47,7 @@ export class ThriftProject implements ExtendedProject {
     }
     public setNode(node: Node, indexPath: number[]): Promise<void> {
         return this.performOperation(async() => {
+            IarVsc.ewpWatcher?.supressNextFileModificationFor(this.path);
             if (WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.SetNodeByIndex)) {
                 await this.projectMgr.SetNodeByIndex(this.context, indexPath.map(i => new Int64(i)), node, true);
             } else {

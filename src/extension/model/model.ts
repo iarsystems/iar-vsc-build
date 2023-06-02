@@ -113,7 +113,25 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
         });
     }
 
-    abstract label(index: number): string;
-    abstract description(index: number): string | undefined;
-    abstract detail(index: number): string | undefined;
+    label(index: number): string {
+        return this.itemLabel(this.getItemAt(index));
+    }
+    description(index: number): string | undefined {
+        return this.itemDescription(this.getItemAt(index));
+    }
+    detail(index: number): string | undefined {
+        return this.itemDetail(this.getItemAt(index));
+    }
+
+    protected abstract itemLabel(item: T): string;
+    protected abstract itemDescription(item: T): string | undefined;
+    protected abstract itemDetail(item: T): string | undefined;
+
+    protected getItemAt(index: number): T {
+        const result = this.data[index];
+        if (result === undefined) {
+            throw new Error(`No item with index ${index}`);
+        }
+        return result;
+    }
 }

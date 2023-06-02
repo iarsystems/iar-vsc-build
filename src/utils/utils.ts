@@ -78,30 +78,48 @@ export namespace BackupUtils {
             /^.*\s+のバックアップ(\s+\(\d+\))?\.ewp$/.test(Path.basename(project));
     }
     /**
-     * Performs a task that might erroneously produce a backup of a project file and returns the result of the task.
+     * Performs a task that might produce a backup of a project file and returns the result of the task.
      * Any backups created while performing the tasks are automatically removed.
      * See IDE-5888: simply loading a project would create a backup identical to the original file. See also VSC-192.
-     * @param project The path to the project that the task uses, i.e. the project to watch for backups of
+     * @param projects The path to the project(s) that the task uses, i.e. the project(s) to watch for backups of
      * @param task Some task that might produce backup files. After fulfilling, any backup files are removed
      * @returns The result of #{@link task}
      */
-    export async function doWithBackupCheck<T>(project: string, task: () => Promise<T>): Promise<T> {
-        // TODO: only do this if we detect from the platform version that it is needed
-        const projectDir = Path.dirname(project);
-        const projectNameRegex = RegexUtils.escape(Path.basename(project, ".ewp"));
-        // match all backup files for the project (.ewp, .ewt, .ewd)
-        const backupRegexEng = new RegExp(`Backup\\s+(\\(\\d+\\))?\\s*of ${projectNameRegex}\\.ew`);
-        const backupRegexJpn = new RegExp(`${projectNameRegex}\\s+のバックアップ(\\s+\\(\\d+\\))?\\.ew`);
-        const originalBackupFiles = (await FsPromises.readdir(projectDir)).
-            filter(file => file.match(backupRegexEng) || file.match(backupRegexJpn));
+    export async function doWithBackupCheck<T>(projects: string | string[], task: () => Promise<T>): Promise<T> {
+        const projectList = Array.isArray(projects) ? projects : [projects];
+
+        const checks: Map<string, RegExp[]> = new Map();
+        projectList.forEach(project => {
+            const projectDir = Path.dirname(project);
+            if (!checks.has(projectDir)) {
+                checks.set(projectDir, []);
+            }
+            const projectNameRegex = RegexUtils.escape(Path.basename(project, ".ewp"));
+            // match all backup files for the project (.ewp, .ewt, .ewd)
+            checks.get(projectDir)?.push(new RegExp(`Backup\\s+(\\(\\d+\\))?\\s*of ${projectNameRegex}\\.ew`));
+            checks.get(projectDir)?.push(new RegExp(`${projectNameRegex}\\s+のバックアップ(\\s+\\(\\d+\\))?\\.ew`));
+        });
+        const findBackupFiles = async() => {
+            const backupFiles: string[] = [];
+            await Promise.allSettled(
+                Array.from(checks.entries()).
+                    map(async([projectDir, regexps]) => {
+                        const backups = (await FsPromises.readdir(projectDir)).
+                            filter(file => regexps.some(regex => file.match(regex))).
+                            map(file => Path.join(projectDir, file));
+                        backupFiles.push(...backups);
+                    })
+            );
+            return backupFiles;
+        };
+        const originalBackupFiles = await findBackupFiles();
 
         const taskPromise = task();
         taskPromise.finally(async() => {
-            const backupFilesAfterExit = (await FsPromises.readdir(Path.dirname(project))).
-                filter(file => file.match(backupRegexEng) || file.match(backupRegexJpn));
+            const backupFilesAfterExit = await findBackupFiles();
             if (originalBackupFiles.length !== backupFilesAfterExit.length) {
                 const newBackupFiles = backupFilesAfterExit.filter(backupFile => !originalBackupFiles.includes(backupFile));
-                await Promise.allSettled(newBackupFiles.map(file => FsPromises.rm(Path.join(projectDir, file))));
+                await Promise.allSettled(newBackupFiles.map(file => FsPromises.rm(file)));
             }
         });
 

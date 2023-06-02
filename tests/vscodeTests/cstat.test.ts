@@ -7,7 +7,6 @@ import * as path from "path";
 import * as fsPromises from "fs/promises";
 import { VscodeTestsUtils } from "./utils";
 import { OsUtils } from "iar-vsc-common/osUtils";
-import { readdir, unlink } from "fs/promises";
 import { VscodeTestsSetup } from "./setup";
 import { FsUtils } from "../../src/utils/fs";
 import escapeHTML = require("escape-html");
@@ -53,11 +52,8 @@ suite("Test C-STAT", () => {
         originalAutoOpen = Vscode.workspace.getConfiguration("iar-build").get("c-stat.autoOpenReports");
         await Vscode.workspace.getConfiguration("iar-build").update("c-stat.autoOpenReports", false);
         srcFilePath = path.join(sandboxPath, TARGET_PROJECT, "main.c");
-        // Remove all backup files, since too many backup files will cause iarbuild to fail
-        const nodes = await readdir(path.join(sandboxPath, TARGET_PROJECT));
-        return Promise.all(
-            nodes.filter(node => node.startsWith("Backup")).map(node => unlink(path.join(sandboxPath, TARGET_PROJECT, node)))
-        );
+
+        await VscodeTestsUtils.activateWorkspace("TestProjects");
     });
 
     suiteTeardown(async() => {

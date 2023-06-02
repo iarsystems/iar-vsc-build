@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as vscode from "vscode";
-import { Settings } from "../settings";
+import { ExtensionSettings } from "../settings/extensionsettings";
 import { CommandBase } from "./command";
 import { ToolManager } from "../../iar/tools/manager";
 import { OsUtils } from "iar-vsc-common/osUtils";
@@ -35,7 +35,7 @@ export class AddWorkbenchCommand extends CommandBase<Promise<boolean>> {
             return false;
         }
 
-        const installDirs: string[] = Settings.getIarInstallDirectories().map(dir => dir.toString());
+        const installDirs: string[] = ExtensionSettings.getIarInstallDirectories().map(dir => dir.toString());
         // Do we already have this install directory?
         const equivalentDir = installDirs.find(installDir => {
             return OsUtils.pathsEqual(installDir, uri.fsPath);
@@ -53,7 +53,7 @@ export class AddWorkbenchCommand extends CommandBase<Promise<boolean>> {
         vscode.window.showInformationMessage("Found " + foundWorkbenches.map(wb => `'${wb.name}'`).join(", "));
 
         installDirs.push(uri.fsPath);
-        Settings.setIarInstallDirectories(installDirs);
+        ExtensionSettings.setIarInstallDirectories(installDirs);
         return true;
     }
 }

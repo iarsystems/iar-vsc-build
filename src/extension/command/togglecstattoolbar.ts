@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { Settings } from "../settings";
+import { ExtensionSettings } from "../settings/extensionsettings";
 import { CommandBase } from "./command";
 
 /**
@@ -16,7 +16,7 @@ export class ToggleCstatToolbarCommand extends CommandBase<void> {
     }
 
     executeImpl() {
-        const currentValue = Settings.getCstatShowInToolbar();
-        Settings.setCstatShowInToolbar(!currentValue);
+        const currentValue = ExtensionSettings.getCstatShowInToolbar();
+        ExtensionSettings.setCstatShowInToolbar(!currentValue);
     }
 }

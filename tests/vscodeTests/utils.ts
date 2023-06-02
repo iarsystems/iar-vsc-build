@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import * as Assert from "assert";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import * as Vscode from "vscode";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { TestConfiguration } from "../testconfiguration";
@@ -46,17 +47,23 @@ export namespace VscodeTestsUtils {
         }
     }
 
+    export async function activateWorkspace(workspaceLabel: string) {
+        const toSelectFrom: any = ExtensionState.getInstance().workspace.workspaces;
+        console.log(toSelectFrom);
+        if ((await ExtensionState.getInstance().workspace.selected?.name !== workspaceLabel)) {
+            ExtensionState.getInstance().workspace.selectWhen(workspace => workspace.name === workspaceLabel);
+        }
+        if (TestConfiguration.getConfiguration().testThriftSupport &&
+            WorkbenchFeatures.supportsFeature(ExtensionState.getInstance().workbench.selected!, WorkbenchFeatures.PMWorkspaces) &&
+            (await ExtensionState.getInstance().loadedWorkspace.getValue())?.name !== workspaceLabel) {
+            await VscodeTestsUtils.workspaceLoaded(workspaceLabel);
+        }
+    }
+
     export function activateConfiguration(configurationTag: string) {
         if (ExtensionState.getInstance().config.selected?.name !== configurationTag) {
             Assert(ExtensionState.getInstance().config.selectWhen(config => config.name === configurationTag));
         }
-    }
-
-    export function activateArgVarFile(fileLabel: string) {
-        if (ExtensionState.getInstance().argVarsFile.selected?.name !== fileLabel) {
-            Assert(ExtensionState.getInstance().argVarsFile.selectWhen(file => file.name === fileLabel));
-        }
-
     }
 
     export async function activateWorkbench(ew: string) {
@@ -90,6 +97,27 @@ export namespace VscodeTestsUtils {
         });
     }
 
+    export async function workspaceLoaded(name: string) {
+        if ((await ExtensionState.getInstance().extendedWorkbench.getValue()) === undefined) {
+            return Promise.reject(new Error("No thrift workbench available, did it crash in a previous test?"));
+        }
+        return new Promise<void>((resolve, reject) => {
+            ExtensionState.getInstance().loadedWorkspace.onValueDidChange((ws) => {
+                if (ws !== undefined && (name === undefined || ws.name === name)) {
+                    resolve();
+                }
+            });
+            setTimeout(() => {
+                reject(new Error("Timed out waiting for workspace to load."));
+            }, 30000);
+        });
+    }
+
+
+    export async function executeCommand<T>(commandId: string, item: T): Promise<void> {
+        await Vscode.commands.executeCommand(commandId, item);
+    }
+
     // ---- Helpers for running tasks
 
     /**
@@ -102,15 +130,19 @@ export namespace VscodeTestsUtils {
      export async function executeTask(task: Vscode.Task, matcher: (taskEvent: Vscode.TaskEndEvent) => boolean) {
          await Vscode.tasks.executeTask(task);
 
-         return new Promise<void>(resolve => {
-             const disposable = Vscode.tasks.onDidEndTask(e => {
-                 if (matcher(e)) {
-                     disposable.dispose();
-                     resolve();
-                 }
-             });
-         });
+         return waitForTask(matcher);
      }
+
+    export function waitForTask(matcher: (taskEvent: Vscode.TaskEndEvent) => boolean): Promise<void> {
+        return new Promise<void>(resolve => {
+            const disposable = Vscode.tasks.onDidEndTask(e => {
+                if (matcher(e)) {
+                    disposable.dispose();
+                    resolve();
+                }
+            });
+        });
+    }
 
     /**
      * Run a task with the given name for the a project and configuration. Returns a promise that resolves

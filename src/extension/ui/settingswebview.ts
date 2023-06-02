@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import * as vscode from "vscode";
+import * as Fs from "fs";
 import { Config } from "../../iar/project/config";
 import { Project } from "../../iar/project/project";
 import { Workbench } from "iar-vsc-common/workbench";
@@ -10,23 +11,23 @@ import * as sanitizeHtml from "sanitize-html";
 import { AddWorkbenchCommand } from "../command/addworkbench";
 import { logger } from "iar-vsc-common/logger";
 import { Subject } from "rxjs";
-import { ArgVarsFile } from "../../iar/project/argvarfile";
+import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 
 // Make sure this matches the enum in media/settingsview.js! AFAIK we cannot share code between here and the webview javascript
 enum MessageSubject {
     WorkbenchSelected = "Workbench",
+    WorkspaceSelected = "Workspace",
     ProjectSelected = "Project",
     ConfigSelected = "Config",
-    ArgVarsSelected = "ArgVars",
     AddWorkbench = "AddWorkbench",
     OpenSettings = "OpenSettings",
     ViewLoaded = "ViewLoaded",
 }
 export enum DropdownIds {
     Workbench = "workbench",
+    Workspace = "workspace",
     Project = "project",
     Configuration = "config",
-    ArgVarsFile = "argvarsfile",
 }
 
 /**
@@ -48,17 +49,17 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
      * Creates a new view. The caller is responsible for registering it.
      * @param extensionUri The uri of the extension's root directory
      * @param workbenches The workbench list to display and modify
+     * @param workspaces The workspace list to display and modify
      * @param projects The project list to display and modify
      * @param configs The configuration list to display and modify
-     * @param argVarFiles The .custom_argvars file list to display and modify
      * @param addWorkbenchCommand The command to call when the user wants to add a new workbench
      * @param workbenchesLoading Notifies when the workbench list is in the process of (re)loading
      */
     constructor(private readonly extensionUri: vscode.Uri,
         private readonly workbenches: ListInputModel<Workbench>,
+        private readonly workspaces: ListInputModel<EwWorkspace>,
         private readonly projects: ListInputModel<Project>,
         private readonly configs: ListInputModel<Config>,
-        private readonly argVarFiles: ListInputModel<ArgVarsFile>,
         private readonly addWorkbenchCommand: AddWorkbenchCommand,
         workbenchesLoading: Subject<boolean>,
     ) {
@@ -66,12 +67,12 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         const changeHandler = this.updateView.bind(this);
         this.workbenches.addOnInvalidateHandler(changeHandler);
         this.workbenches.addOnSelectedHandler(changeHandler);
+        this.workspaces.addOnInvalidateHandler(changeHandler);
+        this.workspaces.addOnSelectedHandler(changeHandler);
         this.projects.addOnInvalidateHandler(changeHandler);
         this.projects.addOnSelectedHandler(changeHandler);
         this.configs.addOnInvalidateHandler(changeHandler);
         this.configs.addOnSelectedHandler(changeHandler);
-        this.argVarFiles.addOnInvalidateHandler(changeHandler);
-        this.argVarFiles.addOnSelectedHandler(changeHandler);
 
         workbenchesLoading.subscribe(load => {
             this.workbenchesLoading = load;
@@ -102,14 +103,14 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
             case MessageSubject.WorkbenchSelected:
                 this.workbenches.select(message.index);
                 break;
+            case MessageSubject.WorkspaceSelected:
+                this.workspaces.select(message.index);
+                break;
             case MessageSubject.ProjectSelected:
                 this.projects.select(message.index);
                 break;
             case MessageSubject.ConfigSelected:
                 this.configs.select(message.index);
-                break;
-            case MessageSubject.ArgVarsSelected:
-                this.argVarFiles.select(message.index);
                 break;
             case MessageSubject.AddWorkbench: {
                 const changed = await vscode.commands.executeCommand(this.addWorkbenchCommand.id);
@@ -137,7 +138,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         if (this.view === undefined) {
             return;
         }
-        this.view.webview.html = Rendering.getWebviewContent(this.view.webview, this.extensionUri, this.workbenches, this.projects, this.configs, this.argVarFiles, this.workbenchesLoading);
+        this.view.webview.html = Rendering.getWebviewContent(this.view.webview, this.extensionUri, this.workbenches, this.workspaces, this.projects, this.configs, this.workbenchesLoading);
     }
 
     // ! Exposed for testing only.
@@ -165,9 +166,9 @@ namespace Rendering {
         webview: vscode.Webview,
         extensionUri: vscode.Uri,
         workbenches: ListInputModel<Workbench>,
+        workspaces: ListInputModel<EwWorkspace>,
         projects: ListInputModel<Project>,
         configs: ListInputModel<Config>,
-        argVarFiles: ListInputModel<ArgVarsFile>,
         workbenchesLoading: boolean
     ) {
         // load npm packages for standardized UI components and icons
@@ -177,6 +178,19 @@ namespace Rendering {
         // load css and js for the view (in <extension root>/media/).
         const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "settingsview.css"));
         const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "settingsview.js"));
+
+        // To be able to use VS Code's CSS variables (for correct theming), the SVGs must be placed directly in the html.
+        // Therefore we read the file contents here instead of generating a webview uri to use in an <img/> tag.
+        const loadSvg = (filename: string) => {
+            try {
+                return Fs.readFileSync(vscode.Uri.joinPath(extensionUri, "media/icons", filename).fsPath, {encoding: "utf8"});
+            } catch (e) {
+                logger.error("Failed to load icon: " + filename);
+                return "";
+            }
+        };
+        const treeL = loadSvg("tree-L.svg");
+        const treeIBroken = loadSvg("tree-I-broken.svg");
 
         // install the es6-string-html extension for syntax highlighting here
         return /*html*/`<!DOCTYPE html>
@@ -213,17 +227,20 @@ namespace Rendering {
                 <vscode-progress-ring ${ !workbenchesLoading ? "hidden" : ""}></vscode-progress-ring>
             </div>
             <div class="section">
-                    <p>Active Project and Configuration:</p>
-                    ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.amount === 0, "No .ewp project found")}
-                    ${makeDropdown(configs, DropdownIds.Configuration, "settings-gear", configs.amount === 0, "No configurations found")}
-            </div>
-            <div class="section">
-                    <p>Custom Argument Variables File
-                        <span class="codicon codicon-question help-icon">
-                            <span class="tooltip">Load a .custom_argvars file created in IAR Embedded Workbench (see <strong>Tools-&gt;Configure Custom Argument Variables...</strong>)</span>
-                        </span>
-                    </p>
-                    ${makeDropdown(argVarFiles, DropdownIds.ArgVarsFile, "variable-group", argVarFiles.amount === 0, "No .custom_argvars file found")}
+                    <p>Workspace, project and configuration:</p>
+                    ${makeDropdown(workspaces, DropdownIds.Workspace, "window", workspaces.amount === 0, "No workspaces found")}
+                    ${workspaces.selected === undefined ? treeIBroken : ""}
+                    <div class="wide-container">
+                        ${workspaces.selected === undefined ? "" : treeL}
+                        ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.amount === 0, "No projects found")}
+                    </div>
+                    <div class="wide-container">
+                        <div class="wide-container${workspaces.selected !== undefined ? " configs" : ""}">
+                            ${treeL}
+                            ${makeDropdown(configs, DropdownIds.Configuration, "settings-gear", configs.amount === 0, "No configurations found")}
+                        </div>
+                    </div>
+
             </div>
         </div>
 
@@ -235,9 +252,16 @@ namespace Rendering {
     </html>`;
     }
 
-    function makeDropdown<T>(model: ListInputModel<T>, id: DropdownIds, iconName: string, isDisabled: boolean, emptyMsg: string, extraOptions?: string) {
+    function makeDropdown<T>(
+        model: ListInputModel<T>,
+        id: DropdownIds,
+        iconName: string,
+        isDisabled: boolean,
+        emptyMsg: string,
+        extraOptions?: string
+    ) {
         return /*html*/`
-            <div class="dropdown-container">
+            <div class="wide-container">
                 <span class="codicon codicon-${iconName} dropdown-icon ${isDisabled ? "disabled" : ""}"></span>
                 <vscode-dropdown id="${id}" class="dropdown" ${isDisabled ? "disabled" : ""}>
                     ${getDropdownOptions(model, emptyMsg)}

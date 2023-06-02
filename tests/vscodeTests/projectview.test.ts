@@ -39,6 +39,7 @@ suite("Test Project View", ()=>{
         projectDir = Path.join(sandboxPath, "SourceConfiguration/Project");
         libSrcDir = Path.join(sandboxPath, "SourceConfiguration/Library/src");
 
+        await VscodeTestsUtils.activateWorkspace("TestProjects");
         await VscodeTestsUtils.activateProject("SourceConfiguration");
         // Give the files view time to refresh
         await new Promise((res, _) => setTimeout(res, 1000));

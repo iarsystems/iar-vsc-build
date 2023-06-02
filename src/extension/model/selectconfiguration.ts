@@ -18,13 +18,13 @@ export class ConfigurationListModel extends ListInputModelBase<Config> {
         return this.data;
     }
 
-    label(index: number): string {
-        return this.getConfigurationAt(index).name;
+    override itemLabel(item: Config): string {
+        return item.name;
     }
-    description(index: number): string | undefined {
-        return Workbench.getTargetDisplayName(this.getConfigurationAt(index).targetId);
+    override itemDescription(item: Config): string | undefined {
+        return Workbench.getTargetDisplayName(item.targetId);
     }
-    detail(): string | undefined {
+    override itemDetail(): string | undefined {
         return undefined;
     }
 
@@ -36,13 +36,5 @@ export class ConfigurationListModel extends ListInputModelBase<Config> {
         }
 
         this.set(...configs);
-    }
-
-    private getConfigurationAt(index: number): Config {
-        const result = this.data[index];
-        if (result === undefined) {
-            throw new Error(`No configuration with index ${index}`);
-        }
-        return result;
     }
 }

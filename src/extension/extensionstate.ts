@@ -5,20 +5,24 @@
 import * as Vscode from "vscode";
 import { ToolManager } from "../iar/tools/manager";
 import { WorkbenchListModel } from "./model/selectworkbench";
-import { Settings } from "./settings";
 import { ListInputModel } from "./model/model";
 import { Project, ExtendedProject } from "../iar/project/project";
 import { ProjectListModel } from "./model/selectproject";
 import { ConfigurationListModel } from "./model/selectconfiguration";
-import { ExtendedWorkbench, ThriftWorkbench } from "../iar/extendedworkbench";
-import { AsyncObservable } from "./model/asyncobservable";
+import { ExtendedWorkbench } from "../iar/extendedworkbench";
+import { AsyncObservable } from "../utils/asyncobservable";
 import { BehaviorSubject } from "rxjs";
 import { InformationMessage, InformationMessageType } from "./ui/informationmessage";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { logger } from "iar-vsc-common/logger";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Workbench } from "iar-vsc-common/workbench";
-import { ArgVarListModel } from "./model/selectargvars";
+import { WorkspaceListModel } from "./model/selectworkspace";
+import { EwpFile } from "../iar/project/parsing/ewpfile";
+import { LoadingService } from "./loadingservice";
+import { EwWorkspace, ExtendedEwWorkspace } from "../iar/workspace/ewworkspace";
+import { OsUtils } from "iar-vsc-common/osUtils";
+import { LocalSettings } from "./settings/localsettings";
 
 /**
  * Holds most extension-wide data, such as the selected workbench, project and configuration, and loaded project etc.
@@ -29,18 +33,22 @@ import { ArgVarListModel } from "./model/selectargvars";
  */
 class State {
     private readonly toolManager: ToolManager;
+    private readonly loadingService: LoadingService;
+
+    // The projects to populate our ProjectListModel with when no workspace is selected
+    private fallbackProjects: Project[] = [];
 
     // These are values chosen by the user e.g. from a dropdown.
     readonly workbench: WorkbenchListModel;
+    readonly workspace: WorkspaceListModel;
     readonly project: ProjectListModel;
     readonly config: ConfigurationListModel;
-    readonly argVarsFile: ArgVarListModel;
 
     // If the selected project can also be loaded as an ExtendedProject (majestix-enabled), it will be provided here.
-    // Only one project can be loaded at a time. A project is loaded when:
-    // * The selected project (above) changes.
-    // * The selected workbench (above) changes.
+    // Only one project can be loaded at a time.
     readonly extendedProject: AsyncObservable<ExtendedProject>;
+    // If the selected workspace file is loaded as an ExtendedEwWorkspace, it will be provided here
+    readonly loadedWorkspace: AsyncObservable<ExtendedEwWorkspace>;
     // If the selected workbench has extended (majestix) capabilities, it will be provided here
     readonly extendedWorkbench: AsyncObservable<ExtendedWorkbench>;
     // Notifies whether a project or workbench is currently loading
@@ -49,29 +57,20 @@ class State {
     constructor(toolManager: ToolManager) {
         this.toolManager = toolManager;
 
-        this.workbench = new WorkbenchListModel(...toolManager.workbenches);
+        this.workbench = new WorkbenchListModel();
+        this.workspace = new WorkspaceListModel();
         this.project = new ProjectListModel();
         this.config = new ConfigurationListModel();
-        this.argVarsFile = new ArgVarListModel();
 
         this.extendedProject = new AsyncObservable<ExtendedProject>();
+        this.loadedWorkspace = new AsyncObservable<EwWorkspace>();
         this.extendedWorkbench = new AsyncObservable<ExtendedWorkbench>();
 
-
-        this.coupleModelToSetting(this.workbench, Settings.LocalSettingsField.Workbench, workbench => workbench?.path.toString(),
-            () => { // The default choice is to try to select a workbench that can load the project.
-                if (this.project.selected) {
-                    State.selectWorkbenchMatchingProject(this.project.selected, this.workbench);
-                }
-            });
-        this.coupleModelToSetting(this.project, Settings.LocalSettingsField.Ewp, project => project?.path,
-            () => this.project.select(0));
-        this.coupleModelToSetting(this.config, Settings.LocalSettingsField.Configuration, config => config?.name,
-            () => this.config.select(0));
-        this.coupleModelToSetting(this.argVarsFile, Settings.LocalSettingsField.ArgVarFile, argvar => argvar?.path,
-            () => this.argVarsFile.select(0));
+        this.loadingService = new LoadingService(this.extendedWorkbench, this.loadedWorkspace, this.extendedProject);
 
         this.addListeners();
+
+        this.workbench.set(...toolManager.workbenches);
     }
 
     public async dispose(): Promise<void> {
@@ -86,70 +85,48 @@ class State {
     }
 
     /**
-     * Reloads the currently selected project, if any
+     * Reloads the selected workspace (if any)
      */
-    public async reloadProject() {
-        const extProject = await this.extendedProject.getValue();
-        const extWorkbench = await this.extendedWorkbench.getValue();
-        if (extProject && extWorkbench) {
-            // Calling unloadProject invalidates the project, so we need to make sure all in-progress operations have
-            // finished first.
-            const reloadTask = extProject.finishRunningOperations().then(async() => {
-                await extWorkbench.unloadProject(extProject);
-                return this.loadSelectedProject();
-            });
-            this.extendedProject.setWithPromise(reloadTask);
-            await this.extendedProject.getValue();
-        }
+    public async reloadWorkspace() {
+        this.loading.next(true);
+        await Promise.all([
+            this.loadingService.loadWorkspace(this.workspace.selected).
+                catch(this.workspaceErrorHandler(this.workspace.selected)),
+            this.loadingService.loadProject(this.project.selected).
+                catch(this.projectErrorHandler(this.project.selected)),
+        ]);
     }
+
     /**
-     * Reloads the currently selected .custom_argvars file, if any
+     * Reloads the given project if it's currently loaded
      */
-    public async reloadArgVarsFile() {
-        const extWorkbench = await this.extendedWorkbench.getValue();
-        if (extWorkbench && this.argVarsFile.selected !== undefined) {
-            extWorkbench.loadArgVars(this.argVarsFile.selected);
-            const extProject = await this.extendedProject.getValue();
-            this.extendedProject.setWithPromise((async() => {
-                await extProject?.finishRunningOperations();
-                await extWorkbench.loadArgVars(this.argVarsFile.selected);
-                return this.loadSelectedProject();
-            })());
+    public async reloadProject(project: Project) {
+        const tasks = [
+            this.loadingService.reloadProject(project).
+                catch(this.projectErrorHandler(project)),
+        ];
+        if (this.project.selected === project) {
+            tasks.push(
+                this.loadingService.loadProject(project).
+                    catch(this.projectErrorHandler(project))
+            );
+            this.loading.next(true);
         }
+        await Promise.all(tasks);
     }
 
-    // Connects a list model to a persistable setting in the iar-vsc.json file, so that:
-    // * Changes to the model are stored in the file.
-    // * When the list contents change, tries to restore the selected value from the file.
-    // This means that selected values are remembered between sessions.
-    // When no value could be restored, `defaultChoiceStrategy` is called to make a default choice,
-    // (e.g. select some random item)
-    private coupleModelToSetting<T>(
-        model: ListInputModel<T>,
-        field: Settings.LocalSettingsField,
-        toSettingsValue: (val: T | undefined) => string | undefined,
-        defaultChoiceStrategy: () => void,
-    ) {
-        const setFromStoredValue = () => {
-            const settingsValue = Settings.getLocalSetting(field);
-            if (settingsValue) {
-                if (!model.selectWhen(item => settingsValue === toSettingsValue(item)) && model.amount > 0) {
-                    logger.debug(`Could not match item to ${field}: ${settingsValue} in iar-vsc.json`);
-                    defaultChoiceStrategy();
-                }
-            } else {
-                defaultChoiceStrategy();
-            }
-        };
-        model.addOnInvalidateHandler(() => setFromStoredValue());
-        model.addOnSelectedHandler((_, value) => {
-            if (value) {
-                Settings.setLocalSetting(field, toSettingsValue(value) ?? "");
-            }
-        });
-
-        // Do this once at startup so that previous values are loaded
-        setFromStoredValue();
+    /**
+     * Sets the projects to populate the project list with when no workspace
+     * file is selected (i.e. when no workspace files are available).
+     */
+    public setFallbackProjects(projects: Project[]) {
+        this.fallbackProjects = projects;
+        if (!this.workspace.selected) {
+            this.project.set(...projects);
+        }
+    }
+    public getFallbackProjects() {
+        return this.fallbackProjects;
     }
 
     private addListeners(): void {
@@ -158,51 +135,45 @@ class State {
         });
 
         this.addWorkbenchModelListeners();
+        this.addWorkspaceModelListeners();
         this.addProjectModelListeners();
         this.addConfigurationModelListeners();
-        this.addArgVarsFileListeners();
     }
 
     private addWorkbenchModelListeners(): void {
-        // Try to load thrift services for the new workbench, and load the current argvars and project with the new services.
-        this.workbench.addOnSelectedHandler(async workbench => {
+        this.workbench.addOnSelectedHandler(() => {
+            if (this.workbench.selected) {
+                LocalSettings.setSelectedWorkbench(this.workbench.selected);
+            }
+        });
+        this.workbench.addOnInvalidateHandler(() => {
+            const storedWbPath = LocalSettings.getSelectedWorkbench();
+            State.selectFromSettingsValue(
+                this.workbench,
+                storedWbPath,
+                (wb, wbPath) => OsUtils.pathsEqual(wb.path, wbPath),
+                () => {
+                    if (this.project.selected) {
+                        State.selectWorkbenchMatchingProject(this.project.selected, this.workbench);
+                    }
+                }
+            );
+        });
+
+        // Try to load thrift services for the new workbench, and load the current workspace/project with the new services.
+        this.workbench.addOnSelectedHandler(workbench => {
             logger.debug(`Toolchain: selected '${this.workbench.selected?.name}' (index ${this.workbench.selectedIndex})`);
-            const prevExtWb = this.extendedWorkbench.promise;
             const selectedWb = workbench.selected;
 
-            if (selectedWb) {
-                this.extendedWorkbench.setWithPromise((async() => {
-                    if (ThriftWorkbench.hasThriftSupport(selectedWb)) {
-                        logger.debug(`Loading thrift workbench '${selectedWb.name}'...`);
-                        this.loading.next(true);
-                        try {
-                            return await ThriftWorkbench.from(selectedWb);
-                        } catch (e) {
-                            if (typeof e === "string" || e instanceof Error) {
-                                Vscode.window.showErrorMessage(`Error initiating IAR toolchain backend. Some functionality may be unavailable (${e.toString()}).`);
-                                logger.debug(`Error loading thrift workbench '${selectedWb.name}': ${e.toString()}`);
-                            }
-                            return undefined;
-                        }
-                    } else {
-                        return undefined;
-                    }
-                })());
-                // Wait for workbench to finish loading
-                await this.extendedWorkbench.getValue();
-            } else {
-                this.extendedWorkbench.setValue(undefined);
+            this.loadingService.loadWorkbench(selectedWb).
+                catch(this.workbenchErrorHandler(selectedWb));
+            if (this.workspace.selected) {
+                this.loadingService.loadWorkspace(this.workspace.selected).
+                    catch(this.workspaceErrorHandler(this.workspace.selected));
             }
-
-            const extendedProj = await this.extendedProject.getValue();
-            const loadingTask = (async() => {
-                extendedProj?.finishRunningOperations();
-                (await this.extendedWorkbench.getValue())?.loadArgVars(this.argVarsFile.selected);
-                return this.loadSelectedProject();
-            })();
-            this.extendedProject.setWithPromise(loadingTask);
-
-            prevExtWb.then(extWb => extWb?.dispose());
+            this.loadingService.loadProject(this.project.selected).
+                catch(this.projectErrorHandler(this.project.selected));
+            this.loading.next(true);
         });
 
         // If workbench crashes, fall back to non-extended (non-thrift) functionality.
@@ -212,26 +183,26 @@ class State {
                 exWb.onCrash(exitCode => {
                     Vscode.window.showErrorMessage(`The IAR project manager exited unexpectedly (code ${exitCode}). Try reloading the window or upgrading the project from IAR Embedded Workbench.`);
                     logger.error(`Thrift workbench '${exWb.workbench.name}' crashed (code ${exitCode})`);
-                    this.extendedWorkbench.setValue(undefined);
-                    this.extendedProject.setWithPromise(this.loadSelectedProject());
+                    this.loadingService.loadWorkbench(undefined);
                 });
             }
         });
 
-        // Early versions of the thrift project manager cannot load .custom_argvars files. Warn the user if relevant.
+        // Early versions of the thrift project manager cannot load workspace files. Warn the user if relevant.
         this.extendedWorkbench.onValueDidChange(exWb => {
             if (exWb) {
-                if (this.argVarsFile.selected && !WorkbenchFeatures.supportsFeature(exWb.workbench, WorkbenchFeatures.PMWorkspaces)) {
-                    let message = "The selected IAR toolchain does not fully support loading .custom_argvars files. You may experience some unexpected behaviour.";
+                if (this.workspace.selected && !WorkbenchFeatures.supportsFeature(exWb.workbench, WorkbenchFeatures.PMWorkspaces)) {
+                    let message = "The selected IAR toolchain does not fully support loading workspace files. You may experience some unexpected behaviour.";
                     const minVersions = WorkbenchFeatures.getMinProductVersions(exWb.workbench, WorkbenchFeatures.PMWorkspaces);
                     if (minVersions.length > 0) {
                         message += ` To fix this, please upgrade to ${minVersions.join(", ")} or later.`;
                     }
 
-                    InformationMessage.show("cannotLoadCustomArgvars", message, InformationMessageType.Warning);
+                    InformationMessage.show("cannotLoadWorkspaces", message, InformationMessageType.Warning);
                 }
             }
         });
+
 
         this.workbench.addOnSelectedHandler(model => {
             if (model.selected !== undefined && !WorkbenchFeatures.supportsFeature(model.selected, WorkbenchFeatures.VSCodeIntegration)) {
@@ -244,7 +215,61 @@ class State {
         });
     }
 
+    private addWorkspaceModelListeners(): void {
+        this.workspace.addOnSelectedHandler(() => {
+            if (this.workspace.selected) {
+                LocalSettings.setSelectedWorkspace(this.workspace.selected);
+            }
+        });
+        this.workspace.addOnInvalidateHandler(() => {
+            const storedWsPath = LocalSettings.getSelectedWorkspace();
+            State.selectFromSettingsValue(
+                this.workspace,
+                storedWsPath,
+                (ws, wsPath) => OsUtils.pathsEqual(ws.path, wsPath),
+                () => this.workspace.select(0),
+            );
+        });
+
+        this.workspace.addOnSelectedHandler(() => {
+            logger.debug(`Workspace: selected '${this.workspace.selected?.name}' (index ${this.workspace.selectedIndex})`);
+            this.loadingService.loadWorkspace(this.workspace.selected).
+                catch(this.workspaceErrorHandler(this.workspace.selected));
+            if (this.workspace.selected) {
+                const projects: Project[] = [];
+                this.workspace.selected.projects.forEach(projFile => {
+                    try {
+                        projects.push(new EwpFile(projFile));
+                    } catch (e) {
+                        logger.error(`Could not parse project file '${projFile}': ${e}`);
+                        Vscode.window.showErrorMessage(
+                            `Could not parse project file '${projFile}': ${e}`
+                        );
+                    }
+                });
+                this.project.set(...projects);
+            } else {
+                this.project.set(...this.fallbackProjects);
+            }
+        });
+    }
+
     private addProjectModelListeners(): void {
+        this.project.addOnSelectedHandler(() => {
+            if (this.project.selected) {
+                LocalSettings.setSelectedProject(this.workspace.selected, this.project.selected);
+            }
+        });
+        this.project.addOnInvalidateHandler(() => {
+            const storedProjPath = LocalSettings.getSelectedProject(this.workspace.selected);
+            State.selectFromSettingsValue(
+                this.project,
+                storedProjPath,
+                (proj, projPath) => OsUtils.pathsEqual(proj.path, projPath),
+                () => this.project.select(0),
+            );
+        });
+
         this.project.addOnSelectedHandler(() => {
             logger.debug(`Project: selected '${this.project.selected?.name}' (index ${this.project.selectedIndex})`);
             if (this.project.selected) {
@@ -259,7 +284,9 @@ class State {
                     return;
                 }
             }
-            this.extendedProject.setWithPromise(this.loadSelectedProject());
+            this.loadingService.loadProject(this.project.selected).
+                catch(this.projectErrorHandler(this.project.selected));
+            this.loading.next(true);
         });
 
         this.extendedProject.onValueDidChange(project => {
@@ -269,6 +296,27 @@ class State {
     }
 
     private addConfigurationModelListeners(): void {
+        this.config.addOnSelectedHandler(() => {
+            if (this.project.selected && this.config.selected) {
+                LocalSettings.setSelectedConfiguration(
+                    this.workspace.selected,
+                    this.project.selected,
+                    this.config.selected);
+            }
+        });
+        this.config.addOnInvalidateHandler(() => {
+            if (this.project.selected) {
+                const storedConfigName = LocalSettings.getSelectedConfiguration(
+                    this.workspace.selected, this.project.selected);
+                State.selectFromSettingsValue(
+                    this.config,
+                    storedConfigName,
+                    (config, configName) => config.name === configName,
+                    () => this.config.select(0),
+                );
+            }
+        });
+
         this.config.addOnSelectedHandler(() => {
             logger.debug(`Configuration: selected '${this.config.selected?.name}' (index ${this.config.selectedIndex})`);
             // Check that the configuration target is supported by the selected workbench.
@@ -282,49 +330,18 @@ class State {
         });
     }
 
-    private addArgVarsFileListeners(): void {
-        this.argVarsFile.addOnSelectedHandler(async() => {
-            logger.debug(`ArgVars: selected '${this.argVarsFile.selected?.name}' (index ${this.argVarsFile.selectedIndex})`);
-            const eWb = await this.extendedWorkbench.getValue();
-            if (eWb === undefined) {
-                return;
-            }
-            const ePr = await this.extendedProject.getValue();
-            this.extendedProject.setWithPromise((async() => {
-                await ePr?.finishRunningOperations();
-                await eWb.loadArgVars(this.argVarsFile.selected);
-                return this.loadSelectedProject();
-            })());
-        });
-    }
-
-    // Loads a project using the appropriate method depending on whether an extended workbench
-    // is available. Any previously loaded project is unloaded.
-    // Note that this function itself won't change {@link this.extendedProject}; the caller should set it using
-    // the promise returned from this function.
-    private async loadSelectedProject(): Promise<ExtendedProject | undefined> {
-        const selectedProject = this.project.selected;
-
-        if (selectedProject) {
-            const extendedWorkbench = await this.extendedWorkbench.getValue();
-            if (this.workbench.selected && extendedWorkbench) {
-                this.loading.next(true);
-                logger.debug(`Loading project '${selectedProject.name}' using thrift...`);
-                try {
-                    return extendedWorkbench.loadProject(selectedProject);
-                } catch (e) {
-                    if (typeof e === "string" || e instanceof Error) {
-                        Vscode.window.showErrorMessage(`IAR: Error while loading the project. Some functionality may be unavailable (${e.toString()}).`);
-                        logger.error(`Error loading project '${selectedProject.name}': ${e.toString()}`);
-                    }
-                    return undefined;
-                }
-            } else {
-                logger.debug(`Not loading project '${selectedProject.name}' using thrift, no appropriate workbench selected...`);
-                return undefined;
+    private static selectFromSettingsValue<T>(
+        model: ListInputModel<T>,
+        value: string | undefined,
+        comparator: (item: T, storedValue: string) => boolean,
+        defaultChoiceStrategy: () => void
+    ) {
+        if (value) {
+            if (!model.selectWhen(item => comparator(item, value)) && model.amount > 0) {
+                defaultChoiceStrategy();
             }
         } else {
-            return undefined;
+            defaultChoiceStrategy();
         }
     }
 
@@ -371,6 +388,31 @@ class State {
             );
         }
         return true;
+    }
+
+    private workbenchErrorHandler(workbench: Workbench | undefined) {
+        return (e: unknown) => {
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage(`Error initiating IAR toolchain backend. Some functionality may be unavailable (${e.toString()}).`);
+                logger.debug(`Error loading thrift workbench '${workbench?.name}': ${e.toString()}`);
+            }
+        };
+    }
+    private workspaceErrorHandler(workspace: EwWorkspace | undefined) {
+        return (e: unknown) => {
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage(`IAR: Error while loading the workspace. Some functionality may be unavailable (${e.toString()}).`);
+                logger.error(`Error loading workspace '${workspace?.name}': ${e.toString()}`);
+            }
+        };
+    }
+    private projectErrorHandler(project: Project | undefined) {
+        return (e: unknown) => {
+            if (typeof e === "string" || e instanceof Error) {
+                Vscode.window.showErrorMessage(`IAR: Error while loading the project. Some functionality may be unavailable (${e.toString()}).`);
+                logger.error(`Error loading project '${project?.name}': ${e.toString()}`);
+            }
+        };
     }
 }
 

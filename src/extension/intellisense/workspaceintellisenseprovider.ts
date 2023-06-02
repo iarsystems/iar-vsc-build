@@ -13,14 +13,13 @@ import { Config } from "../../iar/project/config";
 import { createHash } from "crypto";
 import { tmpdir } from "os";
 import { FsUtils } from "../../utils/fs";
-import { Settings } from "../settings";
+import { ExtensionSettings } from "../settings/extensionsettings";
 import { BackupUtils, LanguageUtils, ListUtils, ProcessUtils } from "../../utils/utils";
 import { IncludePath, IncludePathImpl } from "./data/includepath";
 import { Define } from "./data/define";
 import { PreIncludePath, StringPreIncludePath } from "./data/preincludepath";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { Mutex } from "async-mutex";
-import { ArgVarsFile } from "../../iar/project/argvarfile";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 
 /**
@@ -42,7 +41,7 @@ export class WorkspaceIntellisenseProvider {
      * @returns
      */
     static async loadProjects(
-        projects: ReadonlyArray<Project>, workbench: Workbench, config: string, argVarFile?: ArgVarsFile, workspaceFolder?: string, outputChannel?: vscode.OutputChannel
+        projects: ReadonlyArray<Project>, workbench: Workbench, config: string, argVarFile?: string, workspaceFolder?: string, outputChannel?: vscode.OutputChannel
     ): Promise<WorkspaceIntellisenseProvider> {
         try {
             const projectCompDbs: Map<Project, ProjectCompilationDatabase> = new Map();
@@ -80,7 +79,7 @@ export class WorkspaceIntellisenseProvider {
     private constructor(
         private readonly projectCompDbs: Map<Project, ProjectCompilationDatabase>,
         private readonly workbench: Workbench,
-        private readonly argvarFile?: ArgVarsFile,
+        private readonly argvarFile?: string,
         private readonly workspaceFolder?: string,
         private readonly outputChannel?: vscode.OutputChannel,
     ) {
@@ -170,7 +169,7 @@ class ProjectCompilationDatabase {
      * @param outputChannel The channel to display output in
      */
     static async loadFromProject(
-        project: Project, config: Config, workbench: Workbench, argVarFile?: ArgVarsFile, workspaceFolder?: string, outputChannel?: vscode.OutputChannel
+        project: Project, config: Config, workbench: Workbench, argVarFile?: string, workspaceFolder?: string, outputChannel?: vscode.OutputChannel
     ): Promise<ProjectCompilationDatabase> {
         try {
             outputChannel?.appendLine(`Preparing intellisense information for '${project.name}'.`);
@@ -248,7 +247,7 @@ namespace ConfigGenerator {
      * Uses the iarbuild -jsondb option to find compilation flags for each file, then calls {@link generateFromCompilerArgs}.
      */
     export async function generateArgsForFilifjonkan(
-        project: Project, config: Config, workbench: Workbench, argVarFile?: ArgVarsFile, workspaceFolder?: string, output?: vscode.OutputChannel
+        project: Project, config: Config, workbench: Workbench, argVarFile?: string, workspaceFolder?: string, output?: vscode.OutputChannel
     ): Promise<Map<string, string[]>> {
         // Avoid filename collisions between different vs code windows
         const jsonPath = Path.join(tmpdir(), `iar-jsondb${createHash("md5").update(project.path.toString()).digest("hex")}.json`);
@@ -261,9 +260,9 @@ namespace ConfigGenerator {
             }
             // Have iarbuild create the json compilation database
             output?.appendLine("Generating compilation database...");
-            let extraArgs = Settings.getExtraBuildArguments();
+            let extraArgs = ExtensionSettings.getExtraBuildArguments();
             if (argVarFile) {
-                extraArgs = [...extraArgs, "-varfile", argVarFile.path];
+                extraArgs = [...extraArgs, "-varfile", argVarFile];
             }
 
             // VSC-192 Invoke iarbuild and clean up any backups created
@@ -305,11 +304,11 @@ namespace ConfigGenerator {
      * Uses iarbuild -dryrun -log all, parsing the output to find compilation flags for each file, then calls {@link generateFromCompilerArgs}
      */
     export function generateArgsForBeforeFilifjonkan(
-        project: Project, config: Config, workbench: Workbench, argVarFile?: ArgVarsFile, workspaceFolder?: string, output?: vscode.OutputChannel
+        project: Project, config: Config, workbench: Workbench, argVarFile?: string, workspaceFolder?: string, output?: vscode.OutputChannel
     ): Promise<Map<string, string[]>> {
-        let extraArgs = Settings.getExtraBuildArguments();
+        let extraArgs = ExtensionSettings.getExtraBuildArguments();
         if (argVarFile) {
-            extraArgs = [...extraArgs, "-varfile", argVarFile.path];
+            extraArgs = [...extraArgs, "-varfile", argVarFile];
         }
 
         // VSC-386 We use a mutex here to throttle the CPU usage

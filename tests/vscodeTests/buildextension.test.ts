@@ -8,7 +8,7 @@ import {ExtensionState} from "../../src/extension/extensionstate";
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { Settings } from "../../src/extension/settings";
+import { ExtensionSettings } from "../../src/extension/settings/extensionsettings";
 import { TestUtils } from "iar-vsc-common/testutils/testUtils";
 import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 import { VscodeTestsUtils } from "./utils";
@@ -47,7 +47,10 @@ namespace Utils {
         // Generate the ewp-file to work with.
         TestUtils.patchEwpFile(target, ewpFile, outputFile);
         // Add the ewp-file to the list of project.
-        ExtensionState.getInstance().project.addProject(new EwpFile(outputFile));
+        ExtensionState.getInstance().project.set(
+            ...ExtensionState.getInstance().project.projects,
+            new EwpFile(outputFile)
+        );
 
         // Remove the unpatched ewp from the sandbox
         fs.unlinkSync(path.join(outputFolder, path.basename(ewpFile)));
@@ -69,23 +72,16 @@ suite("Test build extension", ()=>{
         sandbox = VscodeTestsSetup.sandbox!;
         // Remove any build results from previous runs
         const nodes = await readdir(sandbox.path);
-        return Promise.all(
+        await Promise.all(
             nodes.filter(node => node.match(/^Test_\w+_\d+/)).map(node => {
                 return rm(path.join(sandbox.path, node), {recursive: true, force: true});
             })
         );
+        await VscodeTestsUtils.activateWorkspace("TestProjects");
     });
 
     setup(function() {
         console.log("\n==========================================================" + this.currentTest!.title + "==========================================================\n");
-    });
-
-    test("Load projects in directory", ()=>{
-        const allProjects = ExtensionState.getInstance().project.projects;
-        assert(allProjects.some(config => config.name === "ArgVars"));
-        assert(allProjects.some(config => config.name === "BasicDebugging"));
-        assert(allProjects.some(config => config.name === "C-STATProject"));
-        assert(allProjects.some(config => config.name === "SourceConfiguration"));
     });
 
     test("No backups in project list", ()=>{
@@ -118,7 +114,13 @@ suite("Test build extension", ()=>{
 
     test("Build and clean project with all listed EW:s", async function() {
         this.timeout(70000);
-        const ewpFile = path.join(path.join(Utils.EXTENSION_ROOT, "tests/vscodeTests/BasicProject", "BasicProject.ewp"));
+        let ewpFile: string;
+        if (TestConfiguration.getConfiguration().target === "riscv") {
+            // See RISCV-3951 for more info
+            ewpFile = path.join(path.join(Utils.EXTENSION_ROOT, "tests/vscodeTests/BasicProject_riscv", "BasicProject.ewp"));
+        } else {
+            ewpFile = path.join(path.join(Utils.EXTENSION_ROOT, "tests/vscodeTests/BasicProject", "BasicProject.ewp"));
+        }
         let id = 1;
         // Generate a testproject to build using the generic template
         const testEwp = Utils.setupProject(id++, TestConfiguration.getConfiguration().target.toUpperCase(), ewpFile, sandbox);
@@ -141,13 +143,13 @@ suite("Test build extension", ()=>{
         await Utils.assertFileNotExists(exeFile);
 
         // Finally, check that no backup files were created (VSC-192)
-        const backups = fs.readdirSync(path.dirname(testEwp.folder)).filter(entry => entry.match(/Backup \(\d+\) of /));
+        const backups = fs.readdirSync(path.dirname(testEwp.folder)).filter(entry => entry.match(/Backup (\(\d+\) )?of /));
         assert.strictEqual(backups.length, 0, "The following backups were created: " + backups.join(", "));
     });
 
     test("Check that all EW's are listed", ()=>{
         // Get the list of configured workbenches.
-        const configuredEws: string[] | undefined = vscode.workspace.getConfiguration("iar-build").get<string[]>(Settings.ExtensionSettingsField.IarInstallDirectories);
+        const configuredEws: string[] | undefined = vscode.workspace.getConfiguration("iar-build").get<string[]>(ExtensionSettings.ExtensionSettingsField.IarInstallDirectories);
         if (!configuredEws) {
             fail("No listed workbenches found");
         }
@@ -162,17 +164,12 @@ suite("Test build extension", ()=>{
         }
     });
 
-    test("Check that creating/deleting/modifying projects affects extension state", async function() {
+    test("Check that modifying projects affects extension state", async function() {
         this.timeout(40000);
-        // Add a project file, make sure it is added to the extension
-        const projectPath = path.join(sandboxPath, "newProject.ewp");
-        fs.copyFileSync(path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp"), projectPath);
-        // Give vs code time to react
-        await new Promise((p, _) => setTimeout(p, 1000));
-        assert(ExtensionState.getInstance().project.projects.some(project => project.name === "newProject"), "The created project was not added to the project list");
-        await VscodeTestsUtils.activateProject("newProject");
+        await VscodeTestsUtils.activateProject("BasicDebugging");
 
         // Change a configuration name and a file name, make sure the extension reacts
+        const projectPath = path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp");
         let ewpContents = fs.readFileSync(projectPath).toString();
         ewpContents = ewpContents.replace("<name>Release</name>", "<name>TheNewConfig</name>");
         ewpContents = ewpContents.replace("Fibonacci.c", "TheNewFile.c");
@@ -186,11 +183,6 @@ suite("Test build extension", ()=>{
             assert((await extProject?.getRootNode())?.children.some(node => node.name === "TheNewFile.c"));
         }
 
-        // Remove the project file, make sure it is removed from the extension
-        fs.unlinkSync(projectPath);
-        // Give vs code time to react
-        await new Promise((p, _) => setTimeout(p, 1000));
-        assert(!ExtensionState.getInstance().project.projects.some(project => project.name === "newProject"), "The created project was not removed from the project list");
     });
 
     test("Check that build task failures are communicated to VS Code", async()=>{

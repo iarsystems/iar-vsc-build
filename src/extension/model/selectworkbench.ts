@@ -16,21 +16,13 @@ export class WorkbenchListModel extends ListInputModelBase<Workbench> {
         return this.data;
     }
 
-    label(index: number): string {
-        return this.getWorkbenchAt(index).name;
+    override itemLabel(item: Workbench): string {
+        return item.name;
     }
-    description(_index: number): string | undefined {
+    override itemDescription(): string | undefined {
         return undefined;
     }
-    detail(index: number): string | undefined {
-        return this.getWorkbenchAt(index).path.toString();
-    }
-
-    private getWorkbenchAt(index: number): Workbench {
-        const result = this.data[index];
-        if (result === undefined) {
-            throw new Error(`No workbench with index ${index}`);
-        }
-        return result;
+    override itemDetail(item: Workbench): string | undefined {
+        return item.path;
     }
 }

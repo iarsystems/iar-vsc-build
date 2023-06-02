@@ -6,7 +6,7 @@ import * as Assert from "assert";
 import * as path from "path";
 import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
 
-const TEST_PROJECT_FILE = path.resolve(__dirname, "../../../tests/unitTests/ewpFiles/test_project.ewp");
+const TEST_PROJECT_FILE = path.resolve(__dirname, "../../../tests/unitTests/assets/test_project.ewp");
 
 suite("Test project parser", () => {
     test("Load ewp file", () => {

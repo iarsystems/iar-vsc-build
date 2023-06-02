@@ -16,33 +16,13 @@ export class ProjectListModel extends ListInputModelBase<Project> {
         return this.data;
     }
 
-    label(index: number): string {
-        return this.getProjectAt(index).name;
+    override itemLabel(item: Project): string {
+        return item.name;
     }
-    description(_index: number): string | undefined {
+    override itemDescription(_item: Project): string | undefined {
         return undefined;
     }
-    detail(index: number): string | undefined {
-        return this.getProjectAt(index).path.toString();
-    }
-
-    addProject(project: Project) {
-        this.data = this.data.concat([project]);
-        this.fireInvalidateEvent();
-    }
-    removeProject(project: Project) {
-        const index = this.data.indexOf(project);
-        if (index !== -1) {
-            this.data.splice(index, 1);
-            this.fireInvalidateEvent();
-        }
-    }
-
-    private getProjectAt(index: number): Project {
-        const result = this.data[index];
-        if (result === undefined) {
-            throw new Error(`No project with index ${index}`);
-        }
-        return result;
+    override itemDetail(item: Project): string | undefined {
+        return item.path;
     }
 }
