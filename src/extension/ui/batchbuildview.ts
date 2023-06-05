@@ -78,7 +78,6 @@ export class TreeBatchBuildView {
             if (extWorkbench) {
                 oldWorkbench = !WorkbenchFeatures.supportsFeature(extWorkbench.workbench, WorkbenchFeatures.ThriftPM);
             }
-            isLoading = true;
             updateMessage();
         });
         this.provider.isEmpty.subscribe(_isEmpty => {
