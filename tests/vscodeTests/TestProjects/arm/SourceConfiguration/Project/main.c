@@ -4,13 +4,6 @@
 #include "intrinsics.h"
 #endif
 
-typedef struct {
-    union _u {
-    // union {
-        int a;
-    };
-} AnonymousMember;
-
 // VSC-353 Test that gcc-style attributes are ignored
 int deprecated __attribute__ ((deprecated));
 
@@ -22,9 +15,8 @@ void main()
 
     init_leds();
 
-    // VSC-290 (#1) test that ms-style unnamed members are accepted by intellisense
-    AnonymousMember str;
-    str.a = 1;
+    // VSC-358 Test that inline assembly is accepted
+    __asm("nop");
 
     // VSC-353 Test that the __section_begin intrinsic returns void*
     void* stack_start = __section_begin("CSTACK");
