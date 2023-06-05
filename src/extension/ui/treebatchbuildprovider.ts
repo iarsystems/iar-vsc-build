@@ -138,8 +138,8 @@ export class TreeBatchBuildProvider implements Vscode.TreeDataProvider<BatchBuil
             target.parent.children.splice(itemData[0].index, 1);
         }
 
-        // Finish of by forcing an update of the tree content.
-        this.update();
+        // Save the new order
+        this.syncWithBackend();
     }
 
     public async setWorkspace(workspace: EwWorkspace | undefined) {
