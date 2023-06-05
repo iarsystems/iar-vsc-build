@@ -7,6 +7,7 @@ import * as Fs from "fs";
 import { XmlNode } from "../../utils/XmlNode";
 import { EwWorkspaceBase } from "./ewworkspace";
 import { logger } from "iar-vsc-common/logger";
+import { OsUtils } from "iar-vsc-common/osUtils";
 
 export class EwwFile extends EwWorkspaceBase {
     readonly path: string;
@@ -27,10 +28,14 @@ export class EwwFile extends EwWorkspaceBase {
 
         this.projects = [];
         root.getAllChildsByName("project").forEach(project => {
-            const projectPath = project.getAllChildsByName("path")[0]?.text;
+            let projectPath = project.getAllChildsByName("path")[0]?.text;
             if (!projectPath) {
                 logger.warn(`Missing path for project: ${project.text}`);
             } else {
+                // VSC-395 Allow opening workspaces created on windows, on linux
+                if (OsUtils.detectOsType() === OsUtils.OsType.Linux) {
+                    projectPath = projectPath.replace(/\\/g, "/");
+                }
                 const expandedPath = projectPath.replace("$WS_DIR$", wsDir);
                 this.projects.push(expandedPath);
             }
