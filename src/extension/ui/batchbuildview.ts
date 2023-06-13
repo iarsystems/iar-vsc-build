@@ -55,7 +55,7 @@ export class TreeBatchBuildView {
             if (isLoading) {
                 this.view.message = "Loading...";
             } else if (!isLoading && (!saveAvailable || oldWorkbench)) {
-                this.view.message = (oldWorkbench? "Selected toolchain does not support modifying workspaces" : "No workspace specified") + ": Batches are not persisted between sessions";
+                this.view.message = (oldWorkbench? "Selected toolchain does not support modifying workspaces" : "No workspace specified") + ": Batches are not persistent between sessions";
             } else {
                 this.view.message = undefined;
             }
