@@ -6,7 +6,7 @@ Error messages are displayed in the Terminal panel underneath the editor.
 
 ## Table of contents
 
-* [Selecting the Embedded Workbench project](#SelectingEWProject)
+* [Configuring the Build extension](#ConfigExtension)
 
 * [Making IAR Build settings](#iarbuildsettings)
 
@@ -20,19 +20,34 @@ Error messages are displayed in the Terminal panel underneath the editor.
 
 * [IAR language extensions](#IARLanguageExtensions)
 
-<h2 id ="SelectingEWProject">Selecting the Embedded Workbench project</h2>
+<h2 id ="ConfigExtension">Configuring the Build extension</h2>
 
-To select the Embedded Workbench project to work with, choose **File>Open Folder** and navigate to the project directory where the project is located and select that folder.
+To use the IAR Build extension, you must make some initial configuration settings.
+
+### Selecting working directory, IAR toolchain, and workspace
+To select the Embedded Workbench workspace and project to work with, choose **File>Open Folder** and navigate to your working directory and select that folder.
 
 * To select the IAR Embedded Workbench or IAR Build Tools installation, choose it from the dropdown menu under **IAR Embedded Workbench or IAR Build Tools installation**.
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![Side bar](images/VSCode_IARBuildSidebar_02.png)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![Side bar](images/VSCode_IARBuildSidebar_03.png)
 
-* To select the project and build configuration, choose it from the dropdown menu under **Active Project and Configuration**.
+* To select the workspace, project, and build configuration, choose them from the dropdown menus under **Workspace, project and configuration**. If no workspace is selected, the Project dropdown menu contains all projects (`.ewp`) found in the active directory.
 
-* IAR Embedded Workbench supports global and workspace-local custom argument variables. To select a file with custom argument variables, choose it from the dropdown menu under **Custom Argument Variables File**. For more information, see the *IAR Embedded Workbench IDE Project Management and Building Guide* (PDF).
+* IAR Embedded Workbench supports global and workspace-local custom argument variables. The argument variables that have been defined in the selected workspace (using the IAR Embedded Workbench IDE) are available to the IAR Build extension. For more information, see the *IAR Embedded Workbench IDE Project Management and Building Guide* (PDF).
 
-* To view the source files of the project, select the IAR Build icon in the Activity Bar. The source files are displayed in the **Files** view of the Side Bar.
+### Batch build
+The selected workspace is used for loading and saving batch builds. This concept is described in the *IAR Embedded Workbench IDE Project Management and Building Guide* (PDF).
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![Side bar](images/VSCode_BatchBuildView_01.png)
+
+To add a batch, click the plus icon. To remove or edit it, right-click it. Drag the batches to reorder them. The icons shown when you hover over a batch will Build, Clean, or Rebuild the batch.
+
+All changes you make are saved in the workspace file (`.eww`), provided your version of IAR Embedded Workbench is recent enough. If the version number of **IAR Embedded Workbench shared components** is 9.1.1. or later (in the IDE, choose **Help>About>Product Info** to see this information), your version of IAR Embedded Workbench is recent enough.
+
+### Viewing the source files
+To view the source files of the project, select the IAR Build icon in the Activity Bar. The source files are displayed in the **Files** view of the Side Bar.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![Side bar](images/VSCode_FilesView_01.png)
 
 ### Adding IAR Embedded Workbench/Build Tools installations
 

@@ -25,7 +25,7 @@ To build or analyze the selected project configuration, go to `Terminal->Run Tas
 To make this easier, you may wish to [Add a default build task](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#setting-a-default-iar-build-task).
 
 ## Documentation
-* [Selecting the Embedded Workbench project](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#SelectingEWProject)
+* [Configuring the Build extension](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#ConfigExtension)
 
 * [Making IAR Build settings](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#iarbuildsettings)
 
