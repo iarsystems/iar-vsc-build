@@ -207,7 +207,7 @@ async function getCompilerForConfig(config: Config, workbench: Workbench): Promi
     const compilerPaths = await FsUtils.filteredListDirectory(toolchainBinDir, filter);
     if (compilerPaths[0] !== undefined) {
         if (compilerPaths.length > 1) {
-            logger.error(`Found more than one compiler candidate for ${config.targetId} in ${workbench}.`);
+            logger.error(`Found more than one compiler candidate for ${config.targetId} in ${workbench.name}.`);
         }
         return compilerPaths[0].toString();
     }
