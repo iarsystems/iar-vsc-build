@@ -62,10 +62,8 @@ export class TreeBatchBuildView {
         };
 
         loading.subscribe(load => {
-            if (load) {
-                isLoading = load;
-                updateMessage();
-            }
+            isLoading = load;
+            updateMessage();
         });
         workspaceModel.onValueDidChange(workspace => {
             saveAvailable = workspace !== undefined;
