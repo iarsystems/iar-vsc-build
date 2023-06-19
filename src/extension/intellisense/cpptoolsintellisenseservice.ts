@@ -44,6 +44,8 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
     private readonly output: Vscode.OutputChannel = Vscode.window.createOutputChannel("IAR Config Generator");
     private readonly intellisenseInfoProvider: IntellisenseInfoService;
 
+    private hasNotifiedReady = false;
+
     /**
      * Unregister and dispose of this provider.
      * Use this instead of calling {@link dispose}; calling this will indirectly call {@link dispose}.
@@ -55,9 +57,12 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
     private constructor(private readonly api: CppToolsApi) {
         this.intellisenseInfoProvider = new IntellisenseInfoService(this.output);
         this.api.registerCustomConfigurationProvider(this);
-        this.api.notifyReady(this);
         this.intellisenseInfoProvider.onIntellisenseInfoChanged(() => {
             logger.debug("Intellisense config changed. Notifying cpptools.");
+            if (!this.hasNotifiedReady) {
+                this.api.notifyReady(this);
+                this.hasNotifiedReady = true;
+            }
             this.api.didChangeCustomConfiguration(this);
             this.api.didChangeCustomBrowseConfiguration(this);
         });

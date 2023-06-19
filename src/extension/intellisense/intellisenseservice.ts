@@ -72,11 +72,6 @@ export class IntellisenseInfoService {
         ExtensionSettings.observeSetting(ExtensionSettings.ExtensionSettingsField.Defines, () => {
             this.notifyIntellisenseInfoChanged();
         });
-
-        Promise.all([
-            this.generateWorkspaceIntellisenseInfo(),
-            this.generateKeywordDefines(),
-        ]).then(() => this.notifyIntellisenseInfoChanged());
     }
 
     public onIntellisenseInfoChanged(listener: () => void) {
