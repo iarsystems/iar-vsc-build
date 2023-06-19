@@ -8,6 +8,9 @@ import { BuildTaskDefinition } from "./buildtasks";
 import { BackupUtils, ProcessUtils } from "../../utils/utils";
 import { spawn } from "child_process";
 import { FileStylizer, stylizeBold, StylizedTerminal, stylizeError, stylizePunctuation, stylizeWarning } from "./stylizedterminal";
+import * as Path from "path";
+import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
+import { Workbench } from "iar-vsc-common/workbench";
 
 /**
  * Executes a build task using iarbuild, e.g. to build or clean a project. We have to use a custom execution
@@ -60,8 +63,21 @@ export class BuildTaskExecution extends StylizedTerminal {
         for (const context of contexts) {
             currentContext++;
 
+            // VSC-409 Match the drive letter casing for the project path to
+            // what the target EW uses internally, since this affects the paths
+            // used by the build engine in some EW versions.
+            let projectPath = context.project;
+            if (Path.isAbsolute(projectPath) && projectPath[0] && /[a-z]/.test(projectPath[0])) {
+                const workbench = Workbench.create(Path.join(builder, "../.."));
+                if (workbench && WorkbenchFeatures.supportsFeature(workbench, WorkbenchFeatures.UpperCaseDriveLetters)) {
+                    projectPath = projectPath[0].toUpperCase() + projectPath.substring(1);
+                } else {
+                    projectPath = projectPath[0].toLowerCase() + projectPath.substring(1);
+                }
+            }
+
             const args = [
-                context.project,
+                projectPath,
                 iarbuildCommand,
                 context.config,
                 "-log",
