@@ -173,6 +173,7 @@ export class TreeBatchBuildProvider implements Vscode.TreeDataProvider<BatchBuil
         if (element.type === NodeType.BatchBuildItem) {
             item.iconPath = { light: this.batchLight, dark: this.batchDark };
             item.contextValue = "batchitem";
+            item.tooltip = item.label + " - Right click to edit";
         }
         if (element.type === NodeType.BuildItem) {
             item.iconPath = undefined;
