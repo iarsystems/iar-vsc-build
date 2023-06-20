@@ -4,7 +4,6 @@
 
 import * as Vscode from "vscode";
 import { CustomConfigurationProvider, getCppToolsApi, Version, CppToolsApi, SourceFileConfiguration, SourceFileConfigurationItem, WorkspaceBrowseConfiguration } from "vscode-cpptools";
-import { CancellationToken } from "vscode-jsonrpc";
 import { LanguageUtils } from "../../utils/utils";
 import { Define } from "./data/define";
 import { logger } from "iar-vsc-common/logger";
@@ -84,11 +83,11 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
     }
 
     // cpptools api methods
-    canProvideConfiguration(uri: Vscode.Uri, _token?: CancellationToken | undefined): Promise<boolean> {
+    canProvideConfiguration(uri: Vscode.Uri, _token?: Vscode.CancellationToken | undefined): Promise<boolean> {
         const lang = LanguageUtils.determineLanguage(uri.fsPath);
         return Promise.resolve(lang !== undefined);
     }
-    async provideConfigurations(uris: Vscode.Uri[], token?: CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
+    async provideConfigurations(uris: Vscode.Uri[], token?: Vscode.CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
         const results = await Promise.allSettled(uris.map(async(uri) => {
             const intellisenseInfo = await this.intellisenseInfoProvider.provideIntellisenseInfoFor(uri.fsPath);
             const includes = intellisenseInfo.includes;
@@ -131,10 +130,10 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
             return configs;
         }
     }
-    canProvideBrowseConfiguration(_token?: CancellationToken | undefined): Thenable<boolean> {
+    canProvideBrowseConfiguration(_token?: Vscode.CancellationToken | undefined): Thenable<boolean> {
         return Promise.resolve(true);
     }
-    provideBrowseConfiguration(_token?: CancellationToken | undefined): Promise<WorkspaceBrowseConfiguration> {
+    provideBrowseConfiguration(_token?: Vscode.CancellationToken | undefined): Promise<WorkspaceBrowseConfiguration> {
         const config = this.intellisenseInfoProvider.provideBrowseInfo();
         const includes = config?.includes.concat(config.preincludes ?? []) ?? [];
         const defines = config?.defines ?? [];
@@ -147,10 +146,10 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
             windowsSdkVersion: ""
         });
     }
-    canProvideBrowseConfigurationsPerFolder(_token?: CancellationToken | undefined): Thenable<boolean> {
+    canProvideBrowseConfigurationsPerFolder(_token?: Vscode.CancellationToken | undefined): Thenable<boolean> {
         return Promise.resolve(false);
     }
-    provideFolderBrowseConfiguration(_uri: Vscode.Uri, _token?: CancellationToken | undefined): Thenable<WorkspaceBrowseConfiguration | null> {
+    provideFolderBrowseConfiguration(_uri: Vscode.Uri, _token?: Vscode.CancellationToken | undefined): Thenable<WorkspaceBrowseConfiguration | null> {
         return Promise.resolve(null);
     }
     dispose() {

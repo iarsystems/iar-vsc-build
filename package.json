@@ -673,9 +673,11 @@
     "@typescript-eslint/eslint-plugin": "^5.2.0",
     "@typescript-eslint/parser": "^5.2.0",
     "@typescript/lib-dom": "npm:@types/web@^0.0.69",
+    "escape-html": "^1.0.3",
     "eslint": "^8.1.0",
     "eslint-plugin-deprecation": "^1.3.2",
     "husky": "^7.0.4",
+    "jsdom": "^19.0.0",
     "ts-loader": "^9.2.6",
     "tslint": "^5.8.0",
     "typescript": "^4.3.0",
@@ -686,7 +688,6 @@
     "@vscode/codicons": "^0.0.27",
     "@vscode/webview-ui-toolkit": "^0.8.5",
     "async-mutex": "^0.3.2",
-    "bufferutil": "^4.0.6",
     "csv-parse": "4.8.8",
     "escape-html": "^1.0.3",
     "fast-deep-equal": "2.0.1",
@@ -695,11 +696,8 @@
     "rxjs": "^7.5.2",
     "sanitize-html": "^2.6.1",
     "thrift": "^0.12.0",
-    "utf-8-validate": "^5.0.8",
     "uuid": "^8.3.2",
     "vscode-cpptools": "^6.1.0",
-    "vscode-jsonrpc": "^3.0.0",
-    "winreg": "^1.2.4",
     "xml-js": "1.6.8"
   }
 }
