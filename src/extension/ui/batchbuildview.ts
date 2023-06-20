@@ -67,8 +67,8 @@ export class TreeBatchBuildView {
         });
         workspaceModel.onValueDidChange(workspace => {
             saveAvailable = workspace !== undefined;
-            this.provider.setWorkspace(workspace?? new EwwPlaceHolder());
             isLoading = false;
+            this.provider.setWorkspace(workspace?? new EwwPlaceHolder());
             updateMessage();
         });
         extWorkbenchModel.onValueDidChange(extWorkbench => {
