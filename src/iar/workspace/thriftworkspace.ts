@@ -36,15 +36,13 @@ export class ThriftWorkspace extends EwWorkspaceBase implements ExtendedEwWorksp
         return items;
     }
 
-    public override async setBatchBuilds(items: BatchBuildItem[]): Promise<BatchBuildItem[] | undefined> {
+    public override async setBatchBuilds(items: BatchBuildItem[])  {
         if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.PMWorkspaces)) {
             throw new Error("Tried to set batch builds with unsupported toolchain");
         }
-        this.projectMgr.SetBatchBuildItems(items);
+        await this.projectMgr.SetBatchBuildItems(items);
         IarVsc.ewwWatcher?.supressNextFileModificationFor(this.path);
-        this.projectMgr.SaveEwwFile();
-        const state = await this.projectMgr.GetBatchBuildItems();
-        return state;
+        await this.projectMgr.SaveEwwFile();
     }
 
 

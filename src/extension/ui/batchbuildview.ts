@@ -27,9 +27,9 @@ class EwwPlaceHolder extends EwWorkspaceBase {
         return Promise.resolve(this.batchItems);
     }
 
-    override setBatchBuilds(items: BatchBuildItem[]): Promise<BatchBuildItem[] | undefined> {
+    override setBatchBuilds(items: BatchBuildItem[]): Promise<void> {
         this.batchItems = items;
-        return this.getBatchBuilds();
+        return Promise.resolve();
     }
 }
 

@@ -7,6 +7,7 @@ import { BehaviorSubject } from "rxjs";
 import { BatchBuildItem, BuildItem, ProjectContext } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import path = require("path");
 import { EwWorkspace } from "../../iar/workspace/ewworkspace";
+import { logger } from "iar-vsc-common/logger";
 
 
 export enum NodeType {
@@ -209,8 +210,16 @@ export class TreeBatchBuildProvider implements Vscode.TreeDataProvider<BatchBuil
         for (const batchItem of this.rootNode.children) {
             toSync.push(batchItem.asBatchBuildItem());
         }
-
-        const syncResults = await this.workspace?.setBatchBuilds(toSync);
+        try {
+            await this.workspace?.setBatchBuilds(toSync);
+        } catch (e) {
+            const message = (typeof e === "string" || e instanceof Error) ?
+                e.toString() : undefined;
+            Vscode.window.showErrorMessage(
+                "Failed to save batch builds to workspace file: " + (message ?? "Unknown error"));
+            logger.error("Failed to save batch build items: " + (message ?? JSON.stringify(e)));
+        }
+        const syncResults = await this.workspace?.getBatchBuilds();
         this.unpackData(syncResults);
         this.update();
     }

@@ -27,10 +27,10 @@ export interface EwWorkspace {
     getBatchBuilds(): Promise<BatchBuildItem[] | undefined>;
 
     /**
-     * Transfer the set of batchbuild items to the backend. Returns the backends vision of the build items.
+     * Transfer the set of batchbuild items to the backend.
      * @param items The set of batchbuild items to transfer.
      */
-    setBatchBuilds(items: BatchBuildItem[]): Promise<BatchBuildItem[] | undefined>;
+    setBatchBuilds(items: BatchBuildItem[]): Promise<void>;
 }
 
 export abstract class EwWorkspaceBase implements EwWorkspace {
@@ -57,8 +57,8 @@ export abstract class EwWorkspaceBase implements EwWorkspace {
         return Promise.resolve(undefined);
     }
 
-    setBatchBuilds(_items: BatchBuildItem[]): Promise<BatchBuildItem[] | undefined> {
-        return Promise.resolve(undefined);
+    setBatchBuilds(_items: BatchBuildItem[]) {
+        return Promise.resolve();
     }
 }
 
