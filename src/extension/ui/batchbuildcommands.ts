@@ -8,6 +8,7 @@ import { Project } from "../../iar/project/project";
 import { Config } from "../../iar/project/config";
 import { BatchBuildNode, NodeType, BatchBuildItemNode } from "./treebatchbuildprovider";
 import * as Vscode from "vscode";
+import * as Fs from "fs";
 import { BuildTasks, Context } from "../task/buildtasks";
 
 export namespace BatchBuild {
@@ -134,7 +135,11 @@ export namespace BatchBuild {
                 }
 
                 for (const item of selected) {
-                    source.children.push(new BatchBuildItemNode(source, item.project.path, item.config.name));
+                    // A bit hacky, but we need to resolve network drive paths
+                    // here, since the IDE platform doesn't do it itself but
+                    // still expects paths sent over thrift to be resolved.
+                    const realProjectPath = Fs.realpathSync.native(item.project.path);
+                    source.children.push(new BatchBuildItemNode(source, realProjectPath, item.config.name));
                 }
 
                 IarVsc.batchbuildTreeView.syncWithBackend();
