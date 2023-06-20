@@ -24,7 +24,7 @@ export class FileListWatcher implements Vscode.Disposable {
     private readonly filesCallbacks: Array<(files: ReadonlyArray<string>) => void> = [];
     private readonly fileModifiedCallbacks: Array<(file: string) => void> = [];
 
-    private readonly supressedFiles = new Set<string>();
+    private readonly supressedFileOperations = new Map<string, RefList>();
 
     static async initialize(
         glob: string,
@@ -78,9 +78,13 @@ export class FileListWatcher implements Vscode.Disposable {
      */
     supressNextFileModificationFor(path: string) {
         const normalizedPath = Path.normalize(path);
-        this.supressedFiles.add(normalizedPath);
+        if (!this.supressedFileOperations.has(normalizedPath)) {
+            this.supressedFileOperations.set(normalizedPath, new RefList());
+        }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const ref = this.supressedFileOperations.get(normalizedPath)!.push();
         // Just in case the file isn't then modified
-        setTimeout(() => this.supressedFiles.delete(normalizedPath), 2000);
+        setTimeout(() => this.supressedFileOperations.get(normalizedPath)?.remove(ref), 2000);
     }
 
     private setFiles(newData: FileStatus[]) {
@@ -114,8 +118,7 @@ export class FileListWatcher implements Vscode.Disposable {
 
         this.watcher.onDidChange(async path => {
             const normalizedPath = Path.normalize(path.fsPath);
-            if (this.supressedFiles.has(normalizedPath)) {
-                this.supressedFiles.delete(normalizedPath);
+            if (this.supressedFileOperations.get(normalizedPath)?.pop()) {
                 return;
             }
 
@@ -136,5 +139,31 @@ export class FileListWatcher implements Vscode.Disposable {
     dispose() {
         this.subscriptions.forEach(s => s.dispose());
         this.subscriptions = [];
+    }
+
+}
+
+/**
+ * A queue-like list of references (numbers).
+ * Used here to keep track of expected file operations.
+ */
+class RefList {
+    private readonly refs: number[] = [];
+
+    public push(): number {
+        const ref = Math.random();
+        this.refs.push(ref);
+        return ref;
+    }
+
+    public pop(): boolean {
+        return this.refs.shift() !== undefined;
+    }
+
+    public remove(ref: number) {
+        const index = this.refs.indexOf(ref);
+        if (index >= 0) {
+            this.refs.splice(index, 1);
+        }
     }
 }
