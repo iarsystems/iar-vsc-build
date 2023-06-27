@@ -68,7 +68,7 @@ export class BuildTaskExecution extends StylizedTerminal {
             // used by the build engine in some EW versions.
             let projectPath = context.project;
             if (Path.isAbsolute(projectPath) && projectPath[0] && /[a-z]/.test(projectPath[0])) {
-                const workbench = Workbench.create(Path.join(builder, "../.."));
+                const workbench = Workbench.create(Path.join(Path.dirname(builder), "../.."));
                 if (workbench && WorkbenchFeatures.supportsFeature(workbench, WorkbenchFeatures.UpperCaseDriveLetters)) {
                     projectPath = projectPath[0].toUpperCase() + projectPath.substring(1);
                 } else {
