@@ -6,6 +6,10 @@ import * as Path from "path";
 import * as Fs from "fs";
 import { BatchBuildItem } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { OsUtils } from "iar-vsc-common/osUtils";
+import * as xmljs from "xml-js";
+import { tmpdir } from "os";
+import { v4 as uuidv4 } from "uuid";
+import { logger } from "iar-vsc-common/logger";
 
 /**
  * An Embedded Workbench workspace. This is unrelated to VS Code's workspace concept.
@@ -14,11 +18,6 @@ export interface EwWorkspace {
     readonly name: string;
     readonly path: string;
     readonly projects: string[];
-
-    /**
-     * The .custom_argvars file belonging to the workspace, if one exists
-     */
-    getArgvarsFile(): string | undefined;
 
     /**
      * Get the list of batches that can be built. Eatch item consits of a name BatchBuildItem with
@@ -41,18 +40,6 @@ export abstract class EwWorkspaceBase implements EwWorkspace {
         return Path.basename(this.path, ".eww");
     }
 
-    getArgvarsFile(): string | undefined {
-        const argvarsPath = Path.join(
-            Path.dirname(this.path),
-            Path.basename(this.path, ".eww") + ".custom_argvars"
-        );
-
-        if (Fs.existsSync(argvarsPath)) {
-            return argvarsPath;
-        }
-        return undefined;
-    }
-
     getBatchBuilds(): Promise<BatchBuildItem[] | undefined> {
         return Promise.resolve(undefined);
     }
@@ -72,6 +59,65 @@ export interface ExtendedEwWorkspace extends EwWorkspace {
 }
 
 export namespace EwWorkspace {
+    export function isWorkspaceFile(filePath: string): boolean {
+        return Path.parse(filePath).ext === ".eww";
+    }
+    /**
+     * Gives the path to the .custom_argvars file for the workspace, if one exists.
+     */
+    export function findArgvarsFileFor(workspace: EwWorkspace | string): string | undefined {
+        const wsPath = typeof workspace === "string" ? workspace : workspace.path;
+        const argvarsPath = Path.join(
+            Path.dirname(wsPath),
+            Path.basename(wsPath, ".eww") + ".custom_argvars"
+        );
+
+        if (Fs.existsSync(argvarsPath)) {
+            return argvarsPath;
+        }
+        return undefined;
+    }
+
+    /**
+     * Creates a temporary .custom_argvars file for the given workspace with the
+     * $WS_DIR$ variable populated. This is useful when calling iarbuild to give
+     * the impression that the project is built inside the workspace, even
+     * though iarbuild doesn't support workspaces.
+     */
+    export async function generateArgvarsFileFor(workspace: EwWorkspace | string): Promise<string | undefined> {
+        const sourceArgvarsFile = findArgvarsFileFor(workspace);
+
+        let argVarsDocument: xmljs.Element | xmljs.ElementCompact;
+        if (sourceArgvarsFile) {
+            const contents = Fs.readFileSync(sourceArgvarsFile);
+            argVarsDocument = xmljs.xml2js(contents.toString());
+        } else {
+            argVarsDocument = xmljs.xml2js(`<?xml version="1.0" encoding="UTF-8"?><iarUserArgVars></iarUserArgVars>`);
+        }
+
+        const argVarsElem = argVarsDocument.elements?.find((e: xmljs.Element) => e.name === "iarUserArgVars");
+        if (!argVarsElem) {
+            logger.error(`Malformed .custom_argvars file: ${sourceArgvarsFile}`);
+            return undefined;
+        }
+
+        const wsPath = typeof workspace === "string" ? workspace : workspace.path;
+        const wsDir = Path.dirname(wsPath);
+
+        argVarsElem.elements ??= [];
+        argVarsElem.elements.push(xmljs.xml2js(`
+        <group name="vscode-iarbuild" active="true">
+            <variable>
+                <name>WS_DIR</name>
+                <value>${wsDir.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</value>
+            </variable>
+        </group>`).elements[0]);
+
+        const tmpFile = Path.join(tmpdir(), "iar-build", uuidv4() + ".custom_argvars");
+        await Fs.promises.writeFile(tmpFile, xmljs.js2xml(argVarsDocument));
+        return tmpFile;
+    }
+
     export async function equal(ws1: EwWorkspace, ws2: EwWorkspace): Promise<boolean> {
         if (!OsUtils.pathsEqual(ws1.path, ws2.path)) {
             return false;

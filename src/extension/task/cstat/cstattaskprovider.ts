@@ -109,7 +109,7 @@ class CStatProvider implements Vscode.TaskProvider {
             toolchain: "${command:iar-config.toolchain}",
             project: "${command:iar-config.project-file}",
             config: "${command:iar-config.project-configuration}",
-            argumentVariablesFile: "${command:iar-config.argument-variables-file}",
+            argumentVariablesFile: "${command:iar-config.workspace-file}",
             extraBuildArguments: undefined,
         };
         return definition;

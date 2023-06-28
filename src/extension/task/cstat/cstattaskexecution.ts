@@ -7,11 +7,13 @@ import { CStatTaskDefinition } from "./cstattaskprovider";
 import { CStat, CStatReport } from "../../../iar/tools/cstat";
 import { IarOsUtils, OsUtils } from "iar-vsc-common/osUtils";
 import * as Path from "path";
+import * as Fs from "fs/promises";
 import { Workbench } from "iar-vsc-common/workbench";
 import { EwpFile } from "../../../iar/project/parsing/ewpfile";
 import { ExtensionState } from "../../extensionstate";
 import { ExtensionSettings } from "../../settings/extensionsettings";
 import { logger } from "iar-vsc-common/logger";
+import { EwWorkspace } from "../../../iar/workspace/ewworkspace";
 
 /**
  * Executes a c-stat task, i.e. generates and clears C-STAT warnings and displays them in vs code.
@@ -19,11 +21,12 @@ import { logger } from "iar-vsc-common/logger";
  * https://github.com/microsoft/Vscode-extension-samples/blob/master/task-provider-sample/src/customTaskProvider.ts
  */
 export class CStatTaskExecution implements Vscode.Pseudoterminal {
+    private temporaryFiles: string[] = [];
 
     private readonly writeEmitter = new Vscode.EventEmitter<string>();
     onDidWrite: Vscode.Event<string> = this.writeEmitter.event;
     private readonly closeEmitter = new Vscode.EventEmitter<number>();
-    onDidClose?: Vscode.Event<number> = this.closeEmitter.event;
+    onDidClose: Vscode.Event<number> = this.closeEmitter.event;
 
     /**
      * @param extensionPath Path to the extension root
@@ -65,6 +68,11 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             this.write(`Unrecognized action '${this.definition.action}'`);
             this.closeEmitter.fire(0);
         }
+        this.onDidClose(() => {
+            this.temporaryFiles.forEach(
+                file => Fs.unlink(file).catch(() => {/**/}));
+            this.temporaryFiles = [];
+        });
     }
 
     close(): void {
@@ -77,9 +85,12 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     private async generateDiagnostics(projectPath: string, configName: string, toolchain: string, workspaceFolder?: string): Promise<void> {
         const extraArgs = ["-log", ExtensionSettings.getBuildOutputLogLevel()];
         extraArgs.push(...(this.definition.extraBuildArguments ?? ExtensionSettings.getExtraBuildArguments()));
+        // Some IDE versions require -varfile to be last
         if (this.definition.argumentVariablesFile) {
-            // Some IDE versions require -varfile to be last
-            extraArgs.push("-varfile", this.definition.argumentVariablesFile);
+            const resolvedArgvarsFile = await this.resolveArgVarFile(this.definition.argumentVariablesFile);
+            if (resolvedArgvarsFile) {
+                extraArgs.push("-varfile", resolvedArgvarsFile);
+            }
         }
 
         this.write("Running C-STAT...\n");
@@ -241,5 +252,18 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
         const line = Math.max(cstatLine - 1, 0);
         const col = Math.max(cstatCol - 1, 0);
         return new Vscode.Position(line, col);
+    }
+
+    private async resolveArgVarFile(input: string): Promise<string | undefined> {
+        if (!EwWorkspace.isWorkspaceFile(input)) {
+            return input;
+        }
+        const tmpArgvarsFile = await EwWorkspace.generateArgvarsFileFor(input);
+        if (tmpArgvarsFile) {
+            this.temporaryFiles.push(tmpArgvarsFile);
+            return tmpArgvarsFile;
+        }
+
+        return EwWorkspace.findArgvarsFileFor(input);
     }
 }

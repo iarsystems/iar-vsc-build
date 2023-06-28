@@ -2071,7 +2071,4 @@
             <data />
         </settings>
     </configuration>
-    <file>
-        <name>$PROJ_DIR$\main.c</name>
-    </file>
 </project>

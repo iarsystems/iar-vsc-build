@@ -103,6 +103,7 @@ def create_vscode_test_projects(source_file, target_id):
     # C-STATProject project
     tree = ET.parse(source_file)
     target_file = os.path.join(target_dir, 'C-STATProject/C-STATProject.ewp')
+    add_file(tree.getroot(), "$WS_DIR$/C-STATProject/main.c")
     tree.write(target_file)
     ewt_file = os.path.join(target_dir, 'C-STATProject/C-STATProject.ewt')
     ewt = ET.parse(ewt_file)
@@ -125,13 +126,12 @@ def create_vscode_test_projects(source_file, target_id):
     for file in tree.getroot().findall('file'):
         tree.getroot().remove(file)
     add_file(tree.getroot(), "$PROJ_DIR$/$TEST$.c")
-    add_file(tree.getroot(), "$PROJ_DIR$/Utilities.c")
+    add_file(tree.getroot(), "$WS_DIR$/ArgVars/Utilities.c")
     target_file = os.path.join(target_dir, 'ArgVars/ArgVars.ewp')
     #   change output binary name
     try:
         tree.find(".//name[.='IlinkOutputFile']/../state").text = "ArgVars.out"
     except:
-        outputs = tree.find
         tree.find(".//name[.='XLINK']/../data/option/name[.='OutputFile']/../state").text = "ArgVars.out"
     tree.write(target_file)
 
@@ -141,13 +141,13 @@ def create_vscode_test_projects(source_file, target_id):
     root.remove(root.find("./configuration/name[.='Release']/.."))
     config = root.find("./configuration/name[.='Debug']/..")
     config.find("name").text = 'TheConfiguration'
-    includes = config.find(".//name[.='CCIncludePath2']/..")
-    add_include_paths(config, ["$PROJ_DIR$", "$PROJ_DIR$/../Library/inc"])
+    add_include_paths(config, ["$WS_DIR$/SourceConfiguration/Project", "$PROJ_DIR$/../Library/inc"])
     # ET.SubElement(includes, 'state').text = '$PROJ_DIR$'
     # ET.SubElement(includes, 'state').text = '$PROJ_DIR$/../Library/inc'
     defines = config.find(".//name[.='CCDefines']/..")
     ET.SubElement(defines, 'state').text = 'USE_STDPERIPH_DRIVER=1'
     ET.SubElement(defines, 'state').text = 'HSE_VALUE=8000000'
+    add_file(root, '$PROJ_DIR$/main.c')
     add_file(root, '$PROJ_DIR$\\readme.txt')
     add_group(root, 'lib',
       ['$PROJ_DIR$\..\Library/src/gpio.c'])

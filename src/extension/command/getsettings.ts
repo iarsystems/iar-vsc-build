@@ -7,6 +7,7 @@ import * as Vscode from "vscode";
 import { Command } from "./command";
 import { ExtensionState } from "../extensionstate";
 import { InputModel } from "../model/model";
+import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 
 export enum GetSettingsCommand {
     Workbench = "iar-config.toolchain",
@@ -55,7 +56,7 @@ export namespace GetSettingsCommand {
         initCommand(context, GetSettingsCommand.ProjectName,
             ExtensionState.getInstance().project, project => project.name);
         initCommand(context, GetSettingsCommand.ArgVarFile,
-            ExtensionState.getInstance().workspace, workspace => workspace.getArgvarsFile());
+            ExtensionState.getInstance().workspace, workspace => EwWorkspace.findArgvarsFileFor(workspace));
     }
 
     function initCommand<T>(

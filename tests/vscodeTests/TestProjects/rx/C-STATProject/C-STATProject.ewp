@@ -2070,7 +2070,4 @@
             <data />
         </settings>
     </configuration>
-    <file>
-        <name>$PROJ_DIR$\main.c</name>
-    </file>
-</project>
+<file><name>$WS_DIR$/C-STATProject/main.c</name></file></project>

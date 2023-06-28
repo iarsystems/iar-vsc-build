@@ -373,7 +373,8 @@
                 </option>
                 <option>
                     <name>CCIncludePath2</name>
-                    <state>$PROJ_DIR$/inc
+                    <state>$PROJ_DIR$/inc
+
 </state>
                 </option>
                 <option>
@@ -1942,7 +1943,4 @@
             </data>
         </settings>
     </configuration>
-    <file>
-        <name>$PROJ_DIR$\main.c</name>
-    </file>
 </project>

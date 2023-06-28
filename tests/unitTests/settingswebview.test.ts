@@ -105,8 +105,8 @@ suite("Test settings view", () => {
         );
 
         workspaceModel.set(
-            { name: "LedFlasher", path: "/some/directory/LedFlasher.eww", projects: [], getArgvarsFile: () => undefined, getBatchBuilds: () => Promise.resolve(undefined), setBatchBuilds: () => Promise.resolve(undefined) },
-            { name: "A workspace", path: "C:\\test\\A project.eww", projects: [], getArgvarsFile: () => undefined, getBatchBuilds: () => Promise.resolve(undefined), setBatchBuilds: () => Promise.resolve(undefined) },
+            { name: "LedFlasher", path: "/some/directory/LedFlasher.eww", projects: [], getBatchBuilds: () => Promise.resolve(undefined), setBatchBuilds: () => Promise.resolve(undefined) },
+            { name: "A workspace", path: "C:\\test\\A project.eww", projects: [], getBatchBuilds: () => Promise.resolve(undefined), setBatchBuilds: () => Promise.resolve(undefined) },
         );
         workspaceModel.select(0);
 

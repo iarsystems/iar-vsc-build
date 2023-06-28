@@ -74,7 +74,7 @@ export namespace BuildTasks {
             builder: "${command:iar-config.toolchain}/" + Workbench.builderSubPath,
             config: "${command:iar-config.project-configuration}",
             project: "${command:iar-config.project-file}",
-            argumentVariablesFile: "${command:iar-config.argument-variables-file}",
+            argumentVariablesFile: "${command:iar-config.workspace-file}",
             extraBuildArguments: undefined,
             problemMatcher: ["$iar-cc", "$iar-linker"]
         };

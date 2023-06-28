@@ -572,7 +572,7 @@
           },
           "argumentVariablesFile": {
             "type": "string",
-            "description": "Optional .custom_argvars file to use when building."
+            "description": "Optional .custom_argvars or .eww file to use when building. Specifying a .eww file selects the corresponding .custom_argvars file if exists, and populates the '$WS_DIR$' variable."
           },
           "extraBuildArguments": {
             "type": "array",

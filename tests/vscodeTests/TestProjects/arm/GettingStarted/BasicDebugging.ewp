@@ -2132,7 +2132,4 @@
             </data>
         </settings>
     </configuration>
-    <file>
-        <name>$PROJ_DIR$\main.c</name>
-    </file>
 <file><name>$PROJ_DIR$/Fibonacci.c</name></file><file><name>$PROJ_DIR$/Utilities.c</name></file></project>

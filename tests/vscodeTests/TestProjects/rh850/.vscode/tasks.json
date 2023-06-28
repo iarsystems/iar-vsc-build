@@ -8,6 +8,7 @@
 			"action": "run",
 			"project": "${workspaceFolder}/C-STATProject/C-STATProject.ewp",
 			"config": "Release",
+			"argumentVariablesFile": "${workspaceFolder}/TestProjects.eww",
 			"toolchain": "${command:iar-config.toolchain}",
 			"problemMatcher": []
 		},
@@ -17,6 +18,7 @@
 			"action": "clear",
 			"project": "${workspaceFolder}/C-STATProject/C-STATProject.ewp",
 			"config": "Release",
+			"argumentVariablesFile": "${workspaceFolder}/TestProjects.eww",
 			"toolchain": "${command:iar-config.toolchain}",
 			"problemMatcher": []
 		},
@@ -26,6 +28,7 @@
 			"action": "report-full",
 			"project": "${workspaceFolder}/C-STATProject/C-STATProject.ewp",
 			"config": "Release",
+			"argumentVariablesFile": "${workspaceFolder}/TestProjects.eww",
 			"toolchain": "${command:iar-config.toolchain}",
 			"problemMatcher": []
 		},
@@ -35,6 +38,7 @@
 			"action": "report-summary",
 			"project": "${workspaceFolder}/C-STATProject/C-STATProject.ewp",
 			"config": "Release",
+			"argumentVariablesFile": "${workspaceFolder}/TestProjects.eww",
 			"toolchain": "${command:iar-config.toolchain}",
 			"problemMatcher": []
 		},

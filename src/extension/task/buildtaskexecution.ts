@@ -9,14 +9,17 @@ import { BackupUtils, ProcessUtils } from "../../utils/utils";
 import { spawn } from "child_process";
 import { FileStylizer, stylizeBold, StylizedTerminal, stylizeError, stylizePunctuation, stylizeWarning } from "./stylizedterminal";
 import * as Path from "path";
+import * as Fs from "fs/promises";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { Workbench } from "iar-vsc-common/workbench";
+import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 
 /**
  * Executes a build task using iarbuild, e.g. to build or clean a project. We have to use a custom execution
  * (as opposed to a much simpler ShellExecution) so that we can add some custom behaviour (to mitigate VSC-192 and VSC-211)
  */
 export class BuildTaskExecution extends StylizedTerminal {
+    private temporaryFiles: string[] = [];
 
     /**
      * @param definition The task definition to execute
@@ -34,6 +37,11 @@ export class BuildTaskExecution extends StylizedTerminal {
                     FileStylizer,
                 ] : []
         );
+        this.onDidClose(() => {
+            this.temporaryFiles.forEach(
+                file => Fs.unlink(file).catch(() => {/**/}));
+            this.temporaryFiles = [];
+        });
     }
 
     override async open() {
@@ -92,7 +100,10 @@ export class BuildTaskExecution extends StylizedTerminal {
             }
             // Some versions of the IDE require that -varfile is added last
             if (this.definition.argumentVariablesFile) {
-                args.push("-varfile", this.definition.argumentVariablesFile);
+                const resolvedArgvarsFile = await this.resolveArgVarFile(this.definition.argumentVariablesFile);
+                if (resolvedArgvarsFile) {
+                    args.push("-varfile", resolvedArgvarsFile);
+                }
             }
 
             const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(context.project))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -141,5 +152,18 @@ export class BuildTaskExecution extends StylizedTerminal {
         } else {
             return undefined;
         }
+    }
+
+    private async resolveArgVarFile(input: string): Promise<string | undefined> {
+        if (!EwWorkspace.isWorkspaceFile(input)) {
+            return input;
+        }
+        const tmpArgvarsFile = await EwWorkspace.generateArgvarsFileFor(input);
+        if (tmpArgvarsFile) {
+            this.temporaryFiles.push(tmpArgvarsFile);
+            return tmpArgvarsFile;
+        }
+
+        return EwWorkspace.findArgvarsFileFor(input);
     }
 }

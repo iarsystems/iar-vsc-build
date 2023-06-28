@@ -374,7 +374,7 @@
                 <option>
                     <name>CCIncludePath2</name>
                     <state />
-                <state>$PROJ_DIR$</state><state>$PROJ_DIR$/../Library/inc</state></option>
+                <state>$WS_DIR$/SourceConfiguration/Project</state><state>$PROJ_DIR$/../Library/inc</state></option>
                 <option>
                     <name>CCStdIncCheck</name>
                     <state>0</state>
@@ -933,7 +933,4 @@
             <data />
         </settings>
     </configuration>
-    <file>
-        <name>$PROJ_DIR$\main.c</name>
-    </file>
-<file><name>$PROJ_DIR$\readme.txt</name></file><group><name>lib</name><file><name>$PROJ_DIR$\..\Library/src/gpio.c</name></file></group></project>
+    <file><name>$PROJ_DIR$/main.c</name></file><file><name>$PROJ_DIR$\readme.txt</name></file><group><name>lib</name><file><name>$PROJ_DIR$\..\Library/src/gpio.c</name></file></group></project>

@@ -14,7 +14,7 @@ export abstract class StylizedTerminal implements Vscode.Pseudoterminal {
     private readonly writeEmitter = new Vscode.EventEmitter<string>();
     onDidWrite: Vscode.Event<string> = this.writeEmitter.event;
     private readonly closeEmitter = new Vscode.EventEmitter<number>();
-    onDidClose?: Vscode.Event<number> = this.closeEmitter.event;
+    onDidClose: Vscode.Event<number> = this.closeEmitter.event;
 
     // Stores received data until a full line has been received
     private buffer = "";

@@ -5,6 +5,7 @@
 import { logger } from "iar-vsc-common/logger";
 import * as Vscode from "vscode";
 import * as Path from "path";
+import * as Fs from "fs/promises";
 import { ExtensionState } from "../extensionstate";
 import { ExtensionSettings } from "../settings/extensionsettings";
 import { WorkspaceIntellisenseProvider } from "./workspaceintellisenseprovider";
@@ -16,6 +17,7 @@ import { RegexUtils } from "../../utils/utils";
 import { IarOsUtils } from "iar-vsc-common/osUtils";
 import { Config } from "../../iar/project/config";
 import { Workbench } from "iar-vsc-common/workbench";
+import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 
 /**
  * Provides intellisense information, such as defines and include paths, for source files in the workspace.
@@ -148,12 +150,34 @@ export class IntellisenseInfoService {
         if (!workbench || !config || !project || !projects) {
             return false;
         }
-        const argVarFile = ExtensionState.getInstance().workspace.selected?.getArgvarsFile();
+        const workspace = ExtensionState.getInstance().workspace.selected;
+        let generatedArgvarsFile: string | undefined = undefined;
+        let regularArgvarsFile: string | undefined = undefined;
+        if (workspace) {
+            generatedArgvarsFile = await EwWorkspace.generateArgvarsFileFor(workspace);
+            if (!generatedArgvarsFile) {
+                regularArgvarsFile = EwWorkspace.findArgvarsFileFor(workspace);
+            }
+        }
+
         const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(project.path))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-        try {
-            this.workspaceIntellisenseInfo = await WorkspaceIntellisenseProvider.loadProjects(projects, workbench, config.name, argVarFile, workspaceFolder, this.output);
+        const loadPromise = WorkspaceIntellisenseProvider.loadProjects(
+            projects,
+            workbench,
+            config.name,
+            generatedArgvarsFile ?? regularArgvarsFile,
+            workspaceFolder,
+            this.output);
+        loadPromise.finally(() => {
+            if (generatedArgvarsFile) {
+                Fs.unlink(generatedArgvarsFile).catch(() => {/**/});
+            }
+        });
+
+        return loadPromise.then(intellisenseInfo => {
+            this.workspaceIntellisenseInfo = intellisenseInfo;
             return true;
-        } catch (err) {
+        }).catch(err => {
             this.workspaceIntellisenseInfo = undefined;
             logger.error("Failed to generate intellisense config: " + err);
             // Show error msg with a button to see the logs
@@ -163,7 +187,7 @@ export class IntellisenseInfoService {
                 }
             });
             return false;
-        }
+        });
     }
 
     private async generateKeywordDefines() {
