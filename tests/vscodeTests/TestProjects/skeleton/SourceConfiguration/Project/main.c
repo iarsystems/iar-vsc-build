@@ -1,17 +1,13 @@
 #include "main.h"
 #include "config.h"
-#ifdef __ARM_ARCH
-#include "intrinsics.h"
-#endif
+#include <intrinsics.h>
 
 // VSC-353 Test that gcc-style attributes are ignored
 int deprecated __attribute__ ((deprecated));
 
 void main()
 {
-    #ifdef __ARM_ARCH
 	__enable_interrupt();
-    #endif
 
     init_leds();
 

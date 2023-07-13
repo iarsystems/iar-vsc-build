@@ -135,10 +135,15 @@ export namespace BatchBuild {
                 }
 
                 for (const item of selected) {
-                    // A bit hacky, but we need to resolve network drive paths
-                    // here, since the IDE platform doesn't do it itself but
-                    // still expects paths sent over thrift to be resolved.
-                    const realProjectPath = Fs.realpathSync.native(item.project.path);
+                    // IDE 9.2.2 expands network drives to UNC paths.
+                    // This is a bit hacky, but we need to do the same as a client.
+                    const ewVersion = ExtensionState.getInstance().workbench.selected?.version;
+                    let realProjectPath: string;
+                    if (ewVersion?.major === 9 && ewVersion?.minor === 2 && ewVersion.patch === 2) {
+                        realProjectPath = Fs.realpathSync.native(item.project.path);
+                    } else {
+                        realProjectPath = item.project.path;
+                    }
                     source.children.push(new BatchBuildItemNode(source, realProjectPath, item.config.name));
                 }
 
