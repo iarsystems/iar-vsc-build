@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project>
     <fileVersion>3</fileVersion>
     <configuration>
@@ -10,7 +11,7 @@
             <name>General</name>
             <archiveVersion>5</archiveVersion>
             <data>
-                <version>7</version>
+                <version>9</version>
                 <wantNonLocal>1</wantNonLocal>
                 <debug>1</debug>
                 <option>
@@ -44,11 +45,11 @@
                 </option>
                 <option>
                     <name>GRTDescription</name>
-                    <state>Use the normal configuration of the C/C++ runtime library. No locale interface, C locale, no file descriptor support, no multibytes in printf and scanf, and no hex floats in strtod.</state>
+                    <state>A compact configuration of the C/C++14 runtime library. No locale interface, C locale, no file descriptor support, no multibytes in printf and scanf, and no hex floats in strtod.</state>
                 </option>
                 <option>
                     <name>GRTConfigPath</name>
-                    <state>$TOOLKIT_DIR$\LIB\DLib_Config_Normal.h</state>
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Normal.h</state>
                 </option>
                 <option>
                     <name>GRuntimeLibSelectSlave</name>
@@ -116,11 +117,11 @@
                 </option>
                 <option>
                     <name>GenLocaleTags</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>GenLocaleDisplayOnly</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>GDeviceSelectSlave</name>
@@ -152,12 +153,8 @@
                     <state>2</state>
                 </option>
                 <option>
-                    <name>GDeviceXandesdspSlave</name>
-                    <state>1</state>
-                </option>
-                <option>
                     <name>GCoreDevice</name>
-                    <state>RV32IMAFDCN_XANDESDSP_XANDESPERF_Zba_Zbb_Zbc_Zbs</state>
+                    <state>RV32IMAFDCN_Xandesdsp_Xandesperf_Zba_Zbb_Zbc_Zbs</state>
                 </option>
                 <option>
                     <name>RadioStdOutErr</name>
@@ -206,6 +203,34 @@
                 <option>
                     <name>GCodeModelSlave</name>
                     <state>0</state>
+                </option>
+                <option>
+                    <name>GDeviceXCoDenseSlave</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>GDeviceXCoDenseJalSlave</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>GDeviceXZenVBitfieldsSlave</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>GDeviceNXPVirgoSupervisorSlave</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>GDeviceResumableNMISlave</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>GDevicePackedSIMDZpsfoperandSlave</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>GDeviceDspRadioSlave</name>
+                    <state>1</state>
                 </option>
             </data>
         </settings>
@@ -296,7 +321,7 @@
                 </option>
                 <option>
                     <name>CCExtraOptions</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>OutputFile</name>
@@ -304,7 +329,7 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -344,19 +369,19 @@
                 </option>
                 <option>
                     <name>CCDiagSuppress</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>CCDiagRemark</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>CCDiagWarning</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>CCDiagError</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>CCDiagWarnAreErr</name>
@@ -368,7 +393,7 @@
                 </option>
                 <option>
                     <name>PreInclude</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>CCIncludePath2</name>
@@ -427,7 +452,7 @@
                 </option>
                 <option>
                     <name>AsmOutputFile</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmCaseSensitivity</name>
@@ -484,15 +509,15 @@
                 </option>
                 <option>
                     <name>AsmIncludePath</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmDefines</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>PreInclude</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmPreprocOutput</name>
@@ -512,19 +537,19 @@
                 </option>
                 <option>
                     <name>AsmDiagnosticsSuppress</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmDiagnosticsRemark</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmDiagnosticsWarning</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmDiagnosticsError</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmDiagnosticsWarningsAreErrors</name>
@@ -544,7 +569,7 @@
                 </option>
                 <option>
                     <name>AsmExtraOptions</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>ACodeModel</name>
@@ -570,7 +595,7 @@
                 </option>
                 <option>
                     <name>OOCOutputFile</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>OOCCommandLineProducer</name>
@@ -586,8 +611,8 @@
             <name>CUSTOM</name>
             <archiveVersion>3</archiveVersion>
             <data>
-                <extensions />
-                <cmdline />
+                <extensions></extensions>
+                <cmdline></cmdline>
                 <hasPrio>0</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
@@ -596,15 +621,15 @@
             <name>BUILDACTION</name>
             <archiveVersion>1</archiveVersion>
             <data>
-                <prebuild />
-                <postbuild />
+                <prebuild></prebuild>
+                <postbuild></postbuild>
             </data>
         </settings>
         <settings>
             <name>ILINK</name>
             <archiveVersion>5</archiveVersion>
             <data>
-                <version>8</version>
+                <version>9</version>
                 <wantNonLocal>1</wantNonLocal>
                 <debug>1</debug>
                 <option>
@@ -641,31 +666,31 @@
                 </option>
                 <option>
                     <name>IlinkKeepSymbols</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinaryFile</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinarySymbol</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinarySegment</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinaryAlign</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkDefines</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkConfigDefines</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkMapFile</name>
@@ -697,11 +722,11 @@
                 </option>
                 <option>
                     <name>IlinkIcfFile</name>
-                    <state>lnk0t.icf</state>
+                    <state>$TOOLKIT_DIR$\config\linker\generic.icf</state>
                 </option>
                 <option>
                     <name>IlinkIcfFileSlave</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkEnableRemarks</name>
@@ -709,19 +734,19 @@
                 </option>
                 <option>
                     <name>IlinkSuppressDiags</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkTreatAsRem</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkTreatAsWarn</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkTreatAsErr</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkWarningsAreErrors</name>
@@ -733,7 +758,7 @@
                 </option>
                 <option>
                     <name>IlinkAdditionalLibs</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkOverrideProgramEntryLabel</name>
@@ -745,7 +770,7 @@
                 </option>
                 <option>
                     <name>IlinkProgramEntryLabel</name>
-                    <state />
+                    <state>__iar_program_start</state>
                 </option>
                 <option>
                     <name>DoFill</name>
@@ -830,7 +855,7 @@
                 </option>
                 <option>
                     <name>IlinkIcfFile_AltDefault</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkOptMergeDuplSections</name>
@@ -850,11 +875,11 @@
                 </option>
                 <option>
                     <name>IlinkStackControlFile</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkStackCallGraphFile</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkLogCallGraph</name>
@@ -878,7 +903,7 @@
                 </option>
                 <option>
                     <name>IlinkExtraOptions</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkThreadsSlave</name>
@@ -886,19 +911,19 @@
                 </option>
                 <option>
                     <name>IlinkRawBinaryFile2</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinarySymbol2</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinarySegment2</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinaryAlign2</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkAutoVectorSetupSlave</name>
@@ -942,10 +967,18 @@
                 </option>
                 <option>
                     <name>IlinkWrapperFile</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>ILinkCodeModel</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>ILinkCore</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>ILinkCoDenseJal</name>
                     <state>1</state>
                 </option>
             </data>
@@ -959,7 +992,7 @@
                 <debug>1</debug>
                 <option>
                     <name>IarchiveInputs</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IarchiveOverride</name>
@@ -982,12 +1015,12 @@
             <name>General</name>
             <archiveVersion>5</archiveVersion>
             <data>
-                <version>7</version>
+                <version>9</version>
                 <wantNonLocal>1</wantNonLocal>
                 <debug>0</debug>
                 <option>
                     <name>GDeviceSelect</name>
-                    <state />
+                    <state>RV32	RV32</state>
                 </option>
                 <option>
                     <name>GOutputBinary</name>
@@ -1016,11 +1049,11 @@
                 </option>
                 <option>
                     <name>GRTDescription</name>
-                    <state />
+                    <state>A compact configuration of the C/C++14 runtime library. No locale interface, C locale, no file descriptor support, no multibytes in printf and scanf, and no hex floats in strtod.</state>
                 </option>
                 <option>
                     <name>GRTConfigPath</name>
-                    <state />
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Normal.h</state>
                 </option>
                 <option>
                     <name>GRuntimeLibSelectSlave</name>
@@ -1033,11 +1066,11 @@
                 </option>
                 <option>
                     <name>GInputDescription</name>
-                    <state />
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>GOutputDescription</name>
-                    <state />
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>GenMathFunctionVariant</name>
@@ -1046,19 +1079,19 @@
                 </option>
                 <option>
                     <name>GenMathFunctionDescription</name>
-                    <state />
+                    <state>Default variants of cos, sin, tan, log, log10, pow, and exp.</state>
                 </option>
                 <option>
                     <name>GGeneralStack</name>
-                    <state>###Uninitialized###</state>
+                    <state>0x1000</state>
                 </option>
                 <option>
                     <name>GHeapSize</name>
-                    <state>###Uninitialized###</state>
+                    <state>0x1000</state>
                 </option>
                 <option>
                     <name>GNumCores</name>
-                    <state />
+                    <state>1</state>
                 </option>
                 <option>
                     <name>OGPrintfVariant</name>
@@ -1088,11 +1121,11 @@
                 </option>
                 <option>
                     <name>GenLocaleTags</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>GenLocaleDisplayOnly</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>GDeviceSelectSlave</name>
@@ -1124,12 +1157,8 @@
                     <state>2</state>
                 </option>
                 <option>
-                    <name>GDeviceXandesdspSlave</name>
-                    <state>1</state>
-                </option>
-                <option>
                     <name>GCoreDevice</name>
-                    <state>###Uninitialized###</state>
+                    <state>RV32IMAFDCN_Xandesdsp_Xandesperf_Xcodense_Zba_Zbb_Zbc_Zbs</state>
                 </option>
                 <option>
                     <name>RadioStdOutErr</name>
@@ -1173,11 +1202,39 @@
                 </option>
                 <option>
                     <name>GDeviceBitmanipCountZeroesSlave</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>GCodeModelSlave</name>
                     <state>0</state>
+                </option>
+                <option>
+                    <name>GDeviceXCoDenseSlave</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>GDeviceXCoDenseJalSlave</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>GDeviceXZenVBitfieldsSlave</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>GDeviceNXPVirgoSupervisorSlave</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>GDeviceResumableNMISlave</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>GDevicePackedSIMDZpsfoperandSlave</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>GDeviceDspRadioSlave</name>
+                    <state>1</state>
                 </option>
             </data>
         </settings>
@@ -1268,11 +1325,11 @@
                 </option>
                 <option>
                     <name>CCExtraOptions</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>OutputFile</name>
-                    <state />
+                    <state>$FILE_BNAME$.o</state>
                 </option>
                 <option>
                     <name>CCDefines</name>
@@ -1316,19 +1373,19 @@
                 </option>
                 <option>
                     <name>CCDiagSuppress</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>CCDiagRemark</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>CCDiagWarning</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>CCDiagError</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>CCDiagWarnAreErr</name>
@@ -1340,11 +1397,11 @@
                 </option>
                 <option>
                     <name>PreInclude</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>CCIncludePath2</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1397,7 +1454,7 @@
                 </option>
                 <option>
                     <name>AsmOutputFile</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmCaseSensitivity</name>
@@ -1454,15 +1511,15 @@
                 </option>
                 <option>
                     <name>AsmIncludePath</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmDefines</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>PreInclude</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmPreprocOutput</name>
@@ -1482,19 +1539,19 @@
                 </option>
                 <option>
                     <name>AsmDiagnosticsSuppress</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmDiagnosticsRemark</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmDiagnosticsWarning</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmDiagnosticsError</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>AsmDiagnosticsWarningsAreErrors</name>
@@ -1514,7 +1571,7 @@
                 </option>
                 <option>
                     <name>AsmExtraOptions</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>ACodeModel</name>
@@ -1540,7 +1597,7 @@
                 </option>
                 <option>
                     <name>OOCOutputFile</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>OOCCommandLineProducer</name>
@@ -1556,8 +1613,8 @@
             <name>CUSTOM</name>
             <archiveVersion>3</archiveVersion>
             <data>
-                <extensions />
-                <cmdline />
+                <extensions></extensions>
+                <cmdline></cmdline>
                 <hasPrio>0</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
@@ -1566,15 +1623,15 @@
             <name>BUILDACTION</name>
             <archiveVersion>1</archiveVersion>
             <data>
-                <prebuild />
-                <postbuild />
+                <prebuild></prebuild>
+                <postbuild></postbuild>
             </data>
         </settings>
         <settings>
             <name>ILINK</name>
             <archiveVersion>5</archiveVersion>
             <data>
-                <version>8</version>
+                <version>9</version>
                 <wantNonLocal>1</wantNonLocal>
                 <debug>0</debug>
                 <option>
@@ -1603,7 +1660,7 @@
                 </option>
                 <option>
                     <name>IlinkOutputFile</name>
-                    <state>###Unitialized###</state>
+                    <state>C-STATProject.out</state>
                 </option>
                 <option>
                     <name>IlinkDebugInfoEnable</name>
@@ -1611,31 +1668,31 @@
                 </option>
                 <option>
                     <name>IlinkKeepSymbols</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinaryFile</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinarySymbol</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinarySegment</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinaryAlign</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkDefines</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkConfigDefines</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkMapFile</name>
@@ -1671,7 +1728,7 @@
                 </option>
                 <option>
                     <name>IlinkIcfFileSlave</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkEnableRemarks</name>
@@ -1679,19 +1736,19 @@
                 </option>
                 <option>
                     <name>IlinkSuppressDiags</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkTreatAsRem</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkTreatAsWarn</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkTreatAsErr</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkWarningsAreErrors</name>
@@ -1703,7 +1760,7 @@
                 </option>
                 <option>
                     <name>IlinkAdditionalLibs</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkOverrideProgramEntryLabel</name>
@@ -1715,7 +1772,7 @@
                 </option>
                 <option>
                     <name>IlinkProgramEntryLabel</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>DoFill</name>
@@ -1800,7 +1857,7 @@
                 </option>
                 <option>
                     <name>IlinkIcfFile_AltDefault</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkOptMergeDuplSections</name>
@@ -1820,11 +1877,11 @@
                 </option>
                 <option>
                     <name>IlinkStackControlFile</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkStackCallGraphFile</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkLogCallGraph</name>
@@ -1848,7 +1905,7 @@
                 </option>
                 <option>
                     <name>IlinkExtraOptions</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkThreadsSlave</name>
@@ -1856,19 +1913,19 @@
                 </option>
                 <option>
                     <name>IlinkRawBinaryFile2</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinarySymbol2</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinarySegment2</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkRawBinaryAlign2</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkAutoVectorSetupSlave</name>
@@ -1912,10 +1969,18 @@
                 </option>
                 <option>
                     <name>IlinkWrapperFile</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>ILinkCodeModel</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>ILinkCore</name>
+                    <state>1</state>
+                </option>
+                <option>
+                    <name>ILinkCoDenseJal</name>
                     <state>1</state>
                 </option>
             </data>
@@ -1929,7 +1994,7 @@
                 <debug>0</debug>
                 <option>
                     <name>IarchiveInputs</name>
-                    <state />
+                    <state></state>
                 </option>
                 <option>
                     <name>IarchiveOverride</name>
@@ -1942,4 +2007,7 @@
             </data>
         </settings>
     </configuration>
-<file><name>$WS_DIR$/C-STATProject/main.c</name></file></project>
+    <file>
+        <name>$WS_DIR$/C-STATProject/main.c</name>
+    </file>
+</project>
