@@ -653,7 +653,7 @@
     "ms-vscode.cpptools"
   ],
   "scripts": {
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint . --ext .ts && markdownlint **/*.md --ignore node_modules",
     "vscode:prepublish": "npm run package",
     "webpack": "webpack --mode development",
     "webpack-watch": "webpack --mode development --watch",
@@ -678,6 +678,8 @@
     "eslint-plugin-deprecation": "^1.3.2",
     "husky": "^7.0.4",
     "jsdom": "^19.0.0",
+    "lint-staged": "^13.2.3",
+    "markdownlint-cli": "^0.35.0",
     "ts-loader": "^9.2.6",
     "typescript": "^4.3.0",
     "webpack": "^5.68.0",
@@ -698,5 +700,9 @@
     "uuid": "^8.3.2",
     "vscode-cpptools": "^6.1.0",
     "xml-js": "1.6.8"
+  },
+  "lint-staged": {
+    "*.md": "markdownlint",
+    "*.ts": "eslint --max-warnings 0"
   }
 }
