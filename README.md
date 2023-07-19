@@ -12,6 +12,7 @@ An IAR Embedded Workbench or IAR Build Tools installation is required to use thi
 > 💡️ To debug your Embedded Workbench projects from VS Code, please also see the [IAR C-SPY Debug extension](https://marketplace.visualstudio.com/items?itemName=iarsystems.iar-debug).
 
 ## Getting started
+
 To get started, open a folder containing an IAR Embedded Workbench project.
 A view with an IAR Embedded Workbench icon will appear in the left side panel:
 
@@ -25,6 +26,7 @@ To build or analyze the selected project configuration, go to `Terminal->Run Tas
 To make this easier, you may wish to [Add a default build task](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#setting-a-default-iar-build-task).
 
 ## Documentation
+
 * [Configuring the Build extension](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#ConfigExtension)
 
 * [Making IAR Build settings](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md#iarbuildsettings)
@@ -42,6 +44,7 @@ To make this easier, you may wish to [Add a default build task](https://github.c
 [Click here](https://github.com/IARSystems/iar-vsc-build/blob/master/docs/README.md) to view the full documentation.
 
 ## Compatibility
+
 This extension is compatible with any IAR Embedded Workbench (EW) or IAR Build Tools version (BX) using IDE version 8 or newer. The table below helps you find the extension version supporting your IAR Embedded Workbench product.
 The supported versions are the same for IAR Build Tools installations, but IAR Build Tools does not support the file view or adding/removing files from a project.
 
@@ -55,9 +58,10 @@ The supported versions are the same for IAR Build Tools installations, but IAR B
 
 </details>
 
-
 ## Feedback
+
 Depending on which feedback you want to share with us, here are the preferred options:
+
 * If you have ideas on how to improve this extension or if you have found issues with it, see [CONTRIBUTING.md](https://github.com/IARSystems/iar-vsc-build/blob/master/CONTRIBUTING.md) on how to proceed.
 
 * If you have issues with the underlying IAR Embedded Workbench or IAR Build Tools product, report this via the IAR Systems technical support channel at [IAR Technical Support](https://www.iar.com/knowledge/support/).

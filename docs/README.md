@@ -25,6 +25,7 @@ Error messages are displayed in the Terminal panel underneath the editor.
 To use the IAR Build extension, you must make some initial configuration settings.
 
 ### Selecting working directory, IAR toolchain, and workspace
+
 To select the Embedded Workbench workspace and project to work with, choose **File>Open Folder** and navigate to your working directory and select that folder.
 
 * To select the IAR Embedded Workbench or IAR Build Tools installation, choose it from the dropdown menu under **IAR Embedded Workbench or IAR Build Tools installation**.
@@ -36,6 +37,7 @@ To select the Embedded Workbench workspace and project to work with, choose **Fi
 * IAR Embedded Workbench supports global and workspace-local custom argument variables. The argument variables that have been defined in the selected workspace (using the IAR Embedded Workbench IDE) are available to the IAR Build extension. For more information, see the *IAR Embedded Workbench IDE Project Management and Building Guide* (PDF).
 
 ### Batch build
+
 The selected workspace is used for loading and saving batch builds. This concept is described in the *IAR Embedded Workbench IDE Project Management and Building Guide* (PDF).
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![Side bar](images/VSCode_BatchBuildView_01.png)
@@ -45,6 +47,7 @@ To add a batch, click the plus icon. To remove or edit it, right-click it. Drag 
 All changes you make are saved in the workspace file (`.eww`), provided your version of IAR Embedded Workbench is recent enough. If the version number of **IAR Embedded Workbench shared components** is 9.1.1. or later (in the IDE, choose **Help>About>Product Info** to see this information), your version of IAR Embedded Workbench is recent enough.
 
 ### Viewing the source files
+
 To view the source files of the project, select the IAR Build icon in the Activity Bar. The source files are displayed in the **Files** view of the Side Bar.
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![Side bar](images/VSCode_FilesView_01.png)
@@ -77,11 +80,11 @@ To switch from IAR Embedded Workbench to VS Code, add a custom command to the IA
 
 2. Set the **Menu Text** to `Open in V&S Code`.
 
-2. By default, VS Code is installed in `\AppData\Local\Programs\Microsoft VS Code`. Based on this, set the **Command** to (using a Windows standard environment variable):
+3. By default, VS Code is installed in `\AppData\Local\Programs\Microsoft VS Code`. Based on this, set the **Command** to (using a Windows standard environment variable):
 
     `$_localappdata_$\Programs\Microsoft VS Code\Code.exe`
 
-3. Set the **Argument** to `$WS_DIR$ -g $FILE_PATH$:$CUR_LINE$` and click **OK**.
+4. Set the **Argument** to `$WS_DIR$ -g $FILE_PATH$:$CUR_LINE$` and click **OK**.
 
 You can now open the current file and line in VS Code at any time by choosing **Tools>Open in VS Code**.
 
@@ -115,7 +118,6 @@ To run one of the *build* tasks that are available in the IAR Build extension, c
 
     Rebuilds and relinks all files in the project's selected build configuration.
 
-
 ### C-STAT tasks
 
 To run one of the *C-STAT Static Analysis* tasks that are available in the IAR Build extension, choose **Terminal>Run Task>iar-cstat**. These tasks are available:
@@ -146,27 +148,27 @@ By default, the provided tasks will use the currently selected project and confi
 
 This is an example `tasks.json` file with a configured Build Project task:
 
-```
+```json
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "iar",
-			"command": "build",
-			"project": "${workspaceFolder}/MyProject.ewp",
-			"config": "*",
-			"builder": "${command:iar-config.toolchain}/common/bin/iarbuild.exe",
-			"label": "Build MyProject",
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "iar",
+            "command": "build",
+            "project": "${workspaceFolder}/MyProject.ewp",
+            "config": "*",
+            "builder": "${command:iar-config.toolchain}/common/bin/iarbuild.exe",
+            "label": "Build MyProject",
             "extraBuildArguments": [
                 "-parallel",
                 "8"
             ],
-			"problemMatcher": [
-				"$iar-cc",
-				"$iar-linker"
-			]
-		}
-	]
+            "problemMatcher": [
+                "$iar-cc",
+                "$iar-linker"
+            ]
+        }
+    ]
 }
 ```
 
