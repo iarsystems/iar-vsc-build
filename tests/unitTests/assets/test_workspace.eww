@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- some comment-->
 <workspace>
     <project>
         <path>$WS_DIR$/test_project.ewp</path>

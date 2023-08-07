@@ -13,7 +13,7 @@ export class XmlNode {
         let element: xmljs.Element;
 
         if (typeof xml === "string") {
-            const document = xmljs.xml2js(xml, { compact: false }) as xmljs.Element;
+            const document = xmljs.xml2js(xml, { compact: false, ignoreComment: true }) as xmljs.Element;
             if (document.elements?.[0] === undefined) {
                 throw new Error("Invalid xml data");
             }
