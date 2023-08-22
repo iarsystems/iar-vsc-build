@@ -4,6 +4,7 @@
 
 import * as path from "path";
 import * as fs from "fs";
+import { tmpdir } from "os";
 
 export namespace FsUtils {
     // Node has no promise-based exists function
@@ -25,6 +26,17 @@ export namespace FsUtils {
             }
         }
         return [];
+    }
+
+    export async function getTmpFolder(foldername: string): Promise<string> {
+        const tmpDir = path.join(tmpdir(), foldername);
+
+        // Ensure that the iar-build folder exists before writing to it.
+        if (! fs.existsSync(tmpDir)) {
+            await fs.promises.mkdir(tmpDir);
+        }
+
+        return tmpDir;
     }
 
     export function createFilteredListDirectoryFilenameRegex(regex: RegExp): (fullpath: string) => boolean {

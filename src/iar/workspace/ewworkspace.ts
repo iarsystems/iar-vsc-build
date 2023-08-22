@@ -7,9 +7,9 @@ import * as Fs from "fs";
 import { BatchBuildItem } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import * as xmljs from "xml-js";
-import { tmpdir } from "os";
 import { v4 as uuidv4 } from "uuid";
 import { logger } from "iar-vsc-common/logger";
+import { FsUtils } from "../../utils/fs";
 
 /**
  * An Embedded Workbench workspace. This is unrelated to VS Code's workspace concept.
@@ -113,7 +113,7 @@ export namespace EwWorkspace {
             </variable>
         </group>`).elements[0]);
 
-        const tmpFile = Path.join(tmpdir(), "iar-build", uuidv4() + ".custom_argvars");
+        const tmpFile = Path.join(await FsUtils.getTmpFolder("iar-build"), uuidv4() + ".custom_argvars");
         await Fs.promises.writeFile(tmpFile, xmljs.js2xml(argVarsDocument));
         return tmpFile;
     }
