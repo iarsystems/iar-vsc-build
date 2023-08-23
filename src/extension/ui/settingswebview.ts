@@ -42,7 +42,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
     public static readonly VIEW_TYPE = "iar-configuration";
 
     private view?: vscode.WebviewView;
-    private viewLoaded: Promise<void> = Promise.reject(new Error("View is not attached yet"));
+    private viewLoaded: Promise<void> | undefined = undefined;
     private workbenchesLoading = false;
 
     /**
@@ -143,7 +143,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
 
     // ! Exposed for testing only.
     awaitViewLoaded() {
-        return this.viewLoaded;
+        return this.viewLoaded ?? Promise.resolve(new Error("View is not attached"));
     }
     async selectFromDropdown(dropdown: DropdownIds, index: number) {
         if (this.view === undefined) {
