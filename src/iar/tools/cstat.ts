@@ -317,7 +317,7 @@ export namespace CStatReport {
             return Fs.existsSync(dbPath);
         });
         if (!actualOutputDir) {
-            return Promise.reject(new Error("Please run a C-STAT analysis before genering an HTML report. Could not find the C-STAT database."));
+            return Promise.reject(new Error("Please run a C-STAT analysis before generating an HTML report. Could not find the C-STAT database."));
         }
         const dbPath = join(actualOutputDir, "cstat.db");
         const reportPath = join(actualOutputDir, REPORT_DEFAULT_NAME);
