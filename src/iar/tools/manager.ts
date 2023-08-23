@@ -11,7 +11,6 @@ import { FsUtils } from "../../utils/fs";
 import { ListUtils, ProcessUtils } from "../../utils/utils";
 import { logger } from "iar-vsc-common/logger";
 import { spawn } from "child_process";
-import { tmpdir } from "os";
 import { readFile, rm } from "fs/promises";
 import { v4 as uuidv4 } from "uuid";
 
@@ -166,7 +165,7 @@ namespace RegisterUtils {
 
     export async function getAllEntries(key: string): Promise<Record<string, string>[]> {
         const exePath = process.env["windir"] ? Path.join(process.env["windir"], "system32", "reg.exe") : "reg.exe";
-        const resultPath = Path.join(tmpdir(), "iar-build", uuidv4() + "-winreg.txt");
+        const resultPath = Path.join(await FsUtils.getTmpFolder("iar-build"), uuidv4() + "-winreg.txt");
         const proc = spawn(exePath, ["export", key, resultPath, "/y"]);
         proc.stdout.on("data", dat => console.log(dat.toString()));
         proc.stderr.on("data", dat => console.error(dat.toString()));
