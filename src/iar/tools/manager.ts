@@ -186,7 +186,10 @@ namespace RegisterUtils {
             }
             const match = line.match(valueRegex);
             if (match && match[1] && match[2]) {
-                curr[match[1]] = match[2];
+                const unescaped = match[2].
+                    replace(/\\"/g, "\"").
+                    replace(/\\\\/g, "\\");
+                curr[match[1]] = unescaped;
             }
         });
         results.push(curr);

@@ -217,7 +217,7 @@ namespace Rendering {
         <div id="contents">
             <div class="section">
                 <p>IAR Embedded Workbench or IAR Build Tools installation:</p>
-                ${makeDropdown(workbenches, DropdownIds.Workbench, "tools", workbenches.amount === 0 || workbenchesLoading, "No IAR toolchains found", /*html*/`
+                ${makeDropdown(workbenches, DropdownIds.Workbench, "tools", workbenches.amount === 0 || workbenchesLoading, "No IAR toolchains found", true, /*html*/`
                     <vscode-divider></vscode-divider>
                     <vscode-option artificial>Add Toolchain...</vscode-option>
                 `)}
@@ -228,11 +228,11 @@ namespace Rendering {
             </div>
             <div class="section">
                     <p>Workspace, project and configuration:</p>
-                    ${makeDropdown(workspaces, DropdownIds.Workspace, "window", workspaces.amount === 0, "No workspaces found")}
+                    ${makeDropdown(workspaces, DropdownIds.Workspace, "window", workspaces.amount === 0, "No workspaces found", true)}
                     ${workspaces.selected === undefined ? treeIBroken : ""}
                     <div class="wide-container">
                         ${workspaces.selected === undefined ? "" : treeL}
-                        ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.amount === 0, "No projects found")}
+                        ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.amount === 0, "No projects found", true)}
                     </div>
                     <div class="wide-container">
                         <div class="wide-container${workspaces.selected !== undefined ? " configs" : ""}">
@@ -258,20 +258,21 @@ namespace Rendering {
         iconName: string,
         isDisabled: boolean,
         emptyMsg: string,
-        extraOptions?: string
+        useTooltips = false,
+        extraOptions?: string,
     ) {
         return /*html*/`
             <div class="wide-container">
                 <span class="codicon codicon-${iconName} dropdown-icon ${isDisabled ? "disabled" : ""}"></span>
                 <vscode-dropdown id="${id}" class="dropdown" ${isDisabled ? "disabled" : ""}>
-                    ${getDropdownOptions(model, emptyMsg)}
+                    ${getDropdownOptions(model, emptyMsg, useTooltips)}
                     ${extraOptions ?? ""}
                 </vscode-dropdown>
             </div>
         `;
     }
 
-    function getDropdownOptions<T>(model: ListInputModel<T>, emptyMsg: string): string {
+    function getDropdownOptions<T>(model: ListInputModel<T>, emptyMsg: string, useTooltips = false): string {
         if (model.amount === 0) {
             return `<vscode-option>${emptyMsg}</vscode-option>`;
         }
@@ -282,7 +283,9 @@ namespace Rendering {
         }
         for (let i = 0; i < model.amount; i++) {
             // Note that we sanitize the labels, since they are user input and could inject HTML.
-            html += /*html*/`<vscode-option ${model.selectedIndex === i ? "selected" : ""}>
+            html += /*html*/`<vscode-option
+                    ${useTooltips && model.detail(i) ? `title="${model.detail(i)}"` : ""}
+                    ${model.selectedIndex === i ? "selected" : ""}>
                 ${sanitizeHtml(model.label(i), {allowedTags: [], allowedAttributes: {}, disallowedTagsMode: "recursiveEscape"})}
             </vscode-option>`;
         }
