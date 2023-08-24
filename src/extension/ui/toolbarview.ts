@@ -104,10 +104,10 @@ namespace Rendering {
         const iconRebuild = await loadSvg("Project-Rebuild-All.svg");
         const iconClean = await loadSvg("Project-Clean.svg");
         const iconOpen = await loadSvg("open-workspace.svg");
-        const iconRunCstat = await loadSvg("C-STAT - Analyze Project.svg");
-        const iconClearCstat = await loadSvg("C-STAT - Clear Analysis Results.svg");
-        const iconGenerateCstatReport = await loadSvg("C-STAT - Generate HTML Summary.svg");
-        const iconGenerateCstatSummary = await loadSvg("C-STAT - Generate HTML Summary_1.svg");
+        const iconRunCstat = await loadSvg("C-STAT-Analyze-Project.svg");
+        const iconClearCstat = await loadSvg("C-STAT-Clear-Analysis-Results.svg");
+        const iconGenerateCstatReport = await loadSvg("C-STAT-Generate-HTML-Summary.svg");
+        const iconGenerateCstatSummary = await loadSvg("C-STAT-Generate-HTML-Summary_1.svg");
 
         return /*html*/`<!DOCTYPE html>
         <html lang="en">
