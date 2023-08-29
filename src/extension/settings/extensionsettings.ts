@@ -20,6 +20,7 @@ export namespace ExtensionSettings {
         ColorizeBuildOutput = "colorizeBuildOutput",
         ProjectsToExclude = "projectsToExclude",
         BuildOutputLogLevel = "buildOutputLogLevel",
+        AutoExpandFileTree = "autoExpandFileTree",
     }
 
     const section = "iar-build";
@@ -101,5 +102,9 @@ export namespace ExtensionSettings {
             "Errors": "errors",
         };
         return map[lvl] ?? "info";
+    }
+    export function getAutoExpandFileTree(): boolean {
+        const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.AutoExpandFileTree);
+        return val ?? true;
     }
 }

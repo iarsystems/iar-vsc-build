@@ -482,6 +482,11 @@
             "Warnings",
             "Errors"
           ]
+        },
+        "iar-build.autoExpandFileTree": {
+          "type": "boolean",
+          "markdownDescription": "Automatically expand all groups in the `Files` view after loading a project",
+          "default": true
         }
       }
     },

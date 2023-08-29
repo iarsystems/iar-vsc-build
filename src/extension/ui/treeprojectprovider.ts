@@ -8,6 +8,7 @@ import * as Vscode from "vscode";
 import { Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { ExtendedProject } from "../../iar/project/project";
 import { BehaviorSubject } from "rxjs";
+import { ExtensionSettings } from "../settings/extensionsettings";
 
 // A node showing a file or file group i.e. a {@link Node}
 export class FilesNode {
@@ -67,7 +68,10 @@ export class TreeProjectProvider implements Vscode.TreeDataProvider<FilesNode> {
             if (element.iarNode.isGenerated || element.iarNode.type === NodeType.File) {
                 item.collapsibleState = Vscode.TreeItemCollapsibleState.Collapsed;
             } else {
-                item.collapsibleState = Vscode.TreeItemCollapsibleState.Expanded;
+                // This is a regular group, check how the user wants them handled
+                item.collapsibleState = ExtensionSettings.getAutoExpandFileTree() ?
+                    Vscode.TreeItemCollapsibleState.Expanded :
+                    Vscode.TreeItemCollapsibleState.Collapsed;
             }
         }
 
