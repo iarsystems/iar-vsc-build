@@ -2,9 +2,10 @@
 
 ## Reporting issues
 
-If you suspect you have found a bug in this extension, please open an issue in this repository to report the bug.
+For urgent matters with the extension, or if you have issues with the underlying IAR Embedded Workbench or IAR Build Tools product, report this via the IAR Systems technical support channel at [IAR Technical Support](https://www.iar.com/knowledge/support/request-technical-support/).
+For other matters isolated to this extension, file a [New issue](https://github.com/IARSystems/iar-vsc-build/issues/new/choose) using the provided template. We will reply on a "best effort basis".
 
-The bug report should include:
+Your bug report should include:
 
 * A short description of the bug
 * Instructions for how to reproduce the bug

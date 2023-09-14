@@ -1,12 +1,13 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: For urgent matters, please contact IAR Technical Support directly. We reply to GitHub issues on a best effort basis.
 title: ''
 labels: 'bug'
 assignees: ''
 
 ---
 
+<!-- NOTE: We reply to GitHub issues on a best effort basis. For urgent matters, please contact IAR Technical Support at https://www.iar.com/knowledge/support/request-technical-support/ -->
 **Describe the bug:**
 A clear and concise description of what the bug is.
 

@@ -60,11 +60,10 @@ The supported versions are the same for IAR Build Tools installations, but IAR B
 
 ## Feedback
 
-Depending on which feedback you want to share with us, here are the preferred options:
+Depending on the type of feedback you want to share with us, here are our preferred options:
 
-* If you have ideas on how to improve this extension or if you have found issues with it, see [CONTRIBUTING.md](https://github.com/IARSystems/iar-vsc-build/blob/master/CONTRIBUTING.md) on how to proceed.
+* For urgent matters with the extension, or if you have issues with the underlying IAR Embedded Workbench or IAR Build Tools product, report this via the IAR Systems technical support channel at [IAR Technical Support](https://www.iar.com/knowledge/support/request-technical-support/).
 
-* If you have issues with the underlying IAR Embedded Workbench or IAR Build Tools product, report this via the IAR Systems technical support channel at [IAR Technical Support](https://www.iar.com/knowledge/support/).
+* For other matters isolated to this extension, file a [New issue](https://github.com/IARSystems/iar-vsc-build/issues/new/choose) using the provided template. We will reply on a "best effort basis".
 
-<!-- ## Contributions
-Contributions are always welcome. Or did we decide to have a read-only repository? -->
+* If you have ideas on how to improve this extension, see [CONTRIBUTING.md](https://github.com/IARSystems/iar-vsc-build/blob/master/CONTRIBUTING.md) on how to proceed.
