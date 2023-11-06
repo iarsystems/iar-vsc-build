@@ -161,7 +161,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
                 workspaceFolder ?? Path.dirname(ireportPath),
                 this.write.bind(this)
             );
-            if (ExtensionSettings.getCstatAutoOpenReports()) {
+            if (ExtensionSettings.getCstatAutoOpenReports() && Vscode.env.remoteName === undefined) {
                 await Vscode.env.openExternal(Vscode.Uri.file(reportPath));
             }
         } catch (e) {
