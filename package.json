@@ -6,8 +6,8 @@
   "publisher": "iarsystems",
   "icon": "images/logo.png",
   "galleryBanner": {
-    "color": "#ffe000",
-    "theme": "light"
+    "color": "#242424",
+    "theme": "dark"
   },
   "preview": false,
   "repository": {
