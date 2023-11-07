@@ -45,11 +45,6 @@ suite("Test C-STAT", () => {
     let originalAutoOpen: boolean | undefined;
 
     suiteSetup(async function() {
-        // GetOptionsForConfiguration is broken on linux ATM
-        if (OsUtils.OsType.Linux === OsUtils.detectOsType()) {
-            this.skip();
-            return;
-        }
         this.timeout(50000);
         await VscodeTestsUtils.doExtensionSetup();
         sandboxPath = VscodeTestsSetup.setup();
