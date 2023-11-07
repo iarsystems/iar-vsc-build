@@ -5,7 +5,6 @@
 import { logger } from "iar-vsc-common/logger";
 import * as Vscode from "vscode";
 import * as Path from "path";
-import * as Fs from "fs/promises";
 import { ExtensionState } from "../extensionstate";
 import { ExtensionSettings } from "../settings/extensionsettings";
 import { WorkspaceIntellisenseProvider } from "./workspaceintellisenseprovider";
@@ -168,11 +167,6 @@ export class IntellisenseInfoService {
             generatedArgvarsFile ?? regularArgvarsFile,
             workspaceFolder,
             this.output);
-        loadPromise.finally(() => {
-            if (generatedArgvarsFile) {
-                Fs.unlink(generatedArgvarsFile).catch(() => {/**/});
-            }
-        });
 
         return loadPromise.then(intellisenseInfo => {
             this.workspaceIntellisenseInfo = intellisenseInfo;
