@@ -10,6 +10,7 @@ import { VscodeTestsSetup } from "./setup";
 import { VscodeTestsUtils } from "./utils";
 import { tmpdir } from "os";
 import { EwWorkspace } from "../../src/iar/workspace/ewworkspace";
+import { TestConfiguration } from "../testconfiguration";
 
 /**
  * Tests various parts of the extension using a project that requires a .custom_argvars file to be loaded.
@@ -37,11 +38,16 @@ suite("Test workspace support", () => {
         {
             await VscodeTestsUtils.activateWorkspace("TestProjects");
             const allProjects = ExtensionState.getInstance().project.projects;
-            Assert.strictEqual(allProjects.length, 3,
+
+            const expectCMakeProject = TestConfiguration.getConfiguration().testCMakeIntegration;
+            Assert.strictEqual(allProjects.length, expectCMakeProject ? 4 : 3,
                 "Found projects: " + allProjects.map(p => p.name).join(", "));
             Assert(allProjects.some(project => project.name === "BasicDebugging"));
             Assert(allProjects.some(project => project.name === "C-STATProject"));
             Assert(allProjects.some(project => project.name === "SourceConfiguration"));
+            if (expectCMakeProject) {
+                Assert(allProjects.some(project => project.name === "CMakeProject"));
+            }
         }
         {
             await VscodeTestsUtils.activateWorkspace("ArgVars1");
@@ -91,12 +97,16 @@ suite("Test workspace support", () => {
             await new Promise((p, _) => setTimeout(p, 4000));
 
             const allProjects = ExtensionState.getInstance().project.projects;
-            Assert.strictEqual(allProjects.length, 5,
-                "Found projects: " + allProjects.map(p => p.name).join(", ") + " -> expected " + 5);
+            const expectCMakeProject = TestConfiguration.getConfiguration().testCMakeIntegration;
+            Assert.strictEqual(allProjects.length, expectCMakeProject ? 6 : 5,
+                "Found projects: " + allProjects.map(p => p.name).join(", ") + " -> expected " + 6);
             Assert(allProjects.some(project => project.name === "ArgVars"));
             Assert(allProjects.some(project => project.name === "BasicDebugging"));
             Assert(allProjects.some(project => project.name === "C-STATProject"));
             Assert(allProjects.some(project => project.name === "SourceConfiguration"));
+            if (expectCMakeProject) {
+                Assert(allProjects.some(project => project.name === "CMakeProject"));
+            }
         });
     });
 
