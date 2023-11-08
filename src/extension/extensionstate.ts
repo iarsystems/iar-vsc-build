@@ -354,6 +354,10 @@ class State {
      * @returns Whether the selected workbench was changed
      */
     private static selectWorkbenchMatchingProject(project: Project, workbenchModel: WorkbenchListModel): boolean {
+        if (project.configurations.length === 0) {
+            return false;
+        }
+
         // Use a map to get all *unique* toolchains
         const projectToolchains = new Map<string, void>();
         project.configurations.forEach(conf => projectToolchains.set(conf.targetId));

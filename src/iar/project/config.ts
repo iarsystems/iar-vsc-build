@@ -20,6 +20,10 @@ export namespace Config {
      * Converts an internal EW toolchain id to a target id (i.e. target folder name).
      */
     export function toolchainIdToTargetId(toolchainId: string) {
+        const match = toolchainId.match(/cmake_(.+)/i);
+        if (match && match[1]) {
+            toolchainId = match[1];
+        }
         // Most targets have the same folder name ("target id") and EW-internal name ("toolchain id"), but with the
         // folder name in lowercase. However, some do not.
         return toolchainIdToTargetIdMap[toolchainId.toLowerCase()] ?? toolchainId.toLowerCase();
