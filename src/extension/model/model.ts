@@ -17,8 +17,6 @@ export interface ListInputModel<T> extends InputModel<T> {
     readonly amount: number;
     readonly selectedIndex: number | undefined;
 
-    addOnInvalidateHandler(fn: InvalidateHandler<T>): void;
-
     label(index: number): string;
     description(index: number): string | undefined;
     detail(index: number): string | undefined;
@@ -29,16 +27,19 @@ export interface ListInputModel<T> extends InputModel<T> {
     selectWhen(shouldSelect: (item: T) => boolean): boolean;
 }
 
+export interface MutableListInputModel<T> extends ListInputModel<T> {
+    set(...data: T[]): void;
+    addOnInvalidateHandler(fn: InvalidateHandler<T>): void;
+}
+
 export abstract class ListInputModelBase<T> implements ListInputModel<T> {
     private readonly selectHandlers: SelectHandler<T>[];
-    private readonly changeHandlers: InvalidateHandler<T>[];
 
     protected selectedIndex_: number | undefined;
     protected data: Array<T>;
 
     constructor(data: T[]) {
         this.selectHandlers = [];
-        this.changeHandlers = [];
         this.data = data;
 
         this.selectedIndex_ = undefined;
@@ -57,17 +58,6 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
             return this.data[this.selectedIndex];
         } else {
             return undefined;
-        }
-    }
-
-    public set(...data: T[]) {
-        this.data = data;
-
-        this.selectedIndex_ = undefined;
-        this.fireInvalidateEvent();
-        // If the value wasn't already changed by an invalidate handler, notify that it's been changed
-        if (this.selected === undefined) {
-            this.fireSelectionChanged(this.selected);
         }
     }
 
@@ -95,21 +85,12 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
 
     addOnSelectedHandler(fn: SelectHandler<T>): void {
         this.selectHandlers.push(fn);
-    }
-
-    addOnInvalidateHandler(fn: InvalidateHandler<T>): void {
-        this.changeHandlers.push(fn);
+        fn(this, this.selected);
     }
 
     protected fireSelectionChanged(item?: T): void {
         this.selectHandlers.forEach(handler => {
             handler(this, item);
-        });
-    }
-
-    protected fireInvalidateEvent(): void {
-        this.changeHandlers.forEach(handler => {
-            handler(this);
         });
     }
 
@@ -133,5 +114,40 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
             throw new Error(`No item with index ${index}`);
         }
         return result;
+    }
+}
+
+export abstract class MutableListInputModelBase<T> extends ListInputModelBase<T> implements MutableListInputModel<T> {
+    public static IsMutable<T>(model: ListInputModel<T>): model is MutableListInputModel<T> {
+        return "set" in model;
+    }
+
+    private readonly changeHandlers: InvalidateHandler<T>[];
+
+    constructor(data: T[]) {
+        super(data);
+
+        this.changeHandlers = [];
+    }
+
+    public set(...data: T[]) {
+        this.data = data;
+
+        this.selectedIndex_ = undefined;
+        this.fireInvalidateEvent();
+        // If the value wasn't already changed by an invalidate handler, notify that it's been changed
+        if (this.selected === undefined) {
+            this.fireSelectionChanged(this.selected);
+        }
+    }
+
+    addOnInvalidateHandler(fn: InvalidateHandler<T>): void {
+        this.changeHandlers.push(fn);
+    }
+
+    private fireInvalidateEvent(): void {
+        this.changeHandlers.forEach(handler => {
+            handler(this);
+        });
     }
 }

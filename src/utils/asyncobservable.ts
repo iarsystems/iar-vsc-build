@@ -14,6 +14,7 @@ export class AsyncObservable<T> {
     private _promise: Promise<T | undefined> | undefined;
 
     private readonly valueChangeHandlers: Callback<T | undefined>[] = [];
+    private readonly valueWillChangeHandlers: Callback<void>[] = [];
     private promiseResolutions: Callback<T | undefined>[] = [];
 
     /**
@@ -21,6 +22,16 @@ export class AsyncObservable<T> {
      */
     public onValueDidChange(handler: Callback<T | undefined>): void {
         this.valueChangeHandlers.push(handler);
+        if (this._promise === undefined) {
+            handler(this._value);
+        }
+    }
+
+    /**
+     * Adds a callback to run whenever setWithPromise is called.
+     */
+    public onValueWillChange(handler: Callback<void>): void {
+        this.valueWillChangeHandlers.push(handler);
     }
 
     /**
@@ -33,6 +44,7 @@ export class AsyncObservable<T> {
      */
     public setWithPromise(promise: Promise<T | undefined>) {
         this._promise = promise;
+        this.valueWillChangeHandlers.forEach(handler => handler());
         promise.then(result => {
             if (this._promise === promise) {
                 this.setValueAndNotify(result);

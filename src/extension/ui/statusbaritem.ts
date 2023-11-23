@@ -7,6 +7,10 @@
 import * as Vscode from "vscode";
 import { Command } from "../command/command";
 import { ListInputModel } from "../model/model";
+import { AsyncObservable } from "../../utils/asyncobservable";
+import { EwWorkspace } from "../../iar/workspace/ewworkspace";
+import { ProjectListModel } from "../model/selectproject";
+import { ConfigurationListModel } from "../model/selectconfiguration";
 
 export namespace StatusBarItem {
 
@@ -41,5 +45,29 @@ export namespace StatusBarItem {
 
         model.addOnSelectedHandler(() => updateText());
 
+    }
+
+    /**
+     * Creates status bar items which show the projects in a workspace, and the
+     * configurations in the workspace's active project.
+     */
+    export function createFromWorkspaceModel(
+        workspace: AsyncObservable<EwWorkspace>,
+        projectId: string,
+        projectOnClick: Command<unknown>,
+        projectLabel: string,
+        projectPriority: number,
+        configId: string,
+        configOnClick: Command<unknown>,
+        configLabel: string,
+        configPriority: number) {
+
+        createFromModel(projectId, new ProjectListModel, projectOnClick, projectLabel, projectPriority);
+        createFromModel(configId, new ProjectListModel, configOnClick, configLabel, configPriority);
+
+        workspace.onValueDidChange(workspace => {
+            createFromModel(projectId, workspace?.projects ?? new ProjectListModel, projectOnClick, projectLabel, projectPriority);
+            createFromModel(configId, workspace?.projectConfigs ?? new ConfigurationListModel, configOnClick, configLabel, configPriority);
+        });
     }
 }

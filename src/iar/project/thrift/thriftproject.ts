@@ -13,23 +13,54 @@ import { InformationMessage, InformationMessageType } from "../../../extension/u
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { Config } from "../config";
 import { IarVsc } from "../../../extension/main";
+import { Disposable } from "../../../utils/disposable";
+import { BackupUtils } from "../../../utils/utils";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.
  */
-export class ThriftProject implements ExtendedProject {
-    private readonly onChangedHandlers: (() => void)[] = [];
+export class ThriftProject implements ExtendedProject, Disposable {
+    private onChangedHandlers: (() => void)[] = [];
+    private disposables: Disposable[] = [];
     private readonly currentOperations: Promise<unknown>[] = [];
 
     constructor(public path:                 string,
                 public configurations:       ReadonlyArray<Config>,
                 private readonly projectMgr: ProjectManager.Client,
-                private readonly context:    ProjectContext,
+                private context:             ProjectContext,
                 private readonly owner:      Workbench) {
     }
 
     get name(): string {
         return Path.parse(this.path.toString()).name;
+    }
+
+    public async reload(): Promise<void> {
+        await this.performOperation(async() => {
+            if (WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.PMReloadProject)) {
+                await BackupUtils.doWithBackupCheck(this.path, async() => {
+                    this.context = await this.projectMgr.ReloadProject(this.context);
+                });
+            } else {
+                if (WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.PMWorkspaces)) {
+                    await this.projectMgr.RemoveProject(this.context);
+                } else {
+                    await this.projectMgr.CloseProject(this.context);
+                }
+
+                this.context = await BackupUtils.doWithBackupCheck(this.path, async() => {
+                    return await this.projectMgr.LoadEwpFile(this.path);
+                });
+            }
+
+            this.configurations = (await this.projectMgr.GetConfigurations(this.context)).map(thriftConfig => {
+                return {
+                    name: thriftConfig.name,
+                    targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
+                };
+            });
+        });
+        this.fireChangedEvent();
     }
 
     public getRootNode(): Promise<Node> {
@@ -96,18 +127,27 @@ export class ThriftProject implements ExtendedProject {
         });
     }
 
-    public onChanged(callback: () => void): void {
+    public addOnChangeListener(callback: () => void): void {
         this.onChangedHandlers.push(callback);
     }
+    public removeOnChangeListener(callback: () => void): void {
+        const idx = this.onChangedHandlers.indexOf(callback);
+        if (idx !== -1) {
+            this.onChangedHandlers.splice(idx, 1);
+        }
+    }
+
     public findConfiguration(name: string): Config | undefined {
         return this.configurations.find(config => config.name === name);
     }
 
-    // Wait for all running operations to finish
-    public async finishRunningOperations(): Promise<void> {
-        await Promise.all(this.currentOperations);
+    public async dispose(): Promise<void> {
+        this.onChangedHandlers = [];
+        await Promise.allSettled(this.currentOperations);
+        await this.projectMgr.CloseProject(this.context);
+        await Promise.all(this.disposables.map(d => d.dispose()));
+        this.disposables = [];
     }
-
 
     private fireChangedEvent() {
         this.onChangedHandlers.forEach(handler => handler());
@@ -115,7 +155,7 @@ export class ThriftProject implements ExtendedProject {
 
     // Registers an operation (i.e. a thrift procedure call) that uses the project context. The operation will be
     // awaited before invalidating the project context (as long as the owner of this instance calls {@link
-    // finishRunningOperations}).
+    // dispose}).
     // ! All thrift procedure calls should go through this method.
     private performOperation<T>(operation: () => Promise<T>): Promise<T> {
         const promise = operation();
@@ -126,31 +166,45 @@ export class ThriftProject implements ExtendedProject {
 }
 
 export namespace ThriftProject {
+
     /**
-     * Creates a thrift project from a loaded project context.
-     * @param path The path to the .ewp file
-     * @param pm The thrift project manager where the context is loaded
-     * @param context The project context
-     * @param owner The workbench that has loaded the project. Used to know e.g. what APIs versions are available.
+     * Loads a thrift project into the given project manager
+     * @param file The .ewp file to load
+     * @param pm The thrift project manager where the project should be loaded
+     * @param owner The workbench that owns the project manager. Used to know e.g. what APIs versions are available.
      * @returns
      */
-    export async function fromContext(path: string, pm: ProjectManager.Client, context: ProjectContext, owner: Workbench): Promise<ThriftProject> {
+    export async function load(file: string, pm: ProjectManager.Client, owner: Workbench): Promise<ThriftProject> {
+        const ctx = await BackupUtils.doWithBackupCheck(file, async() => {
+            return await pm.LoadEwpFile(file);
+        });
+        return fromContext(ctx, pm, owner);
+    }
+
+    /**
+     * Creates a thrift project from a loaded project context.
+     * @param context The project context
+     * @param pm The thrift project manager where the context is loaded
+     * @param owner The workbench that owns the project manager. Used to know e.g. what APIs versions are available.
+     * @returns
+     */
+    export async function fromContext(context: ProjectContext, pm: ProjectManager.Client, owner: Workbench): Promise<ThriftProject> {
+        // VSC-233 Warn users about having several groups with the same name
+        if (!WorkbenchFeatures.supportsFeature(owner, WorkbenchFeatures.SetNodeByIndex)) {
+            const node = await pm.GetRootNode(context);
+            if (hasDuplicateGroupNames(new Set(), node)) {
+                const prompt = `The project ${Path.basename(context.filename)} has several groups with the same name. This may cause unwanted behaviour when adding or removing files.`;
+                InformationMessage.show("duplicateGroups", prompt, InformationMessageType.Warning);
+            }
+        }
+
         const configs = (await pm.GetConfigurations(context)).map(thriftConfig => {
             return {
                 name: thriftConfig.name,
                 targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
             };
         });
-
-        // VSC-233 Warn users about having several groups with the same name
-        if (!WorkbenchFeatures.supportsFeature(owner, WorkbenchFeatures.SetNodeByIndex)) {
-            const node = await pm.GetRootNode(context);
-            if (hasDuplicateGroupNames(new Set(), node)) {
-                const prompt = `The project ${Path.basename(path.toString())} has several groups with the same name. This may cause unwanted behaviour when adding or removing files.`;
-                InformationMessage.show("duplicateGroups", prompt, InformationMessageType.Warning);
-            }
-        }
-        return new ThriftProject(path, configs, pm, context, owner);
+        return new ThriftProject(context.filename, configs, pm, context, owner);
     }
 }
 

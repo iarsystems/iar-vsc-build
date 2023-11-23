@@ -13,6 +13,7 @@ import { ExtendedProject } from "../../../iar/project/project";
 import { logger } from "iar-vsc-common/logger";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { ExtensionState } from "../../extensionstate";
+import { ErrorUtils } from "../../../utils/utils";
 
 /**
  * This command removes a file or group from a project (using a thrift ProjectManager)
@@ -23,7 +24,7 @@ export class RemoveNodeCommand extends ProjectCommand {
     }
 
     async execute(source: FilesNode, project: ExtendedProject) {
-        const workbench = ExtensionState.getInstance().workbench.selected;
+        const workbench = ExtensionState.getInstance().workbenches.selected;
         if (workbench && !WorkbenchFeatures.supportsFeature(workbench, WorkbenchFeatures.SetNodeCanRemoveNodes)) {
             let errMsg = "Due to a bug, this Embedded Workbench version can not remove project members from VS Code.";
             const minVersions = WorkbenchFeatures.getMinProductVersions(workbench, WorkbenchFeatures.SetNodeCanRemoveNodes);
@@ -55,12 +56,9 @@ export class RemoveNodeCommand extends ProjectCommand {
 
             Vscode.window.showInformationMessage(`The ${typeString} "${toRemove.name}" has been removed from the project.`);
         } catch (e) {
-            if (typeof e === "string" || e instanceof Error) {
-                Vscode.window.showErrorMessage("Unable to remove " + typeString + ": " + e.toString());
-                logger.error("Unabled to remove node: " + e.toString());
-            } else {
-                Vscode.window.showErrorMessage("Unable to remove " + typeString + ".");
-            }
+            const errMsg = ErrorUtils.toErrorMessage(e);
+            Vscode.window.showErrorMessage("Unable to remove " + typeString + ": " + errMsg);
+            logger.error("Unabled to remove node: " + errMsg);
         }
     }
 

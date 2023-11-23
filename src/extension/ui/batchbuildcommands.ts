@@ -121,7 +121,7 @@ export namespace BatchBuild {
             const selection: BatchBuildSelection[] = [];
 
             // Generate the list of available projects and configurations. const availableNodes: BatchBuildNode[] = [];
-            for (const project of ExtensionState.getInstance().project.projects) {
+            for (const project of (await ExtensionState.getInstance().workspace.getValue())?.projects.projects ?? []) {
                 for (const conf of project.configurations) {
                     selection.push(
                         new BatchBuildSelection(project, conf)
@@ -137,7 +137,7 @@ export namespace BatchBuild {
                 for (const item of selected) {
                     // IDE 9.2.2 expands network drives to UNC paths.
                     // This is a bit hacky, but we need to do the same as a client.
-                    const ewVersion = ExtensionState.getInstance().workbench.selected?.version;
+                    const ewVersion = ExtensionState.getInstance().workbenches.selected?.version;
                     let realProjectPath: string;
                     if (ewVersion?.major === 9 && ewVersion?.minor === 2 && ewVersion.patch === 2) {
                         realProjectPath = Fs.realpathSync.native(item.project.path);
@@ -183,7 +183,7 @@ export namespace BatchBuild {
                 label: this.label,
                 type: "iar",
                 command: this.buildcommand,
-                builder: ExtensionState.getInstance().workbench.selected?.builderPath,
+                builder: ExtensionState.getInstance().workbenches.selected?.builderPath,
                 contexts: contexts,
                 argumentVariablesFile: "${command:iar-config.argument-variables-file}",
                 extraBuildArguments: undefined,

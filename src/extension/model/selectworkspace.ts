@@ -2,25 +2,25 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { EwWorkspace } from "../../iar/workspace/ewworkspace";
-import { ListInputModelBase } from "./model";
+import { EwwFile } from "../../iar/workspace/ewwfile";
+import { MutableListInputModelBase } from "./model";
 
-export class WorkspaceListModel extends ListInputModelBase<EwWorkspace> {
-    constructor(...workspaces: EwWorkspace[]) {
+export class WorkspaceListModel extends MutableListInputModelBase<EwwFile> {
+    constructor(...workspaces: EwwFile[]) {
         super(workspaces);
     }
 
-    get workspaces(): ReadonlyArray<EwWorkspace> {
+    get workspaces(): ReadonlyArray<EwwFile> {
         return this.data;
     }
 
-    itemLabel(item: EwWorkspace): string {
+    itemLabel(item: EwwFile): string {
         return item.name;
     }
     itemDescription(): string | undefined {
         return undefined;
     }
-    itemDetail(item: EwWorkspace): string | undefined {
+    itemDetail(item: EwwFile): string | undefined {
         return item.path;
     }
 }

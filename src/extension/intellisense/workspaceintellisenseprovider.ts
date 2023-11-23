@@ -14,13 +14,16 @@ import { createHash } from "crypto";
 import { tmpdir } from "os";
 import { FsUtils } from "../../utils/fs";
 import { ExtensionSettings } from "../settings/extensionsettings";
-import { BackupUtils, LanguageUtils, ListUtils, ProcessUtils } from "../../utils/utils";
+import { BackupUtils, ErrorUtils, LanguageUtils, ListUtils, ProcessUtils } from "../../utils/utils";
 import { IncludePath, IncludePathImpl } from "./data/includepath";
 import { Define } from "./data/define";
 import { PreIncludePath, StringPreIncludePath } from "./data/preincludepath";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { Mutex } from "async-mutex";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
+import { EwWorkspace } from "../../iar/workspace/ewworkspace";
+import { EwwFile } from "../../iar/workspace/ewwfile";
+import { logger } from "iar-vsc-common/logger";
 
 /**
  * Generates and holds intellisense information ({@link IntellisenseInfo}) for a collection of projects (a "workspace").
@@ -31,45 +34,46 @@ export class WorkspaceIntellisenseProvider {
      * Prepares to provide intellisense info for a set of projects (a "workspace"). The resulting
      * {@link WorkspaceIntellisenseProvider} can then be queried for intellisense info for any file belonging to any of
      * the projects.
-     * @param projects The projects to prepare intellisense info for.
+     * @param workspace The workspace containing projects for which to prepare intellisense info.
      * @param workbench The workbench to use.
-     * @param config The preferred project configuration. If a project has a configuration with this name, it is used to
-     *  prepare the intellisense info. Otherwise, an arbitrary configuration is used.
      * @param argVarFile The .custom_argvars file used to build the projects.
-     * @param workspaceFolder The current VS Code workspace folder.
+     * @param workspaceFolder The current VS Code workspace folder. Used to resolve relative paths.
      * @param outputChannel A channel to log progress to.
      * @returns
      */
-    static async loadProjects(
-        projects: ReadonlyArray<Project>, workbench: Workbench, config: string, argVarFile?: string, workspaceFolder?: string, outputChannel?: vscode.OutputChannel
+    static async loadWorkspace(
+        workspace: EwWorkspace, workbench: Workbench, workspaceFolder?: string, outputChannel?: vscode.OutputChannel
     ): Promise<WorkspaceIntellisenseProvider> {
+        let argVarFile: string | undefined = undefined;
+        if (workspace.path) {
+            argVarFile = await EwwFile.generateArgvarsFileFor(workspace.path);
+            if (!argVarFile) {
+                argVarFile = EwwFile.findArgvarsFileFor(workspace.path);
+            }
+        }
+
         try {
             const projectCompDbs: Map<Project, ProjectCompilationDatabase> = new Map();
-            await Promise.all(projects.map(async(project) => {
-                try {
-                    // If the project doesn't have a config the same name as the user's selected one, pick an arbitrary config
-                    const actualConfig = project.findConfiguration(config) ?? project.configurations[0];
-                    if (actualConfig) {
-                        const provider = await ProjectCompilationDatabase.loadFromProject(project, actualConfig, workbench, argVarFile, workspaceFolder, outputChannel);
+            await Promise.all(workspace.projects.projects.map(async(project) => {
+                const activeConfig = workspace.getActiveConfig(project) ?? project.configurations[0];
+                if (activeConfig) {
+                    try {
+                        const provider = await ProjectCompilationDatabase.loadFromProject(project, activeConfig, workbench, argVarFile, workspaceFolder, outputChannel);
                         projectCompDbs.set(project, provider);
-                    }
-                } catch (err) {
-                    if (err instanceof Error) {
-                        outputChannel?.appendLine(`Intellisense configuration did not complete for '${project.name}': ${err.message}`);
+                    } catch (err) {
+                        outputChannel?.appendLine(`Intellisense configuration did not complete for '${project.name}': ${ErrorUtils.toErrorMessage(err)}`);
                     }
                 }
             }));
 
-            if (projects.length > 0 && projectCompDbs.size === 0) {
+            if (workspace.projects.amount > 0 && projectCompDbs.size === 0) {
                 outputChannel?.appendLine("No intellisense configurations were generated");
                 throw Error("No intellisense configurations were generated");
             }
 
             return new WorkspaceIntellisenseProvider(projectCompDbs, workbench, argVarFile, workspaceFolder, outputChannel);
         } catch (err) {
-            if (err instanceof Error) {
-                outputChannel?.appendLine("Intellisense configuration did not complete: " + err.message);
-            }
+            outputChannel?.appendLine("Intellisense configuration did not complete: " + ErrorUtils.toErrorMessage(err));
             throw err;
         }
     }
@@ -101,22 +105,11 @@ export class WorkspaceIntellisenseProvider {
      * Checks whether the file belongs to any project in this workspace.
      */
     canHandleFile(file: string): boolean {
-        for (const compDb of this.projectCompDbs.values()) {
-            if (compDb.isFileIncluded(file)) {
-                return true;
-            }
-        }
-        return false;
+        return this.getCompilationDb(file) !== undefined;
     }
 
     async getIntellisenseInfoFor(file: string): Promise<IntellisenseInfo> {
-        let compDb: ProjectCompilationDatabase | undefined = undefined;
-        for (const compDbCandidate of this.projectCompDbs.values()) {
-            if (compDbCandidate.isFileIncluded(file)) {
-                compDb = compDbCandidate;
-                break;
-            }
-        }
+        const compDb = this.getCompilationDb(file);
         if (compDb) {
             const [intellisenseInfo, cacheHit] = await compDb.getIntellisenseInfoFor(file);
             // the first time we generate intellisense info for a file, also add it to the browse info
@@ -139,17 +132,57 @@ export class WorkspaceIntellisenseProvider {
     }
 
     /**
+     * Flushes and regenerates intellisense information for the given project.
+     * @return true if the intellisense info for this project changed
+     */
+    async reloadProject(project: Project): Promise<boolean> {
+        const prevCompDb = this.projectCompDbs.get(project);
+        if (!prevCompDb) {
+            logger.warn(`Tried to reload unknown project: ${project.name}`);
+            return false;
+        }
+        this.projectCompDbs.set(project,
+            await ProjectCompilationDatabase.loadFromProject(project, prevCompDb?.projectConfig, this.workbench, this.argvarFile, this.workspaceFolder, this.outputChannel));
+        return true;
+    }
+
+    /**
      * Sets the project configuration to use for the given project's intellisense info.
      * @return true if the intellisense info for this project changed
      */
     async setConfigurationForProject(project: Project, config: Config): Promise<boolean> {
         const currentConfig = this.projectCompDbs.get(project);
-        if (currentConfig && currentConfig.projectConfig !== config) {
+        if (!currentConfig || currentConfig.projectConfig !== config) {
             this.projectCompDbs.set(project,
                 await ProjectCompilationDatabase.loadFromProject(project, config, this.workbench, this.argvarFile, this.workspaceFolder, this.outputChannel));
             return true;
         }
         return false;
+    }
+
+    /**
+     * Gets the configuration that was used to generate intellisense info for
+     * the given project.
+     */
+    getActiveConfiguration(project: Project): Config | undefined {
+        return this.projectCompDbs.get(project)?.projectConfig;
+    }
+
+    /**
+     * Gets the target 'e.g.' arm/riscv used to compile the given file
+     */
+    getTargetIdForFile(file: string): string | undefined {
+        const compDb = this.getCompilationDb(file);
+        return compDb?.projectConfig.targetId;
+    }
+
+    private getCompilationDb(file: string): ProjectCompilationDatabase | undefined {
+        for (const compDbCandidate of this.projectCompDbs.values()) {
+            if (compDbCandidate.isFileIncluded(file)) {
+                return compDbCandidate;
+            }
+        }
+        return undefined;
     }
 }
 
@@ -182,9 +215,7 @@ class ProjectCompilationDatabase {
             outputChannel?.appendLine("Done!");
             return new ProjectCompilationDatabase(config, project, args, outputChannel);
         } catch (err) {
-            if (err instanceof Error) {
-                outputChannel?.appendLine("Intellisense configuration did not complete: " + err.message);
-            }
+            outputChannel?.appendLine("Intellisense configuration did not complete: " + ErrorUtils.toErrorMessage(err));
             throw err;
         }
     }

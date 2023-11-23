@@ -8,8 +8,9 @@ import * as Fs from "fs";
 import { Workbench } from "iar-vsc-common/workbench";
 import { Config } from "../../iar/project/config";
 import { Project } from "../../iar/project/project";
-import { EwWorkspace } from "../../iar/workspace/ewworkspace";
+import { EwwFile } from "../../iar/workspace/ewwfile";
 import { logger } from "iar-vsc-common/logger";
+import { ErrorUtils } from "../../utils/utils";
 
 /**
  * Handles settings that aren't VS Code extension settings. These are stored
@@ -46,7 +47,7 @@ export namespace LocalSettings {
         return mapAndFindFirst(Vscode.workspace.workspaceFolders,
             wsFolder => resolvePath(readSettings(wsFolder).workspace, wsFolder));
     }
-    export function setSelectedWorkspace(workspace: EwWorkspace) {
+    export function setSelectedWorkspace(workspace: EwwFile) {
         if (!Vscode.workspace.workspaceFolders) {
             return;
         }
@@ -58,7 +59,7 @@ export namespace LocalSettings {
         });
     }
 
-    export function getSelectedProject(workspace: EwWorkspace | undefined): string | undefined {
+    export function getSelectedProject(workspace: EwwFile | undefined): string | undefined {
         if (!Vscode.workspace.workspaceFolders) {
             return undefined;
         }
@@ -78,7 +79,7 @@ export namespace LocalSettings {
             return resolvePath(storedPath, wsFolder);
         }
     }
-    export function setSelectedProject(workspace: EwWorkspace | undefined, project: Project) {
+    export function setSelectedProject(workspace: EwwFile | undefined, project: Project) {
         if (!Vscode.workspace.workspaceFolders) {
             return;
         }
@@ -105,7 +106,7 @@ export namespace LocalSettings {
         }
     }
 
-    export function getSelectedConfiguration(workspace: EwWorkspace | undefined, project: Project): string | undefined {
+    export function getSelectedConfiguration(workspace: EwwFile | undefined, project: Project): string | undefined {
         const wsFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file((workspace ?? project).path));
         if (!wsFolder) {
             return;
@@ -118,7 +119,7 @@ export namespace LocalSettings {
 
         return configMap?.[encodePath(Path.normalize(project.path), wsFolder).path];
     }
-    export function setSelectedConfiguration(workspace: EwWorkspace | undefined, project: Project, config: Config) {
+    export function setSelectedConfiguration(workspace: EwwFile | undefined, project: Project, config: Config) {
         const wsFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file((workspace ?? project).path));
         if (!wsFolder) {
             return;
@@ -149,9 +150,7 @@ export namespace LocalSettings {
                 return JSON.parse(Fs.readFileSync(filePath).toString());
             }
         } catch (e) {
-            if (e instanceof Error || typeof e === "string") {
-                logger.error(`Failed to read ${filePath}: ${e.toString()}`);
-            }
+            logger.error(`Failed to read ${filePath}: ${ErrorUtils.toErrorMessage(e)}`);
         }
         return {};
     }
@@ -161,9 +160,7 @@ export namespace LocalSettings {
             Fs.mkdirSync(Path.dirname(filePath), { recursive: true });
             Fs.writeFileSync(filePath, JSON.stringify(settings, undefined, 2));
         } catch (e) {
-            if (e instanceof Error || typeof e === "string") {
-                logger.error(`Failed to write ${filePath}: ${e.toString()}`);
-            }
+            logger.error(`Failed to write ${filePath}: ${ErrorUtils.toErrorMessage(e)}`);
         }
     }
 

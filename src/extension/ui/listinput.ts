@@ -4,7 +4,7 @@
 
 
 import * as Vscode from "vscode";
-import { ListInputModel, InputModel } from "../model/model";
+import { ListInputModel, InputModel, MutableListInputModelBase } from "../model/model";
 
 type InputItem = Vscode.QuickPickItem & { index: number };
 
@@ -22,7 +22,9 @@ export class ListInput<T> implements Input<T> {
         this.model = model;
         this.inputItemWrapper = [];
 
-        this.model.addOnInvalidateHandler(this.generateItemWrappers.bind(this));
+        if (MutableListInputModelBase.IsMutable(model)) {
+            model.addOnInvalidateHandler(this.generateItemWrappers.bind(this));
+        }
 
         this.generateItemWrappers();
     }

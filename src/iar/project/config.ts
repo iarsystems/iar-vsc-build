@@ -16,6 +16,10 @@ export interface Config {
 }
 
 export namespace Config {
+    export function equal(c1: Config, c2: Config): boolean {
+        return c1.name === c2.name && c1.targetId === c2.targetId;
+    }
+
     /**
      * Converts an internal EW toolchain id to a target id (i.e. target folder name).
      */

@@ -11,6 +11,7 @@ import { FilesNode } from "../../ui/treeprojectprovider";
 import { ProjectCommand } from "./projectcommand";
 import { ExtendedProject } from "../../../iar/project/project";
 import { logger } from "iar-vsc-common/logger";
+import { ErrorUtils } from "../../../utils/utils";
 
 
 /**
@@ -73,12 +74,9 @@ namespace AddFile {
 
             await project.setNode(parent, target ? target.indexPath : []);
         } catch (e) {
-            if (typeof e === "string" || e instanceof Error) {
-                Vscode.window.showErrorMessage("Unable to add file(s): " + e.toString());
-                logger.error("Unable to add file(s): " + e.toString());
-            } else {
-                Vscode.window.showErrorMessage("Unable to add file(s).");
-            }
+            const errMsg = ErrorUtils.toErrorMessage(e);
+            Vscode.window.showErrorMessage("Unable to add file(s): " + errMsg);
+            logger.error("Unable to add file(s): " + errMsg);
         }
     }
 
@@ -152,12 +150,9 @@ namespace AddGroup {
             parent.children.push(node);
             await project.setNode(parent, target ? target.indexPath : []);
         } catch (e) {
-            if (typeof e === "string" || e instanceof Error) {
-                Vscode.window.showErrorMessage("Unable to add group: " + e.toString());
-                logger.error("Unable to add group: " + e.toString());
-            } else {
-                Vscode.window.showErrorMessage("Unable to add group.");
-            }
+            const errMsg = ErrorUtils.toErrorMessage(e);
+            Vscode.window.showErrorMessage("Unable to add group: " + errMsg);
+            logger.error("Unable to add group: " + errMsg);
         }
     }
 }

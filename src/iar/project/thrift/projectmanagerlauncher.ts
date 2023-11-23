@@ -27,7 +27,11 @@ export namespace ProjectManagerLauncher {
             launcherPath += ".exe";
         }
         // for now needs to load projectmanager at launch, otherwise it seems to behave strangely
-        const args = ["-standalone", "-sockets", Path.join(workbench.path.toString(), "common/bin/projectmanager.json")];
+        const args = [
+            "-standalone",
+            "-sockets",
+            Path.join(workbench.path.toString(), "common/bin/projectmanager.json"),
+        ];
 
         const stopProcess = async function(manager: ThriftServiceManager) {
             const serviceMgr = await manager.findService(SERVICE_MANAGER_SERVICE, CSpyServiceManager);

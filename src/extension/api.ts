@@ -11,13 +11,14 @@ import { ExtensionState } from "./extensionstate";
 export const API: BuildExtensionApi = {
 
     getSelectedWorkbench() {
-        return Promise.resolve(ExtensionState.getInstance().workbench.selected?.path.toString());
+        return Promise.resolve(ExtensionState.getInstance().workbenches.selected?.path.toString());
     },
 
-    getSelectedConfiguration(projectPath) {
-        const selectedPath = ExtensionState.getInstance().project.selected?.path.toString();
+    async getSelectedConfiguration(projectPath) {
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        const selectedPath = workspace?.projects.selected?.path;
         if (selectedPath && OsUtils.pathsEqual(projectPath, selectedPath)) {
-            const config = ExtensionState.getInstance().config.selected;
+            const config = workspace.getActiveConfig();
             if (config) {
                 return Promise.resolve({ name: config.name, target: config.targetId });
             }
@@ -25,25 +26,29 @@ export const API: BuildExtensionApi = {
         return Promise.resolve(undefined);
     },
 
-    getProjectConfigurations(projectPath) {
-        const selectedPath = ExtensionState.getInstance().project.selected?.path.toString();
-        if (selectedPath && OsUtils.pathsEqual(projectPath, selectedPath)) {
-            return Promise.resolve(ExtensionState.getInstance().config.configurations.map(c => {
+    async getProjectConfigurations(projectPath) {
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        const selectedProject = workspace?.projects.selected;
+        if (selectedProject && OsUtils.pathsEqual(projectPath, selectedProject.path)) {
+            return Promise.resolve(selectedProject.configurations.map(c => {
                 return { name: c.name, target: c.targetId };
             }));
         }
         return Promise.resolve(undefined);
     },
 
-    getSelectedProject() {
-        return Promise.resolve(ExtensionState.getInstance().project.selected?.path.toString());
+    async getSelectedProject() {
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        return workspace?.projects.selected?.path.toString();
     },
 
     async getCSpyCommandline(projectPath, configuration) {
-        const project = await ExtensionState.getInstance().extendedProject.getValue();
-        if (project === undefined || !OsUtils.pathsEqual(projectPath, project.path.toString())) {
-            return undefined;
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        const project = workspace?.projects.projects.find(proj => OsUtils.pathsEqual(proj.path, projectPath));
+        if (workspace?.isExtendedWorkspace() && project) {
+            const extendedProject = await workspace.getExtendedProject(project);
+            return extendedProject?.getCSpyArguments(configuration);
         }
-        return project.getCSpyArguments(configuration);
+        return undefined;
     },
 };

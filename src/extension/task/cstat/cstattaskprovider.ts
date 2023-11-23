@@ -4,6 +4,7 @@
 
 import * as Vscode from "vscode";
 import { CStatTaskExecution } from "./cstattaskexecution";
+import { ErrorUtils } from "../../../utils/utils";
 
 export namespace CStatTaskProvider {
     // These are useful to have exported to run tasks programmatically
@@ -94,9 +95,7 @@ class CStatProvider implements Vscode.TaskProvider {
             const execution = this.getExecution();
             return new Vscode.Task(_task.definition, Vscode.TaskScope.Workspace, _task.definition["label"], "iar-cstat", execution, []);
         } catch (e) {
-            if (e instanceof Error) {
-                Vscode.window.showErrorMessage(e.message);
-            }
+            Vscode.window.showErrorMessage(ErrorUtils.toErrorMessage(e));
             return undefined;
         }
     }

@@ -13,7 +13,8 @@ import { EwpFile } from "../../../iar/project/parsing/ewpfile";
 import { ExtensionState } from "../../extensionstate";
 import { ExtensionSettings } from "../../settings/extensionsettings";
 import { logger } from "iar-vsc-common/logger";
-import { EwWorkspace } from "../../../iar/workspace/ewworkspace";
+import { EwwFile } from "../../../iar/workspace/ewwfile";
+import { ErrorUtils } from "../../../utils/utils";
 
 /**
  * Executes a c-stat task, i.e. generates and clears C-STAT warnings and displays them in vs code.
@@ -127,9 +128,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
             this.diagnostics.set(fileDiagnostics);
             this.write("C-STAT is done!\n");
         } catch (e) {
-            if (typeof e === "string" || e instanceof Error) {
-                this.onError(e);
-            }
+            this.onError(ErrorUtils.toErrorMessage(e));
         } finally {
             this.closeEmitter.fire(0);
         }
@@ -165,9 +164,7 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
                 await Vscode.env.openExternal(Vscode.Uri.file(reportPath));
             }
         } catch (e) {
-            if (typeof e === "string" || e instanceof Error) {
-                this.onError(e);
-            }
+            this.onError(ErrorUtils.toErrorMessage(e));
         } finally {
             this.closeEmitter.fire(0);
         }
@@ -202,7 +199,8 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     // If we can't get it from thrift, several *guesses* are returned, which should each be checked in order.
     private static async getPossibleCStatOutputDirectories(projectPath: string, config: string): Promise<string[]> {
         try {
-            const extendedProject = await ExtensionState.getInstance().extendedProject.getValue();
+            const workspace = await ExtensionState.getInstance().workspace.getValue();
+            const extendedProject = await workspace?.asExtendedWorkspace()?.getExtendedProject();
             if (extendedProject !== undefined && OsUtils.pathsEqual(extendedProject.path.toString(), projectPath)) {
                 const outDir = await extendedProject.getCStatOutputDirectory(config);
                 if (outDir !== undefined) {
@@ -255,15 +253,15 @@ export class CStatTaskExecution implements Vscode.Pseudoterminal {
     }
 
     private async resolveArgVarFile(input: string): Promise<string | undefined> {
-        if (!EwWorkspace.isWorkspaceFile(input)) {
+        if (!EwwFile.isWorkspaceFile(input)) {
             return input;
         }
-        const tmpArgvarsFile = await EwWorkspace.generateArgvarsFileFor(input);
+        const tmpArgvarsFile = await EwwFile.generateArgvarsFileFor(input);
         if (tmpArgvarsFile) {
             this.temporaryFiles.push(tmpArgvarsFile);
             return tmpArgvarsFile;
         }
 
-        return EwWorkspace.findArgvarsFileFor(input);
+        return EwwFile.findArgvarsFileFor(input);
     }
 }

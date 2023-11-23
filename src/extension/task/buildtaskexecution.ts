@@ -5,14 +5,14 @@
 import * as Vscode from "vscode";
 import { ExtensionSettings } from "../settings/extensionsettings";
 import { BuildTaskDefinition } from "./buildtasks";
-import { BackupUtils, ProcessUtils } from "../../utils/utils";
+import { BackupUtils, ErrorUtils, ProcessUtils } from "../../utils/utils";
 import { spawn } from "child_process";
 import { FileStylizer, stylizeBold, StylizedTerminal, stylizeError, stylizePunctuation, stylizeWarning } from "./stylizedterminal";
 import * as Path from "path";
 import * as Fs from "fs/promises";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { Workbench } from "iar-vsc-common/workbench";
-import { EwWorkspace } from "../../iar/workspace/ewworkspace";
+import { EwwFile } from "../../iar/workspace/ewwfile";
 
 /**
  * Executes a build task using iarbuild, e.g. to build or clean a project. We have to use a custom execution
@@ -121,7 +121,7 @@ export class BuildTaskExecution extends StylizedTerminal {
                     }
                 });
             } catch (e) {
-                const errorMsg = (e instanceof Error || typeof e === "string") ? e.toString() : JSON.stringify(e);
+                const errorMsg = ErrorUtils.toErrorMessage(e);
                 this.onError(errorMsg);
                 return;
             }
@@ -155,15 +155,15 @@ export class BuildTaskExecution extends StylizedTerminal {
     }
 
     private async resolveArgVarFile(input: string): Promise<string | undefined> {
-        if (!EwWorkspace.isWorkspaceFile(input)) {
+        if (!EwwFile.isWorkspaceFile(input)) {
             return input;
         }
-        const tmpArgvarsFile = await EwWorkspace.generateArgvarsFileFor(input);
+        const tmpArgvarsFile = await EwwFile.generateArgvarsFileFor(input);
         if (tmpArgvarsFile) {
             this.temporaryFiles.push(tmpArgvarsFile);
             return tmpArgvarsFile;
         }
 
-        return EwWorkspace.findArgvarsFileFor(input);
+        return EwwFile.findArgvarsFileFor(input);
     }
 }

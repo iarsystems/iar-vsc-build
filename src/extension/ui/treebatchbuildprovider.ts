@@ -6,8 +6,9 @@ import * as Vscode from "vscode";
 import { BehaviorSubject } from "rxjs";
 import { BatchBuildItem, BuildItem, ProjectContext } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import path = require("path");
-import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 import { logger } from "iar-vsc-common/logger";
+import { EwWorkspace } from "../../iar/workspace/ewworkspace";
+import { ErrorUtils } from "../../utils/utils";
 
 
 export enum NodeType {
@@ -147,7 +148,7 @@ export class TreeBatchBuildProvider implements Vscode.TreeDataProvider<BatchBuil
         this.workspace = workspace;
 
         const batches: BatchBuildItem[] = [];
-        if (workspace !== undefined) {
+        if (workspace !== undefined && workspace.isExtendedWorkspace()) {
             const workspaceBatches = await workspace.getBatchBuilds();
 
             if (workspaceBatches !== undefined) {
@@ -207,20 +208,22 @@ export class TreeBatchBuildProvider implements Vscode.TreeDataProvider<BatchBuil
     // before reloading the tree with the state of the backend.
     public async syncWithBackend() {
         this.update();
+        if (!this.workspace?.isExtendedWorkspace()) {
+            return;
+        }
         const toSync: BatchBuildItem[] = [];
         for (const batchItem of this.rootNode.children) {
             toSync.push(batchItem.asBatchBuildItem());
         }
         try {
-            await this.workspace?.setBatchBuilds(toSync);
+            await this.workspace.setBatchBuilds(toSync);
         } catch (e) {
-            const message = (typeof e === "string" || e instanceof Error) ?
-                e.toString() : undefined;
+            const message = ErrorUtils.toErrorMessage(e);
             Vscode.window.showErrorMessage(
-                "Failed to save batch builds to workspace file: " + (message ?? "Unknown error"));
-            logger.error("Failed to save batch build items: " + (message ?? JSON.stringify(e)));
+                "Failed to save batch builds to workspace file: " + message);
+            logger.error("Failed to save batch build items: " + message);
         }
-        const syncResults = await this.workspace?.getBatchBuilds();
+        const syncResults = await this.workspace?.asExtendedWorkspace()?.getBatchBuilds();
         this.unpackData(syncResults);
         this.update();
     }

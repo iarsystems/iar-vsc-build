@@ -3,15 +3,17 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import * as vscode from "vscode";
 import * as Fs from "fs";
-import { Config } from "../../iar/project/config";
-import { Project } from "../../iar/project/project";
 import { Workbench } from "iar-vsc-common/workbench";
-import { ListInputModel } from "../model/model";
+import { ListInputModel, MutableListInputModel } from "../model/model";
 import * as sanitizeHtml from "sanitize-html";
 import { AddWorkbenchCommand } from "../command/addworkbench";
 import { logger } from "iar-vsc-common/logger";
 import { Subject } from "rxjs";
+import { EwwFile } from "../../iar/workspace/ewwfile";
+import { AsyncObservable } from "../../utils/asyncobservable";
 import { EwWorkspace } from "../../iar/workspace/ewworkspace";
+import { ProjectListModel } from "../model/selectproject";
+import { ConfigurationListModel } from "../model/selectconfiguration";
 
 // Make sure this matches the enum in media/settingsview.js! AFAIK we cannot share code between here and the webview javascript
 enum MessageSubject {
@@ -44,22 +46,22 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
     private view?: vscode.WebviewView;
     private viewLoaded: Promise<void> | undefined = undefined;
     private workbenchesLoading = false;
+    private workspaceLoading = false;
+    private currentWorkspace: EwWorkspace | undefined = undefined;
 
     /**
      * Creates a new view. The caller is responsible for registering it.
      * @param extensionUri The uri of the extension's root directory
      * @param workbenches The workbench list to display and modify
      * @param workspaces The workspace list to display and modify
-     * @param projects The project list to display and modify
-     * @param configs The configuration list to display and modify
+     * @param workspace The loaded workspace to display and modify
      * @param addWorkbenchCommand The command to call when the user wants to add a new workbench
      * @param workbenchesLoading Notifies when the workbench list is in the process of (re)loading
      */
     constructor(private readonly extensionUri: vscode.Uri,
-        private readonly workbenches: ListInputModel<Workbench>,
-        private readonly workspaces: ListInputModel<EwWorkspace>,
-        private readonly projects: ListInputModel<Project>,
-        private readonly configs: ListInputModel<Config>,
+        private readonly workbenches: MutableListInputModel<Workbench>,
+        private readonly workspaces: MutableListInputModel<EwwFile>,
+        private readonly workspace: AsyncObservable<EwWorkspace>,
         private readonly addWorkbenchCommand: AddWorkbenchCommand,
         workbenchesLoading: Subject<boolean>,
     ) {
@@ -69,10 +71,19 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         this.workbenches.addOnSelectedHandler(changeHandler);
         this.workspaces.addOnInvalidateHandler(changeHandler);
         this.workspaces.addOnSelectedHandler(changeHandler);
-        this.projects.addOnInvalidateHandler(changeHandler);
-        this.projects.addOnSelectedHandler(changeHandler);
-        this.configs.addOnInvalidateHandler(changeHandler);
-        this.configs.addOnSelectedHandler(changeHandler);
+
+        this.workspace.onValueWillChange(() => {
+            this.currentWorkspace = undefined;
+            this.workspaceLoading = true;
+            changeHandler();
+        });
+        this.workspace.onValueDidChange(newWorkspace => {
+            this.currentWorkspace = newWorkspace;
+            this.workspaceLoading = false;
+            changeHandler();
+            newWorkspace?.projects.addOnSelectedHandler(() => changeHandler());
+            newWorkspace?.projectConfigs.addOnSelectedHandler(() => changeHandler());
+        });
 
         workbenchesLoading.subscribe(load => {
             this.workbenchesLoading = load;
@@ -107,10 +118,13 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
                 this.workspaces.select(message.index);
                 break;
             case MessageSubject.ProjectSelected:
-                this.projects.select(message.index);
+                this.currentWorkspace?.projects.select(message.index);
                 break;
             case MessageSubject.ConfigSelected:
-                this.configs.select(message.index);
+                if (this.currentWorkspace) {
+                    const config = this.currentWorkspace.projectConfigs.configurations[message.index];
+                    this.currentWorkspace.setActiveConfig(config);
+                }
                 break;
             case MessageSubject.AddWorkbench: {
                 const changed = await vscode.commands.executeCommand(this.addWorkbenchCommand.id);
@@ -138,7 +152,15 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         if (this.view === undefined) {
             return;
         }
-        this.view.webview.html = Rendering.getWebviewContent(this.view.webview, this.extensionUri, this.workbenches, this.workspaces, this.projects, this.configs, this.workbenchesLoading);
+        this.view.webview.html = Rendering.getWebviewContent(
+            this.view.webview,
+            this.extensionUri,
+            this.workbenches,
+            this.workspaces,
+            this.currentWorkspace,
+            this.workbenchesLoading,
+            this.workspaceLoading
+        );
     }
 
     // ! Exposed for testing only.
@@ -166,10 +188,10 @@ namespace Rendering {
         webview: vscode.Webview,
         extensionUri: vscode.Uri,
         workbenches: ListInputModel<Workbench>,
-        workspaces: ListInputModel<EwWorkspace>,
-        projects: ListInputModel<Project>,
-        configs: ListInputModel<Config>,
-        workbenchesLoading: boolean
+        workspaces: ListInputModel<EwwFile>,
+        workspace: EwWorkspace | undefined,
+        workbenchesLoading: boolean,
+        workspaceLoading: boolean,
     ) {
         // load npm packages for standardized UI components and icons
         //! NOTE: ALL files you load here (even indirectly) must be explicitly included in .vscodeignore, so that they are packaged in the .vsix. Webpack will not find these files.
@@ -191,6 +213,9 @@ namespace Rendering {
         };
         const treeL = loadSvg("tree-L.svg");
         const treeIBroken = loadSvg("tree-I-broken.svg");
+
+        const projects = workspace?.projects ?? new ProjectListModel;
+        const configs = workspace?.projectConfigs ?? new ConfigurationListModel;
 
         // install the es6-string-html extension for syntax highlighting here
         return /*html*/`<!DOCTYPE html>
@@ -232,14 +257,15 @@ namespace Rendering {
                     ${workspaces.selected === undefined ? treeIBroken : ""}
                     <div class="wide-container">
                         ${workspaces.selected === undefined ? "" : treeL}
-                        ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.amount === 0, "No projects found", true)}
+                        ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.amount === 0 || workspaceLoading, "No projects found", true)}
                     </div>
                     <div class="wide-container">
                         <div class="wide-container${workspaces.selected !== undefined ? " configs" : ""}">
                             ${treeL}
-                            ${makeDropdown(configs, DropdownIds.Configuration, "settings-gear", configs.amount === 0, "No configurations found")}
+                            ${makeDropdown(configs, DropdownIds.Configuration, "settings-gear", configs.amount === 0 || workspaceLoading, "No configurations found")}
                         </div>
                     </div>
+                    <vscode-progress-ring ${ !workspaceLoading ? "hidden" : ""}></vscode-progress-ring>
 
             </div>
         </div>
