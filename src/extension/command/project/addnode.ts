@@ -69,7 +69,7 @@ namespace AddFile {
 
             uris.forEach(uri => {
                 const name = Path.basename(uri.fsPath);
-                parent.children.push(new Node({ children: [], name: name, type: NodeType.File, path: uri.fsPath, ...getNodeDefaults(), isGenerated: false }));
+                parent.children.push(new Node({ children: [], name: name, type: NodeType.File, path: uri.fsPath, ...getNodeDefaults(), isGenerated: false, controlFilePlugins: [] }));
             });
 
             await project.setNode(parent, target ? target.indexPath : []);
@@ -146,7 +146,7 @@ namespace AddGroup {
             }
 
             const fullPath = Path.join(Path.dirname(project.path.toString()), name);
-            const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath, ...getNodeDefaults(), isGenerated: false });
+            const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath, ...getNodeDefaults(), isGenerated: false, controlFilePlugins: [] });
             parent.children.push(node);
             await project.setNode(parent, target ? target.indexPath : []);
         } catch (e) {

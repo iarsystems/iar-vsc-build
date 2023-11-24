@@ -4,8 +4,10 @@
 
 import {runTestsIn} from "iar-vsc-common/testutils/testRunner";
 import * as path from "path";
+import * as fs from "fs";
 import { TestConfiguration } from "./testconfiguration";
 import { VscodeTestsSetup } from "./vscodeTests/setup";
+import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
 
 /**
  * Runs all tests from the command line. Use --test-configuration=<config> to specify what to test, see
@@ -21,6 +23,12 @@ async function main() {
             TestConfiguration.setParameters(TestConfiguration.TEST_CONFIGURATIONS[testConfigurationName]!);
         }
     }
+
+    // Completely remove any sandbox from previous tests
+    const sandboxPath = new TestSandbox(path.resolve(__dirname, "../..")).path;
+    try {
+        fs.rmSync(sandboxPath, { force: true, recursive: true });
+    } catch {}
 
     await runTestsIn(path.resolve(__dirname), "../..", "./unitTests/index", envs, undefined, envs["test-configuration"]);
     await runTestsIn(path.resolve(__dirname), "../..", "./integrationTests/index", envs, undefined, envs["test-configuration"]);

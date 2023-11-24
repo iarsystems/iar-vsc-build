@@ -34,13 +34,14 @@ suite("Test CMake integration", function() {
     });
 
     test("Can load project", async() => {
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
         const expectedConfigNames = ["Debug", "RelWithDebInfo"];
         {
-            const configNames = ExtensionState.getInstance().config.configurations.map(conf => conf.name);
+            const configNames = workspace!.projectConfigs.configurations.map(conf => conf.name);
             Assert.deepStrictEqual(configNames, expectedConfigNames);
         }
 
-        const loadedProject = await ExtensionState.getInstance().extendedProject.getValue();
+        const loadedProject = await workspace!.asExtendedWorkspace()!.getExtendedProject();
         Assert(loadedProject);
         const configNames = loadedProject.configurations.map(conf => conf.name);
         Assert.deepStrictEqual(configNames, expectedConfigNames);
@@ -74,7 +75,9 @@ suite("Test CMake integration", function() {
 
         // Give vs code time to react to the file change
         await new Promise((p, _) => setTimeout(p, 3000));
-        const loadedProject = await ExtensionState.getInstance().extendedProject.getValue();
+
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        const loadedProject = await workspace!.asExtendedWorkspace()!.getExtendedProject();
         Assert(loadedProject);
 
         const configNames = loadedProject.configurations.map(conf => conf.name);

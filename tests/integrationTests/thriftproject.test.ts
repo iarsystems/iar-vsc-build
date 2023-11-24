@@ -5,12 +5,11 @@ import * as Assert from "assert";
 import * as Path from "path";
 import { ThriftWorkbench } from "../../src/iar/extendedworkbench";
 import { Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
-import { ThriftProject } from "../../src/iar/project/thrift/thriftproject";
 import { IntegrationTestsCommon } from "./common";
 import { TestSandbox } from "iar-vsc-common/testutils/testSandbox";
-import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
 import { TestConfiguration } from "../testconfiguration";
 import { OsUtils } from "iar-vsc-common/osUtils";
+import { ExtendedProject } from "../../src/iar/project/project";
 
 suite("Thrift project", function() {
     this.timeout(0);
@@ -40,15 +39,14 @@ suite("Thrift project", function() {
         await workbench?.dispose();
     });
 
-    let project: ThriftProject;
+    let project: ExtendedProject;
 
     setup(async() => {
         projectPath = sandbox.copyToSandbox(TestConfiguration.getConfiguration().integrationTestProjectsDir, "IntegrationTestProject");
-        project = await workbench.loadProject(new EwpFile(Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_NAME)));
-        Assert(project);
-    });
-    teardown(() => {
-        return project.finishRunningOperations();
+        const workspace = await workbench.loadAnonymousWorkspace([Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_NAME)]);
+        const proj = await workspace.getExtendedProject(workspace.projects.projects[0]);
+        Assert(proj);
+        project = proj;
     });
 
     test("Managing nodes", async() => {
@@ -69,6 +67,7 @@ suite("Thrift project", function() {
             isExcludedFromBuild: false,
             isMfcEnabled: false,
             isGenerated: false,
+            controlFilePlugins: [],
         })];
         await project.setNode(rootNode, []);
 

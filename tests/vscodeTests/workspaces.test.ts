@@ -9,8 +9,8 @@ import { ExtensionState } from "../../src/extension/extensionstate";
 import { VscodeTestsSetup } from "./setup";
 import { VscodeTestsUtils } from "./utils";
 import { tmpdir } from "os";
-import { EwWorkspace } from "../../src/iar/workspace/ewworkspace";
 import { TestConfiguration } from "../testconfiguration";
+import { EwwFile } from "../../src/iar/workspace/ewwfile";
 
 /**
  * Tests various parts of the extension using a project that requires a .custom_argvars file to be loaded.
@@ -28,7 +28,7 @@ suite("Test workspace support", () => {
     });
 
     test("Finds workspaces in directory", ()=>{
-        const allWorkspaces = ExtensionState.getInstance().workspace.workspaces;
+        const allWorkspaces = ExtensionState.getInstance().workspaces.workspaces;
         Assert(allWorkspaces.some(workspace => workspace.name === "ArgVars1"));
         Assert(allWorkspaces.some(workspace => workspace.name === "ArgVars2"));
         Assert(allWorkspaces.some(workspace => workspace.name === "TestProjects"));
@@ -37,7 +37,8 @@ suite("Test workspace support", () => {
     test("Finds projects in workspace", async()=>{
         {
             await VscodeTestsUtils.activateWorkspace("TestProjects");
-            const allProjects = ExtensionState.getInstance().project.projects;
+            const workspace = await ExtensionState.getInstance().workspace.getValue();
+            const allProjects = workspace!.projects.projects;
 
             const expectCMakeProject = TestConfiguration.getConfiguration().testCMakeIntegration;
             Assert.strictEqual(allProjects.length, expectCMakeProject ? 4 : 3,
@@ -51,7 +52,8 @@ suite("Test workspace support", () => {
         }
         {
             await VscodeTestsUtils.activateWorkspace("ArgVars1");
-            const allProjects = ExtensionState.getInstance().project.projects;
+            const workspace = await ExtensionState.getInstance().workspace.getValue();
+            const allProjects = workspace!.projects.projects;
             Assert.strictEqual(allProjects.length, 1,
                 "Found projects: " + allProjects.map(p => p.name).join(", "));
             Assert(allProjects.some(project => project.name === "ArgVars"));
@@ -65,17 +67,17 @@ suite("Test workspace support", () => {
         Fs.copyFileSync(Path.join(sandboxPath, "TestProjects.eww"), workspacePath);
         // Give vs code time to react
         await new Promise((p, _) => setTimeout(p, 1000));
-        Assert(ExtensionState.getInstance().workspace.workspaces.some(workspace => workspace.name === "newWorkspace"), "The created workspace was not added to the workspace list");
+        Assert(ExtensionState.getInstance().workspaces.workspaces.some(workspace => workspace.name === "newWorkspace"), "The created workspace was not added to the workspace list");
 
         // Remove the workspace file, make sure it is removed from the extension
         Fs.unlinkSync(workspacePath);
         // Give vs code time to react
         await new Promise((p, _) => setTimeout(p, 1000));
-        Assert(!ExtensionState.getInstance().workspace.workspaces.some(workspace => workspace.name === "newWorkspace"), "The deleted workspace was not removed from the workspace list");
+        Assert(!ExtensionState.getInstance().workspaces.workspaces.some(workspace => workspace.name === "newWorkspace"), "The deleted workspace was not removed from the workspace list");
     });
 
     suite("", () => {
-        let allWorkspaces: readonly EwWorkspace[];
+        let allWorkspaces: readonly EwwFile[];
         let tmpDir: string;
 
         teardown(() => {
@@ -86,7 +88,7 @@ suite("Test workspace support", () => {
         });
 
         test("Falls back to on-disk projects if there are no .eww files", async function() {
-            allWorkspaces = ExtensionState.getInstance().workspace.workspaces;
+            allWorkspaces = ExtensionState.getInstance().workspaces.workspaces;
             tmpDir = Path.join(tmpdir(), "vscode-iar-workspace-test");
             Fs.mkdirSync(tmpDir, { recursive: true });
             allWorkspaces.forEach(ws => {
@@ -96,10 +98,12 @@ suite("Test workspace support", () => {
             // Give vs code time to react
             await new Promise((p, _) => setTimeout(p, 4000));
 
-            const allProjects = ExtensionState.getInstance().project.projects;
+            const workspace = await ExtensionState.getInstance().workspace.getValue();
+            const allProjects = workspace!.projects.projects;
+
             const expectCMakeProject = TestConfiguration.getConfiguration().testCMakeIntegration;
             Assert.strictEqual(allProjects.length, expectCMakeProject ? 6 : 5,
-                "Found projects: " + allProjects.map(p => p.name).join(", ") + " -> expected " + 6);
+                "Found projects: " + allProjects.map(p => p.name).join(", "));
             Assert(allProjects.some(project => project.name === "ArgVars"));
             Assert(allProjects.some(project => project.name === "BasicDebugging"));
             Assert(allProjects.some(project => project.name === "C-STATProject"));

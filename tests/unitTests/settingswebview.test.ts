@@ -6,18 +6,17 @@ import { JSDOM } from "jsdom";
 import * as vscode from "vscode";
 import * as Assert from "assert";
 import { AddWorkbenchCommand } from "../../src/extension/command/addworkbench";
-import { ConfigurationListModel } from "../../src/extension/model/selectconfiguration";
-import { ProjectListModel } from "../../src/extension/model/selectproject";
 import { WorkbenchListModel } from "../../src/extension/model/selectworkbench";
 import { DropdownIds, SettingsWebview } from "../../src/extension/ui/settingswebview";
 import { Workbench, WorkbenchType } from "iar-vsc-common/workbench";
-import { Config } from "../../src/iar/project/config";
 import { Project } from "../../src/iar/project/project";
-import { ListInputModel, ListInputModelBase } from "../../src/extension/model/model";
+import { ListInputModel, MutableListInputModelBase } from "../../src/extension/model/model";
 import { IarToolManager } from "../../src/iar/tools/manager";
 import { BehaviorSubject, Subject } from "rxjs";
 import { EwWorkspace } from "../../src/iar/workspace/ewworkspace";
 import { WorkspaceListModel } from "../../src/extension/model/selectworkspace";
+import { EwwFile } from "../../src/iar/workspace/ewwfile";
+import { AsyncObservable } from "../../src/utils/asyncobservable";
 
 namespace Utils {
     // A fake view we can receive html to, and then inspect it.
@@ -44,10 +43,9 @@ namespace Utils {
 }
 
 suite("Test settings view", () => {
-    let workbenchModel: ListInputModelBase<Workbench>;
-    let workspaceModel: ListInputModelBase<EwWorkspace>;
-    let projectModel: ListInputModelBase<Project>;
-    let configModel: ListInputModelBase<Config>;
+    let workbenchModel: MutableListInputModelBase<Workbench>;
+    let workspacesModel: MutableListInputModelBase<EwwFile>;
+    let workspaceModel: AsyncObservable<EwWorkspace>;
     let loading: Subject<boolean>;
 
     let settingsView: SettingsWebview;
@@ -56,18 +54,16 @@ suite("Test settings view", () => {
 
     setup(async() => {
         workbenchModel = new WorkbenchListModel();
-        workspaceModel = new WorkspaceListModel();
-        projectModel = new ProjectListModel();
-        configModel = new ConfigurationListModel();
+        workspacesModel = new WorkspaceListModel();
+        workspaceModel = new AsyncObservable();
         loading = new BehaviorSubject<boolean>(false);
 
         const extensionUri = vscode.Uri.file("../../");
         settingsView = new SettingsWebview(
             extensionUri,
             workbenchModel,
+            workspacesModel,
             workspaceModel,
-            projectModel,
-            configModel,
             new AddWorkbenchCommand(new IarToolManager()),
             loading,
         );
@@ -83,7 +79,7 @@ suite("Test settings view", () => {
     };
 
     test("Disables dropdowns on empty models", () => {
-        const dropdownIds = [DropdownIds.Workbench, DropdownIds.Workspace, DropdownIds.Project, DropdownIds.Configuration];
+        const dropdownIds = [DropdownIds.Workbench, DropdownIds.Project, DropdownIds.Project, DropdownIds.Configuration];
         dropdownIds.forEach(id => {
             const dropdown = document.getElementById(id);
             Assert(dropdown);
@@ -98,25 +94,30 @@ suite("Test settings view", () => {
         Assert(workbenchError.textContent?.includes("No IAR toolchain installations found."));
     });
 
-    test("Populates dropdowns", () => {
+    test("Populates dropdowns", async() => {
         workbenchModel.set(
-            { name: "Embedded Workbench 9.0", path: "/path/Embedded Workbench 9.0", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["arm"], type: WorkbenchType.IDE },
-            { name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.LEGACY_BX }
+            makeMockWorkbench("Embedded Workbench 9.0", "/path/Embedded Workbench 9.0"),
+            makeMockWorkbench("MyWorkbench", "C:\\path\\MyWorkbench"),
         );
 
-        workspaceModel.set(
-            { name: "LedFlasher", path: "/some/directory/LedFlasher.eww", projects: [], getBatchBuilds: () => Promise.resolve(undefined), setBatchBuilds: () => Promise.resolve(undefined) },
-            { name: "A workspace", path: "C:\\test\\A project.eww", projects: [], getBatchBuilds: () => Promise.resolve(undefined), setBatchBuilds: () => Promise.resolve(undefined) },
-        );
-        workspaceModel.select(0);
+        const mockProjects: Project[] = [
+            makeMockProject("LedFlasher", "/some/directory/LedFlasher.ewp"),
+            makeMockProject("A project", "C:\\test\\A project.ewp"),
+        ];
 
-        projectModel.set(
-            { name: "LedFlasher", path: "/some/directory/LedFlasher.ewp", configurations: [], findConfiguration: () => undefined },
-            { name: "A project", path: "C:\\test\\A project.ewp", configurations: [], findConfiguration: () => undefined },
+        workspacesModel.set(
+            new EwwFile("C:\\test\\A workspace.eww"),
+            new EwwFile("/some/directory/LedFlasher.eww"),
         );
-        projectModel.select(0);
-        configModel.set({ name: "Debug", targetId: "arm" }, { name: "Release", targetId: "arm" });
-        configModel.select(1);
+        workspacesModel.select(0);
+
+        const workspace = new EwWorkspace(new EwwFile("/some/directory/LedFlasher.eww"), mockProjects);
+        workspaceModel.setValue(workspace);
+        // Yield to let the new value propagate
+        await new Promise<void>(res => res());
+
+        workspace.projects.select(0);
+        workspace.setActiveConfig(workspace.projects.selected?.configurations[1]);
         updateDocument();
 
         const assertDropdownMatchesModel = function <T>(dropdownId: string, model: ListInputModel<T>) {
@@ -131,9 +132,10 @@ suite("Test settings view", () => {
                 Assert.strictEqual(options.item(i)?.getAttribute("selected"), model.selectedIndex === i ? "" : null, `Incorrect option ${i}`);
             }
         };
-        assertDropdownMatchesModel(DropdownIds.Workspace, workspaceModel);
-        assertDropdownMatchesModel(DropdownIds.Project, projectModel);
-        assertDropdownMatchesModel(DropdownIds.Configuration, configModel);
+
+        assertDropdownMatchesModel(DropdownIds.Workspace, workspacesModel);
+        assertDropdownMatchesModel(DropdownIds.Project, workspace.projects);
+        assertDropdownMatchesModel(DropdownIds.Configuration, workspace.projectConfigs);
 
         // test workbench dropdown separately, since it has an additional option
         const dropdown = document.getElementById(DropdownIds.Workbench);
@@ -156,7 +158,7 @@ suite("Test settings view", () => {
     });
 
     test("Reacts to loading workbenches", () => {
-        workbenchModel.set({ name: "MyWorkbench", path: "C:\\path\\MyWorkbench", idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.LEGACY_BX });
+        workbenchModel.set(makeMockWorkbench("MyWorkbench", "C:\\path\\MyWorkbench"));
         updateDocument();
         {
             const wbs = document.getElementById(DropdownIds.Workbench);
@@ -180,15 +182,60 @@ suite("Test settings view", () => {
         }
     });
 
+    test("Reacts to loading workspaces", async() => {
+        workspaceModel.setValue(new EwWorkspace(undefined, [makeMockProject("MyProject", "")]));
+        // Yield to let the new value propagate
+        await new Promise<void>(res => res());
+        updateDocument();
+        {
+            const projects = document.getElementById(DropdownIds.Project);
+            Assert(projects);
+            Assert.strictEqual(projects.getAttribute("disabled"), null, "Dropdown should be enabled");
+
+            const spinner = document.getElementsByTagName("VSCODE-PROGRESS-RING").item(1);
+            Assert(spinner);
+            Assert.strictEqual(spinner.getAttribute("hidden"), "", "Spinner should be hidden");
+        }
+        workspaceModel.setWithPromise(new Promise(() => { /* never resolves */ }));
+        updateDocument();
+        {
+            const projects = document.getElementById(DropdownIds.Project);
+            Assert(projects);
+            Assert.strictEqual(projects.getAttribute("disabled"), "", "Dropdown should be disabled");
+
+            const spinner = document.getElementsByTagName("VSCODE-PROGRESS-RING").item(1);
+            Assert(spinner);
+            Assert.strictEqual(spinner.getAttribute("hidden"), null, "Spinner should be visible");
+        }
+    });
+
     test("Escapes HTML tags", () => {
         // HTML tags must be escaped to prevent injections
-        configModel.set({ name: "<script>alert('Hello')</script><b>Debug</b>", targetId: "arm" });
-        configModel.select(0);
+        workbenchModel.set(makeMockWorkbench("<script>alert('Hello')</script><b>Debug</b>", ""));
+        workbenchModel.select(0);
         updateDocument();
 
-        const configs = document.getElementById(DropdownIds.Configuration);
-        Assert(configs);
-        const options = configs.children;
+        const wbs = document.getElementById(DropdownIds.Workbench);
+        Assert(wbs);
+        const options = wbs.children;
         Assert.strictEqual(options.item(0)?.textContent?.trim(), "<script>alert('Hello')</script><b>Debug</b>");
     });
+
+    function makeMockWorkbench(name: string, path: string): Workbench {
+        return { name, path, idePath: "", builderPath: "", version: { major: 0, minor: 0, patch: 0 }, targetIds: ["riscv"], type: WorkbenchType.LEGACY_BX };
+    }
+
+    function makeMockProject(name: string, path: string): Project {
+        return {
+            name,
+            path,
+            configurations: [
+                { name: "Debug", targetId: "arm" }, { name: "Release", targetId: "arm" }
+            ],
+            findConfiguration: () => undefined,
+            reload: () => { /**/ },
+            addOnChangeListener: (_) => { /**/ },
+            removeOnChangeListener: () => { /**/ },
+        };
+    }
 });

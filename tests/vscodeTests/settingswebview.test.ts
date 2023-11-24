@@ -38,7 +38,7 @@ suite("Test Clicking Settings View", ()=>{
         let addedMockWorkbench = false;
 
         test("Clicking workbench updates model", async() => {
-            const workbenchModel = ExtensionState.getInstance().workbench;
+            const workbenchModel = ExtensionState.getInstance().workbenches;
 
             // We need at least two workbenches for this, so add a fake one if there is only one workbench
             if (workbenchModel.amount === 1) {
@@ -63,27 +63,27 @@ suite("Test Clicking Settings View", ()=>{
                     break;
                 }
             }
-            const modelChange = waitForModelChange(ExtensionState.getInstance().workbench);
+            const modelChange = waitForModelChange(ExtensionState.getInstance().workbenches);
             IarVsc.settingsView.selectFromDropdown(DropdownIds.Workbench, indexToSelect);
             await modelChange;
 
-            Assert.strictEqual(ExtensionState.getInstance().workbench.selectedIndex, indexToSelect);
+            Assert.strictEqual(ExtensionState.getInstance().workbenches.selectedIndex, indexToSelect);
         });
         suiteTeardown(() => {
             if (addedMockWorkbench) {
-                const workbenchModel = ExtensionState.getInstance().workbench;
+                const workbenchModel = ExtensionState.getInstance().workbenches;
                 workbenchModel.set(...workbenchModel.workbenches.filter(wb => wb.name !== "MockWorkbench"));
             }
         });
     });
 
     test("Clicking workspace updates model", async() => {
-        Assert(ExtensionState.getInstance().workspace.selectedIndex !== 1);
-        const modelChange = waitForModelChange(ExtensionState.getInstance().workspace);
+        Assert(ExtensionState.getInstance().workspaces.selectedIndex !== 1);
+        const modelChange = waitForModelChange(ExtensionState.getInstance().workspaces);
         IarVsc.settingsView.selectFromDropdown(DropdownIds.Workspace, 1);
         await modelChange;
 
-        Assert.strictEqual(ExtensionState.getInstance().workspace.selectedIndex, 1);
+        Assert.strictEqual(ExtensionState.getInstance().workspaces.selectedIndex, 1);
 
         // Restore workspace since other tests depend on it
         await VscodeTestsUtils.activateWorkspace("TestProjects");
@@ -92,37 +92,44 @@ suite("Test Clicking Settings View", ()=>{
 
     test("Clicking project updates model", async() => {
         await VscodeTestsUtils.activateProject("BasicDebugging");
-        Assert(ExtensionState.getInstance().project.selectedIndex !== 2, ExtensionState.getInstance().project.selected!.name);
-        const modelChange = waitForModelChange(ExtensionState.getInstance().project);
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        // Let the view settle
+        await new Promise((res, _) => setTimeout(res, 1000));
+
+        Assert(workspace!.projects.selectedIndex !== 2, workspace!.projects.selected!.name);
+        const modelChange = waitForModelChange(workspace!.projects);
         IarVsc.settingsView.selectFromDropdown(DropdownIds.Project, 2);
         await modelChange;
 
-        Assert.strictEqual(ExtensionState.getInstance().project.selectedIndex, 2);
+        Assert.strictEqual(workspace!.projects.selectedIndex, 2);
     });
     test("Clicking config updates model", async() => {
         await VscodeTestsUtils.activateProject("BasicDebugging");
-        Assert(ExtensionState.getInstance().config.selectedIndex !== 1);
-        const modelChange = waitForModelChange(ExtensionState.getInstance().config);
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        // Let the view settle
+        await new Promise((res, _) => setTimeout(res, 1000));
+
+        Assert(workspace!.projectConfigs.selectedIndex !== 1);
+        const modelChange = waitForModelChange(workspace!.projectConfigs);
         IarVsc.settingsView.selectFromDropdown(DropdownIds.Configuration, 1);
         await modelChange;
 
-        Assert.strictEqual(ExtensionState.getInstance().config.selectedIndex, 1);
+        Assert.strictEqual(workspace!.projectConfigs.selectedIndex, 1);
     });
 
     const waitForModelChange = function<T>(model: ListInputModel<T>) {
         return new Promise<void>((res, rej) => {
-            let fulfilled = false;
+            let hasIgnored = false;
             model.addOnSelectedHandler(() => {
-                if (!fulfilled) {
-                    fulfilled = true;
+                // The first callback is made immediately, so ignored it
+                if (!hasIgnored) {
+                    hasIgnored = true;
+                } else {
                     res();
                 }
             });
             setTimeout(() => {
-                if (!fulfilled) {
-                    fulfilled = true;
-                    rej(new Error("Timed out"));
-                }
+                rej(new Error("Timed out"));
             }, 10000);
         });
     };

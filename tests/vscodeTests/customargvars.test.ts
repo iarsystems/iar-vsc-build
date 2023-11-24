@@ -31,13 +31,14 @@ suite("Test .custom_argvars project support", () => {
         if (!TestConfiguration.getConfiguration().testThriftSupport) {
             this.skip();
         }
-        if (!WorkbenchFeatures.supportsFeature(ExtensionState.getInstance().workbench.selected!, WorkbenchFeatures.PMWorkspaces)) {
+        if (!WorkbenchFeatures.supportsFeature(ExtensionState.getInstance().workbenches.selected!, WorkbenchFeatures.PMWorkspaces)) {
             this.skip();
         }
         await VscodeTestsUtils.activateWorkspace("ArgVars1");
         await new Promise((res) => setTimeout(res, 1000));
         {
-            const project = await ExtensionState.getInstance().extendedProject.getValue();
+            const workspace = await ExtensionState.getInstance().workspace.getValue();
+            const project = await workspace!.asExtendedWorkspace()!.getExtendedProject();
             Assert(project);
             const rootNode = await project.getRootNode();
             Assert.strictEqual(rootNode.children[0]?.name, "Fibonacci.c", "Incorrect file name, argvars may not have been loaded correctly");
@@ -46,7 +47,8 @@ suite("Test .custom_argvars project support", () => {
         await VscodeTestsUtils.activateWorkspace("ArgVars2");
         await new Promise((res) => setTimeout(res, 1000));
         {
-            const project = await ExtensionState.getInstance().extendedProject.getValue();
+            const workspace = await ExtensionState.getInstance().workspace.getValue();
+            const project = await workspace!.asExtendedWorkspace()!.getExtendedProject();
             Assert(project);
             const rootNode = await project.getRootNode();
             Assert.strictEqual(rootNode.children[0]?.name, "NewFileName.c", "Incorrect file name, argvars may not have been loaded correctly");
