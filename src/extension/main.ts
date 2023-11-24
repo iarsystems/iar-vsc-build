@@ -31,6 +31,7 @@ import { EwwFile } from "../iar/workspace/ewwfile";
 import { TreeBatchBuildView } from "./ui/batchbuildview";
 import { BatchBuild } from "./ui/batchbuildcommands";
 import { ErrorUtils } from "../utils/utils";
+import { OutputChannelRegistry } from "../utils/outputchannelregistry";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
@@ -120,6 +121,9 @@ export async function deactivate() {
     }
     IarTaskProvider.unregister();
     CStatTaskProvider.unRegister();
+    IarVsc.ewpWatcher?.dispose();
+    IarVsc.ewwWatcher?.dispose();
+    IarVsc.outputChannelProvider.dispose();
     await ExtensionState.getInstance().dispose();
 }
 
@@ -209,6 +213,7 @@ export namespace IarVsc {
     export const workbenchesLoading = new BehaviorSubject<boolean>(false);
     export let ewwWatcher: FileListWatcher | undefined;
     export let ewpWatcher: FileListWatcher | undefined;
+    export const outputChannelProvider  = new OutputChannelRegistry();
     // exported mostly for testing purposes
     export let settingsView: SettingsWebview;
     export let projectTreeView: TreeProjectView;

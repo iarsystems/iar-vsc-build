@@ -5,6 +5,7 @@
 
 
 import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
+import * as LogService from "iar-vsc-common/thrift/bindings/LogService";
 import * as Fs from "fs";
 import * as Path from "path";
 import { Workbench } from "iar-vsc-common/workbench";
@@ -17,6 +18,7 @@ import { IarOsUtils } from "iar-vsc-common/osUtils";
 import { EwwFile } from "./workspace/ewwfile";
 import { ThriftWorkspace } from "./workspace/thriftworkspace";
 import { ExtendedEwWorkspace } from "./workspace/ewworkspace";
+import { LOGSERVICE_ID } from "iar-vsc-common/thrift/bindings/logservice_types";
 
 /**
  * A workbench with some extra capabilities,
@@ -50,6 +52,12 @@ export interface ExtendedWorkbench {
      * (i.e. when it exits without {@link dispose} having been called).
      */
     onCrash(handler: (code: number | null) => void): void;
+
+    /**
+     * Register a receiver of IDE platform logs. Only one log handler can be set.
+     * @param handler The object to receive logs. Must implement the 'logservice' thrift service.
+     */
+    setLogHandler(handler: object): Promise<void>;
 }
 
 /**
@@ -73,6 +81,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     }
 
     private loadedWorkspace: Promise<ThriftWorkspace | undefined> | undefined = undefined;
+    private hasLogHandler = false;
 
     constructor(public workbench: Workbench,
         private readonly serviceMgr: ThriftServiceManager,
@@ -123,4 +132,11 @@ export class ThriftWorkbench implements ExtendedWorkbench {
         this.serviceMgr.addCrashHandler(handler);
     }
 
+    public async setLogHandler(handler: object): Promise<void> {
+        if (this.hasLogHandler) {
+            throw new Error("A log handler has already been set for this workbench.");
+        }
+        await this.serviceMgr.startService(LOGSERVICE_ID, LogService, handler);
+        this.hasLogHandler = true;
+    }
 }

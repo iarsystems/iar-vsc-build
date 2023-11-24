@@ -20,6 +20,7 @@ import { Workbench } from "iar-vsc-common/workbench";
 import { AddWorkbenchCommand } from "./command/addworkbench";
 import { Project } from "../iar/project/project";
 import { ErrorUtils } from "../utils/utils";
+import { LogServiceHandler } from "./ui/logservicehandler";
 
 class State implements Disposable {
 
@@ -125,6 +126,10 @@ class State implements Disposable {
             logger.debug(`Loaded thrift workbench '${exWb?.workbench.name}'`);
 
             if (exWb) {
+                exWb.setLogHandler(new LogServiceHandler()).catch(e => {
+                    logger.warn("Failed to register log service: " + ErrorUtils.toErrorMessage(e));
+                });
+
                 // If workbench crashes, fall back to non-extended (non-thrift) functionality.
                 exWb.onCrash(exitCode => {
                     Vscode.window.showErrorMessage(`The IAR project manager exited unexpectedly (code ${exitCode}). Try reloading the window or upgrading the project from IAR Embedded Workbench.`);
