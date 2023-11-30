@@ -33,9 +33,12 @@ export interface Project {
  */
 export interface ExtendedProject extends Project {
     /**
-     * Gets the node at the top of the project (file) tree.
+     * Gets the node at the top of the project (file) tree. If no configuration
+     * is specified, gets the nodes for an arbitrary configuration. The
+     * configuration is mostly relevant for CMake/CMSIS-Toolbox projects, that
+     * may have a different set of project files for different configurations.
      */
-    getRootNode(): Promise<Node>;
+    getRootNode(config?: Config): Promise<Node>;
     /**
      * Sets a node in the project (file) tree
      * @param node The new value for the node

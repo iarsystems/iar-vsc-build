@@ -56,7 +56,7 @@ export class TreeProjectView {
         workspaceModel.onValueWillChange(() => {
             isLoading = true;
             updateMessage();
-            this.provider.setProject(undefined);
+            this.provider.setProjectAndConfig(undefined, undefined);
         });
         workspaceModel.onValueDidChange(workspace => {
             hasExtendedProject = workspace?.isExtendedWorkspace() ?? false;
@@ -68,7 +68,8 @@ export class TreeProjectView {
                         isLoading = true;
                         updateMessage();
                         const project = await workspace.getExtendedProject();
-                        await this.provider.setProject(project);
+                        const config = workspace.getActiveConfig();
+                        await this.provider.setProjectAndConfig(project, config);
                         hasExtendedProject = !!project;
                         // Enable/disable the 'add file/group' buttons on this view
                         Vscode.commands.executeCommand("setContext", "iar-build.extendedProjectLoaded", project !== undefined);
@@ -78,6 +79,11 @@ export class TreeProjectView {
                     hasProject = !!workspace.projects.selected;
                     isLoading = false;
                     updateMessage();
+                });
+                workspace.onActiveConfigChanged((project, config) => {
+                    if (config && this.provider.isActiveProject(project)) {
+                        this.provider.setProjectConfig(config);
+                    }
                 });
             } else {
                 hasExtendedProject = false;

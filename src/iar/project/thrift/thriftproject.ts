@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import * as vscode from "vscode";
 import * as Path from "path";
 import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
 import { ExtendedProject } from "../project";
@@ -14,21 +15,28 @@ import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { Config } from "../config";
 import { IarVsc } from "../../../extension/main";
 import { Disposable } from "../../../utils/disposable";
-import { BackupUtils } from "../../../utils/utils";
+import { BackupUtils, ErrorUtils } from "../../../utils/utils";
+import { logger } from "iar-vsc-common/logger";
+import { Mutex } from "async-mutex";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.
  */
 export class ThriftProject implements ExtendedProject, Disposable {
     private onChangedHandlers: (() => void)[] = [];
-    private disposables: Disposable[] = [];
+    private readonly controlFileWatchers: Map<string, vscode.Disposable> = new Map;
     private readonly currentOperations: Promise<unknown>[] = [];
+    // Locked during actions that require a certain active configuration in the backend.
+    private readonly activeConfigurationMtx = new Mutex;
 
     constructor(public path:                 string,
                 public configurations:       ReadonlyArray<Config>,
+                private activeConfiguration: Config | undefined,
                 private readonly projectMgr: ProjectManager.Client,
                 private context:             ProjectContext,
-                private readonly owner:      Workbench) {
+                private readonly owner:      Workbench,
+    ) {
+        this.updateControlFileWatchers();
     }
 
     get name(): string {
@@ -59,21 +67,29 @@ export class ThriftProject implements ExtendedProject, Disposable {
                     targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
                 };
             });
+            await this.updateControlFileWatchers();
         });
         this.fireChangedEvent();
     }
 
-    public getRootNode(): Promise<Node> {
-        return this.performOperation(async() => {
-            const root = await this.projectMgr.GetRootNode(this.context);
-            // VSC-300 Generated nodes cannot be trusted to be up-to-date, and should not be used at all.
-            // Thus, we hide them here, as close to the source as possible.
-            const recurseRemoveGeneratedNodes = (node: Node) => {
-                node.children = node.children.filter(child => !child.isGenerated);
-                node.children.forEach(child => recurseRemoveGeneratedNodes(child));
+    public getRootNode(config?: Config): Promise<Node> {
+        return this.performOperation(() => {
+            const promise = async() =>{
+                const root = await this.projectMgr.GetRootNode(this.context);
+                // VSC-300 Generated nodes cannot be trusted to be up-to-date, and should not be used at all.
+                // Thus, we hide them here, as close to the source as possible.
+                const recurseRemoveGeneratedNodes = (node: Node) => {
+                    node.children = node.children.filter(child => !child.isGenerated);
+                    node.children.forEach(child => recurseRemoveGeneratedNodes(child));
+                };
+                recurseRemoveGeneratedNodes(root);
+                return root;
             };
-            recurseRemoveGeneratedNodes(root);
-            return root;
+            if (config) {
+                return this.withActiveConfiguration(config, promise);
+            } else {
+                return promise();
+            }
         });
     }
     public setNode(node: Node, indexPath: number[]): Promise<void> {
@@ -84,9 +100,9 @@ export class ThriftProject implements ExtendedProject, Disposable {
             } else {
                 if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.SetNodeCanRemoveNodes)) {
                     // Mitigate a backend bug causing duplicated groups by trying to only send *new* children.
-                    const existingNode = findNodeByIndexPath(await this.getRootNode(), indexPath);
+                    const existingNode =
+                        findNodeByIndexPath(await this.getRootNode(), indexPath);
                     filterNewNodes(node, existingNode);
-                    console.log(node.children);
                 }
                 // eslint-disable-next-line deprecation/deprecation
                 await this.projectMgr.SetNode(this.context, node);
@@ -145,12 +161,76 @@ export class ThriftProject implements ExtendedProject, Disposable {
         this.onChangedHandlers = [];
         await Promise.allSettled(this.currentOperations);
         await this.projectMgr.CloseProject(this.context);
-        await Promise.all(this.disposables.map(d => d.dispose()));
-        this.disposables = [];
+
+        for (const watcher of this.controlFileWatchers.values()) {
+            watcher.dispose();
+        }
+        this.controlFileWatchers.clear();
+    }
+
+    private async updateControlFileWatchers() {
+        const controlFiles = new Set<string>;
+        const collectControlFiles = function(node: Node): void {
+            if (node.controlFilePlugins.length > 0) {
+                controlFiles.add(node.path);
+            }
+            node.children.forEach(collectControlFiles);
+        };
+        const root = await this.getRootNode();
+        collectControlFiles(root);
+
+        const toAdd = Array.from(controlFiles).filter(file => !this.controlFileWatchers.has(file));
+
+        const toRemove = Array.from(this.controlFileWatchers.keys()).filter(file => !controlFiles.has(file));
+        if (toRemove.length > 0) {
+            logger.debug(`${this.name}: Removing watchers for ${toRemove.length} control file(s).`);
+            toRemove.forEach(file => {
+                this.controlFileWatchers.get(file)?.dispose();
+                this.controlFileWatchers.delete(file);
+            });
+        }
+
+        if (toAdd.length > 0) {
+            logger.debug(`${this.name}: Adding watchers for ${toAdd.length} control file(s).`);
+            toAdd.forEach(file => {
+                const watcher = vscode.workspace.createFileSystemWatcher(file, true, false, true);
+                this.controlFileWatchers.set(file, watcher);
+                watcher.onDidChange(() => {
+                    this.performOperation(async() => {
+                        try {
+                            await this.projectMgr.UpdateProjectConnection(this.context, file);
+                            this.configurations = (await this.projectMgr.GetConfigurations(this.context)).map(thriftConfig => {
+                                return {
+                                    name: thriftConfig.name,
+                                    targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
+                                };
+                            });
+                            await this.updateControlFileWatchers();
+                            this.fireChangedEvent();
+                        } catch (e) {
+                            logger.error("Failed to update project connection: " + ErrorUtils.toErrorMessage(e));
+                        }
+                    });
+                });
+            });
+        }
     }
 
     private fireChangedEvent() {
         this.onChangedHandlers.forEach(handler => handler());
+    }
+
+    // Runs an action with the given configuration set as active in the backend.
+    // This requires exclusivity, so that the active configuration isn't changed
+    // by some other operation while this one is running.
+    private withActiveConfiguration<T>(config: Config, operation: () => Promise<T>): Promise<T> {
+        return this.activeConfigurationMtx.runExclusive(async() => {
+            if (this.activeConfiguration !== config) {
+                await this.projectMgr.SetCurrentConfiguration(this.context, config.name);
+                this.activeConfiguration = config;
+            }
+            return operation();
+        });
     }
 
     // Registers an operation (i.e. a thrift procedure call) that uses the project context. The operation will be
@@ -160,7 +240,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
     private performOperation<T>(operation: () => Promise<T>): Promise<T> {
         const promise = operation();
         this.currentOperations.push(promise);
-        promise.then(() => this.currentOperations.splice(this.currentOperations.indexOf(promise), 1));
+        promise.finally(() => this.currentOperations.splice(this.currentOperations.indexOf(promise), 1));
         return promise;
     }
 }
@@ -204,7 +284,11 @@ export namespace ThriftProject {
                 targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
             };
         });
-        return new ThriftProject(context.filename, configs, pm, context, owner);
+        const activeConfigName = (await pm.GetCurrentConfiguration(context)).name;
+        const activeConfig = configs.find(conf => conf.name === activeConfigName);
+
+
+        return new ThriftProject(context.filename, configs, activeConfig, pm, context, owner);
     }
 }
 

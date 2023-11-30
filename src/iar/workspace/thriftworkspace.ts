@@ -199,7 +199,7 @@ export class ThriftWorkspace extends ExtendedEwWorkspace implements Disposable {
     private performOperation<T>(operation: () => Promise<T>): Promise<T> {
         const promise = operation();
         this.currentOperations.push(promise);
-        promise.then(() => this.currentOperations.splice(this.currentOperations.indexOf(promise), 1));
+        promise.finally(() => this.currentOperations.splice(this.currentOperations.indexOf(promise), 1));
         return promise;
     }
 }
