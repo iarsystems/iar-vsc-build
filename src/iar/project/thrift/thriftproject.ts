@@ -45,7 +45,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
 
     public async reload(): Promise<void> {
         await this.performOperation(async() => {
-            if (WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.PMReloadProject)) {
+            if (this.name) {
                 await BackupUtils.doWithBackupCheck(this.path, async() => {
                     this.context = await this.projectMgr.ReloadProject(this.context);
                 });
@@ -193,9 +193,11 @@ export class ThriftProject implements ExtendedProject, Disposable {
         if (toAdd.length > 0) {
             logger.debug(`${this.name}: Adding watchers for ${toAdd.length} control file(s).`);
             toAdd.forEach(file => {
-                const watcher = vscode.workspace.createFileSystemWatcher(file, true, false, true);
+                const pattern = new vscode.RelativePattern(Path.dirname(file), Path.basename(file));
+                const watcher = vscode.workspace.createFileSystemWatcher(pattern, true, false, true);
                 this.controlFileWatchers.set(file, watcher);
-                watcher.onDidChange(() => {
+                watcher.onDidChange((f) => {
+                    logger.debug("Control file changed: " + f.fsPath);
                     this.performOperation(async() => {
                         try {
                             await this.projectMgr.UpdateProjectConnection(this.context, file);
