@@ -57,6 +57,9 @@ suite("Test CMake integration", function() {
     });
 
     test("Can provide source configuration", async() => {
+        // Give it time to generate intellisense info
+        await new Promise((p, _) => setTimeout(p, 3000));
+
         const provider = CpptoolsIntellisenseService.instance;
         const mainFile = Path.join(cmakeProjectDir, "main.c");
         Assert(provider!.canHandleFile(mainFile));
@@ -84,7 +87,9 @@ suite("Test CMake integration", function() {
         Assert.deepStrictEqual(configNames, ["NewConfig"]);
 
         const rootNode = await loadedProject.getRootNode();
-        Assert(rootNode.children.some(child => child.name === "secondfile.c"));
+        const targetGroup = rootNode.children.find(child => child.name === "SimpleProject [Executable]");
+        Assert(targetGroup);
+        Assert(targetGroup.children.some(child => child.name === "secondfile.c"));
     });
 
 });
