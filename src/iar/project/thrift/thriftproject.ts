@@ -65,6 +65,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
                 return {
                     name: thriftConfig.name,
                     targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
+                    isControlFileManaged: thriftConfig.isControlFileManaged,
                 };
             });
             await this.updateControlFileWatchers();
@@ -205,6 +206,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
                                 return {
                                     name: thriftConfig.name,
                                     targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
+                                    isControlFileManaged: thriftConfig.isControlFileManaged,
                                 };
                             });
                             await this.updateControlFileWatchers();
@@ -284,6 +286,7 @@ export namespace ThriftProject {
             return {
                 name: thriftConfig.name,
                 targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
+                isControlFileManaged: thriftConfig.isControlFileManaged,
             };
         });
         const activeConfigName = (await pm.GetCurrentConfiguration(context)).name;

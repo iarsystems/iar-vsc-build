@@ -231,12 +231,12 @@
         },
         {
           "command": "iar-build.addFileToRoot",
-          "when": "view == iar-project && iar-build.extendedProjectLoaded",
+          "when": "view == iar-project && iar-build.canModifyProjectTree",
           "group": "navigation"
         },
         {
           "command": "iar-build.addGroupToRoot",
-          "when": "view == iar-project && iar-build.extendedProjectLoaded",
+          "when": "view == iar-project && iar-build.canModifyProjectTree",
           "group": "navigation"
         },
         {
@@ -245,24 +245,24 @@
         },
         {
           "command": "iar-build.addBatch",
-          "when": "view == iar-batchbuild && iar-build.extendedProjectLoaded",
+          "when": "view == iar-batchbuild",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
           "command": "iar-build.removeNode",
-          "when": "view == iar-project && viewItem == group || viewItem == file",
+          "when": "view == iar-project && (viewItem == group || viewItem == file) && iar-build.canModifyProjectTree",
           "group": "inline"
         },
         {
           "command": "iar-build.addGroup",
-          "when": "view == iar-project && viewItem == group",
+          "when": "view == iar-project && viewItem == group && iar-build.canModifyProjectTree",
           "group": "inline"
         },
         {
           "command": "iar-build.addFile",
-          "when": "view == iar-project && viewItem == group",
+          "when": "view == iar-project && viewItem == group && iar-build.canModifyProjectTree",
           "group": "inline"
         },
         {

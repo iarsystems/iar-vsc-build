@@ -230,7 +230,8 @@ suite("Test settings view", () => {
             name,
             path,
             configurations: [
-                { name: "Debug", targetId: "arm" }, { name: "Release", targetId: "arm" }
+                { name: "Debug", targetId: "arm", isControlFileManaged: false },
+                { name: "Release", targetId: "arm", isControlFileManaged: false },
             ],
             findConfiguration: () => undefined,
             reload: () => { /**/ },
