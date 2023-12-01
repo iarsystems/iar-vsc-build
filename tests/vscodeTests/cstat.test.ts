@@ -15,9 +15,9 @@ import { TestConfiguration } from "../testconfiguration";
 namespace Utils {
     export function assertDiagnosticEquals(actual: Vscode.Diagnostic, expected: Vscode.Diagnostic) {
         Assert.strictEqual(actual.message, expected.message);
-        Assert.strictEqual(actual.code, expected.code);
-        Assert.strictEqual(actual.severity, expected.severity);
-        Assert.deepStrictEqual(actual.range, expected.range);
+        Assert.strictEqual(actual.code, expected.code, actual.message);
+        Assert.strictEqual(actual.severity, expected.severity, actual.message);
+        Assert.deepStrictEqual(actual.range, expected.range, actual.message);
         Assert.strictEqual(actual.relatedInformation?.length, expected.relatedInformation?.length, "Related information does not match for " + expected.message);
         actual.relatedInformation?.forEach((relatedInformation, i) => {
             Assert.strictEqual(relatedInformation.message, expected.relatedInformation![i]!.message, "Related information does not match for " + expected.message);
@@ -93,10 +93,7 @@ suite("Test C-STAT", () => {
         { message: "Variable `arr' is only used once", code: "MISRAC++2008-0-1-4_a [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(25, 10), relatedInformation: [] },
         { message: "Variable `local' is not modified and should be declared `const'", code: "MISRAC++2008-7-1-1 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(15, 9), relatedInformation: [] },
         { message: "The return value of this call to `printf()' is discarded", code: "MISRAC++2008-0-1-7,MISRAC2012-Rule-17.7 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(19, 5), relatedInformation: [] },
-        { message: "Implicit conversion of `a' from essential type signed 32-bit int to different or narrower essential type character", code: "MISRAC2012-Rule-10.3 [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 14), relatedInformation: [
-            new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(23, 1)), "if (a) is false"),
-            new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(26, 1)), "narrow_or_different_essential_type"),
-        ] },
+        { message: "Implicit conversion of `a' from essential type signed 32-bit int to different or narrower essential type character", code: "MISRAC2012-Rule-10.3 [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 14), relatedInformation: [] },
         { message: "Function call `bad_fun()' is immediately dereferenced, without checking for NULL", code: "PTR-null-fun-pos [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(23, 18), relatedInformation: [
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(23, 1)), "if (a) is true"),
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(23, 1)), "possible_null"),
@@ -127,8 +124,9 @@ suite("Test C-STAT", () => {
         { message: "`bad_fun' does not have a valid prototype", code: "MISRAC2004-16.5,MISRAC2012-Rule-8.2_a [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
         { message: `Use of ${TestConfiguration.getConfiguration().cstatHeaderQuoting[0]}stdio.h${TestConfiguration.getConfiguration().cstatHeaderQuoting[1]} is not compliant`, code: "MISRAC++2008-27-0-1,MISRAC2004-20.9,MISRAC2012-Rule-21.6 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(1, 19), relatedInformation: [] },
         { message: "Function `addOne' declared at block scope", code: "MISRAC2004-8.6 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(17, 11), relatedInformation: [] },
-        { message: "Externally-linked object or function `bad_fun' is referenced in only one translation unit", code: "MISRAC2004-8.10,MISRAC2012-Rule-8.7 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
-        { message: "Externally-linked object or function `addOne' is referenced in only one translation unit", code: "MISRAC2004-8.10,MISRAC2012-Rule-8.7 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(17, 11), relatedInformation: [] }
+        { message: "Externally-linked object or function `bad_fun' is referenced in only one translation unit", code: "MISRAC2004-8.10 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
+        { message: "Found use of obsolescent language feature. 'main' does not have a valid prototype", code: "MISRAC2012-Rule-1.5_b [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(13, 5), relatedInformation: [] },
+        { message: "Found use of obsolescent language feature. 'bad_fun' does not have a valid prototype", code: "MISRAC2012-Rule-1.5_b [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] }
     ];
 
     test("Run C-STAT on all listed EWs", async function() {

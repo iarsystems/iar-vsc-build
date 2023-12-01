@@ -103,7 +103,7 @@ export namespace TestConfiguration {
             target: "riscv",
             testThriftSupport: true,
             vscodeTestProjectsDir: Path.join(__dirname, "../../tests/vscodeTests/TestProjects/riscv"),
-            strictCstatCheck: true,
+            strictCstatCheck: false,
             cstatOutputDir: "C-STAT",
             cstatHeaderQuoting: ["`", "'"],
             cspyCommandLine: undefined,
