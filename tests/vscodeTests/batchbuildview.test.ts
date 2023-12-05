@@ -39,10 +39,10 @@ suite("Test batchbuild View", () => {
             this.skip();
         }
 
-        if (!ExtensionState.getInstance().workspaces.workspaces.find((workspace) => {
+        if (!ExtensionState.getInstance().workspaces.items.find((workspace) => {
             return workspace.name === "BatchProjects";
         })) {
-            ExtensionState.getInstance().workspaces.set(...ExtensionState.getInstance().workspaces.workspaces, new EwwFile(path.join(testRoot, "BatchProjects.eww")));
+            ExtensionState.getInstance().workspaces.set(...ExtensionState.getInstance().workspaces.items, new EwwFile(path.join(testRoot, "BatchProjects.eww")));
         }
 
         await VscodeTestsUtils.activateWorkspace("BatchProjects");

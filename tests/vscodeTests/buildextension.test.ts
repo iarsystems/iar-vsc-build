@@ -49,7 +49,7 @@ namespace Utils {
         // Add the ewp-file to the list of project.
         // const workspace = SimpleWorkspace.fromProjectPaths([outputFile]);
         ExtensionState.getInstance().workspaces.set(
-            ...ExtensionState.getInstance().workspaces.workspaces,
+            ...ExtensionState.getInstance().workspaces.items,
             // workspace
         );
 
@@ -94,8 +94,8 @@ suite("Test build extension", ()=>{
     test("Load all configurations", async()=>{
         await VscodeTestsUtils.activateProject("BasicDebugging");
         const workspace = await ExtensionState.getInstance().workspace.getValue();
-        assert(workspace?.projectConfigs.configurations.some(config => config.name === "Debug"));
-        assert(workspace?.projectConfigs.configurations.some(config => config.name === "Release"));
+        assert(workspace?.projectConfigs.items.some(config => config.name === "Debug"));
+        assert(workspace?.projectConfigs.items.some(config => config.name === "Release"));
     } );
 
     test("Check IAR tasks exist", async()=>{
@@ -157,7 +157,7 @@ suite("Test build extension", ()=>{
         }
 
         // Get the list of selectable ew:s
-        const listedEws = ExtensionState.getInstance().workbenches.workbenches;
+        const listedEws = ExtensionState.getInstance().workbenches.items;
         // Check that the lists are the same.
         assert(configuredEws?.length <= listedEws.length);
         for (const configuredEw of configuredEws) {

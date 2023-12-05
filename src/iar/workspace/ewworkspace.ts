@@ -89,7 +89,7 @@ export class EwWorkspace {
      * If no project is specified, sets the config for the active project.
      */
     setActiveConfig(config: Config | undefined, project?: Project) {
-        if (project && !this.projects.projects.includes(project)) {
+        if (project && !this.projects.items.includes(project)) {
             throw new Error("Trying to set active config for an unknown project");
         }
         project ??= this.projects.selected;

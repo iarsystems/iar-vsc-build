@@ -44,7 +44,7 @@ export const API: BuildExtensionApi = {
 
     async getCSpyCommandline(projectPath, configuration) {
         const workspace = await ExtensionState.getInstance().workspace.getValue();
-        const project = workspace?.projects.projects.find(proj => OsUtils.pathsEqual(proj.path, projectPath));
+        const project = workspace?.projects.items.find(proj => OsUtils.pathsEqual(proj.path, projectPath));
         if (workspace?.isExtendedWorkspace() && project) {
             const extendedProject = await workspace.getExtendedProject(project);
             return extendedProject?.getCSpyArguments(configuration);

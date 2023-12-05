@@ -50,7 +50,7 @@ export class ListInput<T> implements Input<T> {
     private generateItemWrappers(): void {
         this.inputItemWrapper = [];
 
-        for (let idx = 0; idx < this.model.amount; idx += 1) {
+        for (let idx = 0; idx < this.model.items.length; idx += 1) {
             const item = {
                 label: this.model.label(idx),
                 description: this.model.description(idx),

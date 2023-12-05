@@ -12,10 +12,6 @@ export class ProjectListModel extends ListInputModelBase<Project> {
         super(projects);
     }
 
-    get projects(): ReadonlyArray<Project> {
-        return this.data;
-    }
-
     override itemLabel(item: Project): string {
         return item.name;
     }

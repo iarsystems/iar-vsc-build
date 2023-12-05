@@ -58,7 +58,7 @@ export class IntellisenseInfoService {
                         }
                     }
                 });
-                workspace.projects.projects.forEach(project => project.addOnChangeListener(async() => {
+                workspace.projects.items.forEach(project => project.addOnChangeListener(async() => {
                     if (this.activeWorkspace === workspace) {
                         const activeConfig = this.workspaceIntellisenseInfo?.getActiveConfiguration(project);
                         if (!activeConfig || !project.findConfiguration(activeConfig.name)) {

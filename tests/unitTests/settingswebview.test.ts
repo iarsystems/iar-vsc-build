@@ -125,7 +125,7 @@ suite("Test settings view", () => {
             Assert(dropdown);
             Assert.strictEqual(dropdown.getAttribute("disabled"), null, `Dropdown '${dropdownId}' should be enabled`);
             const options = dropdown.children;
-            Assert.strictEqual(options.length, model.amount);
+            Assert.strictEqual(options.length, model.items.length);
             for (let i = 0; i < options.length; i++) {
                 Assert.strictEqual(options.item(i)?.tagName, "VSCODE-OPTION", `Incorrect option ${i}`);
                 Assert.strictEqual(options.item(i)?.textContent?.trim(), model.label(i), `Incorrect option ${i}`);
@@ -147,14 +147,14 @@ suite("Test settings view", () => {
         Assert.strictEqual(options.item(0)?.tagName, "VSCODE-OPTION");
         Assert.strictEqual(options.item(0)?.textContent?.trim(), "None selected...");
         Assert.strictEqual(options.item(0)?.getAttribute("selected"), "");
-        for (let i = 0; i < workbenchModel.amount; i++) {
+        for (let i = 0; i < workbenchModel.items.length; i++) {
             Assert.strictEqual(options.item(i + 1)?.tagName, "VSCODE-OPTION", `Incorrect option ${i + 1}`);
             Assert.strictEqual(options.item(i + 1)?.textContent?.trim(), workbenchModel.label(i), `Incorrect option ${i + 1}`);
             Assert.strictEqual(options.item(i + 1)?.getAttribute("selected"), null, `Incorrect option ${i + 1}`);
         }
-        Assert.strictEqual(options.item(workbenchModel.amount + 1)?.tagName, "VSCODE-DIVIDER");
-        Assert.strictEqual(options.item(workbenchModel.amount + 2)?.tagName, "VSCODE-OPTION");
-        Assert.strictEqual(options.item(workbenchModel.amount + 2)?.textContent?.trim(), "Add Toolchain...");
+        Assert.strictEqual(options.item(workbenchModel.items.length + 1)?.tagName, "VSCODE-DIVIDER");
+        Assert.strictEqual(options.item(workbenchModel.items.length + 2)?.tagName, "VSCODE-OPTION");
+        Assert.strictEqual(options.item(workbenchModel.items.length + 2)?.textContent?.trim(), "Add Toolchain...");
     });
 
     test("Reacts to loading workbenches", () => {

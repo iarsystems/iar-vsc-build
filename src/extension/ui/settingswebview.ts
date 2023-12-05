@@ -122,7 +122,7 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
                 break;
             case MessageSubject.ConfigSelected:
                 if (this.currentWorkspace) {
-                    const config = this.currentWorkspace.projectConfigs.configurations[message.index];
+                    const config = this.currentWorkspace.projectConfigs.items[message.index];
                     this.currentWorkspace.setActiveConfig(config);
                 }
                 break;
@@ -242,27 +242,27 @@ namespace Rendering {
         <div id="contents">
             <div class="section">
                 <p>IAR Embedded Workbench or IAR Build Tools installation:</p>
-                ${makeDropdown(workbenches, DropdownIds.Workbench, "tools", workbenches.amount === 0 || workbenchesLoading, "No IAR toolchains found", true, /*html*/`
+                ${makeDropdown(workbenches, DropdownIds.Workbench, "tools", workbenches.items.length === 0 || workbenchesLoading, "No IAR toolchains found", true, /*html*/`
                     <vscode-divider></vscode-divider>
                     <vscode-option artificial>Add Toolchain...</vscode-option>
                 `)}
-                <div id="workbench-error" ${workbenches.amount > 0 || workbenchesLoading ? "hidden" : ""}>
+                <div id="workbench-error" ${workbenches.items.length > 0 || workbenchesLoading ? "hidden" : ""}>
                     <span>No IAR toolchain installations found.</span><vscode-link id="link-add">Add Toolchain</vscode-link>
                 </div>
                 <vscode-progress-ring ${ !workbenchesLoading ? "hidden" : ""}></vscode-progress-ring>
             </div>
             <div class="section">
                     <p>Workspace, project and configuration:</p>
-                    ${makeDropdown(workspaces, DropdownIds.Workspace, "window", workspaces.amount === 0, "No workspaces found", true)}
+                    ${makeDropdown(workspaces, DropdownIds.Workspace, "window", workspaces.items.length === 0, "No workspaces found", true)}
                     ${workspaces.selected === undefined ? treeIBroken : ""}
                     <div class="wide-container">
                         ${workspaces.selected === undefined ? "" : treeL}
-                        ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.amount === 0 || workspaceLoading, "No projects found", true)}
+                        ${makeDropdown(projects, DropdownIds.Project, "symbol-method", projects.items.length === 0 || workspaceLoading, "No projects found", true)}
                     </div>
                     <div class="wide-container">
                         <div class="wide-container${workspaces.selected !== undefined ? " configs" : ""}">
                             ${treeL}
-                            ${makeDropdown(configs, DropdownIds.Configuration, "settings-gear", configs.amount === 0 || workspaceLoading, "No configurations found")}
+                            ${makeDropdown(configs, DropdownIds.Configuration, "settings-gear", configs.items.length === 0 || workspaceLoading, "No configurations found")}
                         </div>
                     </div>
                     <vscode-progress-ring ${ !workspaceLoading ? "hidden" : ""}></vscode-progress-ring>
@@ -299,7 +299,7 @@ namespace Rendering {
     }
 
     function getDropdownOptions<T>(model: ListInputModel<T>, emptyMsg: string, useTooltips = false): string {
-        if (model.amount === 0) {
+        if (model.items.length === 0) {
             return `<vscode-option>${emptyMsg}</vscode-option>`;
         }
         let html = "";
@@ -307,7 +307,7 @@ namespace Rendering {
             // The 'articifical' attribute tells the ui code to disregard this when calculating selected index
             html += /*html*/`<vscode-option selected artificial>None selected...</vscode-option>`;
         }
-        for (let i = 0; i < model.amount; i++) {
+        for (let i = 0; i < model.items.length; i++) {
             // Note that we sanitize the labels, since they are user input and could inject HTML.
             html += /*html*/`<vscode-option
                     ${useTooltips && model.detail(i) ? `title="${model.detail(i)}"` : ""}

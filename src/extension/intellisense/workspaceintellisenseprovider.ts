@@ -54,7 +54,7 @@ export class WorkspaceIntellisenseProvider {
 
         try {
             const projectCompDbs: Map<Project, ProjectCompilationDatabase> = new Map();
-            await Promise.all(workspace.projects.projects.map(async(project) => {
+            await Promise.all(workspace.projects.items.map(async(project) => {
                 const activeConfig = workspace.getActiveConfig(project) ?? project.configurations[0];
                 if (activeConfig) {
                     try {
@@ -66,7 +66,7 @@ export class WorkspaceIntellisenseProvider {
                 }
             }));
 
-            if (workspace.projects.amount > 0 && projectCompDbs.size === 0) {
+            if (workspace.projects.items.length > 0 && projectCompDbs.size === 0) {
                 outputChannel?.appendLine("No intellisense configurations were generated");
                 throw Error("No intellisense configurations were generated");
             }

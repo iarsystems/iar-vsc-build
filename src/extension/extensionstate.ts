@@ -134,7 +134,7 @@ class StateImpl implements State, Disposable {
             if (storedWbPath) {
                 this.workbenches.selectWhen(wb => OsUtils.pathsEqual(storedWbPath, wb.path));
             }
-            if (!this.workbenches.selected && this.workbenches.amount > 0) {
+            if (!this.workbenches.selected && this.workbenches.items.length > 0) {
                 const workspace = await this.workspace.getValue();
                 const activeProject = workspace?.projects.selected;
                 if (activeProject) {
@@ -156,7 +156,7 @@ class StateImpl implements State, Disposable {
             if (storedWsPath) {
                 this.workspaces.selectWhen(ws => OsUtils.pathsEqual(storedWsPath, ws.path));
             }
-            if (!this.workspaces.selected && this.workspaces.amount > 0) {
+            if (!this.workspaces.selected && this.workspaces.items.length > 0) {
                 this.workspaces.select(0);
             }
         });
@@ -259,9 +259,9 @@ class StateImpl implements State, Disposable {
         // Select the first workbench that has all project toolchains.
         // Here, we're comparing 'toolchains' (internal thrift id), and 'targets' (the name of the toolchain directory on disk).
         // These are not necessarily equivalent, but it's okay for this function to give false negatives.
-        const candidates = workbenchModel.workbenches.filter(workbench => projectToolchainsArray.every(target => workbench.targetIds.includes(target)));
+        const candidates = workbenchModel.items.filter(workbench => projectToolchainsArray.every(target => workbench.targetIds.includes(target)));
         if (candidates.length === 0) {
-            if (workbenchModel.amount > 0) {
+            if (workbenchModel.items.length > 0) {
                 Vscode.window.showWarningMessage(
                     `No available IAR toolchain for target(s) '${projectToolchainsArray.map(Workbench.getTargetDisplayName).join(", ")}'.`,
                     "Add IAR toolchain",

@@ -172,7 +172,7 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
 
     IarVsc.ewpWatcher.onFileModified(async modifiedFile => {
         const workspace = await ExtensionState.getInstance().workspace.getValue();
-        const oldProject = workspace?.projects.projects.find(
+        const oldProject = workspace?.projects.items.find(
             project => OsUtils.pathsEqual(project.path, modifiedFile)
         );
         try {

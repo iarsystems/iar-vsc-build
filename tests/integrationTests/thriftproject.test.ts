@@ -44,7 +44,7 @@ suite("Thrift project", function() {
     setup(async() => {
         projectPath = sandbox.copyToSandbox(TestConfiguration.getConfiguration().integrationTestProjectsDir, "IntegrationTestProject");
         const workspace = await workbench.loadAnonymousWorkspace([Path.join(projectPath, IntegrationTestsCommon.TEST_PROJECT_NAME)]);
-        const proj = await workspace.getExtendedProject(workspace.projects.projects[0]);
+        const proj = await workspace.getExtendedProject(workspace.projects.items[0]);
         Assert(proj);
         project = proj;
     });

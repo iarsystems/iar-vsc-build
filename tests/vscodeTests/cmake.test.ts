@@ -37,7 +37,7 @@ suite("Test CMake integration", function() {
         const workspace = await ExtensionState.getInstance().workspace.getValue();
         const expectedConfigNames = ["Debug", "RelWithDebInfo"];
         {
-            const configNames = workspace!.projectConfigs.configurations.map(conf => conf.name);
+            const configNames = workspace!.projectConfigs.items.map(conf => conf.name);
             Assert.deepStrictEqual(configNames, expectedConfigNames);
         }
 

@@ -28,7 +28,7 @@ suite("Test workspace support", () => {
     });
 
     test("Finds workspaces in directory", ()=>{
-        const allWorkspaces = ExtensionState.getInstance().workspaces.workspaces;
+        const allWorkspaces = ExtensionState.getInstance().workspaces.items;
         Assert(allWorkspaces.some(workspace => workspace.name === "ArgVars1"));
         Assert(allWorkspaces.some(workspace => workspace.name === "ArgVars2"));
         Assert(allWorkspaces.some(workspace => workspace.name === "TestProjects"));
@@ -38,7 +38,7 @@ suite("Test workspace support", () => {
         {
             await VscodeTestsUtils.activateWorkspace("TestProjects");
             const workspace = await ExtensionState.getInstance().workspace.getValue();
-            const allProjects = workspace!.projects.projects;
+            const allProjects = workspace!.projects.items;
 
             const expectCMakeProject = TestConfiguration.getConfiguration().testCMakeIntegration;
             Assert.strictEqual(allProjects.length, expectCMakeProject ? 4 : 3,
@@ -53,7 +53,7 @@ suite("Test workspace support", () => {
         {
             await VscodeTestsUtils.activateWorkspace("ArgVars1");
             const workspace = await ExtensionState.getInstance().workspace.getValue();
-            const allProjects = workspace!.projects.projects;
+            const allProjects = workspace!.projects.items;
             Assert.strictEqual(allProjects.length, 1,
                 "Found projects: " + allProjects.map(p => p.name).join(", "));
             Assert(allProjects.some(project => project.name === "ArgVars"));
@@ -67,13 +67,13 @@ suite("Test workspace support", () => {
         Fs.copyFileSync(Path.join(sandboxPath, "TestProjects.eww"), workspacePath);
         // Give vs code time to react
         await new Promise((p, _) => setTimeout(p, 1000));
-        Assert(ExtensionState.getInstance().workspaces.workspaces.some(workspace => workspace.name === "newWorkspace"), "The created workspace was not added to the workspace list");
+        Assert(ExtensionState.getInstance().workspaces.items.some(workspace => workspace.name === "newWorkspace"), "The created workspace was not added to the workspace list");
 
         // Remove the workspace file, make sure it is removed from the extension
         Fs.unlinkSync(workspacePath);
         // Give vs code time to react
         await new Promise((p, _) => setTimeout(p, 1000));
-        Assert(!ExtensionState.getInstance().workspaces.workspaces.some(workspace => workspace.name === "newWorkspace"), "The deleted workspace was not removed from the workspace list");
+        Assert(!ExtensionState.getInstance().workspaces.items.some(workspace => workspace.name === "newWorkspace"), "The deleted workspace was not removed from the workspace list");
     });
 
     suite("", () => {
@@ -88,7 +88,7 @@ suite("Test workspace support", () => {
         });
 
         test("Falls back to on-disk projects if there are no .eww files", async function() {
-            allWorkspaces = ExtensionState.getInstance().workspaces.workspaces;
+            allWorkspaces = ExtensionState.getInstance().workspaces.items;
             tmpDir = Path.join(tmpdir(), "vscode-iar-workspace-test");
             Fs.mkdirSync(tmpDir, { recursive: true });
             allWorkspaces.forEach(ws => {
@@ -99,7 +99,7 @@ suite("Test workspace support", () => {
             await new Promise((p, _) => setTimeout(p, 4000));
 
             const workspace = await ExtensionState.getInstance().workspace.getValue();
-            const allProjects = workspace!.projects.projects;
+            const allProjects = workspace!.projects.items;
 
             const expectCMakeProject = TestConfiguration.getConfiguration().testCMakeIntegration;
             Assert.strictEqual(allProjects.length, expectCMakeProject ? 6 : 5,

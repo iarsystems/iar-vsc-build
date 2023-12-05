@@ -10,10 +10,6 @@ export class WorkspaceListModel extends MutableListInputModelBase<EwwFile> {
         super(workspaces);
     }
 
-    get workspaces(): ReadonlyArray<EwwFile> {
-        return this.data;
-    }
-
     itemLabel(item: EwwFile): string {
         return item.name;
     }

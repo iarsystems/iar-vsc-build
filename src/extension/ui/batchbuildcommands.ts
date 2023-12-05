@@ -121,7 +121,7 @@ export namespace BatchBuild {
             const selection: BatchBuildSelection[] = [];
 
             // Generate the list of available projects and configurations. const availableNodes: BatchBuildNode[] = [];
-            for (const project of (await ExtensionState.getInstance().workspace.getValue())?.projects.projects ?? []) {
+            for (const project of (await ExtensionState.getInstance().workspace.getValue())?.projects.items ?? []) {
                 for (const conf of project.configurations) {
                     selection.push(
                         new BatchBuildSelection(project, conf)

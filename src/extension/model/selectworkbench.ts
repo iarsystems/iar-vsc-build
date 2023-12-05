@@ -12,10 +12,6 @@ export class WorkbenchListModel extends MutableListInputModelBase<Workbench> {
         super(workbenches);
     }
 
-    get workbenches(): ReadonlyArray<Workbench> {
-        return this.data;
-    }
-
     override itemLabel(item: Workbench): string {
         return item.name;
     }

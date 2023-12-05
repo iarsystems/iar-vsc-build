@@ -14,10 +14,6 @@ export class ConfigurationListModel extends MutableListInputModelBase<Config> {
         super(configs);
     }
 
-    get configurations(): ReadonlyArray<Config> {
-        return this.data;
-    }
-
     override itemLabel(item: Config): string {
         return item.name;
     }

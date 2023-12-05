@@ -21,8 +21,8 @@ export interface InputModel<T> {
  * Can be used to drive e.g. a dropdown.
  */
 export interface ListInputModel<T> extends InputModel<T> {
-    readonly amount: number;
     readonly selectedIndex: number | undefined;
+    readonly items: ReadonlyArray<T>;
 
     label(index: number): string;
     description(index: number): string | undefined;
@@ -38,7 +38,7 @@ export interface ListInputModel<T> extends InputModel<T> {
  * A {@link ListInputModel} which allows changing the list of selectable values.
  */
 export interface MutableListInputModel<T> extends ListInputModel<T> {
-    set(...data: T[]): void;
+    set(...items: T[]): void;
     addOnInvalidateHandler(fn: InvalidateHandler<T>): void;
 }
 
@@ -46,17 +46,13 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
     private readonly selectHandlers: SelectHandler<T>[];
 
     protected selectedIndex_: number | undefined;
-    protected data: Array<T>;
+    protected _items: Array<T>;
 
-    constructor(data: T[]) {
+    constructor(items: T[]) {
         this.selectHandlers = [];
-        this.data = data;
+        this._items = items;
 
         this.selectedIndex_ = undefined;
-    }
-
-    get amount(): number {
-        return this.data.length;
     }
 
     get selectedIndex(): number | undefined {
@@ -65,16 +61,20 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
 
     get selected(): T | undefined {
         if (this.selectedIndex !== undefined) {
-            return this.data[this.selectedIndex];
+            return this._items[this.selectedIndex];
         } else {
             return undefined;
         }
     }
 
+    get items(): ReadonlyArray<T> {
+        return this._items;
+    }
+
     select(index: number): boolean {
-        if (this.selectedIndex !== index && index < this.data.length) {
+        if (this.selectedIndex !== index && index < this._items.length) {
             this.selectedIndex_ = index;
-            this.fireSelectionChanged(this.data[this.selectedIndex_]);
+            this.fireSelectionChanged(this._items[this.selectedIndex_]);
 
             return true;
         } else {
@@ -83,7 +83,7 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
     }
 
     selectWhen(shouldSelect: (item: T) => boolean): boolean {
-        return this.data.some((modelItem, index): boolean => {
+        return this._items.some((modelItem, index): boolean => {
             if (shouldSelect(modelItem)) {
                 this.select(index);
                 return true;
@@ -119,7 +119,7 @@ export abstract class ListInputModelBase<T> implements ListInputModel<T> {
     protected abstract itemDetail(item: T): string | undefined;
 
     protected getItemAt(index: number): T {
-        const result = this.data[index];
+        const result = this._items[index];
         if (result === undefined) {
             throw new Error(`No item with index ${index}`);
         }
@@ -140,8 +140,8 @@ export abstract class MutableListInputModelBase<T> extends ListInputModelBase<T>
         this.changeHandlers = [];
     }
 
-    public set(...data: T[]) {
-        this.data = data;
+    public set(...items: T[]) {
+        this._items = items;
 
         this.selectedIndex_ = undefined;
         this.fireInvalidateEvent();

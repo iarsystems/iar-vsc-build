@@ -41,13 +41,13 @@ suite("Test Clicking Settings View", ()=>{
             const workbenchModel = ExtensionState.getInstance().workbenches;
 
             // We need at least two workbenches for this, so add a fake one if there is only one workbench
-            if (workbenchModel.amount === 1) {
+            if (workbenchModel.items.length === 1) {
                 addedMockWorkbench = true;
-                workbenchModel.set(...workbenchModel.workbenches, {
+                workbenchModel.set(...workbenchModel.items, {
                     name: "MockWorkbench",
                     builderPath: "MockWorkbench",
                     idePath: "MockWorkbench",
-                    path: workbenchModel.workbenches[0]?.path?? "MockWorkbench",
+                    path: workbenchModel.items[0]?.path?? "MockWorkbench",
                     targetIds: [],
                     type: WorkbenchType.IDE,
                     version: { major: 0, minor: 0, patch: 0 }
@@ -57,7 +57,7 @@ suite("Test Clicking Settings View", ()=>{
             }
 
             let indexToSelect = -1;
-            for (let i = 0; i < workbenchModel.amount; i++) {
+            for (let i = 0; i < workbenchModel.items.length; i++) {
                 if (i !== workbenchModel.selectedIndex) {
                     indexToSelect = i;
                     break;
@@ -72,7 +72,7 @@ suite("Test Clicking Settings View", ()=>{
         suiteTeardown(() => {
             if (addedMockWorkbench) {
                 const workbenchModel = ExtensionState.getInstance().workbenches;
-                workbenchModel.set(...workbenchModel.workbenches.filter(wb => wb.name !== "MockWorkbench"));
+                workbenchModel.set(...workbenchModel.items.filter(wb => wb.name !== "MockWorkbench"));
             }
         });
     });

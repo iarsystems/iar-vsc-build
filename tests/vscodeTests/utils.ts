@@ -18,14 +18,14 @@ export namespace VscodeTestsUtils {
         await ext?.activate();
         // Detecting workspaces and toolchains is done *after* activating, but we want that finished before we run any tests
         const wbPromise = new Promise<void>(resolve => {
-            if (ExtensionState.getInstance().workbenches.amount > 0) {
+            if (ExtensionState.getInstance().workbenches.items.length > 0) {
                 resolve();
             } else {
                 ExtensionState.getInstance().workbenches.addOnInvalidateHandler(() => resolve());
             }
         });
         const wsPromise = new Promise<void>(resolve => {
-            if (ExtensionState.getInstance().workspaces.amount > 0) {
+            if (ExtensionState.getInstance().workspaces.items.length > 0) {
                 resolve();
             } else {
                 ExtensionState.getInstance().workspaces.addOnInvalidateHandler(() => resolve());
@@ -35,7 +35,7 @@ export namespace VscodeTestsUtils {
 
         // Select the workbench to test with
         const workbenchModel = ExtensionState.getInstance().workbenches;
-        const candidates = workbenchModel.workbenches.filter(workbench => workbench.targetIds.includes(TestConfiguration.getConfiguration().target));
+        const candidates = workbenchModel.items.filter(workbench => workbench.targetIds.includes(TestConfiguration.getConfiguration().target));
         Assert(candidates.length > 0, "Found no workbench for target " + TestConfiguration.getConfiguration().target);
         // Prioritize newer workbench versions
         const candidatesPrioritized = candidates.sort((wb1, wb2) =>
@@ -71,7 +71,7 @@ export namespace VscodeTestsUtils {
     export async function activateConfiguration(configurationTag: string) {
         const workspace = await ExtensionState.getInstance().workspace.getValue();
         if (workspace) {
-            workspace.setActiveConfig(workspace.projectConfigs.configurations.find(conf => conf.name === configurationTag));
+            workspace.setActiveConfig(workspace.projectConfigs.items.find(conf => conf.name === configurationTag));
         }
     }
 
