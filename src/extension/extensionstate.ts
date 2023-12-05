@@ -22,12 +22,51 @@ import { Project } from "../iar/project/project";
 import { ErrorUtils } from "../utils/utils";
 import { LogServiceHandler } from "./ui/logservicehandler";
 
-class State implements Disposable {
+/**
+ * Holds extension-wide state, such as the available and selected workbenches and
+ * workspaces, and the loaded workspace. Most state can be listened to, to allow
+ * components to respond e.g. when a new workspace is loaded.
+ */
+export interface State extends Disposable {
+    /** The available and selected workbench(es) */
+    readonly workbenches: WorkbenchListModel;
+    /** The available and selected .eww file(s) */
+    readonly workspaces: WorkspaceListModel;
+
+    /**
+     * The loaded workspace, matching the .eww file in
+     * {@link workspaces.selected} if available.
+     */
+    readonly workspace: AsyncObservable<EwWorkspace>;
+
+    /**
+     * Sets the project (paths) to load when no workspace file is selected (when
+     * {@link workspaces.selected} is undefined, typically because no .eww files
+     * were found).
+     */
+    setFallbackProjects(projects: string[]): void;
+    getFallbackProjects(): string[];
+
+    /**
+     * Reload the currently loaded workspace and all projects in it.
+     */
+    reloadWorkspace(): Promise<void>;
+}
+
+/**
+ * The default {@link State} implementation.
+ *
+ * Manages the data in the {@link State} interface by:
+ * - Auto-selecting values for workbench and workspace when the available options change (based on e.g. previous selections).
+ * - (Re)Loading thrift services and workspaces when the selected workbench or workspace changes.
+ */
+class StateImpl implements State, Disposable {
 
     readonly workbenches: WorkbenchListModel;
-    private readonly extendedWorkbench: AsyncObservable<ExtendedWorkbench>;
-
     readonly workspaces: WorkspaceListModel;
+
+    // Thrift services needed for most functionality
+    private readonly extendedWorkbench: AsyncObservable<ExtendedWorkbench>;
     readonly workspace: AsyncObservable<EwWorkspace>;
 
     // The project paths to populate our workspace with when no eww file is available
@@ -99,7 +138,7 @@ class State implements Disposable {
                 const workspace = await this.workspace.getValue();
                 const activeProject = workspace?.projects.selected;
                 if (activeProject) {
-                    State.selectWorkbenchMatchingProject(activeProject, this.workbenches);
+                    StateImpl.selectWorkbenchMatchingProject(activeProject, this.workbenches);
                 }
             }
         });
@@ -166,11 +205,11 @@ class State implements Disposable {
             if (newWorkspace) {
                 newWorkspace.projects.addOnSelectedHandler(() => {
                     if (!this.workbenches.selected && newWorkspace.projects.selected) {
-                        State.selectWorkbenchMatchingProject(newWorkspace.projects.selected, this.workbenches);
+                        StateImpl.selectWorkbenchMatchingProject(newWorkspace.projects.selected, this.workbenches);
                     }
                 });
                 if (!this.workbenches.selected && newWorkspace.projects.selected) {
-                    State.selectWorkbenchMatchingProject(newWorkspace.projects.selected, this.workbenches);
+                    StateImpl.selectWorkbenchMatchingProject(newWorkspace.projects.selected, this.workbenches);
                 }
             }
         });
@@ -252,10 +291,10 @@ class State implements Disposable {
 }
 
 export namespace ExtensionState {
-    let state: State | undefined = undefined;
+    let state: StateImpl | undefined = undefined;
 
     export function init(manager: ToolManager) {
-        state = new State(manager);
+        state = new StateImpl(manager);
     }
 
     export function getInstance(): State {

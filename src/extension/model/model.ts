@@ -7,12 +7,19 @@
 type SelectHandler<T> = (model: InputModel<T>, selected?: T) => void;
 type InvalidateHandler<T> = (model: ListInputModel<T>) => void;
 
+/**
+ * An observable selected value (typically some user input).
+ */
 export interface InputModel<T> {
     readonly selected: T | undefined;
 
     addOnSelectedHandler(fn: SelectHandler<T>): void;
 }
 
+/**
+ * A list of selectable values, of which one may be selected.
+ * Can be used to drive e.g. a dropdown.
+ */
 export interface ListInputModel<T> extends InputModel<T> {
     readonly amount: number;
     readonly selectedIndex: number | undefined;
@@ -27,6 +34,9 @@ export interface ListInputModel<T> extends InputModel<T> {
     selectWhen(shouldSelect: (item: T) => boolean): boolean;
 }
 
+/**
+ * A {@link ListInputModel} which allows changing the list of selectable values.
+ */
 export interface MutableListInputModel<T> extends ListInputModel<T> {
     set(...data: T[]): void;
     addOnInvalidateHandler(fn: InvalidateHandler<T>): void;

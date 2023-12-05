@@ -44,7 +44,7 @@ export class TreeProjectView {
                     }
                 } else {
                     // The workbench *should* support this view but doesn't. The project manager probably crashed.
-                    this.view.message = "The IAR project view is unavailable.";
+                    this.view.message = "The IAR project view is unavailable. See the extension logs for more information.";
                 }
             } else if (hasProject && projectIsEmpty) {
                 this.view.message = "There are no files in the project";
