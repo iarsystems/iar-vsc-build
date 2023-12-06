@@ -52,9 +52,9 @@ The supported versions are the same for IAR Build Tools installations, but IAR B
 
 | IAR EW/BX version  | Limitation
 |--------------|---------
-| Arm v9.30.1 or later <br>RISC-V v3.10 or later <br>RH850 v3.10 or later <br>RL78 v5.10 or later <br>AVR v8.10 or later <br> RX v5.10 or later | None |
+| Arm v9.30.1 or later <br>RISC-V v3.10 or later <br>RH850 v3.10 or later <br>430 v8.10 or later <br>RL78 v5.10 or later <br>AVR v8.10 or later <br> RX v5.10 or later | None |
 | Arm v9.20.4 | Batch builds do not persist to the workspace file. |
-| Arm v8.10-9.20.3<br>RISC-V v1.10-2.11<br>430 v7.10 or later<br>RL78 v3.10 or later<br>RX v3.10 or later<br>RH850 v2.10-2.21<br>AVR v7.10 or later<br>8051 v10.10 or later<br>| File view and possibility to add/remove files from a project is not supported. Batch builds do not persist to the workspace file. |
+| Arm v8.10-9.20.3<br>RISC-V v1.10-2.11<br>430 v7.10-7.21<br>RL78 v3.10-4.21<br>RX v3.10-4.20<br>RH850 v2.10-2.21<br>AVR v7.10-7.30<br>8051 v10.10 or later<br>| File view and possibility to add/remove files from a project is not supported. Batch builds do not persist to the workspace file. |
 
 </details>
 
