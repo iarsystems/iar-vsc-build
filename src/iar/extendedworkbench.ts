@@ -5,23 +5,20 @@
 
 
 import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
+import * as LogService from "iar-vsc-common/thrift/bindings/LogService";
 import * as Fs from "fs";
-import * as Vscode from "vscode";
 import * as Path from "path";
 import { Workbench } from "iar-vsc-common/workbench";
-import { PROJECTMANAGER_ID, ProjectContext } from "iar-vsc-common/thrift/bindings/projectmanager_types";
-import { ExtendedProject, Project } from "./project/project";
+import { PROJECTMANAGER_ID } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { ThriftServiceManager } from "iar-vsc-common/thrift/thriftServiceManager";
 import { ProjectManagerLauncher } from "./project/thrift/projectmanagerlauncher";
 import { ThriftClient } from "iar-vsc-common/thrift/thriftClient";
-import { ThriftProject } from "./project/thrift/thriftproject";
-import { BackupUtils } from "../utils/utils";
 import { logger } from "iar-vsc-common/logger";
-import { IarOsUtils, OsUtils } from "iar-vsc-common/osUtils";
-import { Mutex } from "async-mutex";
-import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
-import { EwWorkspace, ExtendedEwWorkspace } from "./workspace/ewworkspace";
+import { IarOsUtils } from "iar-vsc-common/osUtils";
+import { EwwFile } from "./workspace/ewwfile";
 import { ThriftWorkspace } from "./workspace/thriftworkspace";
+import { ExtendedEwWorkspace } from "./workspace/ewworkspace";
+import { LOGSERVICE_ID } from "iar-vsc-common/thrift/bindings/logservice_types";
 
 /**
  * A workbench with some extra capabilities,
@@ -31,36 +28,22 @@ export interface ExtendedWorkbench {
     readonly workbench: Workbench;
 
     /**
-     * Loads the given project into a {@link ExtendedProject}. Loaded projects are kept in memory (i.e. in a workspace).
-     * To evict a project from memory and force it to be reloaded from disk, call {@link unloadProject}.
-     */
-    loadProject(project: Project): Promise<ExtendedProject>;
-    /**
-     * If the given project has previously been loaded, evicts it from memory
-     * and reloads it from disk. Existing instances of the {@link ExtendedProject}
-     * are not invalidated by this operation.
-     */
-    reloadProject(project: Project): Promise<void>;
-
-    /**
      * Loads the given workspace.
      *
-     * This affects e.g. how some argvars are expanded. Calling this unloads
-     * *all* currently loaded projects, invalidating all existing
-     * {@link ExtendedProject} instances from this workbench.
+     * Calling this invalidates any existing workspace loaded from here.
      */
-    loadWorkspace(workspace: EwWorkspace): Promise<ExtendedEwWorkspace>;
+    loadWorkspace(workspace: EwwFile): Promise<ExtendedEwWorkspace>;
 
     /**
-     * Closes the current workspace.
-     *
-     * This affects e.g. how some argvars are expanded. Calling this unloads
-     * *all* currently loaded projects, invalidating all existing
-     * {@link ExtendedProject} instances from this workbench.
+     * Loads a set of projects as a workspace without a .eww file.
+     */
+    loadAnonymousWorkspace(projects: string[]): Promise<ExtendedEwWorkspace>;
+
+    /**
+     * Closes the current workspace, invalidating any existing workspace from
+     * {@link loadWorkspace}.
      */
     closeWorkspace(): Promise<void>;
-
-
 
     dispose(): Promise<void>;
 
@@ -69,6 +52,12 @@ export interface ExtendedWorkbench {
      * (i.e. when it exits without {@link dispose} having been called).
      */
     onCrash(handler: (code: number | null) => void): void;
+
+    /**
+     * Register a receiver of IDE platform logs. Only one log handler can be set.
+     * @param handler The object to receive logs. Must implement the 'logservice' thrift service.
+     */
+    setLogHandler(handler: object): Promise<void>;
 }
 
 /**
@@ -80,6 +69,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
      * Creates and returns a new {@link ThriftWorkbench} from the given workbench.
      */
     static async from(workbench: Workbench): Promise<ThriftWorkbench> {
+        logger.debug(`Loading thrift workbench '${workbench.name}'`);
         const serviceManager = await ProjectManagerLauncher.launchFromWorkbench(workbench);
         const projectManager = await serviceManager.findService(PROJECTMANAGER_ID, ProjectManager);
         return new ThriftWorkbench(workbench, serviceManager, projectManager);
@@ -90,103 +80,63 @@ export class ThriftWorkbench implements ExtendedWorkbench {
             && Fs.existsSync(Path.join(workbench.path.toString(), "common/bin/IarServiceLauncher" + IarOsUtils.executableExtension()));
     }
 
-    // Loaded project contexts are stored, and may be reused until this workbench is disposed of, or the project is unloaded
-    private readonly loadedContexts = new Map<string, ProjectContext>();
-
-    // To avoid conflicting operations running at the same time (e.g. loading and unloading the same project
-    // concurrently), we only allow one operation at a time.
-    private readonly mtx = new Mutex();
+    private loadedWorkspace: Promise<ThriftWorkspace | undefined> | undefined = undefined;
+    private hasLogHandler = false;
 
     constructor(public workbench: Workbench,
         private readonly serviceMgr: ThriftServiceManager,
         private readonly projectMgr: ThriftClient<ProjectManager.Client>) {
     }
 
-    public loadWorkspace(workspace: EwWorkspace): Promise<ThriftWorkspace> {
-        return this.mtx.runExclusive(async() => {
-            logger.debug(`Loading thrift workspace: ${workspace.name}`);
-            // Remove backups so this has the same behavior as loadProject
-            await BackupUtils.doWithBackupCheck(workspace.projects, async() => {
-                await this.projectMgr.service.LoadEwwFile(workspace.path);
-            });
+    public loadWorkspace(file: EwwFile): Promise<ExtendedEwWorkspace> {
+        const workspacePromise = this.closeWorkspace().then(() => {
+            logger.debug(`Loading thrift workspace: ${file.name}`);
 
-            const contexts = await this.projectMgr.service.GetProjects();
-            this.loadedContexts.clear();
-            for (const projFile of workspace.projects) {
-                const context = contexts.find(ctx => OsUtils.pathsEqual(ctx.filename, projFile));
-                if (!context) {
-                    Vscode.window.showErrorMessage(`Failed to load workspace project: ${projFile}`);
-                } else {
-                    this.loadedContexts.set(projFile, context);
-                }
-            }
-            logger.debug(`Successfully loaded ${this.loadedContexts.size} projects in workspace`);
-            return ThriftWorkspace.fromService(this.workbench, this.projectMgr.service, workspace.path);
+            return ThriftWorkspace.fromEwwFile(
+                file, this.projectMgr.service, this.workbench);
         });
+        this.loadedWorkspace = workspacePromise.catch(() => undefined);
+        return workspacePromise;
     }
 
-    public closeWorkspace(): Promise<void> {
-        if (!WorkbenchFeatures.supportsFeature(this.workbench, WorkbenchFeatures.PMWorkspaces)) {
-            throw new Error("Tried to close workspace with unsupported toolchain");
+    public loadAnonymousWorkspace(projects: string[]): Promise<ExtendedEwWorkspace> {
+        const workspacePromise = this.closeWorkspace().then(() => {
+            logger.debug(`Loading anonymous thrift workspace with ${projects.length} projects.`);
+
+            return ThriftWorkspace.fromProjectPaths(
+                projects, this.projectMgr.service, this.workbench);
+        });
+        this.loadedWorkspace = workspacePromise;
+        return workspacePromise;
+    }
+
+    public async closeWorkspace(): Promise<void> {
+        const loadedWorkspacePromise = this.loadedWorkspace;
+        this.loadedWorkspace = undefined;
+        const loadedWorkspace = await loadedWorkspacePromise;
+        try {
+            await loadedWorkspace?.dispose();
+        } catch (e) {
+            logger.warn(`Failed to dispose of workspace '${loadedWorkspace?.name}': ${e}`);
         }
-        return this.mtx.runExclusive(async() => {
-            logger.debug("Closing thrift workspace");
-            await this.projectMgr.service.CloseWorkspace();
-            this.loadedContexts.clear();
-        });
-    }
-
-    public loadProject(project: Project): Promise<ThriftProject> {
-        return this.mtx.runExclusive(async() => {
-            logger.debug("Loading " + project.name);
-            let context = this.loadedContexts.get(project.path.toString());
-            if (context === undefined) {
-                logger.debug(`Loading project context for '${project.name}'`);
-                // VSC-192 Remove erroneous backup files created by some EW versions.
-                context = await BackupUtils.doWithBackupCheck(project.path, async() => {
-                    return await this.projectMgr.service.LoadEwpFile(project.path);
-                });
-                this.loadedContexts.set(project.path, context);
-            }
-            return ThriftProject.fromContext(project.path, this.projectMgr.service, context, this.workbench);
-        });
-    }
-
-    public reloadProject(project: Project): Promise<void> {
-        return this.mtx.runExclusive(async() => {
-            const context = this.loadedContexts.get(project.path);
-            if (context !== undefined) {
-                logger.debug("Reloading " + project.name);
-                if (WorkbenchFeatures.supportsFeature(this.workbench, WorkbenchFeatures.PMWorkspaces)) {
-                    await this.projectMgr.service.RemoveProject(context);
-                } else {
-                    await this.projectMgr.service.CloseProject(context);
-                }
-
-                await BackupUtils.doWithBackupCheck(project.path, async() => {
-                    return await this.projectMgr.service.LoadEwpFile(project.path);
-                });
-            }
-        });
     }
 
     public async dispose() {
         logger.debug(`Shutting down thrift workbench '${this.workbench.name}'`);
-        await this.mtx.runExclusive(async() => {
-            // unload all loaded projects
-            const contexts = await Promise.allSettled(this.loadedContexts.values());
-            await Promise.allSettled(contexts.map(result => {
-                if (result.status === "fulfilled") {
-                    return this.projectMgr.service.CloseProject(result.value);
-                }
-                return Promise.resolve();
-            }));
-            this.projectMgr.close();
-            await this.serviceMgr.dispose();
-        });
+        await this.closeWorkspace();
+        this.projectMgr.close();
+        await this.serviceMgr.dispose();
     }
 
     public onCrash(handler: (code: number | null) => void) {
         this.serviceMgr.addCrashHandler(handler);
+    }
+
+    public async setLogHandler(handler: object): Promise<void> {
+        if (this.hasLogHandler) {
+            throw new Error("A log handler has already been set for this workbench.");
+        }
+        await this.serviceMgr.startService(LOGSERVICE_ID, LogService, handler);
+        this.hasLogHandler = true;
     }
 }

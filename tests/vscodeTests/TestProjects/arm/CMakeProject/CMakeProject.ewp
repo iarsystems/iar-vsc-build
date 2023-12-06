@@ -1,0 +1,14 @@
+<project>
+  <fileVersion>3</fileVersion>
+  <configuration>
+    <name>IWillBeRemoved</name>
+    <debug>1</debug>
+    <toolchain>
+      <name>CMake_ARM</name>
+    </toolchain>
+  </configuration>
+  <file>
+    <name>$PROJ_DIR$/CMakeLists.txt</name>
+    <tag>IAR.ControlFile</tag>
+  </file>
+</project>

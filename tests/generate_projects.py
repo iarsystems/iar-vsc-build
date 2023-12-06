@@ -25,7 +25,7 @@ def parse_arguments():
 
 # --- Project manipulation utils
 
-def add_file(root, path, config=None):
+def add_file(root, path, config=None, tag=None):
     file = ET.SubElement(root, 'file')
     ET.SubElement(file, 'name').text = path
     if config is not None:
@@ -33,6 +33,8 @@ def add_file(root, path, config=None):
             if not setting.find("./name").text.startswith("ICC"):
                 config.remove(setting)
         file.append(config)
+    if tag is not None:
+        ET.SubElement(file, 'tag').text = tag
     return file
 
 def add_group(root, name, files):
@@ -155,6 +157,21 @@ def create_vscode_test_projects(source_file, target_id):
     if target_id == "arm":
         config.find(".//name[.='OGUseCmsis']/../state").text = "1"
         config.find(".//name[.='OGUseCmsisDspLib']/../state").text = "1"
+    tree.write(target_file)
+
+    # CMakeProject
+    tree = ET.parse(source_file)
+    root = tree.getroot()
+    for conf in root.findall("./configuration"):
+        root.remove(conf)
+    config = ET.SubElement(root, "configuration")
+    ET.SubElement(config, "name").text = "IWillBeRemoved"
+    ET.SubElement(config, "debug").text = "1"
+    toolchain = ET.SubElement(config, "toolchain")
+    ET.SubElement(toolchain, "name").text = "CMake_" + target_id.upper()
+    add_file(root, "$PROJ_DIR$/CMakeLists.txt", tag = "IAR.ControlFile")
+    target_file = os.path.join(target_dir, "CMakeProject/CMakeProject.ewp")
+    ET.indent(tree)
     tree.write(target_file)
 
 

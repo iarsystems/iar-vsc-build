@@ -6,33 +6,11 @@
 
 import * as Vscode from "vscode";
 import { BatchBuildNode, TreeBatchBuildProvider } from "./treebatchbuildprovider";
-import { ExtendedWorkbench } from "../../iar/extendedworkbench";
 import { AsyncObservable } from "../../utils/asyncobservable";
-import { Subject } from "rxjs";
-import { EwWorkspaceBase, ExtendedEwWorkspace } from "../../iar/workspace/ewworkspace";
-import { BatchBuildItem } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { WorkbenchFeatures} from "iar-vsc-common/workbenchfeatureregistry";
-
-/** Simplified placeholder to allow batchbuilds for non-existant eww-file projects.*/
-class EwwPlaceHolder extends EwWorkspaceBase {
-    readonly path: string = "";
-    readonly projects: string[] = [];
-    private batchItems: BatchBuildItem[] = [];
-
-    constructor() {
-        super();
-    }
-
-    override getBatchBuilds(): Promise<BatchBuildItem[] | undefined> {
-        return Promise.resolve(this.batchItems);
-    }
-
-    override setBatchBuilds(items: BatchBuildItem[]): Promise<void> {
-        this.batchItems = items;
-        return Promise.resolve();
-    }
-}
-
+import { EwWorkspace } from "../../iar/workspace/ewworkspace";
+import { InputModel } from "../model/model";
+import { Workbench } from "iar-vsc-common/workbench";
 
 /**
  * Shows a view to the left of all the defined batch-builds with corresponding project-configuration pairs.
@@ -42,9 +20,8 @@ export class TreeBatchBuildView {
     private readonly view: Vscode.TreeView<BatchBuildNode>;
 
     constructor(
-        workspaceModel: AsyncObservable<ExtendedEwWorkspace>,
-        extWorkbenchModel: AsyncObservable<ExtendedWorkbench>,
-        loading: Subject<boolean>) {
+        workbenchModel: InputModel<Workbench>,
+        workspaceModel: AsyncObservable<EwWorkspace>) {
 
         this.view = Vscode.window.createTreeView("iar-batchbuild", { treeDataProvider: this.provider, showCollapseAll: true, dragAndDropController: this.provider });
 
@@ -54,27 +31,27 @@ export class TreeBatchBuildView {
         const updateMessage = () => {
             if (isLoading) {
                 this.view.message = "Loading...";
-            } else if (!isLoading && (!saveAvailable || oldWorkbench)) {
+            } else if (!saveAvailable || oldWorkbench) {
                 this.view.message = (oldWorkbench? "Selected toolchain does not support modifying workspaces" : "No workspace specified") + ": Batches are not persistent between sessions";
             } else {
                 this.view.message = undefined;
             }
         };
 
-        loading.subscribe(load => {
-            isLoading = load;
+        workspaceModel.onValueWillChange(() => {
+            isLoading = true;
             updateMessage();
         });
         workspaceModel.onValueDidChange(workspace => {
-            saveAvailable = workspace !== undefined;
+            saveAvailable = !!workspace?.isExtendedWorkspace();
             isLoading = false;
-            this.provider.setWorkspace(workspace?? new EwwPlaceHolder());
+            this.provider.setWorkspace(workspace);
             updateMessage();
         });
-        extWorkbenchModel.onValueDidChange(extWorkbench => {
+        workbenchModel.addOnSelectedHandler(() => {
             oldWorkbench = false;
-            if (extWorkbench) {
-                oldWorkbench = !WorkbenchFeatures.supportsFeature(extWorkbench.workbench, WorkbenchFeatures.ThriftPM);
+            if (workbenchModel.selected) {
+                oldWorkbench = !WorkbenchFeatures.supportsFeature(workbenchModel.selected, WorkbenchFeatures.PMWorkspaces);
             }
             updateMessage();
         });

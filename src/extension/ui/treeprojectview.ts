@@ -5,14 +5,12 @@
 
 
 import * as Vscode from "vscode";
-import { ExtendedProject, Project } from "../../iar/project/project";
 import { FilesNode, TreeProjectProvider } from "./treeprojectprovider";
 import { Workbench } from "iar-vsc-common/workbench";
-import { ExtendedWorkbench } from "../../iar/extendedworkbench";
 import { InputModel } from "../model/model";
 import { AsyncObservable } from "../../utils/asyncobservable";
-import { Subject } from "rxjs";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
+import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 
 /**
  * Shows a view to the left of all files/groups in the project, and all configurations in the project.
@@ -22,69 +20,82 @@ export class TreeProjectView {
     private readonly provider: TreeProjectProvider = new TreeProjectProvider();
     private readonly view: Vscode.TreeView<FilesNode>;
 
-    constructor(projectModel: InputModel<Project>,
-        extProjectModel: AsyncObservable<ExtendedProject>,
-        workbenchModel: InputModel<Workbench>,
-        extWorkbenchModel: AsyncObservable<ExtendedWorkbench>,
-        loading: Subject<boolean>) {
+    constructor(workbenchModel: InputModel<Workbench>,
+        workspaceModel: AsyncObservable<EwWorkspace>) {
 
         this.view = Vscode.window.createTreeView("iar-project", { treeDataProvider: this.provider, showCollapseAll: true });
-        this.view.description = projectModel.selected?.name;
-
-        projectModel.addOnSelectedHandler((_, project) => {
-            this.view.description = project?.name;
-        });
 
         let isLoading = false;
-        let hasExtendedWb = false;
+        let hasProject = false;
+        let hasExtendedProject = false;
         let projectIsEmpty = false;
         const updateMessage = () => {
             if (isLoading) {
                 this.view.message = "Loading...";
-            } else {
-                if (!hasExtendedWb && workbenchModel.selected !== undefined) {
-                    if (!WorkbenchFeatures.supportsFeature(workbenchModel.selected, WorkbenchFeatures.ThriftPM)) {
-                        // The workbench is too old to support the files view.
-                        // Try to display the minimum product version required to see it.
-                        const minProductVersion = WorkbenchFeatures.getMinProductVersions(workbenchModel.selected, WorkbenchFeatures.ThriftPM).join(", ");
-                        if (minProductVersion) {
-                            this.view.message = `The IAR project view requires ${minProductVersion} or later.`;
-                        } else {
-                            this.view.message = "This IAR toolchain does not support modifying projects from VS Code.";
-                        }
+            } else if (hasProject && !hasExtendedProject && workbenchModel.selected !== undefined) {
+                if (!WorkbenchFeatures.supportsFeature(workbenchModel.selected, WorkbenchFeatures.ThriftPM)) {
+                    // The workbench is too old to support the files view.
+                    // Try to display the minimum product version required to see it.
+                    const minProductVersion = WorkbenchFeatures.getMinProductVersions(workbenchModel.selected, WorkbenchFeatures.ThriftPM).join(", ");
+                    if (minProductVersion) {
+                        this.view.message = `The IAR project view requires ${minProductVersion} or later.`;
                     } else {
-                        // The workbench *should* support this view but doesn't. The project manager probably crashed.
-                        this.view.message = "The IAR project view is unavailable.";
+                        this.view.message = "This IAR toolchain does not support modifying projects from VS Code.";
                     }
                 } else {
-                    if (projectIsEmpty) {
-                        this.view.message = "There are no files in the project";
-                    } else {
-                        this.view.message = undefined;
-                    }
+                    // The workbench *should* support this view but doesn't. The project manager probably crashed.
+                    this.view.message = "The IAR project view is unavailable. See the extension logs for more information.";
                 }
+            } else if (hasProject && projectIsEmpty) {
+                this.view.message = "There are no files in the project";
+            } else {
+                this.view.message = undefined;
             }
         };
 
-        loading.subscribe(load => {
-            if (load) {
-                isLoading = load;
+        workspaceModel.onValueWillChange(() => {
+            isLoading = true;
+            updateMessage();
+            this.provider.setProjectAndConfig(undefined, undefined);
+        });
+        workspaceModel.onValueDidChange(workspace => {
+            hasExtendedProject = workspace?.isExtendedWorkspace() ?? false;
+
+            if (workspace) {
+                workspace.projects.addOnSelectedHandler(async() => {
+                    this.view.description = workspace.projects.selected?.name;
+                    if (workspace.isExtendedWorkspace()) {
+                        isLoading = true;
+                        updateMessage();
+                        const project = await workspace.getExtendedProject();
+                        const config = workspace.getActiveConfig();
+                        await this.provider.setProjectAndConfig(project, config);
+                        hasExtendedProject = !!project;
+                        // Enable/disable the 'add file/group' buttons on this view
+                        Vscode.commands.executeCommand(
+                            "setContext", "iar-build.canModifyProjectTree",
+                            project !== undefined && !config?.isControlFileManaged);
+                    } else {
+                        hasExtendedProject = false;
+                    }
+                    hasProject = !!workspace.projects.selected;
+                    isLoading = false;
+                    updateMessage();
+                });
+                workspace.onActiveConfigChanged((project, config) => {
+                    if (config && this.provider.isActiveProject(project)) {
+                        this.provider.setProjectConfig(config);
+                    }
+                });
+            } else {
+                hasExtendedProject = false;
+                this.view.description = undefined;
+                isLoading = false;
+                hasProject = false;
                 updateMessage();
-                this.provider.setProject(undefined);
             }
         });
-        extProjectModel.onValueDidChange(project => {
-            this.provider.setProject(project).then(() => {
-                isLoading = false;
-                updateMessage();
-                // Enable/disable the 'add file/group' buttons on this view
-                Vscode.commands.executeCommand("setContext", "iar-build.extendedProjectLoaded", project !== undefined);
-            });
-        });
-        extWorkbenchModel.onValueDidChange(extWorkbench => {
-            hasExtendedWb = extWorkbench !== undefined;
-            updateMessage();
-        });
+
         this.provider.isEmpty.subscribe(isEmpty => {
             projectIsEmpty = isEmpty;
             updateMessage();

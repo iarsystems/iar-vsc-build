@@ -33,16 +33,16 @@ suite("Test batchbuild View", () => {
         await VscodeTestsUtils.doExtensionSetup();
         testRoot = VscodeTestsSetup.setup();
 
-        const activeWorkbench: Workbench | undefined = ExtensionState.getInstance().workbench.selected;
+        const activeWorkbench: Workbench | undefined = ExtensionState.getInstance().workbenches.selected;
         if (activeWorkbench === undefined ||
             !WorkbenchFeatures.supportsFeature(activeWorkbench, WorkbenchFeatures.PMWorkspaces, TestConfiguration.getConfiguration().target)) {
             this.skip();
         }
 
-        if (!ExtensionState.getInstance().workspace.workspaces.find((workspace) => {
+        if (!ExtensionState.getInstance().workspaces.items.find((workspace) => {
             return workspace.name === "BatchProjects";
         })) {
-            ExtensionState.getInstance().workspace.set(...ExtensionState.getInstance().workspace.workspaces, new EwwFile(path.join(testRoot, "BatchProjects.eww")));
+            ExtensionState.getInstance().workspaces.set(...ExtensionState.getInstance().workspaces.items, new EwwFile(path.join(testRoot, "BatchProjects.eww")));
         }
 
         await VscodeTestsUtils.activateWorkspace("BatchProjects");

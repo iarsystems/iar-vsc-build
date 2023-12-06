@@ -15,8 +15,9 @@ import { XmlConfig } from "./xmlconfig";
  * A parsed ewp file. This is very cheap to instantiate compared to the thrift-based project.
  */
 export class EwpFile implements Project {
-    private readonly _configurations: Config[];
+    private _configurations: Config[];
     private readonly _path: string;
+    private readonly onChangeHandlers: (() => void)[] = [];
 
     constructor(path: string) {
         this._path = path;
@@ -37,6 +38,22 @@ export class EwpFile implements Project {
 
     public findConfiguration(name: string): Config | undefined {
         return this.configurations.find(config => config.name === name);
+    }
+
+    public reload(): void {
+        const xml = EwpFile.loadXml(this.path);
+        this._configurations = EwpFile.loadConfigurations(xml);
+        this.onChangeHandlers.forEach(handler => handler());
+    }
+
+    public addOnChangeListener(callback: () => void): void {
+        this.onChangeHandlers.push(callback);
+    }
+    public removeOnChangeListener(callback: () => void): void {
+        const idx = this.onChangeHandlers.indexOf(callback);
+        if (idx !== -1) {
+            this.onChangeHandlers.splice(idx, 1);
+        }
     }
 
     /**

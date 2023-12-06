@@ -6,9 +6,12 @@
 
 import * as Vscode from "vscode";
 import { Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
-import { ExtendedProject } from "../../iar/project/project";
+import { ExtendedProject, Project } from "../../iar/project/project";
 import { BehaviorSubject } from "rxjs";
 import { ExtensionSettings } from "../settings/extensionsettings";
+import { logger } from "iar-vsc-common/logger";
+import { ErrorUtils } from "../../utils/utils";
+import { Config } from "../../iar/project/config";
 
 // A node showing a file or file group i.e. a {@link Node}
 export class FilesNode {
@@ -31,16 +34,36 @@ export class TreeProjectProvider implements Vscode.TreeDataProvider<FilesNode> {
     private readonly _onDidChangeTreeData = new Vscode.EventEmitter<FilesNode | undefined>();
     readonly onDidChangeTreeData: Vscode.Event<FilesNode | undefined> = this._onDidChangeTreeData.event;
 
+    private project: ExtendedProject | undefined = undefined;
+    private config: Config | undefined = undefined;
     private rootNode: Node | undefined;
+    private readonly projectChangeHandler = this.updateData.bind(this);
 
-    public async setProject(project: ExtendedProject | undefined) {
+    public async setProjectAndConfig(project: ExtendedProject | undefined, config: Config | undefined) {
+        this.project?.removeOnChangeListener(this.projectChangeHandler);
+        this.project = project;
+        this.config = config;
         if (project) {
-            await this.updateData(project);
-            project.onChanged(() => this.updateData(project));
+            project.addOnChangeListener(this.projectChangeHandler);
+            await this.updateData();
         } else {
             this.rootNode = undefined;
             this._onDidChangeTreeData.fire(undefined);
         }
+    }
+    public async setProjectConfig(config: Config | undefined) {
+        this.config = config;
+        if (this.project) {
+            await this.updateData();
+        }
+    }
+
+    public async forceUpdate() {
+        await this.updateData();
+    }
+
+    public isActiveProject(other: Project): boolean {
+        return other === this.project;
     }
 
     /// overriden functions, create the actual tree
@@ -48,7 +71,7 @@ export class TreeProjectProvider implements Vscode.TreeDataProvider<FilesNode> {
     getTreeItem(element: FilesNode): Vscode.TreeItem | Thenable<Vscode.TreeItem> {
         const item = new Vscode.TreeItem(element.name);
 
-        if (element.iarNode.type === NodeType.File) {
+        if (element.iarNode.type === NodeType.File || element.iarNode.type === NodeType.ControlFile) {
             item.iconPath = Vscode.ThemeIcon.File;
             item.command = { title: "Open in editor", command: "vscode.open", arguments: [Vscode.Uri.file(element.iarNode.path)] };
             item.contextValue = "file";
@@ -87,9 +110,17 @@ export class TreeProjectProvider implements Vscode.TreeDataProvider<FilesNode> {
         return [];
     }
 
-    private async updateData(project: ExtendedProject) {
-        this.rootNode = await project.getRootNode();
-        this.isEmpty.next(this.rootNode.children.length === 0);
+    private async updateData() {
+        if (!this.project) {
+            return;
+        }
+        try {
+            this.rootNode = await this.project.getRootNode(this.config);
+            this.isEmpty.next(this.rootNode.children.length === 0);
+        } catch (e) {
+            logger.error("Failed to fetch root node: " + ErrorUtils.toErrorMessage(e));
+            this.rootNode = undefined;
+        }
         this._onDidChangeTreeData.fire(undefined);
     }
 

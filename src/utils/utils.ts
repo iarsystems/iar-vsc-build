@@ -8,6 +8,7 @@ import { PathLike } from "fs";
 import * as Path from "path";
 import * as FsPromises from "fs/promises";
 import { ChildProcess } from "child_process";
+import { ProjectManagerError } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 
 export namespace ListUtils {
     /**
@@ -99,31 +100,40 @@ export namespace BackupUtils {
             checks.get(projectDir)?.push(new RegExp(`Backup\\s+(\\(\\d+\\))?\\s*of ${projectNameRegex}\\.ew`));
             checks.get(projectDir)?.push(new RegExp(`${projectNameRegex}\\s+のバックアップ(\\s+\\(\\d+\\))?\\.ew`));
         });
+
         const findBackupFiles = async() => {
-            const backupFiles: string[] = [];
+            const backupFiles: Map<string, number> = new Map;
             await Promise.allSettled(
                 Array.from(checks.entries()).
                     map(async([projectDir, regexps]) => {
                         const backups = (await FsPromises.readdir(projectDir)).
                             filter(file => regexps.some(regex => file.match(regex))).
                             map(file => Path.join(projectDir, file));
-                        backupFiles.push(...backups);
+                        await Promise.all(backups.map(async(file) => {
+                            const stat = await FsPromises.stat(file);
+                            backupFiles.set(file, stat.birthtimeMs);
+                        }));
                     })
             );
             return backupFiles;
         };
+
         const originalBackupFiles = await findBackupFiles();
 
         const taskPromise = task();
-        taskPromise.finally(async() => {
+        return taskPromise.finally(async() => {
             const backupFilesAfterExit = await findBackupFiles();
-            if (originalBackupFiles.length !== backupFilesAfterExit.length) {
-                const newBackupFiles = backupFilesAfterExit.filter(backupFile => !originalBackupFiles.includes(backupFile));
-                await Promise.allSettled(newBackupFiles.map(file => FsPromises.rm(file)));
+            for (const [file, newBirthTime] of backupFilesAfterExit) {
+                // If the birthtime changed, the file was probably deleted by
+                // another call to this method running concurrently for the same
+                // file, and then recreated by this task. We should delete it.
+                if (!originalBackupFiles.has(file) || originalBackupFiles.get(file) !== newBirthTime) {
+                    try {
+                        await FsPromises.rm(file);
+                    } catch {}
+                }
             }
         });
-
-        return taskPromise;
     }
 }
 
@@ -134,5 +144,32 @@ export namespace RegexUtils {
      */
     export function escape(str: string): string {
         return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+}
+
+export namespace ErrorUtils {
+    /**
+     * Converts an unknown error (usually something caught by a try-catch)
+     * into an appropriate error string.
+     */
+    export function toErrorMessage(e: unknown): string {
+        if (e instanceof ProjectManagerError) {
+            return e.description;
+        } else if (e instanceof Error) {
+            return e.message;
+        } else if (typeof(e) === "string") {
+            return e;
+        }
+        return "unknown error";
+    }
+}
+
+export namespace Utils {
+    /**
+     * Type predicate checking that a value is not undefined. Useful for
+     * filtering an Array<T | undefined> into an Array<T>.
+     */
+    export function notUndefined<T>(value: T | undefined): value is T {
+        return value !== undefined;
     }
 }

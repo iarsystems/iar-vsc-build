@@ -27,8 +27,6 @@ suite("Test Public TS Api", function() {
         sourceConfigPath = Path.join(sandboxPath, "SourceConfiguration/Project/SourceConfiguration.ewp");
         basicDebuggingPath = Path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp");
         await VscodeTestsUtils.activateWorkspace("TestProjects");
-        // Wait for a project to be loaded (this means both the workbench and project has settled)
-        await ExtensionState.getInstance().extendedProject.getValue();
     });
 
     setup(function() {
@@ -38,7 +36,7 @@ suite("Test Public TS Api", function() {
     test("Returns current workbench", async() => {
         const apiPath = await api.getSelectedWorkbench();
         Assert.notStrictEqual(apiPath, undefined);
-        Assert(OsUtils.pathsEqual(ExtensionState.getInstance().workbench.selected!.path.toString(), apiPath!), "The api did not returned the correct EW path: " + apiPath);
+        Assert(OsUtils.pathsEqual(ExtensionState.getInstance().workbenches.selected!.path.toString(), apiPath!), "The api did not returned the correct EW path: " + apiPath);
     });
 
     test("Returns loaded project", async() => {
@@ -96,7 +94,7 @@ suite("Test Public TS Api", function() {
         }
         await VscodeTestsUtils.activateProject("BasicDebugging");
         const commands = await api.getCSpyCommandline(basicDebuggingPath, "Debug");
-        const expectedCommands = TestConfiguration.getConfiguration().cspyCommandLine?.(ExtensionState.getInstance().workbench.selected!.path, basicDebuggingPath);
+        const expectedCommands = TestConfiguration.getConfiguration().cspyCommandLine?.(ExtensionState.getInstance().workbenches.selected!.path, basicDebuggingPath);
         Assert(commands);
         Assert(expectedCommands);
 

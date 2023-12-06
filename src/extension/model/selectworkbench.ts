@@ -4,16 +4,12 @@
 
 
 
-import { ListInputModelBase } from "./model";
+import { MutableListInputModelBase } from "./model";
 import { Workbench } from "iar-vsc-common/workbench";
 
-export class WorkbenchListModel extends ListInputModelBase<Workbench> {
+export class WorkbenchListModel extends MutableListInputModelBase<Workbench> {
     constructor(...workbenches: Workbench[]) {
         super(workbenches);
-    }
-
-    get workbenches(): ReadonlyArray<Workbench> {
-        return this.data;
     }
 
     override itemLabel(item: Workbench): string {

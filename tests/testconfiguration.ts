@@ -12,6 +12,8 @@ export interface TestConfiguration {
     target: string;
     // Whether to test thrift functionality. Only enable this if the workbench supports it.
     testThriftSupport: boolean;
+    // Whether to test projects with CMake control files (requires IDE 9.3 or later).
+    testCMakeIntegration: boolean;
     // Path to a directory with the test project to use for the 'vscodeTests' suite
     vscodeTestProjectsDir: string;
     // If true, checks that C-STAT warnings exactly match the expected values. Otherwise, tests only check that
@@ -70,6 +72,7 @@ export namespace TestConfiguration {
         arm: {
             target: "arm",
             testThriftSupport: true,
+            testCMakeIntegration: true,
             vscodeTestProjectsDir: Path.join(__dirname, "../../tests/vscodeTests/TestProjects/arm"),
             strictCstatCheck: true,
             cstatOutputDir: "C-STAT Output",
@@ -102,6 +105,7 @@ export namespace TestConfiguration {
         riscv: {
             target: "riscv",
             testThriftSupport: true,
+            testCMakeIntegration: false,
             vscodeTestProjectsDir: Path.join(__dirname, "../../tests/vscodeTests/TestProjects/riscv"),
             strictCstatCheck: false,
             cstatOutputDir: "C-STAT",
@@ -114,6 +118,7 @@ export namespace TestConfiguration {
         rh850: {
             target: "rh850",
             testThriftSupport: true,
+            testCMakeIntegration: false,
             vscodeTestProjectsDir: Path.join(__dirname, "../../tests/vscodeTests/TestProjects/rh850"),
             strictCstatCheck: false,
             cstatOutputDir: "C-STAT",
@@ -147,6 +152,7 @@ export namespace TestConfiguration {
         rl78: {
             target: "rl78",
             testThriftSupport: false,
+            testCMakeIntegration: false,
             vscodeTestProjectsDir: Path.join(__dirname, "../../tests/vscodeTests/TestProjects/rl78"),
             strictCstatCheck: false,
             cstatOutputDir: "Obj",
@@ -158,6 +164,7 @@ export namespace TestConfiguration {
         rx: {
             target: "rx",
             testThriftSupport: false,
+            testCMakeIntegration: false,
             vscodeTestProjectsDir: Path.join(__dirname, "../../tests/vscodeTests/TestProjects/rx"),
             strictCstatCheck: false,
             cstatOutputDir: "Obj",

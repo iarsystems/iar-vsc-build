@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import * as Assert from "assert";
-import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
+// import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import * as Vscode from "vscode";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { TestConfiguration } from "../testconfiguration";
@@ -16,18 +16,26 @@ export namespace VscodeTestsUtils {
         const ext = Vscode.extensions.getExtension("iarsystems.iar-build");
         Assert(ext, "Extension is not installed, did its name change?");
         await ext?.activate();
-        // Detecting projects and toolchains is done *after* activating, but we want that finished before we run any tests
-        const wbPromise = ExtensionState.getInstance().workbench.amount > 0 ? Promise.resolve() : new Promise((resolve, _) => {
-            ExtensionState.getInstance().workbench.addOnInvalidateHandler(resolve);
+        // Detecting workspaces and toolchains is done *after* activating, but we want that finished before we run any tests
+        const wbPromise = new Promise<void>(resolve => {
+            if (ExtensionState.getInstance().workbenches.items.length > 0) {
+                resolve();
+            } else {
+                ExtensionState.getInstance().workbenches.addOnInvalidateHandler(() => resolve());
+            }
         });
-        const projectPromise = ExtensionState.getInstance().project.amount > 0 ? Promise.resolve() : new Promise((resolve, _) => {
-            ExtensionState.getInstance().project.addOnInvalidateHandler(resolve);
+        const wsPromise = new Promise<void>(resolve => {
+            if (ExtensionState.getInstance().workspaces.items.length > 0) {
+                resolve();
+            } else {
+                ExtensionState.getInstance().workspaces.addOnInvalidateHandler(() => resolve());
+            }
         });
-        await Promise.all([wbPromise, projectPromise]);
+        await Promise.all([wbPromise, wsPromise]);
 
         // Select the workbench to test with
-        const workbenchModel = ExtensionState.getInstance().workbench;
-        const candidates = workbenchModel.workbenches.filter(workbench => workbench.targetIds.includes(TestConfiguration.getConfiguration().target));
+        const workbenchModel = ExtensionState.getInstance().workbenches;
+        const candidates = workbenchModel.items.filter(workbench => workbench.targetIds.includes(TestConfiguration.getConfiguration().target));
         Assert(candidates.length > 0, "Found no workbench for target " + TestConfiguration.getConfiguration().target);
         // Prioritize newer workbench versions
         const candidatesPrioritized = candidates.sort((wb1, wb2) =>
@@ -39,70 +47,46 @@ export namespace VscodeTestsUtils {
 
 
     export async function activateProject(projectLabel: string) {
-        if ((await ExtensionState.getInstance().extendedProject.getValue())?.name !== projectLabel) {
-            ExtensionState.getInstance().project.selectWhen(project => project.name === projectLabel);
-            if (TestConfiguration.getConfiguration().testThriftSupport) {
-                await VscodeTestsUtils.projectLoaded(projectLabel);
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        if (workspace) {
+            if (workspace.projects.selected?.name !== projectLabel) {
+                workspace.projects.selectWhen(project => project.name === projectLabel);
+                // if (TestConfiguration.getConfiguration().testThriftSupport) {
+                //     await VscodeTestsUtils.projectLoaded(projectLabel);
+                // }
             }
         }
     }
 
-    export async function activateWorkspace(workspaceLabel: string) {
-        const toSelectFrom: any = ExtensionState.getInstance().workspace.workspaces;
-        console.log(toSelectFrom);
-        if ((await ExtensionState.getInstance().workspace.selected?.name !== workspaceLabel)) {
-            ExtensionState.getInstance().workspace.selectWhen(workspace => workspace.name === workspaceLabel);
+    export function activateWorkspace(workspaceLabel: string) {
+        // const workspace = await ExtensionState.getInstance().workspace.getValue();
+        if (ExtensionState.getInstance().workspaces.selected?.name !== workspaceLabel) {
+            ExtensionState.getInstance().workspaces.selectWhen(workspace => workspace.name === workspaceLabel);
         }
-        if (TestConfiguration.getConfiguration().testThriftSupport &&
-            WorkbenchFeatures.supportsFeature(ExtensionState.getInstance().workbench.selected!, WorkbenchFeatures.PMWorkspaces) &&
-            (await ExtensionState.getInstance().loadedWorkspace.getValue())?.name !== workspaceLabel) {
-            await VscodeTestsUtils.workspaceLoaded(workspaceLabel);
-        }
+        // if (TestConfiguration.getConfiguration().testThriftSupport && workspace?.name !== workspaceLabel) {
+        //     await VscodeTestsUtils.workspaceLoaded(workspaceLabel);
+        // }
     }
 
-    export function activateConfiguration(configurationTag: string) {
-        if (ExtensionState.getInstance().config.selected?.name !== configurationTag) {
-            Assert(ExtensionState.getInstance().config.selectWhen(config => config.name === configurationTag));
+    export async function activateConfiguration(configurationTag: string) {
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        if (workspace) {
+            workspace.setActiveConfig(workspace.projectConfigs.items.find(conf => conf.name === configurationTag));
         }
     }
 
     export async function activateWorkbench(ew: string) {
-        if (ExtensionState.getInstance().workbench.selected?.name !== ew) {
-            ExtensionState.getInstance().workbench.selectWhen(workbench => workbench.name === ew);
+        if (ExtensionState.getInstance().workbenches.selected?.name !== ew) {
+            ExtensionState.getInstance().workbenches.selectWhen(workbench => workbench.name === ew);
             if (TestConfiguration.getConfiguration().testThriftSupport) {
-                await VscodeTestsUtils.projectLoaded();
+                await VscodeTestsUtils.workspaceLoaded();
             }
         }
     }
 
-    // Waits until the loaded project changes. Useful e.g. after activating a project to ensure it has loaded completely.
-    export async function projectLoaded(name?: string) {
-        if ((await ExtensionState.getInstance().extendedWorkbench.getValue()) === undefined) {
-            return Promise.reject(new Error("No thrift workbench available, did it crash in a previous test?"));
-        }
+    export function workspaceLoaded(name?: string) {
         return new Promise<void>((resolve, reject) => {
-            let resolved = false;
-            ExtensionState.getInstance().extendedProject.onValueDidChange((proj) => {
-                if (proj !== undefined && !resolved && (name === undefined || proj.name === name)) {
-                    resolved = true;
-                    resolve();
-                }
-            });
-            setTimeout(() => {
-                if (!resolved) {
-                    resolved = true;
-                    reject(new Error("Timed out waiting for project to load."));
-                }
-            }, 30000);
-        });
-    }
-
-    export async function workspaceLoaded(name: string) {
-        if ((await ExtensionState.getInstance().extendedWorkbench.getValue()) === undefined) {
-            return Promise.reject(new Error("No thrift workbench available, did it crash in a previous test?"));
-        }
-        return new Promise<void>((resolve, reject) => {
-            ExtensionState.getInstance().loadedWorkspace.onValueDidChange((ws) => {
+            ExtensionState.getInstance().workspace.onValueDidChange((ws) => {
                 if (ws !== undefined && (name === undefined || ws.name === name)) {
                     resolve();
                 }

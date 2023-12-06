@@ -231,12 +231,12 @@
         },
         {
           "command": "iar-build.addFileToRoot",
-          "when": "view == iar-project && iar-build.extendedProjectLoaded",
+          "when": "view == iar-project && iar-build.canModifyProjectTree",
           "group": "navigation"
         },
         {
           "command": "iar-build.addGroupToRoot",
-          "when": "view == iar-project && iar-build.extendedProjectLoaded",
+          "when": "view == iar-project && iar-build.canModifyProjectTree",
           "group": "navigation"
         },
         {
@@ -245,24 +245,24 @@
         },
         {
           "command": "iar-build.addBatch",
-          "when": "view == iar-batchbuild && iar-build.extendedProjectLoaded",
+          "when": "view == iar-batchbuild",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
           "command": "iar-build.removeNode",
-          "when": "view == iar-project && viewItem == group || viewItem == file",
+          "when": "view == iar-project && (viewItem == group || viewItem == file) && iar-build.canModifyProjectTree",
           "group": "inline"
         },
         {
           "command": "iar-build.addGroup",
-          "when": "view == iar-project && viewItem == group",
+          "when": "view == iar-project && viewItem == group && iar-build.canModifyProjectTree",
           "group": "inline"
         },
         {
           "command": "iar-build.addFile",
-          "when": "view == iar-project && viewItem == group",
+          "when": "view == iar-project && viewItem == group && iar-build.canModifyProjectTree",
           "group": "inline"
         },
         {
@@ -697,7 +697,7 @@
     "csv-parse": "4.8.8",
     "escape-html": "^1.0.3",
     "fast-deep-equal": "2.0.1",
-    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#ed575023",
+    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#436fe7d7",
     "jsdom": "^19.0.0",
     "rxjs": "^7.5.2",
     "sanitize-html": "^2.6.1",

@@ -4,18 +4,14 @@
 
 
 
-import { ListInputModelBase } from "./model";
+import { MutableListInputModelBase } from "./model";
 import { Config } from "../../iar/project/config";
 import { Project } from "../../iar/project/project";
 import { Workbench } from "iar-vsc-common/workbench";
 
-export class ConfigurationListModel extends ListInputModelBase<Config> {
+export class ConfigurationListModel extends MutableListInputModelBase<Config> {
     constructor(...configs: Config[]) {
         super(configs);
-    }
-
-    get configurations(): ReadonlyArray<Config> {
-        return this.data;
     }
 
     override itemLabel(item: Config): string {

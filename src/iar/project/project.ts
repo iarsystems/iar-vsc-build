@@ -18,6 +18,14 @@ export interface Project {
     path: string;
     configurations: ReadonlyArray<Config>;
     findConfiguration(name: string): Config | undefined;
+
+    reload(): void | Promise<void>;
+
+    /**
+     * Called when some of the project data is changed (e.g. the names of configurations).
+     */
+    addOnChangeListener(callback: () => void): void;
+    removeOnChangeListener(callback: () => void): void;
 }
 
 /**
@@ -25,9 +33,12 @@ export interface Project {
  */
 export interface ExtendedProject extends Project {
     /**
-     * Gets the node at the top of the project (file) tree.
+     * Gets the node at the top of the project (file) tree. If no configuration
+     * is specified, gets the nodes for an arbitrary configuration. The
+     * configuration is mostly relevant for CMake/CMSIS-Toolbox projects, that
+     * may have a different set of project files for different configurations.
      */
-    getRootNode(): Promise<Node>;
+    getRootNode(config?: Config): Promise<Node>;
     /**
      * Sets a node in the project (file) tree
      * @param node The new value for the node
@@ -42,16 +53,6 @@ export interface ExtendedProject extends Project {
      * Gets the C-SPY command line used to debug the configuration
      */
     getCSpyArguments(config: string): Promise<string[] | undefined>;
-
-    /**
-     * Called when some of the available project data is changed (e.g. the nodes).
-     */
-    onChanged(callback: () => void): void;
-
-    /**
-     * Finishes all running operations (i.e. all unfinished calls to this object).
-     */
-    finishRunningOperations(): Promise<void>;
 }
 
 
@@ -81,6 +82,6 @@ export namespace Project {
     export function equal(p1: Project, p2: Project) {
         return OsUtils.pathsEqual(p1.path, p2.path) &&
             p1.configurations.length === p2.configurations.length &&
-            p1.configurations.every(conf1 => p2.configurations.some(conf2 => conf1.name === conf2.name && conf1.targetId === conf2.targetId));
+            p1.configurations.every(conf1 => p2.configurations.some(conf2 => Config.equal(conf1, conf2)));
     }
 }

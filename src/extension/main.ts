@@ -20,7 +20,6 @@ import { Command } from "./command/command";
 import { BuildExtensionApi } from "iar-vsc-common/buildExtension";
 import { Project } from "../iar/project/project";
 import { logger } from "iar-vsc-common/logger";
-import { EwpFile } from "../iar/project/parsing/ewpfile";
 import { FileListWatcher } from "./filelistwatcher";
 import { API } from "./api";
 import { StatusBarItem } from "./ui/statusbaritem";
@@ -28,16 +27,21 @@ import { BehaviorSubject } from "rxjs";
 import { ToolbarWebview } from "./ui/toolbarview";
 import { ToggleCstatToolbarCommand } from "./command/togglecstattoolbar";
 import { OsUtils } from "iar-vsc-common/osUtils";
-import { EwWorkspace } from "../iar/workspace/ewworkspace";
 import { EwwFile } from "../iar/workspace/ewwfile";
 import { TreeBatchBuildView } from "./ui/batchbuildview";
 import { BatchBuild } from "./ui/batchbuildcommands";
+import { ErrorUtils } from "../utils/utils";
+import { OutputChannelRegistry } from "../utils/outputchannelregistry";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
     logger.debug("Activating extension");
     IarVsc.extensionContext = context;
     ExtensionState.init(IarVsc.toolManager);
+
+    const workbenchModel = ExtensionState.getInstance().workbenches;
+    const workspacesModel = ExtensionState.getInstance().workspaces;
+    const workspaceModel = ExtensionState.getInstance().workspace;
 
     // --- create and register commands
     GetSettingsCommand.initCommands(context);
@@ -50,43 +54,45 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     new ToggleCstatToolbarCommand().register(context);
     const addWorkbenchCmd = new AddWorkbenchCommand(IarVsc.toolManager);
     addWorkbenchCmd.register(context);
-    const workbenchCmd = Command.createSelectWorkbenchCommand(ExtensionState.getInstance().workbench);
+    const workbenchCmd = Command.createSelectWorkbenchCommand(workbenchModel);
     workbenchCmd.register(context);
-    const workspaceCmd = Command.createSelectWorkspaceCommand(ExtensionState.getInstance().workspace);
+    const workspaceCmd = Command.createSelectWorkspaceCommand(workspacesModel);
     workspaceCmd.register(context);
-    const projectCmd = Command.createSelectProjectCommand(ExtensionState.getInstance().project);
+    const projectCmd = Command.createSelectProjectCommand(workspaceModel);
     projectCmd.register(context);
-    const configCmd = Command.createSelectConfigurationCommand(ExtensionState.getInstance().config);
+    const configCmd = Command.createSelectConfigurationCommand(workspaceModel);
     configCmd.register(context);
 
     // --- initialize custom GUI
-    const workbenchModel = ExtensionState.getInstance().workbench;
-    const workspaceModel = ExtensionState.getInstance().workspace;
-    const projectModel = ExtensionState.getInstance().project;
-    const configModel = ExtensionState.getInstance().config;
+    // const projectModel = ExtensionState.getInstance().project;
+    // const configModel = ExtensionState.getInstance().config;
 
-    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, workspaceModel, projectModel, configModel, addWorkbenchCmd, IarVsc.workbenchesLoading);
+    IarVsc.settingsView = new SettingsWebview(context.extensionUri, workbenchModel, workspacesModel, workspaceModel, addWorkbenchCmd, IarVsc.workbenchesLoading);
     vscode.window.registerWebviewViewProvider(SettingsWebview.VIEW_TYPE, IarVsc.settingsView);
     vscode.window.registerWebviewViewProvider(ToolbarWebview.VIEW_TYPE, new ToolbarWebview(context.extensionUri));
     IarVsc.projectTreeView = new TreeProjectView(
-        projectModel,
-        ExtensionState.getInstance().extendedProject,
         workbenchModel,
-        ExtensionState.getInstance().extendedWorkbench,
-        ExtensionState.getInstance().loading,
+        workspaceModel,
     );
 
     // Batch build
     IarVsc.batchbuildTreeView = new TreeBatchBuildView(
-        ExtensionState.getInstance().loadedWorkspace,
-        ExtensionState.getInstance().extendedWorkbench,
-        ExtensionState.getInstance().loading);
+        workbenchModel,
+        workspaceModel);
     BatchBuild.Init(context);
 
     StatusBarItem.createFromModel("iar.workbench", workbenchModel, workbenchCmd, "IAR Toolchain: ", 5);
-    StatusBarItem.createFromModel("iar.workspace", workspaceModel, workspaceCmd, "Workspace: ", 4);
-    StatusBarItem.createFromModel("iar.project", projectModel, projectCmd, "Project: ", 3);
-    StatusBarItem.createFromModel("iar.configuration", configModel, configCmd, "Configuration: ", 2);
+    StatusBarItem.createFromModel("iar.workspace", workspacesModel, workspaceCmd, "Workspace: ", 4);
+    StatusBarItem.createFromWorkspaceModel(
+        workspaceModel,
+        "iar.project",
+        projectCmd,
+        "Project: ",
+        3,
+        "iar.configuration",
+        configCmd,
+        "Configuration: ",
+        2);
 
     // --- register tasks
     IarTaskProvider.register();
@@ -115,6 +121,9 @@ export async function deactivate() {
     }
     IarTaskProvider.unregister();
     CStatTaskProvider.unRegister();
+    IarVsc.ewpWatcher?.dispose();
+    IarVsc.ewwWatcher?.dispose();
+    IarVsc.outputChannelProvider.dispose();
     await ExtensionState.getInstance().dispose();
 }
 
@@ -124,7 +133,7 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
     context.subscriptions.push(IarVsc.ewwWatcher);
 
     IarVsc.ewwWatcher.subscribe(files => {
-        const workspaces: EwWorkspace[] = [];
+        const workspaces: EwwFile[] = [];
         files.
             forEach(file => {
                 try {
@@ -138,31 +147,13 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
             });
         logger.debug(`Found ${workspaces.length} workspace(s) in the VS Code workspace`);
         workspaces.sort((a, b) => a.name.localeCompare(b.name));
-        ExtensionState.getInstance().workspace.set(...workspaces);
+        ExtensionState.getInstance().workspaces.set(...workspaces);
     });
 
     IarVsc.ewwWatcher.onFileModified(async modifiedFile => {
-        const workspaceModel = ExtensionState.getInstance().workspace;
-        const oldWorkspace = workspaceModel.workspaces.find(
-            ws => OsUtils.pathsEqual(ws.path, modifiedFile)
-        );
-        if (oldWorkspace) {
-            const reloadedWorkspace = new EwwFile(modifiedFile);
-            if (!await EwWorkspace.equal(oldWorkspace, reloadedWorkspace)) {
-                const updatedWorkspaces: EwWorkspace[] = [];
-                workspaceModel.workspaces.forEach(workspace => {
-                    if (workspace === oldWorkspace) {
-                        updatedWorkspaces.push(reloadedWorkspace);
-                    } else {
-                        updatedWorkspaces.push(workspace);
-                    }
-                });
-                workspaceModel.set(...updatedWorkspaces);
-            } else {
-                if (ExtensionState.getInstance().workspace.selected === oldWorkspace) {
-                    await ExtensionState.getInstance().reloadWorkspace();
-                }
-            }
+        const workspaceModel = ExtensionState.getInstance().workspaces;
+        if (workspaceModel.selected && OsUtils.pathsEqual(workspaceModel.selected?.path, modifiedFile)) {
+            await ExtensionState.getInstance().reloadWorkspace();
         }
     });
 
@@ -171,20 +162,8 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
     context.subscriptions.push(IarVsc.ewpWatcher);
 
     IarVsc.ewpWatcher.subscribe(files => {
-        const projects: Project[] = [];
-        files.
-            filter(file => !Project.isIgnoredFile(file)).
-            forEach(file => {
-                try {
-                    projects.push(new EwpFile(file));
-                } catch (e) {
-                    logger.error(`Could not parse project file '${file}': ${e}`);
-                    vscode.window.showErrorMessage(
-                        `Could not parse project file '${file}': ${e}`
-                    );
-                }
-            });
-        projects.sort((a, b) => a.name.localeCompare(b.name));
+        const projects = files.filter(file => !Project.isIgnoredFile(file));
+        projects.sort();
         if (JSON.stringify(projects) !== JSON.stringify(ExtensionState.getInstance().getFallbackProjects())) {
             logger.debug(`Found ${projects.length} project(s) in the VS Code workspace`);
             ExtensionState.getInstance().setFallbackProjects(projects);
@@ -192,25 +171,16 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
     });
 
     IarVsc.ewpWatcher.onFileModified(async modifiedFile => {
-        const projectModel = ExtensionState.getInstance().project;
-        const oldProject = projectModel.projects.find(
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        const oldProject = workspace?.projects.items.find(
             project => OsUtils.pathsEqual(project.path, modifiedFile)
         );
-        if (oldProject) {
-            await ExtensionState.getInstance().reloadProject(oldProject);
-
-            const reloadedProject = new EwpFile(modifiedFile);
-            if (!Project.equal(oldProject, reloadedProject)) {
-                const updatedProjects: Project[] = [];
-                projectModel.projects.forEach(project => {
-                    if (project === oldProject) {
-                        updatedProjects.push(reloadedProject);
-                    } else {
-                        updatedProjects.push(project);
-                    }
-                });
-                projectModel.set(...updatedProjects);
-            }
+        try {
+            await oldProject?.reload();
+        } catch (e) {
+            const errMsg = ErrorUtils.toErrorMessage(e);
+            logger.error(`Failed to reload project '${oldProject?.name}': ${errMsg}`);
+            vscode.window.showErrorMessage(`Failed to reload project '${oldProject?.name}': ${errMsg}`);
         }
     });
 
@@ -243,6 +213,7 @@ export namespace IarVsc {
     export const workbenchesLoading = new BehaviorSubject<boolean>(false);
     export let ewwWatcher: FileListWatcher | undefined;
     export let ewpWatcher: FileListWatcher | undefined;
+    export const outputChannelProvider  = new OutputChannelRegistry();
     // exported mostly for testing purposes
     export let settingsView: SettingsWebview;
     export let projectTreeView: TreeProjectView;

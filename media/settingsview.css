@@ -83,6 +83,6 @@ body {
     margin-bottom: 0px;
 }
 
-.configs {
-    padding-left: 24px;
+.configs>*:first-child {
+    margin-left: 24px;
 }

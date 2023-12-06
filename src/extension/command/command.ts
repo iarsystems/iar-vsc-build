@@ -8,8 +8,8 @@ import * as Vscode from "vscode";
 import { Input, ListInput } from "../ui/listinput";
 import { ListInputModel } from "../model/model";
 import { Workbench } from "iar-vsc-common/workbench";
-import { Project } from "../../iar/project/project";
-import { Config } from "../../iar/project/config";
+import { EwwFile } from "../../iar/workspace/ewwfile";
+import { AsyncObservable } from "../../utils/asyncobservable";
 import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 
 /**
@@ -35,7 +35,7 @@ export abstract class CommandBase<T> implements Command<T> {
     }
 
     register(context: Vscode.ExtensionContext): void {
-        const cmd = Vscode.commands.registerCommand(this.id, this.execute, this);
+        const cmd = Vscode.commands.registerCommand(this.id, this.executeImpl, this);
         context.subscriptions.push(cmd);
     }
 
@@ -54,29 +54,51 @@ class ListSelectionCommand<T> extends CommandBase<void> {
         this.input = new ListInput(model);
     }
 
-    executeImpl(_autoTriggered?: boolean): void {
+    protected override executeImpl(_autoTriggered?: boolean): void {
         this.input.show();
     }
 }
 
+class SelectProjectCommand extends CommandBase<Promise<void>> {
+    constructor(id: string, private readonly workspaceModel: AsyncObservable<EwWorkspace>) {
+        super(id);
+    }
+    protected override async executeImpl(_autoTriggered?: boolean | undefined): Promise<void> {
+        const workspace = await this.workspaceModel.getValue();
+        if (workspace) {
+            const input = new ListInput(workspace.projects);
+            input.show();
+        }
+    }
+}
+class SelectConfigCommand extends CommandBase<Promise<void>> {
+    constructor(id: string, private readonly workspaceModel: AsyncObservable<EwWorkspace>) {
+        super(id);
+    }
+    protected override async executeImpl(_autoTriggered?: boolean | undefined): Promise<void> {
+        const workspace = await this.workspaceModel.getValue();
+        if (workspace) {
+            const input = new ListInput(workspace.projectConfigs);
+            input.show();
+        }
+    }
+}
+
 export namespace Command {
-    export function createSelectWorkbenchCommand(model: ListInputModel<Workbench>): ListSelectionCommand<Workbench> {
-        return createInputCommand("iar-build.selectToolchain", model);
+    export function createSelectWorkbenchCommand(model: ListInputModel<Workbench>): CommandBase<void> {
+        return new ListSelectionCommand("iar-build.selectToolchain", model);
     }
 
-    export function createSelectWorkspaceCommand(model: ListInputModel<EwWorkspace>): ListSelectionCommand<EwWorkspace> {
-        return createInputCommand("iar-build.selectWorkspace", model);
+    export function createSelectWorkspaceCommand(model: ListInputModel<EwwFile>): CommandBase<void> {
+        return new ListSelectionCommand("iar-build.selectWorkspace", model);
     }
 
-    export function createSelectProjectCommand(model: ListInputModel<Project>): ListSelectionCommand<Project> {
-        return createInputCommand("iar-build.selectProject", model);
+    export function createSelectProjectCommand(workspaceModel: AsyncObservable<EwWorkspace>): CommandBase<Promise<void>> {
+        return new SelectProjectCommand("iar-build.selectProject", workspaceModel);
     }
 
-    export function createSelectConfigurationCommand(model: ListInputModel<Config>): ListSelectionCommand<Config> {
-        return createInputCommand("iar-build.selectConfiguration", model);
+    export function createSelectConfigurationCommand(workspaceModel: AsyncObservable<EwWorkspace>): CommandBase<Promise<void>> {
+        return new SelectConfigCommand("iar-build.selectConfiguration", workspaceModel);
     }
 
-    function createInputCommand<T>(command: string, model: ListInputModel<T>): ListSelectionCommand<T> {
-        return new ListSelectionCommand(command, model);
-    }
 }

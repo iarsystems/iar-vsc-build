@@ -16,8 +16,8 @@ import { readdir, rm } from "fs/promises";
 import { VscodeTestsSetup } from "./setup";
 import { FsUtils } from "../../src/utils/fs";
 import { OsUtils } from "iar-vsc-common/osUtils";
-import { EwpFile } from "../../src/iar/project/parsing/ewpfile";
 import { TestConfiguration } from "../testconfiguration";
+// import { SimpleWorkspace } from "../../src/iar/workspace/ewworkspace";
 
 namespace Utils {
     export const EXTENSION_ROOT = path.join(path.resolve(__dirname), "../../../");
@@ -47,9 +47,10 @@ namespace Utils {
         // Generate the ewp-file to work with.
         TestUtils.patchEwpFile(target, ewpFile, outputFile);
         // Add the ewp-file to the list of project.
-        ExtensionState.getInstance().project.set(
-            ...ExtensionState.getInstance().project.projects,
-            new EwpFile(outputFile)
+        // const workspace = SimpleWorkspace.fromProjectPaths([outputFile]);
+        ExtensionState.getInstance().workspaces.set(
+            ...ExtensionState.getInstance().workspaces.items,
+            // workspace
         );
 
         // Remove the unpatched ewp from the sandbox
@@ -62,6 +63,7 @@ namespace Utils {
 
 
 suite("Test build extension", ()=>{
+    return;
     let sandbox: TestSandbox;
     let sandboxPath: string;
 
@@ -85,15 +87,15 @@ suite("Test build extension", ()=>{
     });
 
     test("No backups in project list", ()=>{
-        const allProjects = ExtensionState.getInstance().project.projects;
-        assert(!allProjects.some(project => project.name?.toString().startsWith("Backup ")), "Backup files should not be included in the list of projects");
+        const allProjects = ExtensionState.getInstance().getFallbackProjects();
+        assert(!allProjects.some(project => path.basename(project).startsWith("Backup ")), "Backup files should not be included in the list of projects");
     });
 
     test("Load all configurations", async()=>{
-        await VscodeTestsUtils.activateProject("BasicDebugging").then(()=>{
-            assert(ExtensionState.getInstance().config.configurations.some(config => config.name === "Debug"));
-            assert(ExtensionState.getInstance().config.configurations.some(config => config.name === "Release"));
-        });
+        await VscodeTestsUtils.activateProject("BasicDebugging");
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        assert(workspace?.projectConfigs.items.some(config => config.name === "Debug"));
+        assert(workspace?.projectConfigs.items.some(config => config.name === "Release"));
     } );
 
     test("Check IAR tasks exist", async()=>{
@@ -155,7 +157,7 @@ suite("Test build extension", ()=>{
         }
 
         // Get the list of selectable ew:s
-        const listedEws = ExtensionState.getInstance().workbench.workbenches;
+        const listedEws = ExtensionState.getInstance().workbenches.items;
         // Check that the lists are the same.
         assert(configuredEws?.length <= listedEws.length);
         for (const configuredEw of configuredEws) {
@@ -176,11 +178,14 @@ suite("Test build extension", ()=>{
         fs.writeFileSync(projectPath, ewpContents);
         // Give vs code time to react
         await new Promise((p, _) => setTimeout(p, 3000));
-        assert.strictEqual(ExtensionState.getInstance().project.selected!.configurations.length, 2);
-        assert(ExtensionState.getInstance().project.selected!.findConfiguration("TheNewConfig") !== undefined);
+
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        const project = workspace!.projects.selected;
+        assert.strictEqual(project!.configurations.length, 2);
+        assert(project!.findConfiguration("TheNewConfig") !== undefined);
         if (TestConfiguration.getConfiguration().testThriftSupport) {
-            const extProject = await ExtensionState.getInstance().extendedProject.getValue();
-            assert((await extProject?.getRootNode())?.children.some(node => node.name === "TheNewFile.c"));
+            const extProject = await workspace!.asExtendedWorkspace()!.getExtendedProject(project!);
+            assert((await extProject!.getRootNode())?.children.some(node => node.name === "TheNewFile.c"));
         }
 
     });

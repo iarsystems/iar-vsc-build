@@ -11,6 +11,7 @@ import { FilesNode } from "../../ui/treeprojectprovider";
 import { ProjectCommand } from "./projectcommand";
 import { ExtendedProject } from "../../../iar/project/project";
 import { logger } from "iar-vsc-common/logger";
+import { ErrorUtils } from "../../../utils/utils";
 
 
 /**
@@ -68,17 +69,14 @@ namespace AddFile {
 
             uris.forEach(uri => {
                 const name = Path.basename(uri.fsPath);
-                parent.children.push(new Node({ children: [], name: name, type: NodeType.File, path: uri.fsPath, ...getNodeDefaults(), isGenerated: false }));
+                parent.children.push(new Node({ children: [], name: name, type: NodeType.File, path: uri.fsPath, ...getNodeDefaults(), isGenerated: false, controlFilePlugins: [] }));
             });
 
             await project.setNode(parent, target ? target.indexPath : []);
         } catch (e) {
-            if (typeof e === "string" || e instanceof Error) {
-                Vscode.window.showErrorMessage("Unable to add file(s): " + e.toString());
-                logger.error("Unable to add file(s): " + e.toString());
-            } else {
-                Vscode.window.showErrorMessage("Unable to add file(s).");
-            }
+            const errMsg = ErrorUtils.toErrorMessage(e);
+            Vscode.window.showErrorMessage("Unable to add file(s): " + errMsg);
+            logger.error("Unable to add file(s): " + errMsg);
         }
     }
 
@@ -148,16 +146,13 @@ namespace AddGroup {
             }
 
             const fullPath = Path.join(Path.dirname(project.path.toString()), name);
-            const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath, ...getNodeDefaults(), isGenerated: false });
+            const node = new Node({ children: [], name, type: NodeType.Group, path: fullPath, ...getNodeDefaults(), isGenerated: false, controlFilePlugins: [] });
             parent.children.push(node);
             await project.setNode(parent, target ? target.indexPath : []);
         } catch (e) {
-            if (typeof e === "string" || e instanceof Error) {
-                Vscode.window.showErrorMessage("Unable to add group: " + e.toString());
-                logger.error("Unable to add group: " + e.toString());
-            } else {
-                Vscode.window.showErrorMessage("Unable to add group.");
-            }
+            const errMsg = ErrorUtils.toErrorMessage(e);
+            Vscode.window.showErrorMessage("Unable to add group: " + errMsg);
+            logger.error("Unable to add group: " + errMsg);
         }
     }
 }

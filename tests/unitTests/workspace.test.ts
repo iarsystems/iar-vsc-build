@@ -10,16 +10,17 @@ import { OsUtils } from "iar-vsc-common/osUtils";
 const TEST_WORKSPACE_FILE = path.resolve(__dirname, "../../../tests/unitTests/assets/test_workspace.eww");
 const TEST_PROJECT_FILE = path.resolve(__dirname, "../../../tests/unitTests/assets/test_project.ewp");
 
-suite("Test project parser", () => {
-    test("Load ewp file", () => {
+suite("Test workspace parser", () => {
+    test("Load eww file", async() => {
         const workspace = new EwwFile(TEST_WORKSPACE_FILE);
 
         Assert.strictEqual(workspace.name, "test_workspace");
         Assert(OsUtils.pathsEqual(workspace.path, TEST_WORKSPACE_FILE));
 
-        Assert.strictEqual(workspace.projects.length, 2);
+        const projects = await EwwFile.getMemberProjects(workspace.path);
+        Assert.strictEqual(projects.length, 2);
 
-        Assert(OsUtils.pathsEqual(workspace.projects[0]!, TEST_PROJECT_FILE));
-        Assert.strictEqual(workspace.projects[1], "/home/nonexistent.ewp");
+        Assert(OsUtils.pathsEqual(projects[0]!, TEST_PROJECT_FILE));
+        Assert.strictEqual(projects[1], "/home/nonexistent.ewp");
     });
 });
