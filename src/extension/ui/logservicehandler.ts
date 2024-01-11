@@ -7,6 +7,9 @@ import { LogEntry, LogSeverity } from "iar-vsc-common/thrift/bindings/logservice
 import { IarVsc } from "../main";
 import { ExtensionState } from "../extensionstate";
 import { logger } from "iar-vsc-common/logger";
+import { ThriftServiceHandler } from "iar-vsc-common/thrift/thriftUtils";
+import * as LogService from "iar-vsc-common/thrift/bindings/LogService";
+import * as Q from "q";
 
 const CMAKE_CMSIS_LOG_CATEGORY = "Log_CMake_CMSIS";
 const CMAKE_CMSIS_LOG_NAME = "CMake/CMSIS-Toolbox";
@@ -19,7 +22,7 @@ const SOURCE_BROWSER_LOG_CATEGORY = "Log_SourceBrowse";
  * used by CMake/CMSIS-Toolbox projects, and some warnings when loading
  * projects.
  */
-export class LogServiceHandler {
+export class LogServiceHandler implements ThriftServiceHandler<LogService.Client> {
 
     constructor() {
         ExtensionState.getInstance().workspaces.addOnSelectedHandler(() => {
@@ -32,9 +35,11 @@ export class LogServiceHandler {
 
     addCategory(_category: string) {
         // ignored
+        return Q.resolve<void>();
     }
     removeCategory(_category: string) {
         // ignored
+        return Q.resolve<void>();
     }
 
     startSession(category: string) {
@@ -46,12 +51,13 @@ export class LogServiceHandler {
         if (category !== CMAKE_CMSIS_LOG_CATEGORY) {
             this.getLogChannel(category).clear();
         }
+        return Q.resolve<void>();
     }
 
     postLogEntry(entry: LogEntry) {
         if (entry.category === SOURCE_BROWSER_LOG_CATEGORY) {
             // Irrelevant to us
-            return;
+            return Q.resolve<void>();
         } else if (entry.category === BUILD_LOG_CATEGORY) {
             // We supress backups, so logging this would be a lie.
             if (!entry.text.startsWith("Creating backup file for")) {
@@ -59,7 +65,7 @@ export class LogServiceHandler {
                 // e.g. on missing argvars.
                 logger.warn(entry.text);
             }
-            return;
+            return Q.resolve<void>();
         }
 
         const channel = this.getLogChannel(entry.category);
@@ -90,6 +96,7 @@ export class LogServiceHandler {
         if (entry.category === CMAKE_CMSIS_LOG_CATEGORY) {
             channel.show(true);
         }
+        return Q.resolve<void>();
     }
 
     private getLogChannel(category: string): Vscode.LogOutputChannel {
