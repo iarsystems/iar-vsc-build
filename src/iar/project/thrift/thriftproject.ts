@@ -172,7 +172,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
     private async updateControlFileWatchers() {
         const controlFiles = new Set<string>;
         const collectControlFiles = function(node: Node): void {
-            if (node.controlFilePlugins.length > 0) {
+            if (node.controlFilePlugins && node.controlFilePlugins.length > 0) {
                 controlFiles.add(node.path);
             }
             node.children.forEach(collectControlFiles);
