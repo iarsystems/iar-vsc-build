@@ -56,9 +56,15 @@ export class ThriftWorkspace extends ExtendedEwWorkspace implements Disposable {
                 }
             }));
         } else {
+            const projects = await EwwFile.getMemberProjects(file.path);
+
+            // See VSC-439
+            if (!WorkbenchFeatures.supportsFeature(owner, WorkbenchFeatures.ToleratesCyclicProjectTrees)) {
+                await Promise.all(projects.map(projFile => ThriftProject.removeDepFile(projFile)));
+            }
+
             // Remove automatically created backups, since we have no way of asking
             // the user whether they want them.
-            const projects = await EwwFile.getMemberProjects(file.path);
             await BackupUtils.doWithBackupCheck(projects, async() => {
                 await pm.LoadEwwFile(file.path);
             });

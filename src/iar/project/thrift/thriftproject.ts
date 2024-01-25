@@ -4,6 +4,7 @@
 
 import * as vscode from "vscode";
 import * as Path from "path";
+import * as Fs from "fs/promises";
 import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
 import { ExtendedProject } from "../project";
 import { ProjectContext, Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
@@ -45,7 +46,12 @@ export class ThriftProject implements ExtendedProject, Disposable {
 
     public async reload(): Promise<void> {
         await this.performOperation(async() => {
-            if (this.name) {
+            // See VSC-439
+            if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.ToleratesCyclicProjectTrees)) {
+                await ThriftProject.removeDepFile(this.path);
+            }
+
+            if (WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.PMReloadProject)) {
                 await BackupUtils.doWithBackupCheck(this.path, async() => {
                     this.context = await this.projectMgr.ReloadProject(this.context);
                 });
@@ -259,6 +265,11 @@ export namespace ThriftProject {
      * @returns
      */
     export async function load(file: string, pm: ProjectManager.Client, owner: Workbench): Promise<ThriftProject> {
+        // See VSC-439
+        if (!WorkbenchFeatures.supportsFeature(owner, WorkbenchFeatures.ToleratesCyclicProjectTrees)) {
+            ThriftProject.removeDepFile(file);
+        }
+
         const ctx = await BackupUtils.doWithBackupCheck(file, async() => {
             return await pm.LoadEwpFile(file);
         });
@@ -294,6 +305,16 @@ export namespace ThriftProject {
 
 
         return new ThriftProject(context.filename, configs, activeConfig, pm, context, owner);
+    }
+
+    /**
+     * Removes the .dep file storing dependency information for a project, if it
+     * exists. This is to mitigate a crash on some IDE versions, see VSC-439.
+     * @param ewpPath Path to the project's .ewp file
+     */
+    export async function removeDepFile(ewpPath: string) {
+        const depPath = Path.join(Path.dirname(ewpPath), Path.basename(ewpPath, ".ewp") + ".dep");
+        await Fs.rm(depPath, { force: true });
     }
 }
 
