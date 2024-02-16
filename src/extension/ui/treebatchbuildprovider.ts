@@ -232,6 +232,7 @@ export class TreeBatchBuildProvider implements Vscode.TreeDataProvider<BatchBuil
     // be followed by a call to Update to redraw the tree.
     unpackData(items: BatchBuildItem[] | undefined) {
         this.rootNode.children = [];
+        this.isEmpty.next(items === undefined || items.length === 0);
 
         if (items === undefined) {
             return;
