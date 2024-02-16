@@ -26,13 +26,17 @@ export class TreeBatchBuildView {
         this.view = Vscode.window.createTreeView("iar-batchbuild", { treeDataProvider: this.provider, showCollapseAll: true, dragAndDropController: this.provider });
 
         let isLoading = false;
+        let isEmpty = false;
+        let hasWorkspace = false;
         let saveAvailable = false;
         let oldWorkbench = false;
         const updateMessage = () => {
             if (isLoading) {
                 this.view.message = "Loading...";
-            } else if (!saveAvailable || oldWorkbench) {
+            } else if (hasWorkspace && (!saveAvailable || oldWorkbench)) {
                 this.view.message = (oldWorkbench? "Selected toolchain does not support modifying workspaces" : "No workspace specified") + ": Batches are not persistent between sessions";
+            } else if (hasWorkspace && isEmpty) {
+                this.view.message = "There are no batch builds in the workspace. To add one, press the '+' button.";
             } else {
                 this.view.message = undefined;
             }
@@ -43,7 +47,8 @@ export class TreeBatchBuildView {
             updateMessage();
         });
         workspaceModel.onValueDidChange(workspace => {
-            saveAvailable = !!workspace?.isExtendedWorkspace();
+            hasWorkspace = workspace !== undefined;
+            saveAvailable = !!(workspace?.isExtendedWorkspace() && workspace?.path !== undefined);
             isLoading = false;
             this.provider.setWorkspace(workspace);
             updateMessage();
@@ -55,7 +60,8 @@ export class TreeBatchBuildView {
             }
             updateMessage();
         });
-        this.provider.isEmpty.subscribe(_isEmpty => {
+        this.provider.isEmpty.subscribe(empty => {
+            isEmpty = empty;
             updateMessage();
         });
     }
