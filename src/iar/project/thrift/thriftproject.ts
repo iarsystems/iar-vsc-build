@@ -234,6 +234,10 @@ export class ThriftProject implements ExtendedProject, Disposable {
     // This requires exclusivity, so that the active configuration isn't changed
     // by some other operation while this one is running.
     private withActiveConfiguration<T>(config: Config, operation: () => Promise<T>): Promise<T> {
+        if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.GetSetCurrentConfiguration)) {
+            return operation();
+        }
+
         return this.activeConfigurationMtx.runExclusive(async() => {
             if (this.activeConfiguration !== config) {
                 await this.projectMgr.SetCurrentConfiguration(this.context, config.name);
@@ -300,7 +304,10 @@ export namespace ThriftProject {
                 isControlFileManaged: thriftConfig.isControlFileManaged,
             };
         });
-        const activeConfigName = (await pm.GetCurrentConfiguration(context)).name;
+        let activeConfigName: string | undefined = undefined;
+        if (WorkbenchFeatures.supportsFeature(owner, WorkbenchFeatures.GetSetCurrentConfiguration)) {
+            activeConfigName = (await pm.GetCurrentConfiguration(context)).name;
+        }
         const activeConfig = configs.find(conf => conf.name === activeConfigName);
 
 
