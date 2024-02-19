@@ -51,7 +51,13 @@ export class BuildTaskExecution extends StylizedTerminal {
         }
 
         if (contexts.length === 0) {
-            this.onError("No project and configurations were specificed. Select one in the extension configuration, or configure the task manually.");
+            if (this.definition.contexts !== undefined) {
+                // This was probably invoked from the batch build view
+                this.onError("No project configurations have been selected to build. Add project configuration to your batch build in the Batch Build view.");
+            } else {
+                // This is probably "normal" single-configuration build
+                this.onError("No project configuration has been selected to build. Select one in the extension configuration, or configure the task manually.");
+            }
             return;
         }
 
