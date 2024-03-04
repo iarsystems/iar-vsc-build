@@ -185,7 +185,7 @@ export namespace BatchBuild {
                 command: this.buildcommand,
                 builder: ExtensionState.getInstance().workbenches.selected?.builderPath,
                 contexts: contexts,
-                argumentVariablesFile: "${command:iar-config.argument-variables-file}",
+                argumentVariablesFile: "${command:iar-config.workspace-file}",
                 extraBuildArguments: undefined,
                 problemMatcher: ["$iar-cc", "$iar-linker"]
             };
