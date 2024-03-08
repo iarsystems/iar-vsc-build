@@ -144,19 +144,20 @@ def create_vscode_test_projects(source_file, target_id):
     config = root.find("./configuration/name[.='Debug']/..")
     config.find("name").text = 'TheConfiguration'
     add_include_paths(config, ["$WS_DIR$/SourceConfiguration/Project", "$PROJ_DIR$/../Library/inc"])
-    # ET.SubElement(includes, 'state').text = '$PROJ_DIR$'
-    # ET.SubElement(includes, 'state').text = '$PROJ_DIR$/../Library/inc'
-    defines = config.find(".//name[.='CCDefines']/..")
-    ET.SubElement(defines, 'state').text = 'USE_STDPERIPH_DRIVER=1'
-    ET.SubElement(defines, 'state').text = 'HSE_VALUE=8000000'
     add_file(root, '$PROJ_DIR$/main.c')
     add_file(root, '$PROJ_DIR$\\readme.txt')
     add_group(root, 'lib',
       ['$PROJ_DIR$\..\Library/src/gpio.c'])
-    target_file = os.path.join(target_dir, 'SourceConfiguration/Project/SourceConfiguration.ewp')
     if target_id == "arm":
         config.find(".//name[.='OGUseCmsis']/../state").text = "1"
         config.find(".//name[.='OGUseCmsisDspLib']/../state").text = "1"
+    target_file = os.path.join(target_dir, 'SourceConfiguration/Project/SourceConfigurationNoDefines.ewp')
+    tree.write(target_file)
+
+    defines = config.find(".//name[.='CCDefines']/..")
+    ET.SubElement(defines, 'state').text = 'USE_STDPERIPH_DRIVER=1'
+    ET.SubElement(defines, 'state').text = 'HSE_VALUE=8000000'
+    target_file = os.path.join(target_dir, 'SourceConfiguration/Project/SourceConfiguration.ewp')
     tree.write(target_file)
 
     # CMakeProject

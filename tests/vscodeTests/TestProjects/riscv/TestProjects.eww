@@ -9,5 +9,8 @@
     <project>
         <path>$WS_DIR$/SourceConfiguration/Project/SourceConfiguration.ewp</path>
     </project>
+    <project>
+        <path>$WS_DIR$/SourceConfiguration/Project/SourceConfigurationNoDefines.ewp</path>
+    </project>
     <batchBuild />
 </workspace>

@@ -79,6 +79,7 @@ export class WorkspaceIntellisenseProvider {
     }
 
     private readonly browseInfo: IntellisenseInfo;
+    private preferredProject: Project | undefined = undefined;
 
     private constructor(
         private readonly projectCompDbs: Map<Project, ProjectCompilationDatabase>,
@@ -147,6 +148,14 @@ export class WorkspaceIntellisenseProvider {
     }
 
     /**
+     * Sets the project to prefer getting intellisense information from when a
+     * file is a member of several projects.
+     */
+    setPreferredProject(project: Project | undefined): void {
+        this.preferredProject = project;
+    }
+
+    /**
      * Sets the project configuration to use for the given project's intellisense info.
      * @return true if the intellisense info for this project changed
      */
@@ -177,6 +186,13 @@ export class WorkspaceIntellisenseProvider {
     }
 
     private getCompilationDb(file: string): ProjectCompilationDatabase | undefined {
+        if (this.preferredProject) {
+            const preferredCompDb = this.projectCompDbs.get(this.preferredProject);
+            if (preferredCompDb && preferredCompDb.isFileIncluded(file)) {
+                return preferredCompDb;
+            }
+        }
+
         for (const compDbCandidate of this.projectCompDbs.values()) {
             if (compDbCandidate.isFileIncluded(file)) {
                 return compDbCandidate;

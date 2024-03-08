@@ -135,4 +135,19 @@ suite("Test Source Configuration (intelliSense)", ()=>{
             filter(diag => diag[1].length > 0);
         Assert.deepStrictEqual(diagnostics, [], "intelliSense reported false positive(s)");
     });
+
+    test("Prioritizes active project", async() => {
+        // Select an identical project (with the same files), but without
+        // preprocessor defines. Now, the intellisense config should be taken
+        // from this project instead.
+        await VscodeTestsUtils.activateProject("SourceConfigurationNoDefines");
+        await new Promise(res => setTimeout(res, 1000));
+
+        const path = Path.join(projectDir, "main.c");
+        Assert(provider.canHandleFile(path));
+        const config = (await provider.provideConfigurations([Vscode.Uri.file(path)]))[0];
+
+        Assert(!config!.configuration.defines.some(define => define === "USE_STDPERIPH_DRIVER=1"));
+        Assert(!config!.configuration.defines.some(define => define === "HSE_VALUE=8000000"));
+    });
 });

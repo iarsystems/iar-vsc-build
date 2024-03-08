@@ -41,7 +41,7 @@ suite("Test workspace support", () => {
             const allProjects = workspace!.projects.items;
 
             const expectCMakeProject = TestConfiguration.getConfiguration().testCMakeIntegration;
-            Assert.strictEqual(allProjects.length, expectCMakeProject ? 4 : 3,
+            Assert.strictEqual(allProjects.length, expectCMakeProject ? 5 : 4,
                 "Found projects: " + allProjects.map(p => p.name).join(", "));
             Assert(allProjects.some(project => project.name === "BasicDebugging"));
             Assert(allProjects.some(project => project.name === "C-STATProject"));
@@ -102,12 +102,13 @@ suite("Test workspace support", () => {
             const allProjects = workspace!.projects.items;
 
             const expectCMakeProject = TestConfiguration.getConfiguration().testCMakeIntegration;
-            Assert.strictEqual(allProjects.length, expectCMakeProject ? 6 : 5,
+            Assert.strictEqual(allProjects.length, expectCMakeProject ? 7 : 6,
                 "Found projects: " + allProjects.map(p => p.name).join(", "));
             Assert(allProjects.some(project => project.name === "ArgVars"));
             Assert(allProjects.some(project => project.name === "BasicDebugging"));
             Assert(allProjects.some(project => project.name === "C-STATProject"));
             Assert(allProjects.some(project => project.name === "SourceConfiguration"));
+            Assert(allProjects.some(project => project.name === "SourceConfigurationNoDefines"));
             if (expectCMakeProject) {
                 Assert(allProjects.some(project => project.name === "CMakeProject"));
             }

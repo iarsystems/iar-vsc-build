@@ -72,6 +72,13 @@ export class IntellisenseInfoService {
                     }
                 }));
 
+                workspace.projects.addOnSelectedHandler(() => {
+                    if (this.activeWorkspace === workspace && workspace.projects.selected) {
+                        this.workspaceIntellisenseInfo?.setPreferredProject(workspace.projects.selected);
+                        this.notifyIntellisenseInfoChanged();
+                    }
+                });
+
                 if (await this.generateWorkspaceIntellisenseInfo(workspace)) {
                     this.notifyIntellisenseInfoChanged();
                 }
@@ -187,6 +194,7 @@ export class IntellisenseInfoService {
         return loadPromise.then(intellisenseInfo => {
             if (this.activeWorkspace === workspace) {
                 this.workspaceIntellisenseInfo = intellisenseInfo;
+                this.workspaceIntellisenseInfo.setPreferredProject(workspace.projects.selected);
                 return true;
             }
             return false;
