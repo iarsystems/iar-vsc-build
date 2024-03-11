@@ -57,6 +57,11 @@ suite("Test .custom_argvars project support", () => {
     test("Can build project with .custom_argvars", async function() {
         this.timeout(40000);
         await VscodeTestsUtils.activateWorkspace("ArgVars1");
+        // On older workbenches, source configuration can interfere with builds,
+        // so wait for source configuration to finish (this should be fixed in
+        // the extension, ideally).
+        await new Promise((res) => setTimeout(res, 500));
+        await CpptoolsIntellisenseService.instance?.forceUpdate();
         await VscodeTestsUtils.runTaskForProject("Build Project", "ArgVars", "Debug");
         const exeFile = Path.join(sandBoxDir, "ArgVars/Debug/Exe/ArgVars.out");
         Assert(await FsUtils.exists(exeFile), `Expected ${exeFile} to exist`);
