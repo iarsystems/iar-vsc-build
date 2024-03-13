@@ -9,7 +9,8 @@ Build and develop your IAR Embedded Workbench projects from Visual Studio Code.
 
 An IAR Embedded Workbench or IAR Build Tools installation is required to use this extension. See [Compatibility](#compatibility) table below for detailed information.
 
-> 💡️ To debug your Embedded Workbench projects from VS Code, please also see the [IAR C-SPY Debug extension](https://marketplace.visualstudio.com/items?itemName=iarsystems.iar-debug).
+> [!TIP]
+>To debug your Embedded Workbench projects from VS Code, please also see the [IAR C-SPY Debug extension](https://marketplace.visualstudio.com/items?itemName=iarsystems.iar-debug).
 
 ## Getting started
 
