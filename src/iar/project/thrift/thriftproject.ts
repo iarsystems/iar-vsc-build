@@ -19,6 +19,7 @@ import { Disposable } from "../../../utils/disposable";
 import { BackupUtils, ErrorUtils } from "../../../utils/utils";
 import { logger } from "iar-vsc-common/logger";
 import { Mutex } from "async-mutex";
+import { ProjectLock } from "../../projectlock";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.
@@ -52,8 +53,10 @@ export class ThriftProject implements ExtendedProject, Disposable {
             }
 
             if (WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.PMReloadProject)) {
-                await BackupUtils.doWithBackupCheck(this.path, async() => {
-                    this.context = await this.projectMgr.ReloadProject(this.context);
+                await ProjectLock.runExclusive(this.path, () => {
+                    return BackupUtils.doWithBackupCheck(this.path, async() => {
+                        this.context = await this.projectMgr.ReloadProject(this.context);
+                    });
                 });
             } else {
                 if (WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.PMWorkspaces)) {
@@ -62,8 +65,10 @@ export class ThriftProject implements ExtendedProject, Disposable {
                     await this.projectMgr.CloseProject(this.context);
                 }
 
-                this.context = await BackupUtils.doWithBackupCheck(this.path, async() => {
-                    return await this.projectMgr.LoadEwpFile(this.path);
+                this.context = await ProjectLock.runExclusive(this.path, () => {
+                    return BackupUtils.doWithBackupCheck(this.path, async() => {
+                        return await this.projectMgr.LoadEwpFile(this.path);
+                    });
                 });
             }
 
@@ -274,8 +279,10 @@ export namespace ThriftProject {
             ThriftProject.removeDepFile(file);
         }
 
-        const ctx = await BackupUtils.doWithBackupCheck(file, async() => {
-            return await pm.LoadEwpFile(file);
+        const ctx = await ProjectLock.runExclusive(file, () => {
+            return BackupUtils.doWithBackupCheck(file, async() => {
+                return await pm.LoadEwpFile(file);
+            });
         });
         return fromContext(ctx, pm, owner);
     }

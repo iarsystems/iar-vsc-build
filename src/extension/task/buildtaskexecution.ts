@@ -114,17 +114,19 @@ export class BuildTaskExecution extends StylizedTerminal {
 
             const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(context.project))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
             try {
-                await BackupUtils.doWithBackupCheck(context.project, async() => {
-                    const iarbuild = spawn(builder, args, { cwd: workspaceFolder });
-                    this.write("> " + iarbuild.spawnargs.map(arg => `'${arg}'`).join(" ") + "\n");
-                    iarbuild.stdout.on("data", data => {
-                        this.write(data.toString());
-                    });
+                await ProjectLock.runExclusive(context.project, () => {
+                    return BackupUtils.doWithBackupCheck(context.project, async() => {
+                        const iarbuild = spawn(builder, args, { cwd: workspaceFolder });
+                        this.write("> " + iarbuild.spawnargs.map(arg => `'${arg}'`).join(" ") + "\n");
+                        iarbuild.stdout.on("data", data => {
+                            this.write(data.toString());
+                        });
 
-                    returnCode = await ProcessUtils.waitForExitCode(iarbuild) ?? 1;
-                    if (returnCode !== 0 || currentContext === contexts.length) {
-                        this.closeTerminal(returnCode);
-                    }
+                        returnCode = await ProcessUtils.waitForExitCode(iarbuild) ?? 1;
+                        if (returnCode !== 0 || currentContext === contexts.length) {
+                            this.closeTerminal(returnCode);
+                        }
+                    });
                 });
             } catch (e) {
                 const errorMsg = ErrorUtils.toErrorMessage(e);

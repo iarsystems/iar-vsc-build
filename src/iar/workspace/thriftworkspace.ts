@@ -18,6 +18,7 @@ import { ThriftProject } from "../project/thrift/thriftproject";
 import { EwwFile } from "./ewwfile";
 import { Disposable } from "../../utils/disposable";
 import { EwpFile } from "../project/parsing/ewpfile";
+import { ProjectLock } from "../projectlock";
 
 /**
  * The main {@link ExtendedEwWorkspace} implementation. Supports lazy-loading of
@@ -63,10 +64,12 @@ export class ThriftWorkspace extends ExtendedEwWorkspace implements Disposable {
                 await Promise.all(projects.map(projFile => ThriftProject.removeDepFile(projFile)));
             }
 
-            // Remove automatically created backups, since we have no way of asking
-            // the user whether they want them.
-            await BackupUtils.doWithBackupCheck(projects, async() => {
-                await pm.LoadEwwFile(file.path);
+            await ProjectLock.runExclusive(projects, async() => {
+                // Remove automatically created backups, since we have no way of asking
+                // the user whether they want them.
+                await BackupUtils.doWithBackupCheck(projects, async() => {
+                    await pm.LoadEwwFile(file.path);
+                });
             });
 
             const contexts = await pm.GetProjects();
