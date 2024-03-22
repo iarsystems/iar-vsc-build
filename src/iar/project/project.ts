@@ -53,6 +53,30 @@ export interface ExtendedProject extends Project {
      * Gets the C-SPY command line used to debug the configuration
      */
     getCSpyArguments(config: string): Promise<string[] | undefined>;
+
+    /**
+     * Notify that the project was built and may need to be updated.
+     *
+     * For cmake and cmsis projects, building may trigger a 'configure' that
+     * changes the project content.
+     */
+    updateAfterBuild(): Promise<void>;
+
+    /**
+     * Gets whether the projects is a CMake or CMSIS-Toolbox project (true) or
+     * a regular project (false).
+     */
+    isCmakeOrCmsisProject(): Promise<boolean>;
+    /**
+     * Only valid for cmake or cmsis projects. Brings the project up-to-date
+     * with its input files (CMakeLists.txt or csolution/cproject).
+     */
+    configure(): Promise<void>;
+    /**
+     * Only valid for cmake or cmsis projects. Removes previous configure
+     * results and reruns it.
+     */
+    reconfigure(): Promise<void>;
 }
 
 

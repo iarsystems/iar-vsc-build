@@ -32,6 +32,7 @@ import { TreeBatchBuildView } from "./ui/batchbuildview";
 import { BatchBuild } from "./ui/batchbuildcommands";
 import { ErrorUtils } from "../utils/utils";
 import { OutputChannelRegistry } from "../utils/outputchannelregistry";
+import { ConfigureCommand, ReconfigureCommand } from "./command/configure";
 
 export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     logger.init("IAR Build");
@@ -46,6 +47,8 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     // --- create and register commands
     GetSettingsCommand.initCommands(context);
     new ReloadProjectCommand().register(context);
+    new ConfigureCommand().register(context);
+    new ReconfigureCommand().register(context);
     new AddFileToRootCommand().register(context);
     new AddGroupToRootCommand().register(context);
     new AddFileCommand().register(context);

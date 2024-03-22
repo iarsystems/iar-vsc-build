@@ -36,6 +36,11 @@ body {
     height: 18px;
 }
 
+span.codicon {
+    width: 18px;
+    height: 18px;
+}
+
 .center-contents {
     text-align: center;
     width: fit-content;
@@ -44,6 +49,10 @@ body {
 
 #outer {
     width: 100%;
+}
+
+.hidden {
+    display: none;
 }
 
 .segment {

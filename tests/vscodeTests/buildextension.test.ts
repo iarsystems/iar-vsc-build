@@ -63,7 +63,6 @@ namespace Utils {
 
 
 suite("Test build extension", ()=>{
-    return;
     let sandbox: TestSandbox;
     let sandboxPath: string;
 
