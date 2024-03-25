@@ -99,11 +99,17 @@ suite("Test CMake integration", function() {
             replace(/set\(CMAKE_CONFIGURATION_TYPES .*\)/, "set(CMAKE_CONFIGURATION_TYPES NewConfig2)");
         await Fs.writeFile(cmakelistsPath, newContents);
 
-        await VscodeTestsUtils.runTaskForProject("Build Project", "CMakeProject", "Release");
-
         const workspace = await ExtensionState.getInstance().workspace.getValue();
         const loadedProject = await workspace!.asExtendedWorkspace()!.getExtendedProject();
         Assert(loadedProject);
+
+        const projectChange = new Promise<void>(resolve => {
+            loadedProject.addOnChangeListener(() => {
+                resolve();
+            });
+        });
+        await VscodeTestsUtils.runTaskForProject("Build Project", "CMakeProject", "Release");
+        await projectChange;
 
         const configNames = loadedProject.configurations.map(conf => conf.name);
         Assert.deepStrictEqual(configNames, ["NewConfig2"]);
