@@ -18,7 +18,6 @@ import { FsUtils } from "../../src/utils/fs";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { TestConfiguration } from "../testconfiguration";
 import { BuildTaskDefinition, BuildTasks } from "../../src/extension/task/buildtasks";
-// import { SimpleWorkspace } from "../../src/iar/workspace/ewworkspace";
 
 namespace Utils {
     export const EXTENSION_ROOT = path.join(path.resolve(__dirname), "../../../");
@@ -47,12 +46,6 @@ namespace Utils {
         const outputFile: string = path.join(outputFolder, ewpId);
         // Generate the ewp-file to work with.
         TestUtils.patchEwpFile(target, ewpFile, outputFile);
-        // Add the ewp-file to the list of project.
-        // const workspace = SimpleWorkspace.fromProjectPaths([outputFile]);
-        ExtensionState.getInstance().workspaces.set(
-            ...ExtensionState.getInstance().workspaces.items,
-            // workspace
-        );
 
         // Remove the unpatched ewp from the sandbox
         fs.unlinkSync(path.join(outputFolder, path.basename(ewpFile)));
