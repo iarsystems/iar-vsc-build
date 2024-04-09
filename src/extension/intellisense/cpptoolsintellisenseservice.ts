@@ -97,7 +97,23 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
             // Temporary workaround for https://github.com/microsoft/vscode-cpptools/issues/9435
             defines = defines.filter(d => !["__EDG_VERSION__", "__EDG_SIZE_TYPE__", "__EDG_PTRDIFF_TYPE__", "__STDCPP_DEFAULT_NEW_ALIGNMENT__"].includes(d.identifier));
 
-            const lang = LanguageUtils.determineLanguage(uri.fsPath);
+            let standard: LangStandard = "c11";
+            {
+                const cplusplus = defines.find(def => def.identifier === "__cplusplus");
+                if (cplusplus) {
+                    if (cplusplus.value && LANG_STANDARD_DEFINES[cplusplus.value]) {
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        standard = LANG_STANDARD_DEFINES[cplusplus.value]!;
+                    } else {
+                        standard = "c++17";
+                    }
+                } else {
+                    const stdcVersion = defines.find(def => def.identifier === "__STDC_VERSION__");
+                    if (stdcVersion && stdcVersion.value) {
+                        standard = LANG_STANDARD_DEFINES[stdcVersion.value] ?? "c11";
+                    }
+                }
+            }
 
             const config: SourceFileConfiguration = {
                 compilerPath: "",
@@ -105,7 +121,7 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
                 includePath: includes.map(i => i.absolutePath.toString()),
                 forcedInclude: preincludes.map(i => i.absolutePath.toString()),
                 intelliSenseMode: "clang-arm",
-                standard: lang === "c" ? (tryGetCStandard(defines) ?? "c11") : (tryGetCppStandard(defines) ?? "c++11"),
+                standard,
             };
             return {
                 uri: uri,

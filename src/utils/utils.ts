@@ -7,8 +7,10 @@
 import { PathLike } from "fs";
 import * as Path from "path";
 import * as FsPromises from "fs/promises";
+import * as Vscode from "vscode";
 import { ChildProcess } from "child_process";
 import { ProjectManagerError } from "iar-vsc-common/thrift/bindings/projectmanager_types";
+import { OsUtils } from "iar-vsc-common/osUtils";
 
 export namespace ListUtils {
     /**
@@ -38,8 +40,17 @@ export namespace LanguageUtils {
     export type Language = "c" | "cpp";
 
     export function determineLanguage(filePath: PathLike): Language | undefined {
-        const extension = Path.extname(filePath.toString());
+        // First check the user's choice in the UI, if the file is opened
+        const textDocument = Vscode.workspace.textDocuments.find(
+            doc => OsUtils.pathsEqual(doc.fileName, filePath.toString()));
+        if (textDocument) {
+            if (textDocument.languageId === "c" || textDocument.languageId === "cpp") {
+                return textDocument.languageId;
+            }
+            return undefined;
+        }
 
+        const extension = Path.extname(filePath.toString());
         if (cExtensions.includes(extension)) {
             return "c";
         } else if (cppExtensions.includes(extension)) {
