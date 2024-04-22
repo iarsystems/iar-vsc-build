@@ -10,6 +10,7 @@ import { VscodeTestsSetup } from "./setup";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { TestConfiguration } from "../testconfiguration";
 import { CpptoolsIntellisenseService } from "../../src/extension/intellisense/cpptoolsintellisenseservice";
+import { ConfigureCommand } from "../../src/extension/command/configure";
 
 suite("Test CMake integration", function() {
     let cmakeProjectDir: string;
@@ -68,7 +69,7 @@ suite("Test CMake integration", function() {
         Assert(config?.configuration.defines.some(def => def === "_MYDEFINE=42"));
     });
 
-    test("Responds to control file changes", async() => {
+    test("Can configure project", async function() {
         const cmakelistsPath = Path.join(cmakeProjectDir, "CMakeLists.txt");
         const contents = (await Fs.readFile(cmakelistsPath)).toString();
         const newContents = contents.
@@ -76,8 +77,7 @@ suite("Test CMake integration", function() {
             replace(/add_executable\((.*)\)/, "add_executable($1 secondfile.c)");
         await Fs.writeFile(cmakelistsPath, newContents);
 
-        // Give vs code time to react to the file change
-        await new Promise((p, _) => setTimeout(p, 3000));
+        await Vscode.commands.executeCommand(ConfigureCommand.ID);
 
         const workspace = await ExtensionState.getInstance().workspace.getValue();
         const loadedProject = await workspace!.asExtendedWorkspace()!.getExtendedProject();
@@ -90,6 +90,29 @@ suite("Test CMake integration", function() {
         const targetGroup = rootNode.children.find(child => child.name === "SimpleProject [Executable]");
         Assert(targetGroup);
         Assert(targetGroup.children.some(child => child.name === "secondfile.c"));
+    });
+
+    test("Syncs after building project", async function() {
+        const cmakelistsPath = Path.join(cmakeProjectDir, "CMakeLists.txt");
+        const contents = (await Fs.readFile(cmakelistsPath)).toString();
+        const newContents = contents.
+            replace(/set\(CMAKE_CONFIGURATION_TYPES .*\)/, "set(CMAKE_CONFIGURATION_TYPES NewConfig2)");
+        await Fs.writeFile(cmakelistsPath, newContents);
+
+        const workspace = await ExtensionState.getInstance().workspace.getValue();
+        const loadedProject = await workspace!.asExtendedWorkspace()!.getExtendedProject();
+        Assert(loadedProject);
+
+        const projectChange = new Promise<void>(resolve => {
+            loadedProject.addOnChangeListener(() => {
+                resolve();
+            });
+        });
+        await VscodeTestsUtils.runTaskForProject("Build Project", "CMakeProject", "Release");
+        await projectChange;
+
+        const configNames = loadedProject.configurations.map(conf => conf.name);
+        Assert.deepStrictEqual(configNames, ["NewConfig2"]);
     });
 
 });

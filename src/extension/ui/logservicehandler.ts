@@ -12,7 +12,7 @@ import * as LogService from "iar-vsc-common/thrift/bindings/LogService";
 import * as Q from "q";
 
 const CMAKE_CMSIS_LOG_CATEGORY = "Log_CMake_CMSIS";
-const CMAKE_CMSIS_LOG_NAME = "CMake/CMSIS-Toolbox";
+export const CMAKE_CMSIS_LOG_NAME = "CMake/CMSIS-Toolbox";
 const BUILD_LOG_CATEGORY = "Log_Build";
 const SOURCE_BROWSER_LOG_CATEGORY = "Log_SourceBrowse";
 
@@ -93,9 +93,10 @@ export class LogServiceHandler implements ThriftServiceHandler<LogService.Client
             break;
         }
 
-        if (entry.category === CMAKE_CMSIS_LOG_CATEGORY) {
-            channel.show(true);
+        if (process.env["log-to-console"]) {
+            console.log(`[${entry.category}] ${entry.text}`);
         }
+
         return Q.resolve<void>();
     }
 

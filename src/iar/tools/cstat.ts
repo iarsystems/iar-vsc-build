@@ -12,6 +12,7 @@ import * as Fs from "fs";
 import * as Path from "path";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { logger } from "iar-vsc-common/logger";
+import { ProjectLock } from "../projectlock";
 
 /**
  * Functions for interacting with C-STAT (i.e. running it via iarbuild and reading warnings)
@@ -88,13 +89,15 @@ export namespace CStat {
         });
         const args = [projectPath, "-cstat_analyze", configurationName].concat(extraBuildArguments);
         onWrite?.(`> '${builderPath}' ${args.map(arg => `'${arg}'`).join(" ")}\n`);
-        await BackupUtils.doWithBackupCheck(projectPath, async() => {
-            const iarbuild = spawn(builderPath, args, {cwd: workingDirectory});
-            iarbuild.stdout.on("data", data => {
-                onWrite?.(data.toString());
-            });
+        await ProjectLock.runExclusive(projectPath, () => {
+            return BackupUtils.doWithBackupCheck(projectPath, async() => {
+                const iarbuild = spawn(builderPath, args, {cwd: workingDirectory});
+                iarbuild.stdout.on("data", data => {
+                    onWrite?.(data.toString());
+                });
 
-            await ProcessUtils.waitForExit(iarbuild);
+                await ProcessUtils.waitForExit(iarbuild);
+            });
         });
 
         onWrite?.("Reading C-STAT output.\n");

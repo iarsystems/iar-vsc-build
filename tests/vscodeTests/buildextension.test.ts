@@ -17,7 +17,7 @@ import { VscodeTestsSetup } from "./setup";
 import { FsUtils } from "../../src/utils/fs";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { TestConfiguration } from "../testconfiguration";
-// import { SimpleWorkspace } from "../../src/iar/workspace/ewworkspace";
+import { BuildTaskDefinition, BuildTasks } from "../../src/extension/task/buildtasks";
 
 namespace Utils {
     export const EXTENSION_ROOT = path.join(path.resolve(__dirname), "../../../");
@@ -46,24 +46,36 @@ namespace Utils {
         const outputFile: string = path.join(outputFolder, ewpId);
         // Generate the ewp-file to work with.
         TestUtils.patchEwpFile(target, ewpFile, outputFile);
-        // Add the ewp-file to the list of project.
-        // const workspace = SimpleWorkspace.fromProjectPaths([outputFile]);
-        ExtensionState.getInstance().workspaces.set(
-            ...ExtensionState.getInstance().workspaces.items,
-            // workspace
-        );
 
         // Remove the unpatched ewp from the sandbox
         fs.unlinkSync(path.join(outputFolder, path.basename(ewpFile)));
 
-        return {ewp: ewpId, folder: outputFolder};
+        return path.join(outputFolder, ewpId);
+    }
+
+    export function runTask(project: string, config: string, command: string) {
+        const wb = ExtensionState.getInstance().workbenches.selected!;
+        const definition: BuildTaskDefinition = {
+            label: "Test Task",
+            type: "iar",
+            argumentVariablesFile: undefined,
+            contexts: [],
+            extraBuildArguments: [],
+            builder: wb.builderPath,
+            project,
+            command,
+            config,
+        };
+        const task = BuildTasks.generateFromDefinition(definition);
+        assert(task);
+        vscode.tasks.executeTask(task);
+        return VscodeTestsUtils.waitForTask(ev => ev.execution.task.name === task.name);
     }
 }
 
 
 
 suite("Test build extension", ()=>{
-    return;
     let sandbox: TestSandbox;
     let sandboxPath: string;
 
@@ -127,25 +139,25 @@ suite("Test build extension", ()=>{
         // Generate a testproject to build using the generic template
         const testEwp = Utils.setupProject(id++, TestConfiguration.getConfiguration().target.toUpperCase(), ewpFile, sandbox);
         // Build the project.
-        await VscodeTestsUtils.runTaskForProject(Utils.BUILD, path.basename(testEwp.ewp, ".ewp"), "Debug");
+        await Utils.runTask(testEwp, "Debug", "build");
         // Check that an output file has been created
-        const exeFile = path.join(testEwp.folder, "Debug", "Exe", path.basename(testEwp.ewp, ".ewp") + ".out");
+        const exeFile = path.join(path.dirname(testEwp), "Debug", "Exe", path.basename(testEwp, ".ewp") + ".out");
         await Utils.assertFileExists(exeFile);
         // Check that warnings are parsed correctly
         // Doesn't seem like diagnostics are populated instantly after running tasks, so wait a bit
         await new Promise((p, _) => setTimeout(p, 2000));
-        const srcFile = path.join(testEwp.folder, "main.c");
+        const srcFile = path.join(path.dirname(testEwp), "main.c");
         const diagnostics = vscode.languages.getDiagnostics(vscode.Uri.file(srcFile));
         assert.strictEqual(diagnostics[0]?.message,  "variable \"unused\" was declared but never referenced");
         assert.deepStrictEqual(diagnostics[0]?.range, new vscode.Range(new vscode.Position(2, 0), new vscode.Position(2, 0)));
         assert.strictEqual(diagnostics[0]?.severity, vscode.DiagnosticSeverity.Warning);
 
         // Clean the project.
-        await VscodeTestsUtils.runTaskForProject(Utils.CLEAN, path.basename(testEwp.ewp, ".ewp"), "Debug");
+        await Utils.runTask(testEwp, "Debug", "clean");
         await Utils.assertFileNotExists(exeFile);
 
         // Finally, check that no backup files were created (VSC-192)
-        const backups = fs.readdirSync(path.dirname(testEwp.folder)).filter(entry => entry.match(/Backup (\(\d+\) )?of /));
+        const backups = fs.readdirSync(path.dirname(testEwp)).filter(entry => entry.match(/Backup (\(\d+\) )?of /));
         assert.strictEqual(backups.length, 0, "The following backups were created: " + backups.join(", "));
     });
 

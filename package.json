@@ -183,6 +183,16 @@
           "dark": "media/icons/Build-dark.svg",
           "light": "media/icons/Build-light.svg"
         }
+      },
+      {
+        "command": "iar-build.configure",
+        "title": "Configure project",
+        "category": "IAR Build"
+      },
+      {
+        "command": "iar-build.reconfigure",
+        "title": "Force reconfiguration",
+        "category": "IAR Build"
       }
     ],
     "viewsContainers": {
@@ -228,6 +238,14 @@
         {
           "command": "iar-build.reloadProject",
           "when": "view == iar-project"
+        },
+        {
+          "command": "iar-build.configure",
+          "when": "view == iar-project && iar-build.canConfigureProject"
+        },
+        {
+          "command": "iar-build.reconfigure",
+          "when": "view == iar-project && iar-build.canConfigureProject"
         },
         {
           "command": "iar-build.addFileToRoot",
@@ -368,6 +386,14 @@
         {
           "command": "iar-build.buildBatch",
           "when": "false"
+        },
+        {
+          "command": "iar-build.configure",
+          "when": "iar-build.canConfigureProject"
+        },
+        {
+          "command": "iar-build.reconfigure",
+          "when": "iar-build.canConfigureProject"
         }
       ]
     },
@@ -697,7 +723,7 @@
     "csv-parse": "4.8.8",
     "escape-html": "^1.0.3",
     "fast-deep-equal": "2.0.1",
-    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#ede169fb",
+    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#5c4aea5f",
     "jsdom": "^19.0.0",
     "rxjs": "^7.5.2",
     "sanitize-html": "^2.6.1",

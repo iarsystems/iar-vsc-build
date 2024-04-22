@@ -28,7 +28,6 @@ namespace Utils {
 }
 
 suite("Test C-STAT", () => {
-    return;
     const ANALYSIS_TASK = "Run C-STAT Analysis";
     const ANALYSIS_TASK_CONFIGURED = "iar-cstat: Run C-STAT Analysis (configured)";
     const CLEAR_TASK = "Clear C-STAT Diagnostics";

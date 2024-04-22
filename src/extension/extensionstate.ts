@@ -203,9 +203,18 @@ class StateImpl implements State, Disposable {
         this.workspace.onValueDidChange(newWorkspace => {
             logger.debug(`Loaded workspace '${newWorkspace?.name}'`);
             if (newWorkspace) {
-                newWorkspace.projects.addOnSelectedHandler(() => {
+                newWorkspace.projects.addOnSelectedHandler(async() => {
                     if (!this.workbenches.selected && newWorkspace.projects.selected) {
                         StateImpl.selectWorkbenchMatchingProject(newWorkspace.projects.selected, this.workbenches);
+                    }
+
+                    if (newWorkspace.isExtendedWorkspace()) {
+                        const proj = await newWorkspace.getExtendedProject();
+                        Vscode.commands.executeCommand("setContext",
+                            "iar-build.canConfigureProject",
+                            (await proj?.isCmakeOrCmsisProject()) ?? false);
+                    } else {
+                        Vscode.commands.executeCommand("setContext", "iar-build.canConfigureProject", false);
                     }
                 });
                 if (!this.workbenches.selected && newWorkspace.projects.selected) {

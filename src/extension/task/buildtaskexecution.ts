@@ -13,6 +13,9 @@ import * as Fs from "fs/promises";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
 import { Workbench } from "iar-vsc-common/workbench";
 import { EwwFile } from "../../iar/workspace/ewwfile";
+import { ExtensionState } from "../extensionstate";
+import { OsUtils } from "iar-vsc-common/osUtils";
+import { ProjectLock } from "../../iar/projectlock";
 
 /**
  * Executes a build task using iarbuild, e.g. to build or clean a project. We have to use a custom execution
@@ -20,6 +23,7 @@ import { EwwFile } from "../../iar/workspace/ewwfile";
  */
 export class BuildTaskExecution extends StylizedTerminal {
     private temporaryFiles: string[] = [];
+    private readonly builtProjects: string[] = [];
 
     /**
      * @param definition The task definition to execute
@@ -37,10 +41,26 @@ export class BuildTaskExecution extends StylizedTerminal {
                     FileStylizer,
                 ] : []
         );
+
         this.onDidClose(() => {
             this.temporaryFiles.forEach(
                 file => Fs.unlink(file).catch(() => {/**/}));
             this.temporaryFiles = [];
+
+            // Run the post-build up-to-date check for all projects that were built
+            ExtensionState.getInstance().workspace.getValue().then(async workspace => {
+                if (!workspace?.isExtendedWorkspace()) {
+                    return;
+                }
+                for (const projectPath of this.builtProjects) {
+                    const project = workspace.projects.items.find(candidate => OsUtils.pathsEqual(candidate.path, projectPath));
+                    if (!project) {
+                        continue;
+                    }
+                    const extendedProject = await workspace.getExtendedProject(project);
+                    extendedProject?.updateAfterBuild();
+                }
+            });
         });
     }
 
@@ -114,17 +134,20 @@ export class BuildTaskExecution extends StylizedTerminal {
 
             const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(context.project))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
             try {
-                await BackupUtils.doWithBackupCheck(context.project, async() => {
-                    const iarbuild = spawn(builder, args, { cwd: workspaceFolder });
-                    this.write("> " + iarbuild.spawnargs.map(arg => `'${arg}'`).join(" ") + "\n");
-                    iarbuild.stdout.on("data", data => {
-                        this.write(data.toString());
-                    });
+                await ProjectLock.runExclusive(context.project, () => {
+                    return BackupUtils.doWithBackupCheck(context.project, async() => {
+                        this.builtProjects.push(context.project);
+                        const iarbuild = spawn(builder, args, { cwd: workspaceFolder });
+                        this.write("> " + iarbuild.spawnargs.map(arg => `'${arg}'`).join(" ") + "\n");
+                        iarbuild.stdout.on("data", data => {
+                            this.write(data.toString());
+                        });
 
-                    returnCode = await ProcessUtils.waitForExitCode(iarbuild) ?? 1;
-                    if (returnCode !== 0 || currentContext === contexts.length) {
-                        this.closeTerminal(returnCode);
-                    }
+                        returnCode = await ProcessUtils.waitForExitCode(iarbuild) ?? 1;
+                        if (returnCode !== 0 || currentContext === contexts.length) {
+                            this.closeTerminal(returnCode);
+                        }
+                    });
                 });
             } catch (e) {
                 const errorMsg = ErrorUtils.toErrorMessage(e);

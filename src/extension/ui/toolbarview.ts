@@ -8,9 +8,11 @@ import { BuildTasks } from "../task/buildtasks";
 import { CStatTaskProvider } from "../task/cstat/cstattaskprovider";
 import { OpenTasks } from "../task/opentasks";
 import { ExtensionSettings } from "../settings/extensionsettings";
+import { ConfigureCommand } from "../command/configure";
+import { ExtensionState } from "../extensionstate";
 
 // Maps button id:s to the task they should run
-const buttonToTaskMap = {
+const buttonToTaskMap: Record<string, string> = {
     "btn-build": BuildTasks.TaskNames.Build,
     "btn-rebuild": BuildTasks.TaskNames.Rebuild,
     "btn-clean": BuildTasks.TaskNames.Clean,
@@ -32,12 +34,27 @@ export class ToolbarWebview implements vscode.WebviewViewProvider {
     private view?: vscode.WebviewView;
 
     private showCstatIcons = true;
+    private showConfigureIcon = false;
 
     /**
      * Creates a new view. The caller is responsible for registering it.
      * @param extensionUri The uri of the extension's root directory
      */
     constructor(private readonly extensionUri: vscode.Uri) {
+        ExtensionState.getInstance().workspace.onValueDidChange(workspace => {
+            this.showConfigureIcon = false;
+
+            if (workspace && workspace.isExtendedWorkspace()) {
+                workspace.projects.addOnSelectedHandler(async() => {
+                    const proj = await workspace.getExtendedProject();
+                    this.showConfigureIcon = proj !== undefined && await proj.isCmakeOrCmsisProject();
+                    this.updateView();
+                });
+            } else {
+                this.showConfigureIcon = false;
+                this.updateView();
+            }
+        });
     }
 
     // Called by vscode before the view is shown
@@ -55,7 +72,12 @@ export class ToolbarWebview implements vscode.WebviewViewProvider {
             ]
         };
         // These messages are sent by our view (media/toolbarview.js)
-        this.view.webview.onDidReceiveMessage(async(message: {id: keyof typeof buttonToTaskMap}) => {
+        this.view.webview.onDidReceiveMessage(async(message: {id: string}) => {
+            if (message.id === "btn-configure") {
+                vscode.commands.executeCommand(ConfigureCommand.ID);
+                return;
+            }
+
             const taskName = buttonToTaskMap[message.id];
             if (taskName === undefined) {
                 logger.error("Could not find task to run for button " + message.id);
@@ -67,9 +89,6 @@ export class ToolbarWebview implements vscode.WebviewViewProvider {
                 return;
             }
             vscode.tasks.executeTask(toRun);
-            switch (message.id) {
-
-            }
         });
 
         this.showCstatIcons = ExtensionSettings.getCstatShowInToolbar();
@@ -85,14 +104,15 @@ export class ToolbarWebview implements vscode.WebviewViewProvider {
         if (this.view === undefined) {
             return;
         }
-        this.view.webview.html = await Rendering.getWebviewContent(this.view.webview, this.extensionUri, this.showCstatIcons);
+        this.view.webview.html = await Rendering.getWebviewContent(this.view.webview, this.extensionUri, this.showCstatIcons, this.showConfigureIcon);
     }
 }
 
 namespace Rendering {
-    export async function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.Uri, showCstatIcons: boolean) {
+    export async function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.Uri, showCstatIcons: boolean, showConfigureIcon: boolean) {
         //! NOTE: ALL files you load here (even indirectly) must be explicitly included in .vscodeignore, so that they are packaged in the .vsix. Webpack will not find these files.
         const toolkitUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "node_modules", "@vscode", "webview-ui-toolkit", "dist", "toolkit.js"));
+        const codiconsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "node_modules", "@vscode/codicons", "dist", "codicon.css"));
         // load css and js for the view (in <extension root>/media/).
         const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "toolbarview.css"));
         const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "toolbarview.js"));
@@ -121,6 +141,7 @@ namespace Rendering {
                         style-src ${webview.cspSource};">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <script type="module" src="${toolkitUri}"></script>
+            <link rel="stylesheet" href="${codiconsUri}">
             <link rel="stylesheet" href="${cssUri}">
             <script src="${jsUri}"></script>
             <title>Quick Actions</title>
@@ -133,6 +154,16 @@ namespace Rendering {
                         ${makeButton("btn-rebuild", iconRebuild,         "Run Task: Rebuild Project")}
                         ${makeButton("btn-clean",   iconClean,           "Run Task: Clean Project")}
                         ${makeButton("btn-open",    iconOpen,   "Run Task: Open Workspace in IAR Embedded Workbench")}
+                        <tooltip-container class="${showConfigureIcon ? "" : "hidden"}">
+                            <button aria-label="Configure Project" id="btn-configure" class="task-button icon-button tooltip-trigger">
+                                <span class="codicon codicon-combine"></span>
+                            </button>
+                            <div class="tooltip-popup">
+                                <div role="tooltip" class="tooltip-popup-content">
+                                    Configure Project
+                                </div>
+                            </div>
+                        </tooltip-container>
                     </div>
                 ${!showCstatIcons ? "" : /*html*/`
                     <vscode-divider class="divider"></vscode-divider>

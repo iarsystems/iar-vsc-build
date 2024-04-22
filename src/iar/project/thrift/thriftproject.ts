@@ -19,6 +19,7 @@ import { Disposable } from "../../../utils/disposable";
 import { BackupUtils, ErrorUtils } from "../../../utils/utils";
 import { logger } from "iar-vsc-common/logger";
 import { Mutex } from "async-mutex";
+import { ProjectLock } from "../../projectlock";
 
 /**
  * A project using a thrift-capable backend to fetch and manage data.
@@ -29,6 +30,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
     private readonly currentOperations: Promise<unknown>[] = [];
     // Locked during actions that require a certain active configuration in the backend.
     private readonly activeConfigurationMtx = new Mutex;
+    private isCmakeOrCmsis: boolean | undefined = undefined;
 
     constructor(public path:                 string,
                 public configurations:       ReadonlyArray<Config>,
@@ -52,8 +54,10 @@ export class ThriftProject implements ExtendedProject, Disposable {
             }
 
             if (WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.PMReloadProject)) {
-                await BackupUtils.doWithBackupCheck(this.path, async() => {
-                    this.context = await this.projectMgr.ReloadProject(this.context);
+                await ProjectLock.runExclusive(this.path, () => {
+                    return BackupUtils.doWithBackupCheck(this.path, async() => {
+                        this.context = await this.projectMgr.ReloadProject(this.context);
+                    });
                 });
             } else {
                 if (WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.PMWorkspaces)) {
@@ -62,8 +66,10 @@ export class ThriftProject implements ExtendedProject, Disposable {
                     await this.projectMgr.CloseProject(this.context);
                 }
 
-                this.context = await BackupUtils.doWithBackupCheck(this.path, async() => {
-                    return await this.projectMgr.LoadEwpFile(this.path);
+                this.context = await ProjectLock.runExclusive(this.path, () => {
+                    return BackupUtils.doWithBackupCheck(this.path, async() => {
+                        return await this.projectMgr.LoadEwpFile(this.path);
+                    });
                 });
             }
 
@@ -118,7 +124,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
         });
     }
 
-    getCStatOutputDirectory(config: string): Promise<string | undefined> {
+    public getCStatOutputDirectory(config: string): Promise<string | undefined> {
         return this.performOperation(async() => {
             const fullConfig = this.findConfiguration(config);
             if (fullConfig === undefined) {
@@ -137,7 +143,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
         });
     }
 
-    getCSpyArguments(config: string): Promise<string[] | undefined> {
+    public getCSpyArguments(config: string): Promise<string[] | undefined> {
         return this.performOperation(() => {
             const fullConfig = this.findConfiguration(config);
             if (fullConfig === undefined) {
@@ -149,6 +155,49 @@ export class ThriftProject implements ExtendedProject, Disposable {
             return QtoPromise(this.projectMgr.GetToolArgumentsForConfiguration(this.context, "C-SPY", config));
         });
     }
+
+    public updateAfterBuild(): Promise<void> {
+        if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.ExternalProjectPlugins)) {
+            return Promise.resolve();
+        }
+
+        return this.performOperation(async() => {
+            if (await this.projectMgr.IsExternalProjectUpToDate(this.context)) {
+                return;
+            }
+            logger.debug(`Syncing project '${this.name}'`);
+            await this.projectMgr.SynchonizeExternalProject(this.context);
+            await this.updateProjectConfigurations();
+            this.fireChangedEvent();
+        });
+    }
+
+    public async isCmakeOrCmsisProject(): Promise<boolean> {
+        if (this.isCmakeOrCmsis === undefined) {
+            // On older workbenches we treat cmake/cmsis projects like any other project
+            // using control files, because the apis to manually configure projects are missing.
+            if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.ExternalProjectPlugins)) {
+                this.isCmakeOrCmsis = false;
+            } else {
+                this.isCmakeOrCmsis = await this.performOperation(async() => {
+                    const results = await Promise.allSettled([
+                        this.projectMgr.HasControlFileFor(this.context, "CMake"),
+                        this.projectMgr.HasControlFileFor(this.context, "CMSIS-Toolbox"),
+                    ]);
+                    return results.some(res => res.status === "fulfilled" && res.value);
+                });
+            }
+        }
+        return this.isCmakeOrCmsis;
+    }
+
+    public async configure(): Promise<void> {
+        await this.configureImpl(false);
+    }
+    public async reconfigure(): Promise<void> {
+        await this.configureImpl(true);
+    }
+
 
     public addOnChangeListener(callback: () => void): void {
         this.onChangedHandlers.push(callback);
@@ -176,6 +225,12 @@ export class ThriftProject implements ExtendedProject, Disposable {
     }
 
     private async updateControlFileWatchers() {
+        // These projects use a manually invoked 'configure' command instead of
+        // updating on file changes.
+        if (await this.isCmakeOrCmsisProject()) {
+            return;
+        }
+
         const controlFiles = new Set<string>;
         const collectControlFiles = function(node: Node): void {
             if (node.controlFilePlugins && node.controlFilePlugins.length > 0) {
@@ -208,13 +263,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
                     this.performOperation(async() => {
                         try {
                             await this.projectMgr.UpdateProjectConnection(this.context, file);
-                            this.configurations = (await this.projectMgr.GetConfigurations(this.context)).map(thriftConfig => {
-                                return {
-                                    name: thriftConfig.name,
-                                    targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
-                                    isControlFileManaged: thriftConfig.isControlFileManaged,
-                                };
-                            });
+                            await this.updateProjectConfigurations();
                             await this.updateControlFileWatchers();
                             this.fireChangedEvent();
                         } catch (e) {
@@ -247,6 +296,34 @@ export class ThriftProject implements ExtendedProject, Disposable {
         });
     }
 
+    private configureImpl(force: boolean) {
+        if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.ExternalProjectPlugins)) {
+            return;
+        }
+
+        return this.performOperation(async() => {
+            if (!await this.isCmakeOrCmsisProject()) {
+                return;
+            }
+            await ProjectLock.runExclusive(this.path, async() => {
+                logger.debug(`Configuring project '${this.name}'`);
+                await this.projectMgr.ConfigureExternalProject(this.context, force);
+            });
+            await this.updateProjectConfigurations();
+            this.fireChangedEvent();
+        });
+    }
+
+    private async updateProjectConfigurations() {
+        this.configurations = (await this.projectMgr.GetConfigurations(this.context)).map(thriftConfig => {
+            return {
+                name: thriftConfig.name,
+                targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
+                isControlFileManaged: thriftConfig.isControlFileManaged,
+            };
+        });
+    }
+
     // Registers an operation (i.e. a thrift procedure call) that uses the project context. The operation will be
     // awaited before invalidating the project context (as long as the owner of this instance calls {@link
     // dispose}).
@@ -274,8 +351,10 @@ export namespace ThriftProject {
             ThriftProject.removeDepFile(file);
         }
 
-        const ctx = await BackupUtils.doWithBackupCheck(file, async() => {
-            return await pm.LoadEwpFile(file);
+        const ctx = await ProjectLock.runExclusive(file, () => {
+            return BackupUtils.doWithBackupCheck(file, async() => {
+                return await pm.LoadEwpFile(file);
+            });
         });
         return fromContext(ctx, pm, owner);
     }
