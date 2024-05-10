@@ -117,7 +117,7 @@ suite("Test settings view", () => {
         await new Promise<void>(res => res());
 
         workspace.projects.select(0);
-        workspace.setActiveConfig(workspace.projects.selected?.configurations[1]);
+        workspace.projectConfigs.selectWhen(conf => conf === workspace.projects.selected!.configurations[1]);
         updateDocument();
 
         const assertDropdownMatchesModel = function <T>(dropdownId: string, model: ListInputModel<T>) {

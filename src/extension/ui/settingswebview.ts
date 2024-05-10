@@ -123,7 +123,9 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
             case MessageSubject.ConfigSelected:
                 if (this.currentWorkspace) {
                     const config = this.currentWorkspace.projectConfigs.items[message.index];
-                    this.currentWorkspace.setActiveConfig(config);
+                    if (config) {
+                        this.currentWorkspace.projectConfigs.selectWhen(conf => conf.name === config.name);
+                    }
                 }
                 break;
             case MessageSubject.AddWorkbench: {

@@ -71,7 +71,7 @@ export namespace VscodeTestsUtils {
     export async function activateConfiguration(configurationTag: string) {
         const workspace = await ExtensionState.getInstance().workspace.getValue();
         if (workspace) {
-            workspace.setActiveConfig(workspace.projectConfigs.items.find(conf => conf.name === configurationTag));
+            workspace.projectConfigs.selectWhen(conf => conf.name === configurationTag);
         }
     }
 

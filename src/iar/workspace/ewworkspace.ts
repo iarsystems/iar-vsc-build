@@ -46,7 +46,7 @@ export class EwWorkspace {
             const storedConfig = project.configurations.find(conf => conf.name === storedConfigName);
             const newActiveConfig = storedConfig ?? project.configurations[0];
             if (newActiveConfig) {
-                this.activeConfigurations.set(project, newActiveConfig);
+                this.setActiveConfig(newActiveConfig, project);
             }
         }
 
@@ -62,17 +62,27 @@ export class EwWorkspace {
             }
         });
 
-        projects.forEach(project => project.addOnChangeListener(() => {
-            if (project === this.projects.selected) {
-                this.projectConfigs.set(...project.configurations);
+        this.projectConfigs.addOnSelectedHandler(() => {
+            if (this.projects.selected && this.projectConfigs.selected) {
+                this.setActiveConfig(this.projectConfigs.selected, this.projects.selected);
             }
+        });
+
+        projects.forEach(project => project.addOnChangeListener(() => {
 
             const prevActiveConfig = this.activeConfigurations.get(project);
-            let newActiveConfig = prevActiveConfig;
-            if (!prevActiveConfig || !project.findConfiguration(prevActiveConfig.name)) {
+            let newActiveConfig: Config | undefined = undefined;
+            if (prevActiveConfig) {
+                newActiveConfig = project.findConfiguration(prevActiveConfig.name);
+            }
+            if (!newActiveConfig) {
                 newActiveConfig = project.configurations[0];
             }
-            this.setActiveConfig(newActiveConfig);
+            this.setActiveConfig(newActiveConfig, project);
+            if (project === this.projects.selected) {
+                this.projectConfigs.set(...project.configurations);
+                this.projectConfigs.selectWhen(conf => conf === newActiveConfig);
+            }
         }));
 
         const storedProjPath = LocalSettings.getSelectedProject(this.workspaceFile);
@@ -84,33 +94,6 @@ export class EwWorkspace {
         }
     }
 
-    /**
-     * Sets the configuration to use for some project (e.g. for intellisense).
-     * If no project is specified, sets the config for the active project.
-     */
-    setActiveConfig(config: Config | undefined, project?: Project) {
-        if (project && !this.projects.items.includes(project)) {
-            throw new Error("Trying to set active config for an unknown project");
-        }
-        project ??= this.projects.selected;
-
-        if (project) {
-            if (config) {
-                this.activeConfigurations.set(project, config);
-                LocalSettings.setSelectedConfiguration(this.workspaceFile, project, config);
-
-                if (project === this.projects.selected) {
-                    this.projectConfigs.selectWhen(c => c.name === config.name);
-                }
-            } else {
-                this.activeConfigurations.delete(project);
-            }
-
-            for (const callback of this.activeConfigurationListeners) {
-                callback(project, config);
-            }
-        }
-    }
     /**
      * Gets the configuration to use for some project (e.g. for intellisense).
      * If no project is specified, gets the config for the active project.
@@ -138,6 +121,26 @@ export class EwWorkspace {
             return this;
         }
         return undefined;
+    }
+
+    private setActiveConfig(config: Config | undefined, project: Project) {
+        if (!this.projects.items.includes(project)) {
+            throw new Error("Trying to set active config for an unknown project");
+        }
+        if (this.activeConfigurations.get(project) === config) {
+            return;
+        }
+
+        if (config) {
+            this.activeConfigurations.set(project, config);
+            LocalSettings.setSelectedConfiguration(this.workspaceFile, project, config);
+        } else {
+            this.activeConfigurations.delete(project);
+        }
+
+        for (const callback of this.activeConfigurationListeners) {
+            callback(project, config);
+        }
     }
 }
 
