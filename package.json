@@ -435,7 +435,8 @@
           "default": [
             "/opt/iarsystems",
             "C:\\Program Files\\IAR Systems",
-            "C:\\Program Files (x86)\\IAR Systems"
+            "C:\\Program Files (x86)\\IAR Systems",
+            "C:\\iar"
           ]
         },
         "iar-build.defines": {
