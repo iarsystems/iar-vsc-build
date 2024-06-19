@@ -4,6 +4,7 @@
 
 # Include only the files that should be in the .vsix
 !out/src/extension/main.js
+!out/webviews/**/*
 !README.md
 !CHANGELOG.md
 !LICENSE

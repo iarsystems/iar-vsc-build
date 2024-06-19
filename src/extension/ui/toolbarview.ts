@@ -68,10 +68,11 @@ export class ToolbarWebview implements vscode.WebviewViewProvider {
             enableScripts: true,
             localResourceRoots: [
                 vscode.Uri.joinPath(this.extensionUri, "media"),
+                vscode.Uri.joinPath(this.extensionUri, "out/webviews"),
                 vscode.Uri.joinPath(this.extensionUri, "node_modules"),
             ]
         };
-        // These messages are sent by our view (media/toolbarview.js)
+        // These messages are sent by our view (webviews/toolbar/index.ts)
         this.view.webview.onDidReceiveMessage(async(message: {id: string}) => {
             if (message.id === "btn-configure") {
                 vscode.commands.executeCommand(ConfigureCommand.ID);
@@ -113,9 +114,9 @@ namespace Rendering {
         //! NOTE: ALL files you load here (even indirectly) must be explicitly included in .vscodeignore, so that they are packaged in the .vsix. Webpack will not find these files.
         const toolkitUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "node_modules", "@vscode", "webview-ui-toolkit", "dist", "toolkit.js"));
         const codiconsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "node_modules", "@vscode/codicons", "dist", "codicon.css"));
-        // load css and js for the view (in <extension root>/media/).
-        const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "toolbarview.css"));
-        const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "toolbarview.js"));
+        // load css and js for the view
+        const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "out", "webviews", "toolbar", "styles.css"));
+        const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "out", "webviews", "toolbar.js"));
 
         // To be able to use VS Code's CSS variables (for correct theming), the SVGs must be placed directly in the html.
         // Therefore we read the file contents here instead of generating a webview uri to use in an <img/> tag.

@@ -687,10 +687,10 @@
   "scripts": {
     "lint": "eslint . --ext .ts && markdownlint **/*.md --ignore node_modules",
     "vscode:prepublish": "npm run package",
-    "webpack": "webpack --mode development",
-    "webpack-watch": "webpack --mode development --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "test-compile": "tsc -p ./",
+    "webpack": "webpack --mode development --config-name extension --config-name webviews",
+    "webpack-watch": "webpack --mode development --config-name extension --config-name webviews --watch",
+    "package": "webpack --mode production --config-name extension --config-name webviews --devtool hidden-source-map",
+    "test-compile": "tsc -p ./src",
     "prepare": "husky install"
   },
   "devDependencies": {
@@ -702,9 +702,11 @@
     "@types/thrift": "^0.10.9",
     "@types/uuid": "^8.3.1",
     "@types/vscode": "^1.33.0",
+    "@types/vscode-webview": "^1.57.5",
     "@typescript-eslint/eslint-plugin": "^5.2.0",
     "@typescript-eslint/parser": "^5.2.0",
     "@typescript/lib-dom": "npm:@types/web@^0.0.69",
+    "copy-webpack-plugin": "^12.0.2",
     "escape-html": "^1.0.3",
     "eslint": "^8.1.0",
     "eslint-plugin-deprecation": "^1.3.2",

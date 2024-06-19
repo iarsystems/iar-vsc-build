@@ -5,7 +5,7 @@
     {
       "files": ["*.ts", "*.tsx"],
       "parserOptions": {
-        "project": ["./tsconfig.json"]
+        "project": ["./src/tsconfig.json"]
       }
     }
   ],

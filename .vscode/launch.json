@@ -11,12 +11,14 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "outFiles": [
-                "${workspaceFolder}/out/src/extension/main.js",
+                "${workspaceFolder}/out/**/*",
             ],
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
+            "debugWebviews": true,
             "preLaunchTask": "npm: webpack-watch",
+            "sourceMaps": true,
             "trace": true
         },
         {

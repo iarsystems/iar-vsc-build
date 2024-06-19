@@ -14,17 +14,8 @@ import { AsyncObservable } from "../../utils/asyncobservable";
 import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 import { ProjectListModel } from "../model/selectproject";
 import { ConfigurationListModel } from "../model/selectconfiguration";
+import { MessageSubject } from "../../../webviews/settings/messageSubject";
 
-// Make sure this matches the enum in media/settingsview.js! AFAIK we cannot share code between here and the webview javascript
-enum MessageSubject {
-    WorkbenchSelected = "Workbench",
-    WorkspaceSelected = "Workspace",
-    ProjectSelected = "Project",
-    ConfigSelected = "Config",
-    AddWorkbench = "AddWorkbench",
-    OpenSettings = "OpenSettings",
-    ViewLoaded = "ViewLoaded",
-}
 export enum DropdownIds {
     Workbench = "workbench",
     Workspace = "workspace",
@@ -102,12 +93,13 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
             enableScripts: true,
             localResourceRoots: [
                 vscode.Uri.joinPath(this.extensionUri, "media"),
+                vscode.Uri.joinPath(this.extensionUri, "out/webviews"),
                 vscode.Uri.joinPath(this.extensionUri, "node_modules"),
             ]
         };
         let onViewLoaded: (() => void) | undefined = undefined;
         this.viewLoaded = new Promise(resolve => onViewLoaded = resolve);
-        // These messages are sent by our view (media/settingsview.js)
+        // These messages are sent by our view (webviews/settings/index.ts)
         this.view.webview.onDidReceiveMessage(async(message: { subject: string, index: number }) => {
             logger.debug(`Message from settings view: ${JSON.stringify(message)}`);
             switch (message.subject) {
@@ -199,9 +191,9 @@ namespace Rendering {
         //! NOTE: ALL files you load here (even indirectly) must be explicitly included in .vscodeignore, so that they are packaged in the .vsix. Webpack will not find these files.
         const toolkitUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "node_modules", "@vscode", "webview-ui-toolkit", "dist", "toolkit.js"));
         const codiconsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "node_modules", "@vscode/codicons", "dist", "codicon.css"));
-        // load css and js for the view (in <extension root>/media/).
-        const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "settingsview.css"));
-        const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "settingsview.js"));
+        // load css and js for the view
+        const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "out", "webviews", "settings", "styles.css"));
+        const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "out", "webviews", "settings.js"));
 
         // To be able to use VS Code's CSS variables (for correct theming), the SVGs must be placed directly in the html.
         // Therefore we read the file contents here instead of generating a webview uri to use in an <img/> tag.

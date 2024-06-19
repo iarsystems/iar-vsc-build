@@ -1,4 +1,8 @@
-"use strict"
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+export {};
 
 const vscode = acquireVsCodeApi();
 
@@ -8,23 +12,31 @@ function main() {
     customElements.define("tooltip-container", Tooltip);
     const buttons = document.getElementsByClassName("task-button");
     for (let i = 0; i < buttons.length; i++) {
-        buttons.item(i).addEventListener("click", ev => {
-            vscode.postMessage({ id: buttons.item(i).id });
+        buttons.item(i)?.addEventListener("click", _ev => {
+            vscode.postMessage({ id: buttons.item(i)?.id });
         });
     }
 }
 
 class Tooltip extends HTMLElement {
+    private trigger: HTMLElement | null = null;
+    private popup: HTMLElement | null = null;
+    private popupContent: HTMLElement | null = null;
+
     connectedCallback() {
-        this.trigger = this.querySelector(".tooltip-trigger")
+        this.trigger = this.querySelector(".tooltip-trigger");
         this.popup = this.querySelector(".tooltip-popup");
         this.popupContent = this.querySelector(".tooltip-popup-content");
 
-        this.trigger.addEventListener("mouseover", this.updatePopupPos.bind(this));
+        this.trigger?.addEventListener("mouseover", this.updatePopupPos.bind(this));
     }
 
     updatePopupPos() {
         const padding = 8;
+
+        if (!this.popup || !this.trigger || !this.popupContent) {
+            return;
+        }
 
         const popupBounds = this.popup.getBoundingClientRect();
         const triggerBounds = this.trigger.getBoundingClientRect();
@@ -44,3 +56,4 @@ class Tooltip extends HTMLElement {
         }
     }
 }
+
