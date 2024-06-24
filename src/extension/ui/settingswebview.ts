@@ -103,40 +103,40 @@ export class SettingsWebview implements vscode.WebviewViewProvider {
         this.view.webview.onDidReceiveMessage(async(message: { subject: string, index: number }) => {
             logger.debug(`Message from settings view: ${JSON.stringify(message)}`);
             switch (message.subject) {
-            case MessageSubject.WorkbenchSelected:
-                this.workbenches.select(message.index);
-                break;
-            case MessageSubject.WorkspaceSelected:
-                this.workspaces.select(message.index);
-                break;
-            case MessageSubject.ProjectSelected:
-                this.currentWorkspace?.projects.select(message.index);
-                break;
-            case MessageSubject.ConfigSelected:
-                if (this.currentWorkspace) {
-                    const config = this.currentWorkspace.projectConfigs.items[message.index];
-                    if (config) {
-                        this.currentWorkspace.projectConfigs.selectWhen(conf => conf.name === config.name);
+                case MessageSubject.WorkbenchSelected:
+                    this.workbenches.select(message.index);
+                    break;
+                case MessageSubject.WorkspaceSelected:
+                    this.workspaces.select(message.index);
+                    break;
+                case MessageSubject.ProjectSelected:
+                    this.currentWorkspace?.projects.select(message.index);
+                    break;
+                case MessageSubject.ConfigSelected:
+                    if (this.currentWorkspace) {
+                        const config = this.currentWorkspace.projectConfigs.items[message.index];
+                        if (config) {
+                            this.currentWorkspace.projectConfigs.selectWhen(conf => conf.name === config.name);
+                        }
                     }
-                }
-                break;
-            case MessageSubject.AddWorkbench: {
-                const changed = await vscode.commands.executeCommand(this.addWorkbenchCommand.id);
-                if (!changed) {
+                    break;
+                case MessageSubject.AddWorkbench: {
+                    const changed = await vscode.commands.executeCommand(this.addWorkbenchCommand.id);
+                    if (!changed) {
                     // Redraw so workbench dropdown's selected value matches model
-                    this.updateView();
+                        this.updateView();
+                    }
+                    break;
                 }
-                break;
-            }
-            case MessageSubject.OpenSettings:
-                vscode.commands.executeCommand("workbench.action.openSettings", "@ext:iarsystems.iar-build");
-                break;
-            case MessageSubject.ViewLoaded:
-                onViewLoaded?.();
-                break;
-            default:
-                logger.error("Settings view got unknown subject: " + message.subject);
-                break;
+                case MessageSubject.OpenSettings:
+                    vscode.commands.executeCommand("workbench.action.openSettings", "@ext:iarsystems.iar-build");
+                    break;
+                case MessageSubject.ViewLoaded:
+                    onViewLoaded?.();
+                    break;
+                default:
+                    logger.error("Settings view got unknown subject: " + message.subject);
+                    break;
             }
         });
         this.updateView();

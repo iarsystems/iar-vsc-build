@@ -67,74 +67,74 @@ export class LoadingService {
     private pushTask(specification: TaskSpecification): Promise<unknown> {
         // To save some time, we cancel previous tasks that are made obsolete by this one.
         switch (specification.tag) {
-        case "loadWorkbench":
-        {
-            this.pendingTasks.cancelAll();
-            const prevExtWb = this.loadedWorkbench.promise;
+            case "loadWorkbench":
+            {
+                this.pendingTasks.cancelAll();
+                const prevExtWb = this.loadedWorkbench.promise;
 
-            const task = this.pendingTasks.pushTask(specification, () => {
-                if (specification.workbench && ThriftWorkbench.hasThriftSupport(specification.workbench)) {
-                    return ThriftWorkbench.from(specification.workbench);
-                }
-                return Promise.resolve(undefined);
-            });
+                const task = this.pendingTasks.pushTask(specification, () => {
+                    if (specification.workbench && ThriftWorkbench.hasThriftSupport(specification.workbench)) {
+                        return ThriftWorkbench.from(specification.workbench);
+                    }
+                    return Promise.resolve(undefined);
+                });
 
-            this.loadedWorkbench.setWithPromise(task);
-            this.loadedWorkspace.setWithPromise(task.then(() => undefined));
-            prevExtWb.then(prevWb => prevWb?.dispose());
+                this.loadedWorkbench.setWithPromise(task);
+                this.loadedWorkspace.setWithPromise(task.then(() => undefined));
+                prevExtWb.then(prevWb => prevWb?.dispose());
 
-            return task;
-        }
-        case "loadWorkspace":
-        {
-            this.pendingTasks.cancelWhile(it => ["loadWorkspace"].includes(it.tag));
+                return task;
+            }
+            case "loadWorkspace":
+            {
+                this.pendingTasks.cancelWhile(it => ["loadWorkspace"].includes(it.tag));
 
-            const workbenchPromise = this.loadedWorkbench.promise.catch(() => undefined);
-            const task = this.pendingTasks.pushTask(specification, async() => {
-                const loadedWorkbench = await workbenchPromise;
-                if (loadedWorkbench) {
-                    if (specification.type === "file") {
-                        if (specification.workspace) {
-                            try {
-                                return loadedWorkbench.loadWorkspace(specification.workspace);
-                            } catch (e) {
-                                const errorMsg = ErrorUtils.toErrorMessage(e);
-                                logger.error(`Failed to load workspace '${specification.workspace.path}': ${errorMsg}`);
-                                vscode.window.showErrorMessage("IAR: Failed to load workspace, some functionality may be unavailable: " + errorMsg);
+                const workbenchPromise = this.loadedWorkbench.promise.catch(() => undefined);
+                const task = this.pendingTasks.pushTask(specification, async() => {
+                    const loadedWorkbench = await workbenchPromise;
+                    if (loadedWorkbench) {
+                        if (specification.type === "file") {
+                            if (specification.workspace) {
+                                try {
+                                    return loadedWorkbench.loadWorkspace(specification.workspace);
+                                } catch (e) {
+                                    const errorMsg = ErrorUtils.toErrorMessage(e);
+                                    logger.error(`Failed to load workspace '${specification.workspace.path}': ${errorMsg}`);
+                                    vscode.window.showErrorMessage("IAR: Failed to load workspace, some functionality may be unavailable: " + errorMsg);
+                                }
+                            } else {
+                                await loadedWorkbench.closeWorkspace();
                             }
                         } else {
-                            await loadedWorkbench.closeWorkspace();
-                        }
-                    } else {
-                        try {
-                            return loadedWorkbench.loadAnonymousWorkspace(specification.projects);
-                        } catch (e) {
-                            const errorMsg = ErrorUtils.toErrorMessage(e);
-                            logger.error(`Failed to load workspace: ${errorMsg}`);
-                            vscode.window.showErrorMessage("IAR: Failed to load workspace, some functionality may be unavailable: " + errorMsg);
+                            try {
+                                return loadedWorkbench.loadAnonymousWorkspace(specification.projects);
+                            } catch (e) {
+                                const errorMsg = ErrorUtils.toErrorMessage(e);
+                                logger.error(`Failed to load workspace: ${errorMsg}`);
+                                vscode.window.showErrorMessage("IAR: Failed to load workspace, some functionality may be unavailable: " + errorMsg);
+                            }
                         }
                     }
-                }
 
-                // Fall back to an xml-based workspace if we can't use thrift
-                if (specification.type === "file" && specification.workspace) {
-                    return SimpleWorkspace.fromEwwFile(specification.workspace);
-                } else if (specification.type === "anonymous") {
-                    return SimpleWorkspace.fromProjectPaths(specification.projects);
-                }
-                return undefined;
-            });
+                    // Fall back to an xml-based workspace if we can't use thrift
+                    if (specification.type === "file" && specification.workspace) {
+                        return SimpleWorkspace.fromEwwFile(specification.workspace);
+                    } else if (specification.type === "anonymous") {
+                        return SimpleWorkspace.fromProjectPaths(specification.projects);
+                    }
+                    return undefined;
+                });
 
-            this.loadedWorkspace.setWithPromise(task);
+                this.loadedWorkspace.setWithPromise(task);
 
-            return task;
-        }
-        default:
-        {
+                return task;
+            }
+            default:
+            {
             // Checks that all task variants are handled
-            const _exhaustiveCheck: never = specification;
-            return _exhaustiveCheck;
-        }
+                const _exhaustiveCheck: never = specification;
+                return _exhaustiveCheck;
+            }
         }
     }
 }

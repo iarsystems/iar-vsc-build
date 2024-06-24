@@ -1,29 +1,29 @@
-{
-  "root": true,
-  "parser": "@typescript-eslint/parser",
-  "overrides": [
+const config = {
+  root: true,
+  parser: "@typescript-eslint/parser",
+  overrides: [
     {
-      "files": ["*.ts", "*.tsx"],
-      "parserOptions": {
-        "project": ["./src/tsconfig.json"]
+      files: ["*.ts"],
+      parserOptions: {
+        project: ["./src/tsconfig.json"],
+        tsconfigRootDir: __dirname,
       }
     }
   ],
-  "plugins": [
+  plugins: [
     "@typescript-eslint",
     "deprecation"
   ],
-  "extends": [
+  extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended"
   ],
-  "env": {
-    "node": true
+  env: {
+    node: true
   },
-  "ignorePatterns": [
-  ],
-  "rules": {
+  ignorePatterns: [".eslintrc.js"],
+  rules: {
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_"}], // Same as in tsconfig. Allow such vars if they start with an underscore.
     "require-await": "error",                                   // Helps catch missing awaits
     "strict": "error",                                          // Disallows use of e.g. reserved keywords
@@ -38,7 +38,7 @@
     // CODE FORMATTING =================
     "semi": "warn",
     "camelcase": "warn",
-    "indent": ["warn", 4],
+    "indent": ["warn", 4, { SwitchCase: 1 }],
     "space-before-blocks": "warn",
     "keyword-spacing": "warn",
     "space-before-function-paren": ["warn", "never"],
@@ -50,3 +50,4 @@
     "no-trailing-spaces": "warn"
   }
 }
+module.exports = config;

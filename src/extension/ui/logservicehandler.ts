@@ -71,26 +71,26 @@ export class LogServiceHandler implements ThriftServiceHandler<LogService.Client
         const channel = this.getLogChannel(entry.category);
 
         switch (entry.severity) {
-        case LogSeverity.kDebug:
-            channel.trace(entry.text);
-            break;
-        case LogSeverity.kUser:
-            channel.debug(entry.text);
-            break;
-        case LogSeverity.kMinorInfo:
-        case LogSeverity.kInfo:
-            channel.info(entry.text);
-            break;
-        case LogSeverity.kWarning:
-            channel.warn(entry.text);
-            break;
-        case LogSeverity.kError:
-        case LogSeverity.kAlert:
-            channel.error(entry.text);
-            break;
-        case LogSeverity.kSuper:
-            channel.append(entry.text);
-            break;
+            case LogSeverity.kDebug:
+                channel.trace(entry.text);
+                break;
+            case LogSeverity.kUser:
+                channel.debug(entry.text);
+                break;
+            case LogSeverity.kMinorInfo:
+            case LogSeverity.kInfo:
+                channel.info(entry.text);
+                break;
+            case LogSeverity.kWarning:
+                channel.warn(entry.text);
+                break;
+            case LogSeverity.kError:
+            case LogSeverity.kAlert:
+                channel.error(entry.text);
+                break;
+            case LogSeverity.kSuper:
+                channel.append(entry.text);
+                break;
         }
 
         if (process.env["log-to-console"]) {

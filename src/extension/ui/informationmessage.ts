@@ -30,16 +30,16 @@ export namespace InformationMessage {
         const options = ["Do Not Show Again"];
         let result: Thenable<string | undefined>;
         switch (type) {
-        case InformationMessageType.Info:
-            result = Vscode.window.showInformationMessage(prompt, ...options);
-            break;
-        case InformationMessageType.Warning:
-            result = Vscode.window.showWarningMessage(prompt, ...options);
-            break;
-        case InformationMessageType.Error:
-        default:
-            result = Vscode.window.showErrorMessage(prompt, ...options);
-            break;
+            case InformationMessageType.Info:
+                result = Vscode.window.showInformationMessage(prompt, ...options);
+                break;
+            case InformationMessageType.Warning:
+                result = Vscode.window.showWarningMessage(prompt, ...options);
+                break;
+            case InformationMessageType.Error:
+            default:
+                result = Vscode.window.showErrorMessage(prompt, ...options);
+                break;
         }
 
         const response = await result;

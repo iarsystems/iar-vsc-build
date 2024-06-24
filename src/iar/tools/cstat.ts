@@ -114,12 +114,12 @@ export namespace CStat {
 
     export function SeverityStringToSeverityEnum(severity: string): CStatWarningSeverity {
         switch (severity) {
-        case "Low":    return CStatWarningSeverity.LOW;
-        case "Medium": return CStatWarningSeverity.MEDIUM;
-        case "High":   return CStatWarningSeverity.HIGH;
-        default:
-            logger.warn("Unrecognized C-STAT severity: " + severity);
-            return CStatWarningSeverity.HIGH;
+            case "Low":    return CStatWarningSeverity.LOW;
+            case "Medium": return CStatWarningSeverity.MEDIUM;
+            case "High":   return CStatWarningSeverity.HIGH;
+            default:
+                logger.warn("Unrecognized C-STAT severity: " + severity);
+                return CStatWarningSeverity.HIGH;
         }
     }
 
@@ -279,14 +279,14 @@ export namespace CStat {
 
     function getSqliteBinaryName(): string | null {
         switch (OsUtils.detectOsType()) {
-        case OsUtils.OsType.Windows:
-            return "sqlite-v3.26.0-win32-x86.exe";
-        case OsUtils.OsType.Linux:
-            return "sqlite-v3.37.0-linux-x86";
-        case OsUtils.OsType.Mac:
-            return "sqlite-v3.26.0-osx-x86";
-        default:
-            return null;
+            case OsUtils.OsType.Windows:
+                return "sqlite-v3.26.0-win32-x86.exe";
+            case OsUtils.OsType.Linux:
+                return "sqlite-v3.37.0-linux-x86";
+            case OsUtils.OsType.Mac:
+                return "sqlite-v3.26.0-osx-x86";
+            default:
+                return null;
         }
     }
 }
