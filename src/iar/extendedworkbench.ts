@@ -10,7 +10,7 @@ import * as Fs from "fs";
 import * as Path from "path";
 import { Workbench } from "iar-vsc-common/workbench";
 import { PROJECTMANAGER_ID } from "iar-vsc-common/thrift/bindings/projectmanager_types";
-import { ThriftServiceManager } from "iar-vsc-common/thrift/thriftServiceManager";
+import { ThriftServiceRegistryProcess } from "iar-vsc-common/thrift/thriftServiceRegistryProcess";
 import { ProjectManagerLauncher } from "./project/thrift/projectmanagerlauncher";
 import { ThriftClient } from "iar-vsc-common/thrift/thriftClient";
 import { logger } from "iar-vsc-common/logger";
@@ -70,9 +70,9 @@ export class ThriftWorkbench implements ExtendedWorkbench {
      */
     static async from(workbench: Workbench): Promise<ThriftWorkbench> {
         logger.debug(`Loading thrift workbench '${workbench.name}'`);
-        const serviceManager = await ProjectManagerLauncher.launchFromWorkbench(workbench);
-        const projectManager = await serviceManager.findService(PROJECTMANAGER_ID, ProjectManager);
-        return new ThriftWorkbench(workbench, serviceManager, projectManager);
+        const serviceRegistryProc = await ProjectManagerLauncher.launchFromWorkbench(workbench);
+        const projectManager = await serviceRegistryProc.serviceRegistry.findService(PROJECTMANAGER_ID, ProjectManager);
+        return new ThriftWorkbench(workbench, serviceRegistryProc, projectManager);
     }
 
     static hasThriftSupport(workbench: Workbench): boolean {
@@ -84,7 +84,7 @@ export class ThriftWorkbench implements ExtendedWorkbench {
     private hasLogHandler = false;
 
     constructor(public workbench: Workbench,
-        private readonly serviceMgr: ThriftServiceManager,
+        private readonly serviceRegistryProcess: ThriftServiceRegistryProcess,
         private readonly projectMgr: ThriftClient<ProjectManager.Client>) {
     }
 
@@ -125,18 +125,18 @@ export class ThriftWorkbench implements ExtendedWorkbench {
         logger.debug(`Shutting down thrift workbench '${this.workbench.name}'`);
         await this.closeWorkspace();
         this.projectMgr.close();
-        await this.serviceMgr.dispose();
+        await this.serviceRegistryProcess.dispose();
     }
 
     public onCrash(handler: (code: number | null) => void) {
-        this.serviceMgr.addCrashHandler(handler);
+        this.serviceRegistryProcess.addCrashHandler(handler);
     }
 
     public async setLogHandler(handler: object): Promise<void> {
         if (this.hasLogHandler) {
             throw new Error("A log handler has already been set for this workbench.");
         }
-        await this.serviceMgr.startService(LOGSERVICE_ID, LogService, handler);
+        await this.serviceRegistryProcess.serviceRegistry.startService(LOGSERVICE_ID, LogService, handler);
         this.hasLogHandler = true;
     }
 }

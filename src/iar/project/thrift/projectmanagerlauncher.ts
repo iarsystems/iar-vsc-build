@@ -4,20 +4,21 @@
 
 import * as Path from "path";
 import { Workbench } from "iar-vsc-common/workbench";
-import { ProcessMonitor, ThriftServiceManager } from "iar-vsc-common/thrift/thriftServiceManager";
 import { PROJECTMANAGER_ID } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { SERVICE_MANAGER_SERVICE } from "iar-vsc-common/thrift/bindings/ServiceManager_types";
 import * as CSpyServiceManager from "iar-vsc-common/thrift/bindings/CSpyServiceManager";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { IarVsc } from "../../../extension/main";
 import { FsUtils } from "../../../utils/fs";
+import { ProcessMonitor, ThriftServiceRegistryProcess } from "iar-vsc-common/thrift/thriftServiceRegistryProcess";
+import { ThriftServiceRegistry } from "iar-vsc-common/thrift/thriftServiceRegistry";
 
 export namespace ProjectManagerLauncher {
 
     /**
      * Uses the given workbench to launch a service registry and the project manager service.
      */
-    export async function launchFromWorkbench(workbench: Workbench): Promise<ThriftServiceManager> {
+    export async function launchFromWorkbench(workbench: Workbench): Promise<ThriftServiceRegistryProcess> {
 
         let launcherPath = Path.join(workbench.path.toString(), "common/bin/IarServiceLauncher");
         if (OsUtils.OsType.Windows === OsUtils.detectOsType()) {
@@ -35,8 +36,8 @@ export namespace ProjectManagerLauncher {
             args.push(logForwarderManifest);
         }
 
-        const stopProcess = async function(manager: ThriftServiceManager) {
-            const serviceMgr = await manager.findService(SERVICE_MANAGER_SERVICE, CSpyServiceManager);
+        const stopProcess = async function(registry: ThriftServiceRegistry) {
+            const serviceMgr = await registry.findService(SERVICE_MANAGER_SERVICE, CSpyServiceManager);
             await serviceMgr.service.shutdown();
             serviceMgr.close();
         };
@@ -50,6 +51,6 @@ export namespace ProjectManagerLauncher {
         };
 
 
-        return ThriftServiceManager.launch(launcherPath, args, stopProcess, PROJECTMANAGER_ID, processMonitor);
+        return ThriftServiceRegistryProcess.launch(launcherPath, args, stopProcess, PROJECTMANAGER_ID, processMonitor);
     }
 }
