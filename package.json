@@ -434,6 +434,7 @@
           "scope": "machine",
           "default": [
             "/opt/iarsystems",
+            "/opt/iar",
             "C:\\Program Files\\IAR Systems",
             "C:\\Program Files (x86)\\IAR Systems",
             "C:\\iar"
