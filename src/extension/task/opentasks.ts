@@ -7,6 +7,7 @@
 import * as Vscode from "vscode";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { Workbench } from "iar-vsc-common/workbench";
+import { spawn } from "child_process";
 
 
 export namespace OpenTasks {
@@ -34,9 +35,7 @@ export namespace OpenTasks {
         }
 
         const command = definition["command"];
-        const workspace = definition["workspace"];
         const label = definition["label"];
-        const workbench = definition["workbench"];
 
         if (command === undefined) {
             showErrorMissingField("command", label);
@@ -45,31 +44,15 @@ export namespace OpenTasks {
             return undefined;
         }
 
-        if (workspace === undefined) {
-            showErrorMissingField("workspace", label);
-            return undefined;
-        }
-
         if (label === undefined) {
             showErrorMissingField("label", label);
             return undefined;
         }
 
-        if (workbench === undefined) {
-            showErrorMissingField("workbench", label);
-            return undefined;
-        }
-
-        // Make sure to escape all arguments
-        const process = new Vscode.ShellExecution(
-            { value: workbench, quoting: Vscode.ShellQuoting.Strong },
-            [
-                { value: workspace, quoting: Vscode.ShellQuoting.Strong }
-            ],
-            {}
-        );
-
-        const task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", process);
+        const execution = new Vscode.CustomExecution(resolvedDefinition => {
+            return Promise.resolve(new OpenTaskExecution(resolvedDefinition));
+        });
+        const task: Vscode.Task = new Vscode.Task(definition, Vscode.TaskScope.Workspace, label, "iar", execution);
 
         if (definition["problemMatcher"] !== undefined) {
             task.problemMatchers = definition["problemMatcher"];
@@ -96,5 +79,51 @@ export namespace OpenTasks {
 
     function showErrorFailedToCreateDefaultTask(label: string, command: string): void {
         Vscode.window.showErrorMessage(`Failed to create task '${label}' with command ${command}.`);
+    }
+}
+
+/**
+ * VSC-464: We need a custom task execution to ensure that the task exits
+ * immediately after starting the workbench, without waiting for the workbench
+ * to close. Otherwise, this is dependent on the shell (seems to work in
+ * powershell, but not in cmd).
+ */
+export class OpenTaskExecution implements Vscode.Pseudoterminal {
+    private readonly writeEmitter = new Vscode.EventEmitter<string>();
+    onDidWrite: Vscode.Event<string> = this.writeEmitter.event;
+    private readonly closeEmitter = new Vscode.EventEmitter<number>();
+    onDidClose: Vscode.Event<number> = this.closeEmitter.event;
+
+    /**
+     * @param definition The task definition to execute
+     */
+    constructor(private readonly definition: Vscode.TaskDefinition) {
+    }
+
+    open() {
+        const workbench = this.definition["workbench"];
+        if (workbench === undefined) {
+            this.onError("No Embedded Workbench path was specificed. Select a toolchain in the extension configuration, or configure the task manually.");
+            return;
+        }
+        const workspace = this.definition["workspace"];
+        if (workspace === undefined) {
+            this.onError("No workspace path was specificed. Select a toolchain in the extension configuration, or configure the task manually.");
+            return;
+        }
+
+        this.writeEmitter.fire(`> '${workbench}' '${workspace}'\r\n`);
+        // Note the 'detached'. We spawn the workbench and forget about it.
+        spawn(workbench, [workspace], { shell: true, detached: true });
+        this.closeEmitter.fire(0);
+    }
+
+    close(): void {
+        // Nothing to do
+    }
+
+    private onError(reason: string | Error) {
+        this.writeEmitter.fire(reason + "\r\n");
+        this.closeEmitter.fire(1);
     }
 }
