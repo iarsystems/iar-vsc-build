@@ -124,7 +124,7 @@ suite("Test C-STAT", () => {
         { message: "`bad_fun' does not have a valid prototype", code: "MISRAC2004-16.5,MISRAC2012-Rule-8.2_a [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
         { message: `Use of ${TestConfiguration.getConfiguration().cstatHeaderQuoting[0]}stdio.h${TestConfiguration.getConfiguration().cstatHeaderQuoting[1]} is not compliant`, code: "MISRAC++2008-27-0-1,MISRAC2004-20.9,MISRAC2012-Rule-21.6 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(1, 19), relatedInformation: [] },
         { message: "Function `addOne' declared at block scope", code: "MISRAC2004-8.6 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(17, 11), relatedInformation: [] },
-        { message: "Externally-linked object or function `bad_fun' is referenced in only one translation unit", code: "MISRAC2004-8.10 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
+        { message: "Externally-linked object or function `addOne' is referenced in only one translation unit", code: "MISRAC2004-8.10 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
         { message: "Found use of obsolescent language feature. 'main' does not have a valid prototype", code: "MISRAC2012-Rule-1.5_b [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(13, 5), relatedInformation: [] },
         { message: "Found use of obsolescent language feature. 'bad_fun' does not have a valid prototype", code: "MISRAC2012-Rule-1.5_b [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] }
     ];
