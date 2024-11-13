@@ -15,6 +15,7 @@ suite("Test Public TS Api", function() {
     let api: BuildExtensionApi;
     let sourceConfigPath: string;
     let basicDebuggingPath: string;
+    let basicProjectPath: string;
 
     suiteSetup(async function() {
         console.log("TS API tests");
@@ -26,6 +27,7 @@ suite("Test Public TS Api", function() {
         const sandboxPath = VscodeTestsSetup.setup();
         sourceConfigPath = Path.join(sandboxPath, "SourceConfiguration/Project/SourceConfiguration.ewp");
         basicDebuggingPath = Path.join(sandboxPath, "GettingStarted/BasicDebugging.ewp");
+        basicProjectPath = Path.join(sandboxPath, "BasicProject/BasicProject.ewp");
         await VscodeTestsUtils.activateWorkspace("TestProjects");
     });
 
@@ -114,4 +116,9 @@ suite("Test Public TS Api", function() {
             }
         }
     });
+
+    test("Can build project", async() => {
+        await api.buildProject(basicProjectPath, "Debug");
+    });
+
 });
