@@ -114,7 +114,7 @@ export class OpenTaskExecution implements Vscode.Pseudoterminal {
 
         this.writeEmitter.fire(`> '${workbench}' '${workspace}'\r\n`);
         // Note the 'detached'. We spawn the workbench and forget about it.
-        spawn(workbench, [workspace], { shell: true, detached: true });
+        spawn(workbench, [workspace], { shell: false, detached: true });
         this.closeEmitter.fire(0);
     }
 
