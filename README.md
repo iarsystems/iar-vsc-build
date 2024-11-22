@@ -47,7 +47,7 @@ To make this easier, you may wish to [Add a default build task](https://github.c
 
 This extension is compatible with any versions of IAR Embedded Workbench (EW) or IAR Build Tools (BX) installations using IDE version 8 or newer.
 
-The table below lists known limitations concerning earlier versions of both IAR products for each supported target architecture. Note that BXARM 9.30.1-9.32.1 do not support the *Files* view, otherwise the supported versions are the same for IAR Embedded Workbench and IAR Build Tools installations.
+The table below lists known limitations concerning earlier versions of both IAR products for each supported target architecture. Note that BXARM 9.30.1-9.32.2 do not support the *Files* view, otherwise the supported versions are the same for IAR Embedded Workbench and IAR Build Tools installations.
 
 | Target architecture | Product Version | Known Limitation
 |---------------------|-----------------|-----------
