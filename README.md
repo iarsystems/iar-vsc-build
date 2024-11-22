@@ -45,24 +45,21 @@ To make this easier, you may wish to [Add a default build task](https://github.c
 
 ## Compatibility
 
-This extension is compatible with any IAR Embedded Workbench (EW) or IAR Build Tools version (BX) using IDE version 8 or newer. The table below helps you find the extension version supporting your IAR Embedded Workbench product.
-The supported versions are the same for IAR Build Tools installations, but IAR Build Tools does not support the file view or adding/removing files from a project.
+This extension is compatible with any versions of IAR Embedded Workbench (EW) or IAR Build Tools (BX) installations using IDE version 8 or newer.
 
-<details><summary>IAR EW/BX - Compatibility table</summary>
+The table below lists known limitations concerning earlier versions of both IAR products for each supported target architecture. Note that BXARM 9.30.1-9.32.1 do not support the *Files* view, otherwise the supported versions are the same for IAR Embedded Workbench and IAR Build Tools installations.
 
-| IAR EW/BX version  | Limitation
-|--------------|---------
-| Arm v9.30.1 or later <br>RISC-V v3.10 or later <br>RH850 v3.10 or later <br>430 v8.10 or later <br>RL78 v5.10 or later <br>AVR v8.10 or later <br> RX v5.10 or later | None |
-| Arm v9.20.4 | Batch builds do not persist to the workspace file. |
-| Arm v8.10-9.20.3<br>RISC-V v1.10-2.11<br>430 v7.10-7.21<br>RL78 v3.10-4.21<br>RX v3.10-4.20<br>RH850 v2.10-2.21<br>AVR v7.10-7.30<br>8051 v10.10 or later<br>| File view and possibility to add/remove files from a project is not supported. Batch builds do not persist to the workspace file. |
-
-</details>
+| Target architecture | Product Version | Known Limitation
+|---------------------|-----------------|-----------
+| Arm<br>RISC-V<br>430<br>AVR<br>RH850<br>RL78<br>RX | v9.30.1 or later <br>v3.10.1 or later <br>v8.10.1 or later <br>v8.10.1 or later <br>v3.10.1 or later <br>v5.10.1 or later <br>v5.10.1 or later | None.
+| Arm | v9.20.4 | Batch builds do not persist in the workspace file.
+| Arm<br>RISC-V<br>430<br>AVR<br>RH850<br>RL78<br>RX<br>8051 | v8.10.1-9.20.3 <br>v1.10.1-2.11.1 <br>v7.10.1-7.21.1 <br>v7.10.1-7.30.5 <br>v2.10.1-2.21.1 <br>v3.10.1-4.21.4 <br>v3.10.1-4.20.3 <br>v10.10.1 or later | - Batch builds do not persist in the workspace file.<br>- Adding/Removing files from a project is not supported.<br>- Files view is not supported.
 
 ## Feedback
 
 Depending on the type of feedback you want to share with us, here are our preferred options:
 
-* For urgent matters with the extension, or if you have issues with the underlying IAR Embedded Workbench or IAR Build Tools product, report this via the IAR Systems technical support channel at [IAR Technical Support](https://www.iar.com/knowledge/support/request-technical-support/).
+* For urgent matters with the extension, or if you have issues with the underlying IAR Embedded Workbench or IAR Build Tools product, report them via the [IAR Technical Support](https://www.iar.com/knowledge/support/request-technical-support/) channel.
 
 * For other matters isolated to this extension, file a [New issue](https://github.com/IARSystems/iar-vsc-build/issues/new/choose) using the provided template. We will reply on a "best effort basis".
 
