@@ -53,12 +53,14 @@ export class IarToolManager implements ToolManager {
             if (workbench) {
                 workbenches.push(workbench);
             } else {
-                workbenches = workbenches.concat(await IarToolManager.collectWorkbenchesFrom(directory));
+                const found = await IarToolManager.collectWorkbenchesFrom(directory);
+                workbenches = workbenches.concat(found);
             }
         }));
         if (useRegistry && OsUtils.OsType.Windows === OsUtils.detectOsType()) {
             try {
-                workbenches = workbenches.concat(await IarToolManager.collectFromWindowsRegistry());
+                const found = await IarToolManager.collectFromWindowsRegistry();
+                workbenches = workbenches.concat(found);
             } catch (e) {
                 logger.error("Failed to fetch toolchains from registry: " + e);
             }
