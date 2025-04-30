@@ -9,17 +9,20 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { Workbench } from "iar-vsc-common/workbench";
 import { EwwFile } from "../iar/workspace/ewwfile";
+import { ExtensionUtils } from "./utils";
 
 /**
  * The public typescript API that is accessible to other extensions, see {@link BuildExtensionApi}.
  */
 export const API: BuildExtensionApi = {
 
-    getSelectedWorkbench() {
+    async getSelectedWorkbench() {
+        await ExtensionUtils.ensureWorkbenchesDiscovered();
         return Promise.resolve(ExtensionState.getInstance().workbenches.selected?.path.toString());
     },
 
     async getSelectedConfiguration(projectPath) {
+        await ExtensionUtils.ensureWorkbenchesDiscovered();
         const workspace = await ExtensionState.getInstance().workspace.getValue();
         const selectedPath = workspace?.projects.selected?.path;
         if (selectedPath && OsUtils.pathsEqual(projectPath, selectedPath)) {
@@ -32,6 +35,7 @@ export const API: BuildExtensionApi = {
     },
 
     async getProjectConfigurations(projectPath) {
+        await ExtensionUtils.ensureWorkbenchesDiscovered();
         const workspace = await ExtensionState.getInstance().workspace.getValue();
         const selectedProject = workspace?.projects.selected;
         if (selectedProject && OsUtils.pathsEqual(projectPath, selectedProject.path)) {
@@ -43,11 +47,13 @@ export const API: BuildExtensionApi = {
     },
 
     async getSelectedProject() {
+        await ExtensionUtils.ensureWorkbenchesDiscovered();
         const workspace = await ExtensionState.getInstance().workspace.getValue();
         return workspace?.projects.selected?.path.toString();
     },
 
     async getCSpyCommandline(projectPath, configuration) {
+        await ExtensionUtils.ensureWorkbenchesDiscovered();
         const workspace = await ExtensionState.getInstance().workspace.getValue();
         const project = workspace?.projects.items.find(proj => OsUtils.pathsEqual(proj.path, projectPath));
         if (workspace?.isExtendedWorkspace() && project) {
@@ -58,6 +64,7 @@ export const API: BuildExtensionApi = {
     },
 
     async buildProject(projectPath, configuration) {
+        await ExtensionUtils.ensureWorkbenchesDiscovered();
         const workbench = await this.getSelectedWorkbench();
         if (!workbench) {
             return Promise.reject(new Error("No toolchain selected"));
