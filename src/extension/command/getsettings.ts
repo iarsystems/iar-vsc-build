@@ -10,6 +10,7 @@ import { InputModel } from "../model/model";
 import { AsyncObservable } from "../../utils/asyncobservable";
 import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 import { EwwFile } from "../../iar/workspace/ewwfile";
+import { ExtensionUtils } from "../utils";
 
 export enum GetSettingsCommand {
     Workbench = "iar-config.toolchain",
@@ -20,7 +21,7 @@ export enum GetSettingsCommand {
     ArgVarFile = "iar-config.argument-variables-file",
 }
 
-class GetInputModelValue<T> extends CommandBase<string> {
+class GetInputModelValue<T> extends CommandBase<Promise<string>> {
 
     constructor(
         id: GetSettingsCommand,
@@ -30,7 +31,8 @@ class GetInputModelValue<T> extends CommandBase<string> {
         super(id);
     }
 
-    executeImpl(): string {
+    protected override async executeImpl(): Promise<string> {
+        await ExtensionUtils.ensureWorkbenchesDiscovered();
         // We should not return undefined here. These commands are used as variables in e.g. tasks, and returning
         // undefined from a command variable will make the task fail silently.
         return this.model.selected ?
@@ -50,6 +52,7 @@ class WorkspaceCommand extends CommandBase<Promise<string>> {
     }
 
     protected override async executeImpl(): Promise<string> {
+        await ExtensionUtils.ensureWorkbenchesDiscovered();
         const ws = await this.model.getValue();
         if (ws) {
             return this.executor(ws) ?? "";
