@@ -132,12 +132,13 @@ export class BuildTaskExecution extends StylizedTerminal {
                 }
             }
 
-            const workspaceFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(context.project))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+            const cwd = this.definition.options?.cwd?? Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(context.project))?.uri.fsPath ?? Vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
             try {
                 await ProjectLock.runExclusive(context.project, () => {
                     return BackupUtils.doWithBackupCheck(context.project, async() => {
                         this.builtProjects.push(context.project);
-                        const iarbuild = spawn(builder, args, { cwd: workspaceFolder });
+                        const iarbuild = spawn(builder, args, { cwd: cwd, env: this.definition.options?.env});
                         this.write("> " + iarbuild.spawnargs.map(arg => `'${arg}'`).join(" ") + "\n");
                         iarbuild.stdout.on("data", data => {
                             this.write(data.toString());

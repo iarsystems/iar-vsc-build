@@ -65,6 +65,7 @@ namespace Utils {
             project,
             command,
             config,
+            options: undefined
         };
         const task = BuildTasks.generateFromDefinition(definition);
         assert(task);

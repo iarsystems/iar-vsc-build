@@ -88,6 +88,7 @@ export const API: BuildExtensionApi = {
             contexts: [],
             argumentVariablesFile: workspace ? EwwFile.findArgvarsFileFor(workspace) : undefined,
             extraBuildArguments: undefined,
+            options: undefined
         };
         const task = BuildTasks.generateFromDefinition(definition);
         if (!task) {
