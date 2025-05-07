@@ -14,7 +14,12 @@ export interface Context{
     readonly config: string
 }
 
-export interface BuildTaskDefinition {
+export interface Options{
+    readonly cwd?: string,
+    readonly env?: { [key: string]: string }
+}
+
+export interface BuildTaskDefinition{
     readonly label: string;
     readonly type: string;
     readonly command: string;
@@ -24,6 +29,7 @@ export interface BuildTaskDefinition {
     readonly contexts: Context[];
     readonly argumentVariablesFile: string | undefined;
     readonly extraBuildArguments: string[] | undefined;
+    readonly options: Options | undefined;
 }
 
 

@@ -618,6 +618,20 @@
             },
             "description": "Extra arguments to supply to iarbuild (e.g. [\"-parallel\", \"8\"]). Leave undefined to use the extension settings.",
             "default": []
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "cwd": {
+                "type": "string",
+                "description": "Set cwd for the execution",
+                "format": "string"
+              },
+              "env": {
+                "description": "Environment variables to use during the execution.",
+                "type": "object"
+              }
+            }
           }
         },
         "required": [
