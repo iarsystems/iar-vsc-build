@@ -92,10 +92,10 @@ suite("Test build extension", ()=>{
                 return rm(path.join(sandbox.path, node), {recursive: true, force: true});
             })
         );
-        await VscodeTestsUtils.activateWorkspace("TestProjects");
     });
 
-    setup(function() {
+    setup(async function() {
+        await VscodeTestsUtils.activateWorkspace("TestProjects");
         console.log("\n==========================================================" + this.currentTest!.title + "==========================================================\n");
     });
 
@@ -177,6 +177,39 @@ suite("Test build extension", ()=>{
             const ewId: string = path.basename(configuredEw.toString());
             assert(listedEws.some(ew => ew.name.startsWith(ewId)));
         }
+    });
+
+    test("Check that modifying custom_argvars affects extension state", async function() {
+        this.timeout(40000);
+        await VscodeTestsUtils.activateWorkspace("ArgVars1");
+
+        // Check that there is a Fibonacci.c in the
+        let workspace = await ExtensionState.getInstance().workspace.getValue();
+        let project = workspace!.projects.selected;
+        assert.strictEqual(project!.configurations.length, 2);
+        assert(project!.findConfiguration("Release") !== undefined);
+        if (TestConfiguration.getConfiguration().testThriftSupport) {
+            const extProject = await workspace!.asExtendedWorkspace()!.getExtendedProject(project!);
+            assert((await extProject!.getRootNode())?.children.some(node => node.name === "Fibonacci.c"));
+        }
+
+        // Modify the argvar file and ensure that the project is reloaded with the correct files.
+        const argvarFile = path.join(sandboxPath, "ArgVars1.custom_argvars");
+        let argvarContents = fs.readFileSync(argvarFile).toString();
+        argvarContents = argvarContents.replace("<value>Fibonacci</value>", "<value>Fibonacci_2</value>");
+        fs.writeFileSync(argvarFile, argvarContents);
+        await new Promise((p, _) => setTimeout(p, 3000));
+
+        workspace = await ExtensionState.getInstance().workspace.getValue();
+        project = workspace!.projects.selected;
+        assert.strictEqual(project!.configurations.length, 2);
+        assert(project!.findConfiguration("Release") !== undefined);
+        if (TestConfiguration.getConfiguration().testThriftSupport) {
+            const extProject = await workspace!.asExtendedWorkspace()!.getExtendedProject(project!);
+            const nodes = (await extProject!.getRootNode())?.children;
+            assert(nodes.some(node => node.name === "Fibonacci_2.c"));
+        }
+
     });
 
     test("Check that modifying projects affects extension state", async function() {
