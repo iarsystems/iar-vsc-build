@@ -126,6 +126,7 @@ export async function deactivate() {
     CStatTaskProvider.unRegister();
     IarVsc.ewpWatcher?.dispose();
     IarVsc.ewwWatcher?.dispose();
+    IarVsc.argvarWatcher?.dispose();
     IarVsc.outputChannelProvider.dispose();
     await ExtensionState.getInstance().dispose();
 }
@@ -157,6 +158,20 @@ async function setupFileWatchers(context: vscode.ExtensionContext) {
         const workspaceModel = ExtensionState.getInstance().workspaces;
         if (workspaceModel.selected && OsUtils.pathsEqual(workspaceModel.selected?.path, modifiedFile)) {
             await ExtensionState.getInstance().reloadWorkspace();
+        }
+    });
+
+    // .custom_argvars files
+    IarVsc.argvarWatcher = await FileListWatcher.initialize("**/*.custom_argvars");
+    context.subscriptions.push(IarVsc.argvarWatcher);
+
+    IarVsc.argvarWatcher.onFileModified(async modifiedFile => {
+        const workspaceModel = ExtensionState.getInstance().workspaces;
+        if (workspaceModel.selected) {
+            const workspaceArgvarFile = EwwFile.findArgvarsFileFor(workspaceModel.selected);
+            if (workspaceArgvarFile && OsUtils.pathsEqual(workspaceArgvarFile, modifiedFile)) {
+                await ExtensionState.getInstance().reloadWorkspace();
+            }
         }
     });
 
@@ -215,6 +230,7 @@ export namespace IarVsc {
     export const toolManager = new IarToolManager();
     export const workbenchesLoading = new BehaviorSubject<boolean>(false);
     export let ewwWatcher: FileListWatcher | undefined;
+    export let argvarWatcher: FileListWatcher | undefined;
     export let ewpWatcher: FileListWatcher | undefined;
     export const outputChannelProvider  = new OutputChannelRegistry();
     // exported mostly for testing purposes
