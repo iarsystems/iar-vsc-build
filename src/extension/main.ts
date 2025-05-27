@@ -112,6 +112,10 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     loadTools(addWorkbenchCmd);
     ExtensionSettings.observeSetting(ExtensionSettings.ExtensionSettingsField.IarInstallDirectories, () => loadTools());
 
+    // --- the user is about to use IAR tools, and needs to know whether they
+    // are logged in (this has not effect if the extension is not installed or
+    // the LMSC tools are not installed)
+    vscode.extensions.getExtension("iarsystems.iar-login")?.activate();
 
     // --- provide the public typescript API
     return API;
