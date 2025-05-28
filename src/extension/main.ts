@@ -113,7 +113,7 @@ export function activate(context: vscode.ExtensionContext): BuildExtensionApi {
     ExtensionSettings.observeSetting(ExtensionSettings.ExtensionSettingsField.IarInstallDirectories, () => loadTools());
 
     // --- the user is about to use IAR tools, and needs to know whether they
-    // are logged in (this has not effect if the extension is not installed or
+    // are logged in (this has no effect if the extension is not installed or
     // the LMSC tools are not installed)
     vscode.extensions.getExtension("iarsystems.iar-login")?.activate();
 
