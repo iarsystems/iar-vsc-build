@@ -701,8 +701,7 @@
     }
   },
   "extensionDependencies": [
-    "ms-vscode.cpptools",
-    "iarsystems.iar-login"
+    "ms-vscode.cpptools"
   ],
   "scripts": {
     "lint": "eslint . --ext .ts && markdownlint **/*.md --ignore node_modules",
