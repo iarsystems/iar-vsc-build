@@ -158,6 +158,8 @@ suite("Test build extension", ()=>{
         await Utils.assertFileNotExists(exeFile);
 
         // Finally, check that no backup files were created (VSC-192)
+        // Give the file system time to remove the files
+        await new Promise((p, _) => setTimeout(p, 500));
         const backups = fs.readdirSync(path.dirname(testEwp)).filter(entry => entry.match(/Backup (\(\d+\) )?of /));
         assert.strictEqual(backups.length, 0, "The following backups were created: " + backups.join(", "));
     });
