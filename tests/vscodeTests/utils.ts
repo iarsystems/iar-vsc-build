@@ -55,17 +55,23 @@ export namespace VscodeTestsUtils {
                 //     await VscodeTestsUtils.projectLoaded(projectLabel);
                 // }
             }
+        } else {
+            console.warn("No workspace loaded, cannot activate project " + projectLabel);
         }
     }
 
-    export function activateWorkspace(workspaceLabel: string) {
+    export async function activateWorkspace(workspaceLabel: string) {
         // const workspace = await ExtensionState.getInstance().workspace.getValue();
         if (ExtensionState.getInstance().workspaces.selected?.name !== workspaceLabel) {
             ExtensionState.getInstance().workspaces.selectWhen(workspace => workspace.name === workspaceLabel);
         }
-        // if (TestConfiguration.getConfiguration().testThriftSupport && workspace?.name !== workspaceLabel) {
-        //     await VscodeTestsUtils.workspaceLoaded(workspaceLabel);
-        // }
+        if (
+            TestConfiguration.getConfiguration().testThriftSupport &&
+            ExtensionState.getInstance().workspaces.selected?.name !==
+                workspaceLabel
+        ) {
+            await VscodeTestsUtils.workspaceLoaded(workspaceLabel);
+        }
     }
 
     export async function activateConfiguration(configurationTag: string) {
