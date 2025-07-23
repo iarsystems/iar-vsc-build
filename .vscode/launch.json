@@ -21,6 +21,25 @@
             "sourceMaps": true,
             "trace": true
         },
+		{
+ 			"type": "extensionHost",
+ 			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+ 			"name": "iar-build & iar-login",
+			"sourceMaps": true,
+			"debugWebviews": true,
+			"env": {
+				"log-to-console": "true"
+			},
+ 			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"--extensionDevelopmentPath=${workspaceFolder}/../iar-vsc-login"
+ 			],
+			"outFiles": [
+				"${workspaceFolder}/out/src/extension/main.js",
+				"${workspaceFolder}/../iar-vsc-login/out/**/*.js"
+			],
+		},
         {
             "name": "Extension Tests",
             "type": "extensionHost",
