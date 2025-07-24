@@ -155,7 +155,7 @@ export namespace TestConfiguration {
             testCMakeIntegration: false,
             vscodeTestProjectsDir: Path.join(__dirname, "../../tests/vscodeTests/TestProjects/rl78"),
             strictCstatCheck: false,
-            cstatOutputDir: "Obj",
+            cstatOutputDir: "C-STAT",
             cstatHeaderQuoting: ["`", "'"],
             integrationTestProjectsDir: Path.resolve(__dirname, "../../tests/integrationTests/TestProjects/rl78"),
             defaultIncludePaths: [new RegExp("rl78[/\\\\]inc[/\\\\]"), new RegExp("rl78[/\\\\]inc[/\\\\]c")],
