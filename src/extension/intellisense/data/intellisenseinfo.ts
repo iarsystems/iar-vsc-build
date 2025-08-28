@@ -17,3 +17,12 @@ export interface IntellisenseInfo {
     preincludes: PreIncludePath[];
     defines: Define[];
 }
+
+/**
+ * The browse info for a project. This is used by intellisense providers to
+ * determine which files to index.
+ */
+export interface BrowseInfo {
+    /** All folders which contain source/header files. */
+    browsePaths: Set<string>;
+}

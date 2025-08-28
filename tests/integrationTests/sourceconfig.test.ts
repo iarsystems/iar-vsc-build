@@ -48,7 +48,7 @@ suite("Test source configuration providers", function() {
         const intellisenseProv = await WorkspaceIntellisenseProvider.loadWorkspace(workspace, workbench);
         // Load a file so there is a valid browse config
         await intellisenseProv.getIntellisenseInfoFor(projectFile);
-        const config = intellisenseProv.getBrowseInfo();
+        const config = intellisenseProv.getFallbackInfo();
         for (const regex of TestConfiguration.getConfiguration().defaultIncludePaths) {
             Assert(config.includes.some(path => path.absolutePath.toString().match(regex)));
         }
@@ -62,7 +62,7 @@ suite("Test source configuration providers", function() {
         const intellisenseProv = await WorkspaceIntellisenseProvider.loadWorkspace(workspace, workbench);
         // Load a file so there is a valid browse config
         await intellisenseProv.getIntellisenseInfoFor(projectFile);
-        const config = intellisenseProv.getBrowseInfo();
+        const config = intellisenseProv.getFallbackInfo();
         Assert(config.includes.some(path => path.absolutePath.toString().endsWith("cpp")), `Does not include c++ header directory. Includes were: ${config.includes.map(i => i.absolutePath.toString())}`);
         // Assumes this define is always there, but might not be if using an old c++ standard?
         Assert(config.defines.some(define => define.identifier === "__cpp_constexpr"), "Does not include c++ defines");
@@ -74,5 +74,12 @@ suite("Test source configuration providers", function() {
         const config = await (await WorkspaceIntellisenseProvider.loadWorkspace(workspace, workbench)).getIntellisenseInfoFor(projectFile);
         Assert(config.includes!.some(path => OsUtils.pathsEqual(path.path.toString(), Path.join(projectDir, "inc2"))));
         Assert(config.defines!.some(define => define.identifier === "FILE_SYMBOL"));
+    });
+
+    test("Provides browse paths", async() => {
+        const browseInfo = (await WorkspaceIntellisenseProvider.loadWorkspace(workspace, workbench)).getBrowseInfo();
+        const browsePaths = Array.from(browseInfo.browsePaths);
+        Assert.strictEqual(browsePaths.length, 1, `Browse paths were: ${browsePaths}`);
+        Assert(browsePaths.some(path => OsUtils.pathsEqual(path, projectDir)), `Browse paths were: ${browsePaths}`);
     });
 });
