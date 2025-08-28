@@ -101,17 +101,9 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
             {
                 const cplusplus = defines.find(def => def.identifier === "__cplusplus");
                 if (cplusplus) {
-                    if (cplusplus.value && LANG_STANDARD_DEFINES[cplusplus.value]) {
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        standard = LANG_STANDARD_DEFINES[cplusplus.value]!;
-                    } else {
-                        standard = "c++17";
-                    }
+                    standard = tryGetCppStandard(defines) ?? "c++17";
                 } else {
-                    const stdcVersion = defines.find(def => def.identifier === "__STDC_VERSION__");
-                    if (stdcVersion && stdcVersion.value) {
-                        standard = LANG_STANDARD_DEFINES[stdcVersion.value] ?? "c11";
-                    }
+                    standard = tryGetCStandard(defines) ?? "c11";
                 }
             }
 
@@ -188,7 +180,16 @@ function tryGetCStandard(defines: Define[]): LangStandard | undefined {
 }
 function tryGetCppStandard(defines: Define[]): LangStandard | undefined {
     const cppDefine = defines.find(def => def.identifier === "__cplusplus");
-    return cppDefine && cppDefine.value ? LANG_STANDARD_DEFINES[cppDefine.value] : undefined;
+    if (!cppDefine?.value) {
+        return undefined;
+    }
+    const isLibCpp = defines.some(def => def.identifier === "_LIBCPP");
+    if (isLibCpp) {
+        // VSC-542 IAR compilers support some c++20 features when using libc++,
+        // but still set __cplusplus to 201703L. Override it.
+        return "c++20";
+    }
+    return LANG_STANDARD_DEFINES[cppDefine.value];
 }
 const LANG_STANDARD_DEFINES: Record<string, LangStandard> = {
     "199409L": "c89",
