@@ -150,12 +150,18 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
         return Promise.resolve(true);
     }
     provideBrowseConfiguration(_token?: Vscode.CancellationToken | undefined): Promise<WorkspaceBrowseConfiguration> {
-        const config = this.intellisenseInfoProvider.provideBrowseInfo();
+        const config = this.intellisenseInfoProvider.provideFallbackInfo();
         const includes = config?.includes.concat(config.preincludes ?? []) ?? [];
         const defines = config?.defines ?? [];
         const standard = tryGetCStandard(defines) ?? tryGetCppStandard(defines) ?? "c11";
+
+        const browsePaths =
+            this.intellisenseInfoProvider.provideBrowseInfo()?.browsePaths ??
+            new Set<string>();
+        includes.forEach(inc => browsePaths.add(inc.absolutePath.toString()));
+
         return Promise.resolve({
-            browsePath: includes?.map(inc => inc.absolutePath.toString()),
+            browsePath: Array.from(browsePaths),
             compilerPath: "",
             compilerArgs: [],
             standard,

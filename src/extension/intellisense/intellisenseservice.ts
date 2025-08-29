@@ -9,7 +9,7 @@ import { ExtensionState } from "../extensionstate";
 import { ExtensionSettings } from "../settings/extensionsettings";
 import { WorkspaceIntellisenseProvider } from "./workspaceintellisenseprovider";
 import { Define } from "./data/define";
-import { IntellisenseInfo } from "./data/intellisenseinfo";
+import { BrowseInfo, IntellisenseInfo } from "./data/intellisenseinfo";
 import { FsUtils } from "../../utils/fs";
 import { Keyword } from "./data/keyword";
 import { EwWorkspace } from "../../iar/workspace/ewworkspace";
@@ -107,7 +107,7 @@ export class IntellisenseInfoService {
             let intellisenseInfo: IntellisenseInfo;
             if (!this.workspaceIntellisenseInfo.canHandleFile(file)) {
                 logger.debug(`Using fallback intellisense configuration for '${file}'`);
-                intellisenseInfo = this.workspaceIntellisenseInfo.getBrowseInfo();
+                intellisenseInfo = this.workspaceIntellisenseInfo.getFallbackInfo();
             } else {
                 intellisenseInfo = await this.workspaceIntellisenseInfo.getIntellisenseInfoFor(file);
             }
@@ -136,13 +136,17 @@ export class IntellisenseInfoService {
         }
     }
 
-    public provideBrowseInfo(): IntellisenseInfo {
-        const config = this.workspaceIntellisenseInfo?.getBrowseInfo();
+    public provideFallbackInfo(): IntellisenseInfo {
+        const config = this.workspaceIntellisenseInfo?.getFallbackInfo();
         return {
             defines: config?.defines ?? [],
             includes: config?.includes ?? [],
             preincludes: config?.preincludes ?? [],
         };
+    }
+
+    public provideBrowseInfo(): BrowseInfo | undefined {
+        return this.workspaceIntellisenseInfo?.getBrowseInfo();
     }
 
     /**

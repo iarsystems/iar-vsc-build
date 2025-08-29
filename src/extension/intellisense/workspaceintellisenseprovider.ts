@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import { IntellisenseInfo as IntellisenseInfo } from "./data/intellisenseinfo";
+import { BrowseInfo, IntellisenseInfo as IntellisenseInfo } from "./data/intellisenseinfo";
 import * as vscode from "vscode";
 import * as Path from "path";
 import * as fsPromises from "fs/promises";
@@ -15,7 +15,7 @@ import { tmpdir } from "os";
 import { FsUtils } from "../../utils/fs";
 import { ExtensionSettings } from "../settings/extensionsettings";
 import { BackupUtils, ErrorUtils, LanguageUtils, ListUtils, ProcessUtils } from "../../utils/utils";
-import { IncludePath, IncludePathImpl } from "./data/includepath";
+import { IncludePath } from "./data/includepath";
 import { Define } from "./data/define";
 import { PreIncludePath, StringPreIncludePath } from "./data/preincludepath";
 import { OsUtils } from "iar-vsc-common/osUtils";
@@ -79,7 +79,8 @@ export class WorkspaceIntellisenseProvider {
         }
     }
 
-    private readonly browseInfo: IntellisenseInfo;
+    private readonly fallbackInfo: IntellisenseInfo;
+    private readonly browseInfo: BrowseInfo;
     private preferredProject: Project | undefined = undefined;
 
     private constructor(
@@ -89,18 +90,19 @@ export class WorkspaceIntellisenseProvider {
         private readonly workspaceFolder?: string,
         private readonly outputChannel?: vscode.OutputChannel,
     ) {
-        const sourceDirectories = new Set<string>();
-        for (const compDb of projectCompDbs.values()) {
-            compDb.projectFiles.forEach(
-                sourceFile => sourceDirectories.add(Path.dirname(sourceFile)));
-        }
-        this.browseInfo = {
+        this.fallbackInfo = {
             defines: [],
-            // VSC-389 Source paths must be included in browse info, or else
-            // those files won't be parsed.
-            includes: Array.from(sourceDirectories).map(dir => new IncludePathImpl(dir)),
+            includes: [],
             preincludes: [],
         };
+        this.browseInfo = {
+            browsePaths: new Set<string>(),
+        };
+        for (const compDb of projectCompDbs.values()) {
+            compDb.projectFiles.forEach(sourceFile =>
+                this.browseInfo.browsePaths.add(Path.dirname(sourceFile)),
+            );
+        }
     }
 
     /**
@@ -114,11 +116,11 @@ export class WorkspaceIntellisenseProvider {
         const compDb = this.getCompilationDb(file);
         if (compDb) {
             const [intellisenseInfo, cacheHit] = await compDb.getIntellisenseInfoFor(file);
-            // the first time we generate intellisense info for a file, also add it to the browse info
+            // the first time we generate intellisense info for a file, also add it to the fallback info
             if (!cacheHit) {
-                this.browseInfo.includes = ListUtils.mergeUnique(inc => inc.absolutePath.toString(), intellisenseInfo.includes, this.browseInfo.includes);
-                this.browseInfo.defines = ListUtils.mergeUnique(def => def.makeString(), intellisenseInfo.defines, this.browseInfo.defines);
-                this.browseInfo.preincludes = ListUtils.mergeUnique(inc => inc.absolutePath.toString(), intellisenseInfo.preincludes, this.browseInfo.preincludes);
+                this.fallbackInfo.includes = ListUtils.mergeUnique(inc => inc.absolutePath.toString(), intellisenseInfo.includes, this.fallbackInfo.includes);
+                this.fallbackInfo.defines = ListUtils.mergeUnique(def => def.makeString(), intellisenseInfo.defines, this.fallbackInfo.defines);
+                this.fallbackInfo.preincludes = ListUtils.mergeUnique(inc => inc.absolutePath.toString(), intellisenseInfo.preincludes, this.fallbackInfo.preincludes);
             }
             return intellisenseInfo;
         }
@@ -126,10 +128,18 @@ export class WorkspaceIntellisenseProvider {
     }
 
     /**
-     * Gets the browse info for this workspace, i.e. the intellisense info to use when file-specific info is not
-     * available (e.g. for some headers). This is just the union of all file-specific intellisense info we've loaded so far.
+     * Gets the intellisense info to use when file-specific info is not
+     * available (e.g. for some headers). This is just the union of all
+     * file-specific intellisense info we've loaded so far.
      */
-    getBrowseInfo(): IntellisenseInfo {
+    getFallbackInfo(): IntellisenseInfo {
+        return this.fallbackInfo;
+    }
+
+    /**
+     * Gets the browse info for the workspace (i.e. the list of source directories).
+     */
+    getBrowseInfo(): BrowseInfo {
         return this.browseInfo;
     }
 
