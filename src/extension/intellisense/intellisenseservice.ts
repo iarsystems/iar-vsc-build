@@ -112,6 +112,20 @@ export class IntellisenseInfoService {
                 intellisenseInfo = await this.workspaceIntellisenseInfo.getIntellisenseInfoFor(file);
             }
 
+            intellisenseInfo.defines = intellisenseInfo.defines.map(def => {
+                // clang's builtin va_list type (__builtin_va_list) has a different name
+                // from the one used by IAR compilers (struct __va_list). The stdlib uses
+                // this macro to typedef va_list; we can make it point to the correct type
+                // by overriding the macro.
+                if (def.identifier === "_VA_LIST") {
+                    return Define.fromIdentifierValuePair(
+                        def.identifier,
+                        "__builtin_va_list",
+                    );
+                }
+                return def;
+            });
+
             let keywordDefines: Define[] = [];
             let targetId = this.workspaceIntellisenseInfo.getTargetIdForFile(file);
             // If the file is unknown we don't know what target to use, so just guess.
