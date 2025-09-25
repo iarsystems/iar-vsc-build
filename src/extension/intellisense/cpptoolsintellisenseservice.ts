@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Vscode from "vscode";
+import * as path from "path";
 import { CustomConfigurationProvider, getCppToolsApi, Version, CppToolsApi, SourceFileConfiguration, SourceFileConfigurationItem, WorkspaceBrowseConfiguration } from "vscode-cpptools";
 import { LanguageUtils } from "../../utils/utils";
 import { Define } from "./data/define";
@@ -153,7 +154,8 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
         includes.forEach(inc => browsePaths.add(inc.absolutePath.toString()));
 
         return Promise.resolve({
-            browsePath: Array.from(browsePaths),
+            // VSC-544 Adding "*" at the end stops cpptools from recursively searching directories
+            browsePath: Array.from(browsePaths).map(p => path.join(p, "*")),
             compilerPath: "",
             compilerArgs: [],
             standard,
