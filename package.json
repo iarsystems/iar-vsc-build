@@ -460,7 +460,8 @@
             "__section_size(...)=((size_t)0)",
             "__segment_begin(...)=((void*)0)",
             "__segment_end(...)=((void*)0)",
-            "__segment_size(...)=((size_t)0)"
+            "__segment_size(...)=((size_t)0)",
+            "__DATA_MEMORY_LIST1__()="
           ]
         },
         "iar-build.c-stat.filterLevel": {
