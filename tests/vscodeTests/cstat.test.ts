@@ -102,6 +102,8 @@ suite("Test C-STAT", () => {
             // new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(9, 1)), "Return NULL"),
         ] },
         { message: "Array `arr' 1st subscript 4 is out of bounds [0,3]", code: "ARR-inv-index,MISRAC++2008-5-0-16_c,MISRAC2012-Rule-18.1_a,CERT-ARR30-C_a [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 8), relatedInformation: [] },
+        { message: "Array `arr' 1st subscript interval 4 may be out of bounds [0,3]", code: "ARR-inv-index-pos,MISRAC++2008-5-0-16_d,MISRAC2012-Rule-18.1_b,CERT-ARR30-C_b [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 8), relatedInformation: [] },
+        { message: "Array pointer `arr' is accessed with index 4 which may be out of array bounds [0,3]", code: "ARR-inv-index-ptr-pos,MISRAC++2008-5-0-16_f,MISRAC2012-Rule-18.1_d,CERT-ARR30-C_d [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 8), relatedInformation: [] },
         { message: "Missing return statement on some paths", code: "MISRAC++2008-8-4-3,MISRAC2004-16.8,MISRAC2012-Rule-17.4 [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(13, 5), relatedInformation: [
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(13, 1)), "MISRAC++2008-8-4-3,MISRAC2004-16.8,MISRAC2012-Rule-17.4,SPC-return,MISRAC++2023-9.6.5"),
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(23, 1)), "if (a) is false"),
@@ -128,10 +130,6 @@ suite("Test C-STAT", () => {
         { message: "Found use of obsolescent language feature. 'bad_fun' does not have a valid prototype", code: "MISRAC2012-Rule-1.5_b [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
         { message: "Function or object with external linkage `global' should be in a header file", code: "MISRAC++2008-3-3-1 [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(6, 5), relatedInformation: [] },
         { message: "Function or object with external linkage `bad_fun()' should be in a header file", code: "MISRAC++2008-3-3-1 [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
-        { message: "Variable `arr' may be uninitialized", code: "MISRAC++2008-8-5-1_b,MISRAC2004-9.1_b,MISRAC2012-Rule-1.3_k,SPC-uninit-var-some [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 8), relatedInformation: [
-            new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(23, 1)), "if (a) is false"),
-            new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(26, 1)), "Read of `arr'"),
-        ] },
     ];
 
     test("Run C-STAT on all listed EWs", async function() {
@@ -243,16 +241,13 @@ suite("Test C-STAT", () => {
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(14, 1)), "fn_return"),
         ] },
         { message: "Array `arr' 1st subscript 4 is out of bounds [0,3]", code: "ARR-inv-index,MISRAC++2008-5-0-16_c,MISRAC2012-Rule-18.1_a,CERT-ARR30-C_a [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 8), relatedInformation: [] },
+        { message: "Array `arr' 1st subscript interval 4 may be out of bounds [0,3]", code: "ARR-inv-index-pos,MISRAC++2008-5-0-16_d,MISRAC2012-Rule-18.1_b,CERT-ARR30-C_b [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 8), relatedInformation: [] },
         { message: "Function call `bad_fun()' is immediately dereferenced, without checking for NULL", code: "PTR-null-fun-pos [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(23, 18), relatedInformation: [
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(23, 1)), "if (a) is true"),
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(23, 1)), "possible_null"),
             // TODO: uncomment this once CSTAT-674 is closed
             // new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(23, 1)), "Entering into bad_fun"),
             // new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(9, 1)), "Return NULL"),
-        ] },
-        { message: "Variable `arr' may be uninitialized", code: "MISRAC++2008-8-5-1_b,MISRAC2004-9.1_b,MISRAC2012-Rule-1.3_k,SPC-uninit-var-some [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 8), relatedInformation: [
-            new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(23, 1)), "if (a) is false"),
-            new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(26, 1)), "Read of `arr'"),
         ] },
     ];
     test("Run C-STAT with high filter level", async function() {
