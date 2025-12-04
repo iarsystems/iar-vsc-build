@@ -702,6 +702,7 @@
     }
   },
   "extensionDependencies": [
+    "iarsystems.iar-login",
     "ms-vscode.cpptools"
   ],
   "scripts": {
