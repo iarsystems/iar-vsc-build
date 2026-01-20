@@ -74,7 +74,7 @@ export class TreeProjectView {
                         // Enable/disable the 'add file/group' buttons on this view
                         Vscode.commands.executeCommand(
                             "setContext", "iar-build.canModifyProjectTree",
-                            project !== undefined && !config?.isControlFileManaged);
+                            project !== undefined && !config?.isCMakeProject);
                     } else {
                         hasExtendedProject = false;
                     }

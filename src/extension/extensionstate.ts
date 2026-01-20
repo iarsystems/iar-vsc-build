@@ -212,7 +212,7 @@ class StateImpl implements State, Disposable {
                         const proj = await newWorkspace.getExtendedProject();
                         Vscode.commands.executeCommand("setContext",
                             "iar-build.canConfigureProject",
-                            (await proj?.isCmakeOrCmsisProject()) ?? false);
+                            proj?.isCmakeOrCmsisProject() ?? false);
                     } else {
                         Vscode.commands.executeCommand("setContext", "iar-build.canConfigureProject", false);
                     }

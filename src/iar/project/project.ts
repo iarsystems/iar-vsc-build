@@ -66,7 +66,7 @@ export interface ExtendedProject extends Project {
      * Gets whether the projects is a CMake or CMSIS-Toolbox project (true) or
      * a regular project (false).
      */
-    isCmakeOrCmsisProject(): Promise<boolean>;
+    isCmakeOrCmsisProject(): boolean;
     /**
      * Only valid for cmake or cmsis projects. Brings the project up-to-date
      * with its input files (CMakeLists.txt or csolution/cproject).
