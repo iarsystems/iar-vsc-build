@@ -47,7 +47,7 @@ export class ToolbarWebview implements vscode.WebviewViewProvider {
             if (workspace && workspace.isExtendedWorkspace()) {
                 workspace.projects.addOnSelectedHandler(async() => {
                     const proj = await workspace.getExtendedProject();
-                    this.showConfigureIcon = proj !== undefined && await proj.isCmakeOrCmsisProject();
+                    this.showConfigureIcon = proj !== undefined && proj.isCmakeOrCmsisProject();
                     this.updateView();
                 });
             } else {
