@@ -9,7 +9,7 @@ import { ExtensionState } from "../extensionstate";
 import { ExtensionSettings } from "../settings/extensionsettings";
 import { WorkspaceIntellisenseProvider } from "./workspaceintellisenseprovider";
 import { Define } from "./data/define";
-import { IntellisenseInfo } from "./data/intellisenseinfo";
+import { BrowseInfo, IntellisenseInfo } from "./data/intellisenseinfo";
 import { FsUtils } from "../../utils/fs";
 import { Keyword } from "./data/keyword";
 import { EwWorkspace } from "../../iar/workspace/ewworkspace";
@@ -107,10 +107,24 @@ export class IntellisenseInfoService {
             let intellisenseInfo: IntellisenseInfo;
             if (!this.workspaceIntellisenseInfo.canHandleFile(file)) {
                 logger.debug(`Using fallback intellisense configuration for '${file}'`);
-                intellisenseInfo = this.workspaceIntellisenseInfo.getBrowseInfo();
+                intellisenseInfo = this.workspaceIntellisenseInfo.getFallbackInfo();
             } else {
                 intellisenseInfo = await this.workspaceIntellisenseInfo.getIntellisenseInfoFor(file);
             }
+
+            intellisenseInfo.defines = intellisenseInfo.defines.map(def => {
+                // clang's builtin va_list type (__builtin_va_list) has a different name
+                // from the one used by IAR compilers (struct __va_list). The stdlib uses
+                // this macro to typedef va_list; we can make it point to the correct type
+                // by overriding the macro.
+                if (def.identifier === "_VA_LIST") {
+                    return Define.fromIdentifierValuePair(
+                        def.identifier,
+                        "__builtin_va_list",
+                    );
+                }
+                return def;
+            });
 
             let keywordDefines: Define[] = [];
             let targetId = this.workspaceIntellisenseInfo.getTargetIdForFile(file);
@@ -136,13 +150,17 @@ export class IntellisenseInfoService {
         }
     }
 
-    public provideBrowseInfo(): IntellisenseInfo {
-        const config = this.workspaceIntellisenseInfo?.getBrowseInfo();
+    public provideFallbackInfo(): IntellisenseInfo {
+        const config = this.workspaceIntellisenseInfo?.getFallbackInfo();
         return {
             defines: config?.defines ?? [],
             includes: config?.includes ?? [],
             preincludes: config?.preincludes ?? [],
         };
+    }
+
+    public provideBrowseInfo(): BrowseInfo | undefined {
+        return this.workspaceIntellisenseInfo?.getBrowseInfo();
     }
 
     /**

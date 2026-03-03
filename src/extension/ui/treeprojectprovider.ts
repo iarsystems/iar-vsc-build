@@ -71,14 +71,31 @@ export class TreeProjectProvider implements Vscode.TreeDataProvider<FilesNode> {
     getTreeItem(element: FilesNode): Vscode.TreeItem | Thenable<Vscode.TreeItem> {
         const item = new Vscode.TreeItem(element.name);
 
-        if (element.iarNode.type === NodeType.File || element.iarNode.type === NodeType.ControlFile) {
+        if (
+            [
+                NodeType.File,
+                NodeType.ControlFile,
+                NodeType.ExternBinary,
+                NodeType.AuxExternBinary,
+            ].includes(element.iarNode.type)
+        ) {
             item.iconPath = Vscode.ThemeIcon.File;
-            item.command = { title: "Open in editor", command: "vscode.open", arguments: [Vscode.Uri.file(element.iarNode.path)] };
+            item.command = {
+                title: "Open in editor",
+                command: "vscode.open",
+                arguments: [Vscode.Uri.file(element.iarNode.path)],
+            };
             item.contextValue = "file";
             item.resourceUri = Vscode.Uri.file(element.iarNode.path);
         }
         if (element.iarNode.type === NodeType.Group) {
             item.iconPath = Vscode.ThemeIcon.Folder;
+            item.contextValue = "group";
+        } else if (element.iarNode.type === NodeType.CMakeLibraryGroup) {
+            item.iconPath = new Vscode.ThemeIcon("library");
+            item.contextValue = "group";
+        } else if (element.iarNode.type === NodeType.CMakeExecutableGroup) {
+            item.iconPath = new Vscode.ThemeIcon("server-process");
             item.contextValue = "group";
         }
         if (element.iarNode.isGenerated) {

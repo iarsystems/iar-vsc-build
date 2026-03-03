@@ -48,8 +48,8 @@ suite("Test CMake integration", function() {
         Assert.deepStrictEqual(configNames, expectedConfigNames);
 
         const rootNode = await loadedProject.getRootNode();
-        const targetGroup = rootNode.children.find(child => child.name === "SimpleProject [Executable]");
-        Assert(targetGroup, "Found no group named 'SimpleProject [Executable]'");
+        const targetGroup = rootNode.children.find(child => child.name === "SimpleProject");
+        Assert(targetGroup, "Found no group named 'SimpleProject'");
         Assert(targetGroup.children.some(child => child.name === "main.c"));
     });
 
@@ -87,7 +87,7 @@ suite("Test CMake integration", function() {
         Assert.deepStrictEqual(configNames, ["NewConfig"]);
 
         const rootNode = await loadedProject.getRootNode();
-        const targetGroup = rootNode.children.find(child => child.name === "SimpleProject [Executable]");
+        const targetGroup = rootNode.children.find(child => child.name === "SimpleProject");
         Assert(targetGroup);
         Assert(targetGroup.children.some(child => child.name === "secondfile.c"));
     });

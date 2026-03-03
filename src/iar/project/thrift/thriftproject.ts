@@ -7,7 +7,7 @@ import * as Path from "path";
 import * as Fs from "fs/promises";
 import * as ProjectManager from "iar-vsc-common/thrift/bindings/ProjectManager";
 import { ExtendedProject } from "../project";
-import { ProjectContext, Node, NodeType } from "iar-vsc-common/thrift/bindings/projectmanager_types";
+import { ProjectContext, Node, NodeType, Configuration as ThriftConfiguration } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { QtoPromise } from "../../../utils/promise";
 import { Workbench } from "iar-vsc-common/workbench";
 import Int64 = require("node-int64");
@@ -73,13 +73,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
                 });
             }
 
-            this.configurations = (await this.projectMgr.GetConfigurations(this.context)).map(thriftConfig => {
-                return {
-                    name: thriftConfig.name,
-                    targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
-                    isControlFileManaged: thriftConfig.isControlFileManaged,
-                };
-            });
+            this.configurations = (await this.projectMgr.GetConfigurations(this.context)).map(createConfigFromThrift);
             await this.updateControlFileWatchers();
         });
         this.fireChangedEvent();
@@ -172,20 +166,14 @@ export class ThriftProject implements ExtendedProject, Disposable {
         });
     }
 
-    public async isCmakeOrCmsisProject(): Promise<boolean> {
+    public isCmakeOrCmsisProject(): boolean {
         if (this.isCmakeOrCmsis === undefined) {
             // On older workbenches we treat cmake/cmsis projects like any other project
             // using control files, because the apis to manually configure projects are missing.
             if (!WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.ExternalProjectPlugins)) {
                 this.isCmakeOrCmsis = false;
             } else {
-                this.isCmakeOrCmsis = await this.performOperation(async() => {
-                    const results = await Promise.allSettled([
-                        this.projectMgr.HasControlFileFor(this.context, "CMake"),
-                        this.projectMgr.HasControlFileFor(this.context, "CMSIS-Toolbox"),
-                    ]);
-                    return results.some(res => res.status === "fulfilled" && res.value);
-                });
+                this.isCmakeOrCmsis = this.configurations.some(config => config.isCMakeProject);
             }
         }
         return this.isCmakeOrCmsis;
@@ -227,7 +215,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
     private async updateControlFileWatchers() {
         // These projects use a manually invoked 'configure' command instead of
         // updating on file changes.
-        if (await this.isCmakeOrCmsisProject()) {
+        if (this.isCmakeOrCmsisProject()) {
             return;
         }
 
@@ -302,7 +290,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
         }
 
         return this.performOperation(async() => {
-            if (!await this.isCmakeOrCmsisProject()) {
+            if (!this.isCmakeOrCmsisProject()) {
                 return;
             }
             await ProjectLock.runExclusive(this.path, async() => {
@@ -315,13 +303,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
     }
 
     private async updateProjectConfigurations() {
-        this.configurations = (await this.projectMgr.GetConfigurations(this.context)).map(thriftConfig => {
-            return {
-                name: thriftConfig.name,
-                targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
-                isControlFileManaged: thriftConfig.isControlFileManaged,
-            };
-        });
+        this.configurations = (await this.projectMgr.GetConfigurations(this.context)).map(createConfigFromThrift);
     }
 
     // Registers an operation (i.e. a thrift procedure call) that uses the project context. The operation will be
@@ -376,13 +358,7 @@ export namespace ThriftProject {
             }
         }
 
-        const configs = (await pm.GetConfigurations(context)).map(thriftConfig => {
-            return {
-                name: thriftConfig.name,
-                targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
-                isControlFileManaged: thriftConfig.isControlFileManaged,
-            };
-        });
+        const configs = (await pm.GetConfigurations(context)).map(createConfigFromThrift);
         let activeConfigName: string | undefined = undefined;
         if (WorkbenchFeatures.supportsFeature(owner, WorkbenchFeatures.GetSetCurrentConfiguration)) {
             activeConfigName = (await pm.GetCurrentConfiguration(context)).name;
@@ -433,4 +409,19 @@ function filterNewNodes(updated: Node, original: Node) {
         return origChild === undefined || filterNewNodes(child, origChild);
     });
     return updated.children.length > 0;
+}
+
+function createConfigFromThrift(thriftConfig: ThriftConfiguration): Config {
+    let isCMakeProject = false;
+    // The "isCMakeProject" property is called "isControlFileManaged" in older backends.
+    if ("isControlFileManaged" in thriftConfig) {
+        isCMakeProject = !!thriftConfig["isControlFileManaged"];
+    } else if (thriftConfig.isCMakeProject !== undefined) {
+        isCMakeProject = thriftConfig.isCMakeProject;
+    }
+    return {
+        name: thriftConfig.name,
+        targetId: Config.toolchainIdToTargetId(thriftConfig.toolchainId),
+        isCMakeProject,
+    };
 }

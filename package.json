@@ -2,7 +2,7 @@
   "name": "iar-build",
   "displayName": "IAR Build",
   "description": "Develop IAR projects with intellisense, C-STAT and build support.",
-  "version": "1.32.1",
+  "version": "1.32.2",
   "publisher": "iarsystems",
   "icon": "images/logo.png",
   "galleryBanner": {
@@ -431,7 +431,7 @@
             "type": "string"
           },
           "description": "Paths to search for IAR toolchain (IAR Embedded Workbench or IAR Build Tools) installations. This can be used to manually locate installations that are not found automatically.",
-          "scope": "machine",
+          "scope": "machine-overridable",
           "default": [
             "/opt/iarsystems",
             "/opt/iar",
@@ -460,7 +460,8 @@
             "__section_size(...)=((size_t)0)",
             "__segment_begin(...)=((void*)0)",
             "__segment_end(...)=((void*)0)",
-            "__segment_size(...)=((size_t)0)"
+            "__segment_size(...)=((size_t)0)",
+            "__DATA_MEMORY_LIST1__()="
           ]
         },
         "iar-build.c-stat.filterLevel": {
@@ -701,8 +702,8 @@
     }
   },
   "extensionDependencies": [
-    "ms-vscode.cpptools",
-    "iarsystems.iar-login"
+    "iarsystems.iar-login",
+    "ms-vscode.cpptools"
   ],
   "scripts": {
     "lint": "eslint . --ext .ts && markdownlint **/*.md --ignore node_modules",
@@ -717,7 +718,7 @@
     "@types/escape-html": "^1.0.1",
     "@types/jsdom": "^16.2.14",
     "@types/mocha": "^2.2.42",
-    "@types/node": "^15.6.0",
+    "@types/node": "^18.0.0",
     "@types/sanitize-html": "^2.6.2",
     "@types/thrift": "^0.10.9",
     "@types/uuid": "^8.3.1",
@@ -729,7 +730,7 @@
     "copy-webpack-plugin": "^12.0.2",
     "escape-html": "^1.0.3",
     "eslint": "^8.1.0",
-    "eslint-plugin-deprecation": "^1.3.2",
+    "eslint-plugin-deprecation": "^3.0.0",
     "husky": "^7.0.4",
     "jsdom": "^19.0.0",
     "lint-staged": "^15.2.9",
@@ -737,7 +738,7 @@
     "prettier": "^3.3.2",
     "prettier-eslint": "^16.3.0",
     "ts-loader": "^9.2.6",
-    "typescript": "^4.3.0",
+    "typescript": "^5.8.3",
     "webpack": "^5.68.0",
     "webpack-cli": "^4.9.2"
   },
@@ -748,7 +749,7 @@
     "csv-parse": "4.8.8",
     "escape-html": "^1.0.3",
     "fast-deep-equal": "2.0.1",
-    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#45feffc2",
+    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#ddc74689",
     "jsdom": "^19.0.0",
     "rxjs": "^7.5.2",
     "sanitize-html": "^2.6.1",

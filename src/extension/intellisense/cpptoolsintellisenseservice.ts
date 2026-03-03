@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import * as Vscode from "vscode";
+import * as path from "path";
 import { CustomConfigurationProvider, getCppToolsApi, Version, CppToolsApi, SourceFileConfiguration, SourceFileConfigurationItem, WorkspaceBrowseConfiguration } from "vscode-cpptools";
 import { LanguageUtils } from "../../utils/utils";
 import { Define } from "./data/define";
@@ -101,17 +102,9 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
             {
                 const cplusplus = defines.find(def => def.identifier === "__cplusplus");
                 if (cplusplus) {
-                    if (cplusplus.value && LANG_STANDARD_DEFINES[cplusplus.value]) {
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        standard = LANG_STANDARD_DEFINES[cplusplus.value]!;
-                    } else {
-                        standard = "c++17";
-                    }
+                    standard = tryGetCppStandard(defines) ?? "c++17";
                 } else {
-                    const stdcVersion = defines.find(def => def.identifier === "__STDC_VERSION__");
-                    if (stdcVersion && stdcVersion.value) {
-                        standard = LANG_STANDARD_DEFINES[stdcVersion.value] ?? "c11";
-                    }
+                    standard = tryGetCStandard(defines) ?? "c11";
                 }
             }
 
@@ -150,12 +143,19 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
         return Promise.resolve(true);
     }
     provideBrowseConfiguration(_token?: Vscode.CancellationToken | undefined): Promise<WorkspaceBrowseConfiguration> {
-        const config = this.intellisenseInfoProvider.provideBrowseInfo();
+        const config = this.intellisenseInfoProvider.provideFallbackInfo();
         const includes = config?.includes.concat(config.preincludes ?? []) ?? [];
         const defines = config?.defines ?? [];
         const standard = tryGetCStandard(defines) ?? tryGetCppStandard(defines) ?? "c11";
+
+        const browsePaths =
+            this.intellisenseInfoProvider.provideBrowseInfo()?.browsePaths ??
+            new Set<string>();
+        includes.forEach(inc => browsePaths.add(inc.absolutePath.toString()));
+
         return Promise.resolve({
-            browsePath: includes?.map(inc => inc.absolutePath.toString()),
+            // VSC-544 Adding "*" at the end stops cpptools from recursively searching directories
+            browsePath: Array.from(browsePaths).map(p => path.join(p, "*")),
             compilerPath: "",
             compilerArgs: [],
             standard,
@@ -182,7 +182,16 @@ function tryGetCStandard(defines: Define[]): LangStandard | undefined {
 }
 function tryGetCppStandard(defines: Define[]): LangStandard | undefined {
     const cppDefine = defines.find(def => def.identifier === "__cplusplus");
-    return cppDefine && cppDefine.value ? LANG_STANDARD_DEFINES[cppDefine.value] : undefined;
+    if (!cppDefine?.value) {
+        return undefined;
+    }
+    const isLibCpp = defines.some(def => def.identifier === "_LIBCPP");
+    if (isLibCpp) {
+        // VSC-542 IAR compilers support some c++20 features when using libc++,
+        // but still set __cplusplus to 201703L. Override it.
+        return "c++20";
+    }
+    return LANG_STANDARD_DEFINES[cppDefine.value];
 }
 const LANG_STANDARD_DEFINES: Record<string, LangStandard> = {
     "199409L": "c89",

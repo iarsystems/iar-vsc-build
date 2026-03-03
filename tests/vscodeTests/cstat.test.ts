@@ -102,8 +102,10 @@ suite("Test C-STAT", () => {
             // new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(9, 1)), "Return NULL"),
         ] },
         { message: "Array `arr' 1st subscript 4 is out of bounds [0,3]", code: "ARR-inv-index,MISRAC++2008-5-0-16_c,MISRAC2012-Rule-18.1_a,CERT-ARR30-C_a [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 8), relatedInformation: [] },
+        { message: "Array `arr' 1st subscript interval 4 may be out of bounds [0,3]", code: "ARR-inv-index-pos,MISRAC++2008-5-0-16_d,MISRAC2012-Rule-18.1_b,CERT-ARR30-C_b [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 8), relatedInformation: [] },
+        { message: "Array pointer `arr' is accessed with index 4 which may be out of array bounds [0,3]", code: "ARR-inv-index-ptr-pos,MISRAC++2008-5-0-16_f,MISRAC2012-Rule-18.1_d,CERT-ARR30-C_d [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 8), relatedInformation: [] },
         { message: "Missing return statement on some paths", code: "MISRAC++2008-8-4-3,MISRAC2004-16.8,MISRAC2012-Rule-17.4 [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(13, 5), relatedInformation: [
-            new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(13, 1)), "MISRAC++2008-8-4-3,MISRAC2004-16.8,MISRAC2012-Rule-17.4,SPC-return"),
+            new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(13, 1)), "MISRAC++2008-8-4-3,MISRAC2004-16.8,MISRAC2012-Rule-17.4,SPC-return,MISRAC++2023-9.6.5"),
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(23, 1)), "if (a) is false"),
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(14, 1)), "return"),
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(27, 1)), "End of function "),
@@ -116,8 +118,8 @@ suite("Test C-STAT", () => {
         { message: "`addOne' does not have a valid prototype, calls bypass all type checking", code: "FUNC-unprototyped-used [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(17, 11), relatedInformation: [] },
         { message: "A // style comment", code: "MISRAC2004-2.2 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(4, 1), relatedInformation: [] },
         { message: "A // style comment", code: "MISRAC2004-2.2 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(24, 5), relatedInformation: [] },
-        { message: "Definition of externally-linked `global' has no compatible declaration", code: "MISRAC2012-Rule-8.4 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(6, 5), relatedInformation: [] },
-        { message: "Definition of externally-linked `bad_fun()' has no compatible declaration", code: "MISRAC2012-Rule-8.4 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
+        { message: "Definition of externally-linked `global' has no compatible declaration", code: "MISRAC2012-Rule-8.4,MISRAC++2008-3-2-1 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(6, 5), relatedInformation: [] },
+        { message: "Definition of externally-linked `bad_fun()' has no compatible declaration", code: "MISRAC2012-Rule-8.4,MISRAC++2008-3-2-1 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
         { message: "`addOne' does not have a valid prototype", code: "MISRAC2004-8.1,MISRAC2012-Rule-17.3,CERT-DCL31-C [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(17, 11), relatedInformation: [] },
         { message: "Source file is not compiled in strict C89 mode without extensions", code: "MISRAC2004-1.1 [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(0, 0), relatedInformation: [] },
         { message: "`main' does not have a valid prototype", code: "MISRAC2004-16.5,MISRAC2012-Rule-8.2_a [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(13, 5), relatedInformation: [] },
@@ -125,7 +127,9 @@ suite("Test C-STAT", () => {
         { message: `Use of ${TestConfiguration.getConfiguration().cstatHeaderQuoting[0]}stdio.h${TestConfiguration.getConfiguration().cstatHeaderQuoting[1]} is not compliant`, code: "MISRAC++2008-27-0-1,MISRAC2004-20.9,MISRAC2012-Rule-21.6 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(1, 19), relatedInformation: [] },
         { message: "Externally-linked object or function `bad_fun' is referenced in only one translation unit", code: "MISRAC2004-8.10 [Low]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
         { message: "Found use of obsolescent language feature. 'main' does not have a valid prototype", code: "MISRAC2012-Rule-1.5_b [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(13, 5), relatedInformation: [] },
-        { message: "Found use of obsolescent language feature. 'bad_fun' does not have a valid prototype", code: "MISRAC2012-Rule-1.5_b [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] }
+        { message: "Found use of obsolescent language feature. 'bad_fun' does not have a valid prototype", code: "MISRAC2012-Rule-1.5_b [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
+        { message: "Function or object with external linkage `global' should be in a header file", code: "MISRAC++2008-3-3-1 [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(6, 5), relatedInformation: [] },
+        { message: "Function or object with external linkage `bad_fun()' should be in a header file", code: "MISRAC++2008-3-3-1 [Medium]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(8, 6), relatedInformation: [] },
     ];
 
     test("Run C-STAT on all listed EWs", async function() {
@@ -237,6 +241,7 @@ suite("Test C-STAT", () => {
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(14, 1)), "fn_return"),
         ] },
         { message: "Array `arr' 1st subscript 4 is out of bounds [0,3]", code: "ARR-inv-index,MISRAC++2008-5-0-16_c,MISRAC2012-Rule-18.1_a,CERT-ARR30-C_a [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 8), relatedInformation: [] },
+        { message: "Array `arr' 1st subscript interval 4 may be out of bounds [0,3]", code: "ARR-inv-index-pos,MISRAC++2008-5-0-16_d,MISRAC2012-Rule-18.1_b,CERT-ARR30-C_b [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(26, 8), relatedInformation: [] },
         { message: "Function call `bad_fun()' is immediately dereferenced, without checking for NULL", code: "PTR-null-fun-pos [High]", severity: Vscode.DiagnosticSeverity.Warning, range: makeRange(23, 18), relatedInformation: [
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(23, 1)), "if (a) is true"),
             new Vscode.DiagnosticRelatedInformation(new Vscode.Location(Vscode.Uri.file(srcFilePath), makePosition(23, 1)), "possible_null"),

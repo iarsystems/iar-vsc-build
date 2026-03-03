@@ -13,17 +13,17 @@ export interface Config {
      * workbench installation. */
     readonly targetId: string;
     /**
-     * Whether the configuration is managed entirely by a control file (e.g.
-     * CMake), and thus doesn't allow modifying project files or configurations.
+     * Whether the configuration belongs to a CMake project and thus doesn't
+     * allow modifying project files or configurations.
      */
-    readonly isControlFileManaged: boolean;
+    readonly isCMakeProject: boolean;
 }
 
 export namespace Config {
     export function equal(c1: Config, c2: Config): boolean {
         return c1.name === c2.name &&
             c1.targetId === c2.targetId &&
-            c1.isControlFileManaged === c2.isControlFileManaged;
+            c1.isCMakeProject === c2.isCMakeProject;
     }
 
     /**

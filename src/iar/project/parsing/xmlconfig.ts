@@ -11,7 +11,7 @@ import { Config } from "../config";
 export class XmlConfig implements Config {
     private readonly xml: XmlNode;
 
-    readonly isControlFileManaged  = false;
+    readonly isCMakeProject  = false;
 
     constructor(xmlConfigElement: XmlNode) {
         this.xml = xmlConfigElement;
