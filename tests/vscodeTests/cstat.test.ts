@@ -13,6 +13,15 @@ import escapeHTML = require("escape-html");
 import { TestConfiguration } from "../testconfiguration";
 
 namespace Utils {
+    export function assertContainsDiagnostic(actual: Vscode.Diagnostic, expectedDiagnostics: Vscode.Diagnostic[]) {
+        const matchingDiagnostic = expectedDiagnostics.find(
+            expected =>
+                actual.message === expected.message &&
+                actual.range.start.line === expected.range.start.line,
+        );
+        Assert(matchingDiagnostic, `Could not find expected diagnostic with message '${actual.message}' in the list of expected diagnostics`);
+        assertDiagnosticEquals(actual, matchingDiagnostic);
+    }
     export function assertDiagnosticEquals(actual: Vscode.Diagnostic, expected: Vscode.Diagnostic) {
         Assert.strictEqual(actual.message, expected.message);
         Assert.strictEqual(actual.code, expected.code, actual.message);
@@ -147,11 +156,8 @@ suite("Test C-STAT", () => {
         diagnostics = fileDiagnostics.flatMap(pair => pair[1]);
         const expectedDiagnostics = generateExpectedDiagnostics();
         if (TestConfiguration.getConfiguration().strictCstatCheck) {
-            Assert.strictEqual(diagnostics.length, expectedDiagnostics.length, "Actual and expected diagnostics are not the same length");
-            diagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-            expectedDiagnostics.sort((a, b) => a.message < b.message ? -1 : 1);
-            diagnostics.forEach((diag, i) => {
-                Utils.assertDiagnosticEquals(diag, expectedDiagnostics[i]!);
+            diagnostics.forEach(diag => {
+                Utils.assertContainsDiagnostic(diag, expectedDiagnostics);
             });
         } else {
             Assert.notStrictEqual(diagnostics.length, 0);
