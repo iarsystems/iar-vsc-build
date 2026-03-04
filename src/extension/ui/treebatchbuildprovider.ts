@@ -5,7 +5,7 @@
 import * as Vscode from "vscode";
 import { BehaviorSubject } from "rxjs";
 import { BatchBuildItem, BuildItem, ProjectContext } from "iar-vsc-common/thrift/bindings/projectmanager_types";
-import path = require("path");
+import * as path from "path";
 import { logger } from "iar-vsc-common/logger";
 import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 import { ErrorUtils } from "../../utils/utils";

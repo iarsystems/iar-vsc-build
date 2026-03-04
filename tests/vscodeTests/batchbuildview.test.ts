@@ -8,7 +8,7 @@ import { TestConfiguration } from "../testconfiguration";
 import { BatchBuildItemNode, BatchBuildNode } from "../../src/extension/ui/treebatchbuildprovider";
 import { ExtensionState } from "../../src/extension/extensionstate";
 import { EwwFile } from "../../src/iar/workspace/ewwfile";
-import path = require("path");
+import * as path from "path";
 import { VscodeTestsSetup } from "./setup";
 import { BatchBuild } from "../../src/extension/ui/batchbuildcommands";
 import { FsUtils } from "../../src/utils/fs";

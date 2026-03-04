@@ -52,7 +52,7 @@ export namespace IncludePath {
                     if (stat.isDirectory()) {
                         includes.push(new IncludePathImpl(p));
                     }
-                } catch (e) {
+                } catch {
                 }
             }
         } while (result);

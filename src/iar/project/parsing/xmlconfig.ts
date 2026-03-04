@@ -56,7 +56,7 @@ export namespace XmlConfig {
         xmlConfigs.forEach(config => {
             try {
                 configs.push(new XmlConfig(config));
-            } catch (e) {
+            } catch {
             }
         });
 

@@ -200,7 +200,7 @@ namespace Rendering {
         const loadSvg = (filename: string) => {
             try {
                 return Fs.readFileSync(vscode.Uri.joinPath(extensionUri, "media/icons", filename).fsPath, {encoding: "utf8"});
-            } catch (e) {
+            } catch {
                 logger.error("Failed to load icon: " + filename);
                 return "";
             }
