@@ -98,7 +98,7 @@ export class CpptoolsIntellisenseService implements CustomConfigurationProvider 
             // Temporary workaround for https://github.com/microsoft/vscode-cpptools/issues/9435
             defines = defines.filter(d => !["__EDG_VERSION__", "__EDG_SIZE_TYPE__", "__EDG_PTRDIFF_TYPE__", "__STDCPP_DEFAULT_NEW_ALIGNMENT__"].includes(d.identifier));
 
-            let standard: LangStandard = "c11";
+            let standard: LangStandard;
             {
                 const cplusplus = defines.find(def => def.identifier === "__cplusplus");
                 if (cplusplus) {
