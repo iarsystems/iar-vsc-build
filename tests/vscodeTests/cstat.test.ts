@@ -9,6 +9,7 @@ import { VscodeTestsUtils } from "./utils";
 import { OsUtils } from "iar-vsc-common/osUtils";
 import { VscodeTestsSetup } from "./setup";
 import { FsUtils } from "../../src/utils/fs";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 import escapeHTML = require("escape-html");
 import { TestConfiguration } from "../testconfiguration";
 
@@ -289,7 +290,7 @@ suite("Test C-STAT", () => {
 
     function formatDiagnostics(diagnostics: Array<[Vscode.Uri, Vscode.Diagnostic[]]>): string {
         return diagnostics.map(diag => {
-            diag[0].fsPath + ":\n" + diag[1].map(d => "    " + d.message).join("\n");
+            return diag[0].fsPath + ":\n" + diag[1].map(d => "    " + d.message).join("\n");
         }).join("\n");
     }
 });

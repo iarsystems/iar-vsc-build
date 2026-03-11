@@ -82,7 +82,7 @@ suite("Test Workbench Version Registry", () => {
             };
             Assert(WorkbenchFeatures.supportsFeature(mockEW, myFeature));
             Assert(!WorkbenchFeatures.supportsFeature(mockBX, myFeature));
-            myFeature.minProductType = WorkbenchType.EXTENDED_BX,
+            myFeature.minProductType = WorkbenchType.EXTENDED_BX;
             Assert(WorkbenchFeatures.supportsFeature(mockBX, myFeature));
         });
 

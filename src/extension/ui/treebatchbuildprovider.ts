@@ -5,7 +5,7 @@
 import * as Vscode from "vscode";
 import { BehaviorSubject } from "rxjs";
 import { BatchBuildItem, BuildItem, ProjectContext } from "iar-vsc-common/thrift/bindings/projectmanager_types";
-import path = require("path");
+import * as path from "path";
 import { logger } from "iar-vsc-common/logger";
 import { EwWorkspace } from "../../iar/workspace/ewworkspace";
 import { ErrorUtils } from "../../utils/utils";
@@ -75,8 +75,8 @@ export class TreeBatchBuildProvider implements Vscode.TreeDataProvider<BatchBuil
     private workspace: EwWorkspace | undefined;
 
     // The icons used by the tree.
-    private readonly batchLight: string = path.join(__filename, "../../../../media/icons/Batch-light.svg");
-    private readonly batchDark: string = path.join(__filename, "../../../../media/icons/Batch-dark.svg");
+    private readonly batchLight: Vscode.Uri = Vscode.Uri.file(path.join(__filename, "../../../../media/icons/Batch-light.svg"));
+    private readonly batchDark: Vscode.Uri = Vscode.Uri.file(path.join(__filename, "../../../../media/icons/Batch-dark.svg"));
 
     // Handler for packaging the drag item.
     handleDrag?(source: readonly BatchBuildNode[], dataTransfer: Vscode.DataTransfer, _token: Vscode.CancellationToken): void | Thenable<void> {

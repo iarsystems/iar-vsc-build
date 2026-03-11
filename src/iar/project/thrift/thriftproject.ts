@@ -10,6 +10,7 @@ import { ExtendedProject } from "../project";
 import { ProjectContext, Node, NodeType, Configuration as ThriftConfiguration } from "iar-vsc-common/thrift/bindings/projectmanager_types";
 import { QtoPromise } from "../../../utils/promise";
 import { Workbench } from "iar-vsc-common/workbench";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 import Int64 = require("node-int64");
 import { InformationMessage, InformationMessageType } from "../../../extension/ui/informationmessage";
 import { WorkbenchFeatures } from "iar-vsc-common/workbenchfeatureregistry";
@@ -111,7 +112,7 @@ export class ThriftProject implements ExtendedProject, Disposable {
                         findNodeByIndexPath(await this.getRootNode(), indexPath);
                     filterNewNodes(node, existingNode);
                 }
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 await this.projectMgr.SetNode(this.context, node);
             }
             this.fireChangedEvent();

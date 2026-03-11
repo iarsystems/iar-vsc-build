@@ -134,7 +134,6 @@ export class IntellisenseInfoService {
                 if (!this.keywordDefines.has(targetId)) {
                     await this.generateKeywordDefinesFor(targetId);
                 }
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 keywordDefines = this.keywordDefines.get(targetId) ?? [];
             }
             const settingsDefines = ExtensionSettings.getDefines().map(stringDefine => Define.fromString(stringDefine)); // user-defined extra macros

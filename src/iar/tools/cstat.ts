@@ -7,7 +7,7 @@
 import { BackupUtils, ProcessUtils } from "../../utils/utils";
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { join } from "path";
-import CsvParser = require("csv-parse/lib/sync");
+import { parse as parseCsv } from "csv-parse/sync";
 import * as Fs from "fs";
 import * as Path from "path";
 import { OsUtils } from "iar-vsc-common/osUtils";
@@ -178,12 +178,12 @@ export namespace CStat {
                             sqlProc.stdout.on("data", data => {
                                 output += data.toString();
                                 try {
-                                    const warnsRaw: string[][] = CsvParser(output);
+                                    const warnsRaw: string[][] = parseCsv(output);
                                     const warnings = warnsRaw.map(row => parseWarning(row));
                                     if (warnings.length === expectedRows) {
                                         resolve(warnings);  // We are done
                                     }
-                                } catch (e) { } // CsvParser will throw if we havent recieved all output yet
+                                } catch { } // CsvParser will throw if we havent recieved all output yet
                             });
                         } else {
                             resolve([]);

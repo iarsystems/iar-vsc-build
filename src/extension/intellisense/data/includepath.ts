@@ -39,7 +39,7 @@ export namespace IncludePath {
         const includes: IncludePath[] = [];
 
         const regex = /\$\$INC_BEGIN\s\$\$FILEPATH\s"([^"]*)/g;
-        let result: RegExpExecArray | null = null;
+        let result: RegExpExecArray | null;
         do {
             result = regex.exec(output);
 
@@ -52,7 +52,7 @@ export namespace IncludePath {
                     if (stat.isDirectory()) {
                         includes.push(new IncludePathImpl(p));
                     }
-                } catch (e) {
+                } catch {
                 }
             }
         } while (result);

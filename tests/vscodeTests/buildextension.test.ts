@@ -136,9 +136,8 @@ suite("Test build extension", ()=>{
         } else {
             ewpFile = path.join(path.join(Utils.EXTENSION_ROOT, "tests/vscodeTests/BasicProject", "BasicProject.ewp"));
         }
-        let id = 1;
         // Generate a testproject to build using the generic template
-        const testEwp = Utils.setupProject(id++, TestConfiguration.getConfiguration().target.toUpperCase(), ewpFile, sandbox);
+        const testEwp = Utils.setupProject(1, TestConfiguration.getConfiguration().target.toUpperCase(), ewpFile, sandbox);
         // Build the project.
         await Utils.runTask(testEwp, "Debug", "build");
         // Check that an output file has been created
