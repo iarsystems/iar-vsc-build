@@ -422,7 +422,7 @@
       "properties": {
         "iar-build.projectsToExclude": {
           "type": "string",
-          "markdownDescription": "All projects whose file path matches this regex will be ignored. An empty regex means no projects are ignored.",
+          "markdownDescription": "All projects whose file path matches this regex will be ignored. An empty regex means no projects are ignored. Note that this option only applies when opening folders without any workspace files (.eww).",
           "default": ""
         },
         "iar-build.iarInstallDirectories": {
