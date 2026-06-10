@@ -594,7 +594,7 @@
           },
           "workbench": {
             "type": "string",
-            "description": "The IAR Embedded Workbench IDE to use to open workspaces."
+            "description": "The IAR Embedded Workbench installation to use to open workspaces."
           },
           "builder": {
             "type": "string",
