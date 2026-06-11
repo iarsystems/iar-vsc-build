@@ -5,9 +5,10 @@
 
 
 import * as Vscode from "vscode";
-import { OsUtils } from "iar-vsc-common/osUtils";
-import { Workbench } from "iar-vsc-common/workbench";
+import { IarOsUtils, OsUtils } from "iar-vsc-common/osUtils";
 import { spawn } from "child_process";
+import * as fs from "fs";
+import * as path from "path";
 
 
 export namespace OpenTasks {
@@ -65,7 +66,7 @@ export namespace OpenTasks {
             label: label,
             type: "iar",
             command: "open",
-            workbench: "${command:iar-config.toolchain}/" + Workbench.ideSubPath,
+            workbench: "${command:iar-config.toolchain}",
             workspace: "${command:iar-config.workspace-file}",
             problemMatcher: []
         };
@@ -106,20 +107,50 @@ export class OpenTaskExecution implements Vscode.Pseudoterminal {
             this.onError("No Embedded Workbench path was specificed. Select a toolchain in the extension configuration, or configure the task manually.");
             return;
         }
+        const ideExe = this.resolveIdeExecutable(workbench);
+        if (typeof(ideExe) !== "string") {
+            this.onError(ideExe.error);
+            return;
+        }
+
         const workspace = this.definition["workspace"];
         if (workspace === undefined) {
             this.onError("No workspace path was specificed. Select a toolchain in the extension configuration, or configure the task manually.");
             return;
         }
 
-        this.writeEmitter.fire(`> '${workbench}' '${workspace}'\r\n`);
+        this.writeEmitter.fire(`> '${ideExe}' '${workspace}'\r\n`);
         // Note the 'detached'. We spawn the workbench and forget about it.
-        spawn(workbench, [workspace], { shell: false, detached: true });
+        spawn(ideExe, [workspace], { shell: false, detached: true });
         this.closeEmitter.fire(0);
     }
 
     close(): void {
         // Nothing to do
+    }
+
+    // Resolves the user-provided 'workbench' field to an IDE executable
+    private resolveIdeExecutable(workbenchPath: string): string | { error: string } {
+        if (!fs.existsSync(workbenchPath)) {
+            return { error: `'${workbenchPath}' does not exist.` };
+        }
+
+        const statRes = fs.statSync(workbenchPath);
+        if (statRes.isFile()) {
+            // Allow specifying an executable directly
+            return workbenchPath;
+        }
+        if (statRes.isDirectory()) {
+            const candidates = [
+                path.join(workbenchPath, "iaride" + IarOsUtils.executableExtension()),
+                path.join(workbenchPath, "IarIdePm" + IarOsUtils.executableExtension()),
+                path.join(workbenchPath, "common/bin/iaride" + IarOsUtils.executableExtension()),
+                path.join(workbenchPath, "common/bin/IarIdePm" + IarOsUtils.executableExtension()),
+            ];
+            const found = candidates.find(c => fs.existsSync(c));
+            return found ?? { error: "Found no IDE in the specified installation. Check that the path is correct and that it is not a Build Tools installation." };
+        }
+        return { error: "Workbench path is not a file or directory."};
     }
 
     private onError(reason: string | Error) {
