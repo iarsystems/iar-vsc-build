@@ -131,10 +131,14 @@ export class ThriftProject implements ExtendedProject, Disposable {
 
             const options = await this.projectMgr.GetOptionsForConfiguration(this.context, config);
             const outDir = options.find(option => option.id === "C-STAT.OutputDir")?.value;
-            if (outDir !== undefined) {
+            if (outDir === undefined) {
+                return Promise.reject(new Error("Could not find the correct C-STAT option."));
+            }
+            if (WorkbenchFeatures.supportsFeature(this.owner, WorkbenchFeatures.ExpandArgVars, fullConfig.targetId)) {
+                return this.projectMgr.ExpandArgVars(outDir, this.context, config, false);
+            } else {
                 return outDir;
             }
-            return Promise.reject(new Error("Could not find the correct C-STAT option."));
         });
     }
 
