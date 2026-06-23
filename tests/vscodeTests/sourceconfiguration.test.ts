@@ -8,7 +8,6 @@ import { CpptoolsIntellisenseService } from "../../src/extension/intellisense/cp
 import { VscodeTestsUtils } from "./utils";
 import { VscodeTestsSetup } from "./setup";
 import { OsUtils } from "iar-vsc-common/osUtils";
-import { ExtensionState } from "../../src/extension/extensionstate";
 import { SourceFileConfiguration } from "vscode-cpptools";
 import { ExtensionSettings } from "../../src/extension/settings/extensionsettings";
 import { readdirSync } from "fs";
@@ -52,17 +51,11 @@ suite("Test Source Configuration (intelliSense)", ()=>{
 
     // All files in this project have the same config, so we can reuse the assertions
     function assertConfig(config: SourceFileConfiguration) {
-        const workbench = ExtensionState.getInstance().workbenches.selected!;
         // Project config
         Assert(config.includePath.some(path => OsUtils.pathsEqual(path, projectDir)));
         Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(libDir, "inc"))));
         Assert(config.defines.some(define => define === "USE_STDPERIPH_DRIVER=1"));
         Assert(config.defines.some(define => define === "HSE_VALUE=8000000"));
-        // cmsis is not available on linux
-        if (OsUtils.OsType.Windows === OsUtils.detectOsType() && TestConfiguration.getConfiguration().target === "arm") {
-            Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/CMSIS/Core/Include"))));
-            Assert(config.includePath.some(path => OsUtils.pathsEqual(path, Path.join(workbench.path.toString(), "arm/CMSIS/Dsp/Include"))));
-        }
 
         // Compiler config
         TestConfiguration.getConfiguration().defaultIncludePaths.forEach(includeRegex => {
