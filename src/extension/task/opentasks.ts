@@ -5,7 +5,7 @@
 
 
 import * as Vscode from "vscode";
-import { IarOsUtils, OsUtils } from "iar-vsc-common/osUtils";
+import { IarOsUtils } from "iar-vsc-common/osUtils";
 import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
@@ -14,10 +14,6 @@ import * as path from "path";
 export namespace OpenTasks {
     export const OPEN_TASK_NAME = "Open Workspace in IAR Embedded Workbench";
     export function generateTasks(dstMap: Map<string, Vscode.Task>): void {
-        if (OsUtils.detectOsType() !== OsUtils.OsType.Windows) {
-            return; // VSC-216 We don't have a linux workbech GUI
-        }
-
         if (dstMap.get(OPEN_TASK_NAME) === undefined) {
             const task = generateTask(OPEN_TASK_NAME);
 
@@ -30,11 +26,6 @@ export namespace OpenTasks {
     }
 
     export function generateFromDefinition(definition: Vscode.TaskDefinition): Vscode.Task | undefined {
-        if (OsUtils.detectOsType() !== OsUtils.OsType.Windows) {
-            Vscode.window.showErrorMessage("Opening a workspace is only supported on windows.");
-            return; // VSC-216 We don't have a linux workbech GUI
-        }
-
         const command = definition["command"];
         const label = definition["label"];
 
