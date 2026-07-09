@@ -15,7 +15,6 @@ import { VscodeTestsUtils } from "./utils";
 import { readdir, rm } from "fs/promises";
 import { VscodeTestsSetup } from "./setup";
 import { FsUtils } from "../../src/utils/fs";
-import { OsUtils } from "iar-vsc-common/osUtils";
 import { TestConfiguration } from "../testconfiguration";
 import { BuildTaskDefinition, BuildTasks } from "../../src/extension/task/buildtasks";
 
@@ -112,10 +111,7 @@ suite("Test build extension", ()=>{
     } );
 
     test("Check IAR tasks exist", async()=>{
-        const taskToFind: string[] = [Utils.BUILD, Utils.REBUILD, Utils.CLEAN];
-        if (OsUtils.detectOsType() === OsUtils.OsType.Windows) {
-            taskToFind.push(Utils.OPEN);
-        }
+        const taskToFind: string[] = [Utils.BUILD, Utils.REBUILD, Utils.CLEAN, Utils.OPEN];
         // Needs to be awaited otherwise the fetchtasks does not return anything.
         await VscodeTestsUtils.activateProject("BasicDebugging");
 
