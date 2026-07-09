@@ -2,7 +2,7 @@
   "name": "iar-build",
   "displayName": "IAR Build",
   "description": "Develop IAR projects with intellisense, C-STAT and build support.",
-  "version": "1.32.2",
+  "version": "1.33.3",
   "publisher": "iarsystems",
   "icon": "images/logo.png",
   "galleryBanner": {
@@ -751,7 +751,7 @@
     "csv-parse": "^6.1.0",
     "escape-html": "^1.0.3",
     "fast-deep-equal": "2.0.1",
-    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#1a58b114",
+    "iar-vsc-common": "git@github.com:IARSystems/iar-vsc-common.git#019df9fb",
     "rxjs": "^7.5.2",
     "sanitize-html": "^2.6.1",
     "thrift": "^0.12.0",
