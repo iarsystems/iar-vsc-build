@@ -520,6 +520,14 @@
           "type": "boolean",
           "markdownDescription": "Automatically expand all groups in the `Files` view after loading a project",
           "default": true
+        },
+        "iar-build.workspaceFoldersToExclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Workspace folders to avoid writing the iar-vsc.json configuration file to. Can be a path or a folder name.",
+          "default": []
         }
       }
     },

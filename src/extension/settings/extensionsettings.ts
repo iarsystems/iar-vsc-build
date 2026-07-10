@@ -21,6 +21,7 @@ export namespace ExtensionSettings {
         ProjectsToExclude = "projectsToExclude",
         BuildOutputLogLevel = "buildOutputLogLevel",
         AutoExpandFileTree = "autoExpandFileTree",
+        WorkspaceFoldersTOExclude = "workspaceFoldersToExclude",
     }
 
     const section = "iar-build";
@@ -79,7 +80,7 @@ export namespace ExtensionSettings {
         const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.CstatShowInToolbar);
         return val ?? true;
     }
-    export function setCstatShowInToolbar(value:  boolean) {
+    export function setCstatShowInToolbar(value: boolean) {
         Vscode.workspace.getConfiguration(section).update(ExtensionSettingsField.CstatShowInToolbar, value);
     }
     export function getColorizeBuildOutput(): boolean {
@@ -106,5 +107,9 @@ export namespace ExtensionSettings {
     export function getAutoExpandFileTree(): boolean {
         const val = Vscode.workspace.getConfiguration(section).get<boolean>(ExtensionSettingsField.AutoExpandFileTree);
         return val ?? true;
+    }
+    export function getWorkspaceFoldersToExclude(): string[] {
+        const val = Vscode.workspace.getConfiguration(section).get<string[]>(ExtensionSettingsField.WorkspaceFoldersTOExclude);
+        return val ?? [];
     }
 }

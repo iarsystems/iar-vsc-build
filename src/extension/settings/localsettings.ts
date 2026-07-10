@@ -10,7 +10,9 @@ import { Config } from "../../iar/project/config";
 import { Project } from "../../iar/project/project";
 import { EwwFile } from "../../iar/workspace/ewwfile";
 import { logger } from "iar-vsc-common/logger";
+import { OsUtils } from "iar-vsc-common/osUtils";
 import { ErrorUtils } from "../../utils/utils";
+import { ExtensionSettings } from "./extensionsettings";
 
 /**
  * Handles settings that aren't VS Code extension settings. These are stored
@@ -26,14 +28,11 @@ export namespace LocalSettings {
     // folders.
 
     export function getSelectedWorkbench(): string | undefined {
-        if (!Vscode.workspace.workspaceFolders) {
-            return undefined;
-        }
-        return mapAndFindFirst(Vscode.workspace.workspaceFolders,
+        return mapAndFindFirst(activeWorkspaceFolders(),
             wsFolder => resolvePath(readSettings(wsFolder).workbench, wsFolder));
     }
     export function setSelectedWorkbench(workbench: Workbench) {
-        Vscode.workspace.workspaceFolders?.forEach(wsFolder => {
+        activeWorkspaceFolders().forEach(wsFolder => {
             const settings = readSettings(wsFolder);
             settings.workbench = encodePath(workbench.path, wsFolder);
             writeSettings(wsFolder, settings);
@@ -41,18 +40,11 @@ export namespace LocalSettings {
     }
 
     export function getSelectedWorkspace(): string | undefined {
-        if (!Vscode.workspace.workspaceFolders) {
-            return undefined;
-        }
-        return mapAndFindFirst(Vscode.workspace.workspaceFolders,
+        return mapAndFindFirst(activeWorkspaceFolders(),
             wsFolder => resolvePath(readSettings(wsFolder).workspace, wsFolder));
     }
     export function setSelectedWorkspace(workspace: EwwFile) {
-        if (!Vscode.workspace.workspaceFolders) {
-            return;
-        }
-
-        Vscode.workspace.workspaceFolders.forEach(wsFolder => {
+        activeWorkspaceFolders().forEach(wsFolder => {
             const settings = readSettings(wsFolder);
             settings.workspace = encodePath(workspace.path, wsFolder);
             writeSettings(wsFolder, settings);
@@ -60,12 +52,8 @@ export namespace LocalSettings {
     }
 
     export function getSelectedProject(workspace: EwwFile | undefined): string | undefined {
-        if (!Vscode.workspace.workspaceFolders) {
-            return undefined;
-        }
-
         if (!workspace) {
-            return mapAndFindFirst(Vscode.workspace.workspaceFolders,
+            return mapAndFindFirst(activeWorkspaceFolders(),
                 wsFolder => resolvePath(readSettings(wsFolder).project, wsFolder));
         } else {
             const wsFolder = Vscode.workspace.getWorkspaceFolder(Vscode.Uri.file(workspace.path));
@@ -80,12 +68,8 @@ export namespace LocalSettings {
         }
     }
     export function setSelectedProject(workspace: EwwFile | undefined, project: Project) {
-        if (!Vscode.workspace.workspaceFolders) {
-            return;
-        }
-
         if (!workspace) {
-            Vscode.workspace.workspaceFolders.forEach(wsFolder => {
+            activeWorkspaceFolders().forEach(wsFolder => {
                 const settings = readSettings(wsFolder);
                 settings.project = encodePath(project.path, wsFolder);
                 writeSettings(wsFolder, settings);
@@ -166,6 +150,17 @@ export namespace LocalSettings {
 
     function settingsFilePath(workspaceFolder: Vscode.WorkspaceFolder) {
         return Path.join(workspaceFolder.uri.fsPath, ".vscode", "iar-vsc.json");
+    }
+
+    function activeWorkspaceFolders(): readonly Vscode.WorkspaceFolder[] {
+        if (!Vscode.workspace.workspaceFolders) {
+            return [];
+        }
+        const excluded = ExtensionSettings.getWorkspaceFoldersToExclude();
+        return Vscode.workspace.workspaceFolders.filter(wsFolder => {
+            return !excluded.includes(wsFolder.name) &&
+                !excluded.some(excl => OsUtils.pathsEqual(excl, wsFolder.uri.fsPath));
+        });
     }
 
     // Maps the elements of arr and returns the first element that is
